@@ -1032,8 +1032,8 @@
         "v2_hash": "ae07b878",
         "v1_hash": "1d15930275545f16a94d19c4a9b67043d5667498",
         "intent": "DESIGN",
-        "necessary_context": "",
-        "hint": "extract interface",
+        "necessary_context": "Improve design and extensibility",
+        "hint": "Introduce the interface and default implementation of JobInfo and TaskInfo",
         "starting_files": [
             "flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java"
         ],
@@ -2182,8 +2182,8 @@
         "v2_hash": "40f76e16",
         "v1_hash": "1d45dd09045c2eb0dc406ce8216c9ab96111b581",
         "intent": "DESIGN",
-        "necessary_context": "",
-        "hint": "",
+        "necessary_context": "Improve design",
+        "hint": "Replace long list of parameters with an object.",
         "starting_files": [
             "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java",
             "flink-runtime/src/main/java/org/apache/flink/runtime/state/AbstractStateBackend.java"
@@ -15329,8 +15329,8 @@
         "v2_hash": "2839d065",
         "v1_hash": "cdf314d30b59994283e0bbf70f350618de02118c",
         "intent": "COSMETIC",
-        "necessary_context": "Distinguish channel and subpartition",
-        "hint": "names",
+        "necessary_context": "Distinguish between channel and subpartition, by renaming appropriate elements",
+        "hint": "Rename variables, parameters, fields, classes",
         "starting_files": [
             "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java",
             "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/TieredStorageSortBuffer.java"
@@ -21988,10 +21988,11 @@
         "v2_hash": "0e8b9808",
         "v1_hash": "c65d5f18ad5dfe91ca01bfda86d36f09ba11a78a",
         "intent": "DESIGN",
-        "necessary_context": "Modify subpartitionIndex to subpartitionIndexSet",
-        "hint": "",
+        "necessary_context": "Modify subpartitionIndex to subpartitionIndexSet (start to end index)",
+        "hint": "Encapsulate int in special object which contains start and end index information",
         "starting_files": [
-            "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java"
+            "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java",
+            "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/consumer/SingleInputGateFactory.java"
         ],
         "changes": [
             {
@@ -26867,7 +26868,7 @@
         "v1_hash": "fd673a2f46206ff65978f05fcb96b525696aead2",
         "intent": "DESIGN",
         "necessary_context": "Refactor classes related to window TVF aggregation to prepare for non-aligned windows",
-        "hint": "",
+        "hint": "Ex: Extend WindowProcessor instead of SlicingWindowProcessor. ",
         "starting_files": [
             "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/processors/AbstractWindowAggProcessor.java",
             "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/slicing/WindowTimerServiceImpl.java",
@@ -33652,8 +33653,8 @@
         "v2_hash": "7336788a",
         "v1_hash": "f9f9299f6e25080c6f869b46ec0bdc5e3e19e00d",
         "intent": "DESIGN",
-        "necessary_context": "",
-        "hint": "break up class",
+        "necessary_context": "break up class to improve design",
+        "hint": "introduce interface SerializerConfig",
         "starting_files": [
             "flink-core/src/main/java/org/apache/flink/api/common/ExecutionConfig.java"
         ],
@@ -34564,7 +34565,7 @@
         "v2_hash": "5c895aa6",
         "v1_hash": "533ead6ae946cbc77525d276b6dea965d390181a",
         "intent": "COSMETIC",
-        "necessary_context": "",
+        "necessary_context": "Improve cosmetics of code.",
         "hint": "Refactor the RestartStrategyType to reduce repeated magic string",
         "starting_files": [
             "flink-core/src/main/java/org/apache/flink/api/common/restartstrategy/RestartStrategies.java"
@@ -34578,7 +34579,7 @@
         "v1_hash": "02814f64a60599c56d037b38f573f7f0fb7fc20a",
         "intent": "DESIGN",
         "necessary_context": "Make Assembler more extensible",
-        "hint": "",
+        "hint": "introduce additional interfaces for design purposes.",
         "starting_files": [
             "Ghidra/Framework/SoftwareModeling/src/main/java/ghidra/app/plugin/assembler/Assembler.java",
             "Ghidra/Framework/SoftwareModeling/src/main/java/ghidra/app/plugin/assembler/AssemblerBuilder.java"
@@ -53644,8 +53645,8 @@
         "v2_hash": "856aa904",
         "v1_hash": "daca354c47d550f05a199985a72bf0ceaef2e234",
         "intent": "DESIGN",
-        "necessary_context": "",
-        "hint": "domain object event refactor",
+        "necessary_context": "domain object event type refactor",
+        "hint": "introduce enumerator",
         "starting_files": [
             "Ghidra/Framework/Project/src/main/java/ghidra/framework/model/DomainObject.java"
         ],
@@ -71524,7 +71525,7 @@
         "v2_hash": "93eed801",
         "v1_hash": "3cffe5c1685f9b72f6ce5114493105c5369b7b3d",
         "intent": "DESIGN",
-        "necessary_context": "",
+        "necessary_context": "Split class, capture utility functions",
         "hint": "",
         "starting_files": [
             "Ghidra/Features/Base/src/main/java/ghidra/app/util/bin/format/omf/OmfRecord.java"
@@ -78694,7 +78695,7 @@
         "v2_hash": "274217d7c8fafbce1681396f660ff76f49b28493",
         "v1_hash": "bf791dddddf8387ecd2c4e43b127eaceb509d5f6",
         "intent": "COSMETIC",
-        "necessary_context": "",
+        "necessary_context": "refactor of drag and drop interfaces",
         "hint": "",
         "starting_files": [
             "Ghidra/Framework/Docking/src/main/java/docking/dnd/Draggable.java",
