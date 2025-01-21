@@ -1,0 +1,800 @@
+[
+    {
+        "id": 1,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To migrate the test framework from JUnit to AssertJ in the provided Java test classes, we can follow these steps:\n\n1. Replace JUnit's `@Test` annotations with AssertJ's method references where applicable.\n2. Replace assertions from JUnit's `assertThat` with AssertJ's fluent assertions.\n3. Use AssertJ's assertion methods instead of those from Hamcrest, especially since AssertJ provides a more fluent and expressive API.\n\nHere are the updated classes, `ExceptionHistoryEntryTest.java` and `RootExceptionHistoryEntryTest.java`, with the changes integrated:\n\n### `ExceptionHistoryEntryTest.java`\n\n```java\npackage org.apache.flink.runtime.scheduler.exceptionhistory;\n\nimport org.apache.flink.runtime.executiongraph.AccessExecution;\nimport org.apache.flink.runtime.executiongraph.ErrorInfo;\nimport org.apache.flink.runtime.failure.FailureEnricherUtils;\nimport org.apache.flink.runtime.taskmanager.LocalTaskManagerLocation;\nimport org.apache.flink.runtime.taskmanager.TaskManagerLocation;\nimport org.apache.flink.util.TestLogger;\n\nimport org.assertj.core.api.Assertions;\nimport org.junit.Test;\n\nimport java.util.Collections;\nimport java.util.Map;\nimport java.util.concurrent.CompletableFuture;\n\nimport static org.apache.flink.runtime.scheduler.exceptionhistory.ArchivedTaskManagerLocationMatcher.isArchivedTaskManagerLocation;\n\n/** {@code ExceptionHistoryEntryTest} tests the creation of {@link ExceptionHistoryEntry}. */\npublic class ExceptionHistoryEntryTest extends TestLogger {\n\n    @Test\n    public void testCreate() {\n        final Throwable failure = new RuntimeException(\"Expected exception\");\n        final long timestamp = System.currentTimeMillis();\n        final TaskManagerLocation taskManagerLocation = new LocalTaskManagerLocation();\n        final AccessExecution execution =\n                TestingAccessExecution.newBuilder()\n                        .withErrorInfo(new ErrorInfo(failure, timestamp))\n                        .withTaskManagerLocation(taskManagerLocation)\n                        .build();\n        final String taskName = \"task name\";\n        final Map<String, String> failureLabels = Collections.singletonMap(\"key\", \"value\");\n\n        final ExceptionHistoryEntry entry =\n                ExceptionHistoryEntry.create(\n                        execution, taskName, CompletableFuture.completedFuture(failureLabels));\n\n        Assertions.assertThat(entry.getException().deserializeError(ClassLoader.getSystemClassLoader()))\n                .isEqualTo(failure);\n        Assertions.assertThat(entry.getTimestamp()).isEqualTo(timestamp);\n        Assertions.assertThat(entry.getFailingTaskName()).isEqualTo(taskName);\n        Assertions.assertThat(entry.getTaskManagerLocation())\n                .isEqualTo(isArchivedTaskManagerLocation(taskManagerLocation));\n        Assertions.assertThat(entry.isGlobal()).isFalse();\n        Assertions.assertThat(entry.getFailureLabels()).isEqualTo(failureLabels);\n    }\n\n    @Test\n    public void testCreationFailure() {\n        Assertions.assertThatThrownBy(() -> ExceptionHistoryEntry.create(\n                        TestingAccessExecution.newBuilder()\n                                .withTaskManagerLocation(new LocalTaskManagerLocation())\n                                .build(),\n                        \"task name\",\n                        FailureEnricherUtils.EMPTY_FAILURE_LABELS))\n                .isInstanceOf(IllegalArgumentException.class);\n    }\n\n    @Test\n    public void testNullExecution() {\n        Assertions.assertThatThrownBy(() -> ExceptionHistoryEntry.create(\n                        null, \"task name\", FailureEnricherUtils.EMPTY_FAILURE_LABELS))\n                .isInstanceOf(NullPointerException.class);\n    }\n\n    @Test\n    public void testNullTaskName() {\n        Assertions.assertThatThrownBy(() -> ExceptionHistoryEntry.create(\n                        TestingAccessExecution.newBuilder()\n                                .withErrorInfo(\n                                        new ErrorInfo(\n                                                new Exception(\"Expected failure\"),\n                                                System.currentTimeMillis()))\n                                .withTaskManagerLocation(new LocalTaskManagerLocation())\n                                .build(),\n                        null,\n                        FailureEnricherUtils.EMPTY_FAILURE_LABELS))\n                .isInstanceOf(NullPointerException.class);\n    }\n\n    @Test\n    public void testWithMissingTaskManagerLocation() {\n        final Exception failure = new Exception(\"Expected failure\");\n        final long timestamp = System.currentTimeMillis();\n        final String taskName = \"task name\";\n\n        final ExceptionHistoryEntry entry =\n                ExceptionHistoryEntry.create(\n                        TestingAccessExecution.newBuilder()\n                                .withTaskManagerLocation(null)\n                                .withErrorInfo(new ErrorInfo(failure, timestamp))\n                                .build(),\n                        taskName,\n                        FailureEnricherUtils.EMPTY_FAILURE_LABELS);\n\n        Assertions.assertThat(entry.getException().deserializeError(ClassLoader.getSystemClassLoader()))\n                .isEqualTo(failure);\n        Assertions.assertThat(entry.getTimestamp()).isEqualTo(timestamp);\n        Assertions.assertThat(entry.getFailingTaskName()).isEqualTo(taskName);\n        Assertions.assertThat(entry.getTaskManagerLocation()).isNull();\n        Assertions.assertThat(entry.isGlobal()).isFalse();\n    }\n}\n```\n\n### `RootExceptionHistoryEntryTest.java`\n\n```java\npackage org.apache.flink.runtime.scheduler.exceptionhistory;\n\nimport org.apache.flink.runtime.JobException;\nimport org.apache.flink.runtime.client.JobExecutionException;\nimport org.apache.flink.runtime.concurrent.ComponentMainThreadExecutorServiceAdapter;\nimport org.apache.flink.runtime.execution.ExecutionState;\nimport org.apache.flink.runtime.executiongraph.ExecutionGraph;\nimport org.apache.flink.runtime.executiongraph.ExecutionVertex;\nimport org.apache.flink.runtime.executiongraph.TaskExecutionStateTransition;\nimport org.apache.flink.runtime.executiongraph.TestingDefaultExecutionGraphBuilder;\nimport org.apache.flink.runtime.jobgraph.JobGraph;\nimport org.apache.flink.runtime.jobgraph.JobGraphTestUtils;\nimport org.apache.flink.runtime.jobmaster.TestingLogicalSlotBuilder;\nimport org.apache.flink.runtime.taskmanager.TaskExecutionState;\nimport org.apache.flink.testutils.TestingUtils;\nimport org.apache.flink.testutils.executor.TestExecutorResource;\nimport org.apache.flink.util.TestLogger;\n\nimport org.assertj.core.api.Assertions;\nimport org.hamcrest.collection.IsIterableContainingInAnyOrder;\nimport org.hamcrest.collection.IsIterableContainingInOrder;\nimport org.junit.Before;\nimport org.junit.ClassRule;\nimport org.junit.Test;\n\nimport java.util.Collections;\nimport java.util.Map;\nimport java.util.concurrent.CompletableFuture;\nimport java.util.concurrent.ExecutionException;\nimport java.util.concurrent.ScheduledExecutorService;\nimport java.util.stream.Collectors;\nimport java.util.stream.StreamSupport;\n\nimport static org.junit.Assert.assertThat;\n\n/**\n * {@code RootExceptionHistoryEntryTest} tests the creation of {@link RootExceptionHistoryEntry}.\n */\npublic class RootExceptionHistoryEntryTest extends TestLogger {\n    @ClassRule\n    public static final TestExecutorResource<ScheduledExecutorService> EXECUTOR_RESOURCE =\n            TestingUtils.defaultExecutorResource();\n\n    private ExecutionGraph executionGraph;\n\n    @Before\n    public void setup() throws JobException, JobExecutionException {\n        final JobGraph jobGraph = JobGraphTestUtils.singleNoOpJobGraph();\n        jobGraph.getVertices().forEach(v -> v.setParallelism(3));\n\n        executionGraph =\n                TestingDefaultExecutionGraphBuilder.newBuilder()\n                        .setJobGraph(jobGraph)\n                        .build(EXECUTOR_RESOURCE.getExecutor());\n        executionGraph.start(ComponentMainThreadExecutorServiceAdapter.forMainThread());\n    }\n\n    @Test\n    public void testFromFailureHandlingResultSnapshot()\n            throws ExecutionException, InterruptedException {\n        final Throwable rootException = new RuntimeException(\"Expected root failure\");\n        final ExecutionVertex rootExecutionVertex = extractExecutionVertex(0);\n        final long rootTimestamp = triggerFailure(rootExecutionVertex, rootException);\n        final CompletableFuture<Map<String, String>> rootFailureLabels =\n                CompletableFuture.completedFuture(Collections.singletonMap(\"key\", \"value\"));\n\n        final Throwable concurrentException = new IllegalStateException(\"Expected other failure\");\n        final ExecutionVertex concurrentlyFailedExecutionVertex = extractExecutionVertex(1);\n        final long concurrentExceptionTimestamp =\n                triggerFailure(concurrentlyFailedExecutionVertex, concurrentException);\n\n        final FailureHandlingResultSnapshot snapshot =\n                new FailureHandlingResultSnapshot(\n                        rootExecutionVertex.getCurrentExecutionAttempt(),\n                        rootException,\n                        rootTimestamp,\n                        rootFailureLabels,\n                        Collections.singleton(\n                                concurrentlyFailedExecutionVertex.getCurrentExecutionAttempt()));\n        final RootExceptionHistoryEntry actualEntry =\n                RootExceptionHistoryEntry.fromFailureHandlingResultSnapshot(snapshot);\n\n        Assertions.assertThat(actualEntry)\n                .isEqualTo(ExceptionHistoryEntryMatcher.matchesFailure(\n                        rootException,\n                        rootTimestamp,\n                        rootFailureLabels.get(),\n                        rootExecutionVertex.getTaskNameWithSubtaskIndex(),\n                        rootExecutionVertex.getCurrentAssignedResourceLocation()));\n        Assertions.assertThat(actualEntry.getConcurrentExceptions())\n                .containsExactlyInOrder(\n                        ExceptionHistoryEntryMatcher.matchesFailure(\n                                concurrentException,\n                                concurrentExceptionTimestamp,\n                                concurrentlyFailedExecutionVertex.getTaskNameWithSubtaskIndex(),\n                                concurrentlyFailedExecutionVertex.getCurrentAssignedResourceLocation()));\n    }\n\n    @Test\n    public void testFromGlobalFailure() throws ExecutionException, InterruptedException {\n        final Throwable concurrentException0 =\n                new RuntimeException(\"Expected concurrent failure #0\");\n        final ExecutionVertex concurrentlyFailedExecutionVertex0 = extractExecutionVertex(0);\n        final long concurrentExceptionTimestamp0 =\n                triggerFailure(concurrentlyFailedExecutionVertex0, concurrentException0);\n\n        final Throwable concurrentException1 =\n                new IllegalStateException(\"Expected concurrent failure #1\");\n        final ExecutionVertex concurrentlyFailedExecutionVertex1 = extractExecutionVertex(1);\n        final long concurrentExceptionTimestamp1 =\n                triggerFailure(concurrentlyFailedExecutionVertex1, concurrentException1);\n\n        final Throwable rootCause = new Exception(\"Expected root failure\");\n        final long rootTimestamp = System.currentTimeMillis();\n        final CompletableFuture<Map<String, String>> rootFailureLabels =\n                CompletableFuture.completedFuture(Collections.singletonMap(\"key\", \"value\"));\n        final RootExceptionHistoryEntry actualEntry =\n                RootExceptionHistoryEntry.fromGlobalFailure(\n                        rootCause,\n                        rootTimestamp,\n                        rootFailureLabels,\n                        StreamSupport.stream(\n                                        executionGraph.getAllExecutionVertices().spliterator(),\n                                        false)\n                                .map(ExecutionVertex::getCurrentExecutionAttempt)\n                                .collect(Collectors.toSet()));\n\n        Assertions.assertThat(actualEntry)\n                .isEqualTo(ExceptionHistoryEntryMatcher.matchesGlobalFailure(\n                        rootCause, rootTimestamp, rootFailureLabels.get()));\n        Assertions.assertThat(actualEntry.getConcurrentExceptions())\n                .containsExactlyInAnyOrder(\n                        ExceptionHistoryEntryMatcher.matchesFailure(\n                                concurrentException0,\n                                concurrentExceptionTimestamp0,\n                                concurrentlyFailedExecutionVertex0.getTaskNameWithSubtaskIndex(),\n                                concurrentlyFailedExecutionVertex0.getCurrentAssignedResourceLocation()),\n                        ExceptionHistoryEntryMatcher.matchesFailure(\n                                concurrentException1,\n                                concurrentExceptionTimestamp1,\n                                concurrentlyFailedExecutionVertex1.getTaskNameWithSubtaskIndex(),\n                                concurrentlyFailedExecutionVertex1.getCurrentAssignedResourceLocation()));\n    }\n\n    private long triggerFailure(ExecutionVertex executionVertex, Throwable throwable) {\n        executionGraph.updateState(\n                new TaskExecutionStateTransition(\n                        new TaskExecutionState(\n                                executionVertex.getCurrentExecutionAttempt().getAttemptId(),\n                                ExecutionState.FAILED,\n                                throwable)));\n\n        return executionVertex\n                .getFailureInfo()\n                .orElseThrow(\n                        () ->\n                                new IllegalArgumentException(\n                                        \"The transition into failed state didn't succeed for ExecutionVertex \"\n                                                + executionVertex.getID()\n                                                + \".\"))\n                .getTimestamp();\n    }\n\n    private ExecutionVertex extractExecutionVertex(int pos) {\n        final ExecutionVertex executionVertex =\n                Iterables.get(executionGraph.getAllExecutionVertices(), pos);\n        executionVertex.tryAssignResource(\n                new TestingLogicalSlotBuilder().createTestingLogicalSlot());\n\n        return executionVertex;\n    }\n}\n```\n\n### Key Changes Made:\n\n- Replaced `org.junit.Assert` assertions with `org.assertj.core.api.Assertions` for a more fluent approach.\n- Used exception assertions using `AssertJ` to validate thrown exceptions.\n- Eliminated the use of Hamcrest assertions where AssertJ provides a direct alternative.\n\nThis migration not only modernizes the test code but also improves readability and maintenance.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 2377,
+                        "prompt_tokens": 2560,
+                        "total_tokens": 4937,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-475b9521-dbde-4398-9812-63bf623c0afa-0",
+                "usage_metadata": {
+                    "input_tokens": 2560,
+                    "output_tokens": 2377,
+                    "total_tokens": 4937,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 2,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To improve the design and extensibility of the `TaskInfo` class in the provided Java code, we can adopt several best practices and patterns. These changes could include implementing immutability, enhancing encapsulation, improving validation logic, and facilitating extensibility with an additional builder pattern. Here are some suggested modifications:\n\n### Revised Code:\n\n```java\npackage org.apache.flink.api.common;\n\nimport org.apache.flink.annotation.Internal;\n\nimport static org.apache.flink.util.Preconditions.checkArgument;\nimport static org.apache.flink.util.Preconditions.checkNotNull;\n\n/**\n * Encapsulates task-specific information: name, index of subtask, parallelism, attempt number, and allocation ID.\n */\n@Internal\npublic final class TaskInfo {\n\n    private final String taskName;\n    private final String taskNameWithSubtasks;\n    private final String allocationIDAsString;\n    private final int maxNumberOfParallelSubtasks;\n    private final int indexOfSubtask;\n    private final int numberOfParallelSubtasks;\n    private final int attemptNumber;\n\n    private TaskInfo(Builder builder) {\n        this.taskName = builder.taskName;\n        this.maxNumberOfParallelSubtasks = builder.maxNumberOfParallelSubtasks;\n        this.indexOfSubtask = builder.indexOfSubtask;\n        this.numberOfParallelSubtasks = builder.numberOfParallelSubtasks;\n        this.attemptNumber = builder.attemptNumber;\n        this.allocationIDAsString = builder.allocationIDAsString != null ? builder.allocationIDAsString : \"UNKNOWN\";\n\n        validate();\n\n        this.taskNameWithSubtasks = String.format(\"%s (%d/%d)#%d\",\n                taskName,\n                indexOfSubtask + 1,\n                numberOfParallelSubtasks,\n                attemptNumber);\n    }\n\n    private void validate() {\n        checkArgument(indexOfSubtask >= 0, \"Task index must be a non-negative number.\");\n        checkArgument(maxNumberOfParallelSubtasks >= 1, \"Max parallelism must be a positive number.\");\n        checkArgument(maxNumberOfParallelSubtasks >= numberOfParallelSubtasks, \"Max parallelism must be >= to parallelism.\");\n        checkArgument(numberOfParallelSubtasks >= 1, \"Parallelism must be a positive number.\");\n        checkArgument(indexOfSubtask < numberOfParallelSubtasks, \"Task index must be less than parallelism.\");\n        checkArgument(attemptNumber >= 0, \"Attempt number must be a non-negative number.\");\n    }\n\n    public static Builder builder(String taskName, int maxNumberOfParallelSubtasks, int indexOfSubtask) {\n        return new Builder(taskName, maxNumberOfParallelSubtasks, indexOfSubtask);\n    }\n\n    public String getTaskName() {\n        return taskName;\n    }\n\n    public int getMaxNumberOfParallelSubtasks() {\n        return maxNumberOfParallelSubtasks;\n    }\n\n    public int getIndexOfThisSubtask() {\n        return indexOfSubtask;\n    }\n\n    public int getNumberOfParallelSubtasks() {\n        return numberOfParallelSubtasks;\n    }\n\n    public int getAttemptNumber() {\n        return attemptNumber;\n    }\n\n    public String getTaskNameWithSubtasks() {\n        return taskNameWithSubtasks;\n    }\n\n    public String getAllocationIDAsString() {\n        return allocationIDAsString;\n    }\n\n    public static final class Builder {\n        private final String taskName;\n        private final int maxNumberOfParallelSubtasks;\n        private final int indexOfSubtask;\n        private int numberOfParallelSubtasks = 1; // default value\n        private int attemptNumber = 0; // default value\n        private String allocationIDAsString;\n\n        private Builder(String taskName, int maxNumberOfParallelSubtasks, int indexOfSubtask) {\n            this.taskName = checkNotNull(taskName, \"Task Name must not be null.\");\n            this.maxNumberOfParallelSubtasks = maxNumberOfParallelSubtasks;\n            this.indexOfSubtask = indexOfSubtask;\n        }\n\n        public Builder numberOfParallelSubtasks(int numberOfParallelSubtasks) {\n            this.numberOfParallelSubtasks = numberOfParallelSubtasks;\n            return this;\n        }\n\n        public Builder attemptNumber(int attemptNumber) {\n            this.attemptNumber = attemptNumber;\n            return this;\n        }\n\n        public Builder allocationIDAsString(String allocationIDAsString) {\n            this.allocationIDAsString = allocationIDAsString;\n            return this;\n        }\n\n        public TaskInfo build() {\n            return new TaskInfo(this);\n        }\n    }\n}\n```\n\n### Key Changes:\n\n1. **Builder Pattern**: Introduced a Builder class to facilitate the creation of `TaskInfo` instances. This allows for more flexible and readable code when constructing objects with many parameters.\n\n2. **Validation Logic**: The validation logic is extracted into a separate method (`validate()`), enhancing both clarity and maintainability.\n\n3. **Immutability**: The class is declared `final`, enforcing that it cannot be subclassed. Immutable fields are initialized in a constructor, ensuring the state can't change after construction.\n\n4. **Nullable Handling**: The logic for handling the `allocationIDAsString` is improved to default to \"UNKNOWN\" when not provided, making parameter assignment clearer.\n\n5. **Default Values**: The builder provides default values for optional parameters like `numberOfParallelSubtasks` and `attemptNumber`, ensuring sensible defaults. \n\n6. **Code Organization**: Overall organization and readability improvements were made, including the use of `String.format()` for constructing complex strings.\n\n7. **Javadoc Improvements**: Adding more context to method documentation can help both future developers and API users understand how to properly utilize the class. \n\nBy implementing these changes, the `TaskInfo` class becomes easier to extend and use in various contexts, adheres to clean code practices, and provides a more user-friendly interface.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 1207,
+                        "prompt_tokens": 1244,
+                        "total_tokens": 2451,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-f56f7509-5510-4bc2-896f-a7c8e4e95d42-0",
+                "usage_metadata": {
+                    "input_tokens": 1244,
+                    "output_tokens": 1207,
+                    "total_tokens": 2451,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 3,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "Improving the design of the given Java code in the `StateBackend` and `AbstractStateBackend` interfaces can enhance readability, maintainability, and flexibility. Here are several suggestions for design improvements:\n\n### 1. Use of Interfaces and Implementation Classes\n\n- **Separate Concerns**: Since `StateBackend` appears to define behaviors for state management, you could further segregate concerns by defining more specific interfaces for `KeyedStateBackend` and `OperatorStateBackend`. This could help in implementing different backend mechanisms more cohesively.\n\n### 2. Dependency Injection\n\n- **Pass Dependencies via Constructor**: Instead of passing all configuration options, environment objects, and serializers in method parameters, consider creating configuration objects. This makes it easier to manage and extend configurations while improving readability.\n\n```java\npublic class StateBackendConfig {\n    private final Environment env;\n    private final JobID jobID;\n    // Other configurations...\n\n    // Constructor, Getters, and Setters...\n}\n```\n\n### 3. Organization of Exceptions\n\n- **Exception Handling**: Instead of allowing all exceptions to bubble up, consider defining your custom exceptions (such as `StateBackendException`) to indicate issues specific to the state management logic. This helps in handling errors related to state backends in a more centralized manner.\n\n### 4. Improve the Use of Generics\n\n- **Type Constraints**: If you have specific use cases for `K` (for example, if `K` must extend a particular class), include those constraints to provide better type safety.\n\n### 5. Using Optional Parameters\n\n- **Builder Pattern**: For optional parameters (like `managedMemoryFraction`), consider using the builder pattern. This improves code readability and usability.\n\n```java\npublic class StateBackendBuilder<K> {\n    private double managedMemoryFraction = 0.0; // default value\n    // Other builder attributes...\n    \n    public StateBackendBuilder<K> withManagedMemoryFraction(double fraction) {\n        this.managedMemoryFraction = fraction;\n        return this;\n    }\n    \n    public StateBackend build() {\n        // return the configured state backend instance.\n    }\n}\n```\n\n### 6. Documentation and Comments\n\n- **JavaDoc Enhancements**: Ensure the JavaDoc is complete and provides clear descriptions without redundancy. Consider using more examples to illustrate complex methods.\n\n### 7. Optional Features\n\n- **Feature Flags**: If there are features that are not uniformly implemented (like the `supportsNoClaimRestoreMode` method), implement feature flags or strategy objects for more scalable and clear management.\n\n### 8. Factory Methods\n\n- **Static Factory Methods**: Rather than relying solely on constructors, consider using static factory methods for creation. This could enable better control over the creation process, such as logging or validation.\n\n### 9. Enhanced Thread Safety\n\n- **Concurrent Context**: Make sure to document thread safety in detail within the interface or superclass by using annotations or dedicated comments indicating which methods are thread-safe and which are not.\n\n### 10. Optimize Imports\n\n- **Remove Unused Imports**: Remove any unused imports or dependencies in the code to clean up the interface.\n\n### Example Revised Code Snippet\n\nHere is an example of how you can organize some of these suggestions:\n\n```java\n@PublicEvolving\npublic interface StateBackend extends java.io.Serializable {\n    \n    // Method declarations...\n    \n    /**\n     * Creates a new {@link CheckpointableKeyedStateBackend} responsible for holding \n     * keyed state and checkpointing it.\n     * \n     * @param builder Configuration object containing parameters required to create \n     * the Keyed State Backend.\n     * @return A configured instance of {@link CheckpointableKeyedStateBackend}.\n     * @throws StateBackendException If backend creation fails.\n     */\n    <K> CheckpointableKeyedStateBackend<K> createKeyedStateBackend(StateBackendConfig builder)\n        throws StateBackendException;\n}\n```\n\nBy adopting these design principles, you can make the architecture more robust, modular, and easier to maintain in the long run.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 827,
+                        "prompt_tokens": 2650,
+                        "total_tokens": 3477,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-95304806-99da-4b7f-adb8-d02f9553abb0-0",
+                "usage_metadata": {
+                    "input_tokens": 2650,
+                    "output_tokens": 827,
+                    "total_tokens": 3477,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 4,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To improve the Java code and distinguish between channel and subpartition, we need to rename elements that deal with \"subpartition\" and \"channel\" so that the names are more representative of their roles and purposes. Additionally, we can apply general best practices such as adding comments, improving code clarity, and ensuring consistent naming conventions. Below are suggested changes with explanations:\n\n### Suggested Code Changes\n\n#### Renaming Elements for Clarity\n\n1. **Class and Variable Renaming**\n\n   Change the term `subpartition` to `subPartition`, and `channel` to `channelIndex` where applicable to reflect their context better.\n\n```java\n// Original declaration\nprivate final int numSubpartitions;\n// Updated declaration\nprivate final int numSubPartitions;\n```\n   \n2. **Method Parameter Renaming**\n\n   Update method parameters and variable names in the method to maintain clarity regarding \"subpartition\":\n\n```java\n@Override\npublic void receive(\n        ByteBuffer record,\n        TieredStorageSubpartitionId subpartitionId, // Original\n        Buffer.DataType dataType,\n        boolean isBroadcast)\n        throws IOException {\n    int targetSubpartition = subpartitionId.getSubpartitionId(); // Original\n    // Updated\n    int targetSubPartition = subpartitionId.getSubPartitionId();\n}\n```\n\n3. **BufferWithChannel Naming**\n\n   Since it's holding a reference to the channel, rename it to clarify as well:\n\n```java\nprivate void flushBuffer(BufferWithChannel bufferWithChannel) {\n    checkNotNull(accumulatedBufferFlusher)\n            .accept(\n                    new TieredStorageSubpartitionId(bufferWithChannel.getChannelIndex()),\n                    Collections.singletonList(bufferWithChannel.getBuffer()));\n}\n```\n\n4. **Change `TieredStorageSubpartitionId` Where Necessary**\n\n   If the `TieredStorageSubpartitionId` class itself contains references or methods that are direct mentions of `subpartition`, reflect appropriate changes there too, if possible.\n\n#### Updated Code Example\n\nAfter renaming relevant elements, an updated segment of the code looks as follows:\n\n```java\n// Example (substitution shown for context)\npublic class SortBufferAccumulator implements BufferAccumulator {\n\n    /** The number of the sub-partitions. */\n    private final int numSubPartitions;\n\n    ...\n\n    @Override\n    public void receive(\n            ByteBuffer record,\n            TieredStorageSubpartitionId subPartitionId,\n            Buffer.DataType dataType,\n            boolean isBroadcast) throws IOException {\n            \n        int targetSubPartition = subPartitionId.getSubPartitionId();\n        ...\n    }\n\n    private void flushBuffer(BufferWithChannel bufferWithChannel) {\n        checkNotNull(accumulatedBufferFlusher)\n                .accept(\n                        new TieredStorageSubpartitionId(bufferWithChannel.getChannelIndex()),\n                        Collections.singletonList(bufferWithChannel.getBuffer()));\n    }\n    \n    // Rest of the code remains unchanged.\n}\n```\n\n### Additional Recommendations:\n\n1. **Documentation Comments**\n\n   Enhance the documentation comments for each public method to clarify the expected behavior, parameters, and potential exceptions. This will improve maintainability.\n\n2. **Code Formatting and Readability**\n\n   Ensure consistent indentation and space usage throughout the code. For instance, after public methods, one can use a newline for better separation of logical blocks.\n\n3. **Introduce Enums or Constants**\n\n   If there are repeat usages of specific values or settings for the buffer or partition, consider introducing enums for clarity and maintainability.\n\nBy applying these changes, the code becomes clearer regarding its structure and purpose, and the distinction between key concepts (channel vs. subpartition) is reinforced through clearer naming conventions.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 730,
+                        "prompt_tokens": 3149,
+                        "total_tokens": 3879,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-d499010a-325d-40b3-b8d9-3f03d2b92009-0",
+                "usage_metadata": {
+                    "input_tokens": 3149,
+                    "output_tokens": 730,
+                    "total_tokens": 3879,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 5,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To modify the `subpartitionIndex` to `subpartitionIndexSet` in the `ResultPartitionManager` class and its usages in the related `SingleInputGateFactory` class, we need to accomplish a few tasks:\n\n1. **Change the method signatures** in the `ResultPartitionManager` that currently use `subpartitionIndex` to accept new parameters that define the start and end indices of the subpartition index set.\n2. **Modify the logic** inside those methods to accommodate the array or range of subpartition indices.\n3. **Update the necessary places in the `SingleInputGateFactory`** to ensure that it correctly interacts with the new structure.\n4. **Update any method calls and handling procedures** regarding subpartition indices.\n\nBelow is an updated code reflecting the aforementioned changes:\n\n### ResultPartitionManager.java\n\n```java\n@Override\npublic ResultSubpartitionView createSubpartitionView(\n        ResultPartitionID partitionId,\n        int startIndex,\n        int endIndex,\n        BufferAvailabilityListener availabilityListener)\n        throws IOException {\n    \n    final ResultSubpartitionView subpartitionView;\n    synchronized (registeredPartitions) {\n        final ResultPartition partition = registeredPartitions.get(partitionId);\n\n        if (partition == null) {\n            throw new PartitionNotFoundException(partitionId);\n        }\n\n        LOG.debug(\"Requesting subpartition range {} to {} of {}.\", startIndex, endIndex, partition);\n\n        subpartitionView = partition.createSubpartitionView(startIndex, endIndex, availabilityListener);\n    }\n\n    return subpartitionView;\n}\n\n@Override\npublic Optional<ResultSubpartitionView> createSubpartitionViewOrRegisterListener(\n        ResultPartitionID partitionId,\n        int startIndex,\n        int endIndex,\n        BufferAvailabilityListener availabilityListener,\n        PartitionRequestListener partitionRequestListener)\n        throws IOException {\n\n    final ResultSubpartitionView subpartitionView;\n    synchronized (registeredPartitions) {\n        final ResultPartition partition = registeredPartitions.get(partitionId);\n\n        if (partition == null) {\n            listenerManagers\n                    .computeIfAbsent(partitionId, key -> new PartitionRequestListenerManager())\n                    .registerListener(partitionRequestListener);\n            subpartitionView = null;\n        } else {\n            LOG.debug(\"Requesting subpartition range {} to {} of {}.\", startIndex, endIndex, partition);\n            subpartitionView = partition.createSubpartitionView(startIndex, endIndex, availabilityListener);\n        }\n    }\n\n    return subpartitionView == null ? Optional.empty() : Optional.of(subpartitionView);\n}\n```\n\n### SingleInputGateFactory.java\n\nNow updating the `SingleInputGateFactory` to call the modified methods:\n\n```java\npublic SingleInputGate create(\n        @Nonnull ShuffleIOOwnerContext owner,\n        int gateIndex,\n        @Nonnull InputGateDeploymentDescriptor igdd,\n        @Nonnull PartitionProducerStateProvider partitionProducerStateProvider,\n        @Nonnull InputChannelMetrics metrics) {\n    ...\n    \n    IndexRange subpartitionIndexRange = igdd.getConsumedSubpartitionIndexRange();\n    SingleInputGate inputGate =\n            new SingleInputGate(\n                    owningTaskName,\n                    gateIndex,\n                    igdd.getConsumedResultId(),\n                    igdd.getConsumedPartitionType(),\n                    calculateNumChannels(\n                            igdd.getShuffleDescriptors().length, subpartitionIndexRange),\n                    partitionProducerStateProvider,\n                    bufferPoolFactory,\n                    bufferDecompressor,\n                    networkBufferPool,\n                    networkBufferSize,\n                    new ThroughputCalculator(SystemClock.getInstance()),\n                    maybeCreateBufferDebloater(\n                            owningTaskName, gateIndex, networkInputGroup.addGroup(gateIndex)));\n\n    createInputChannelsAndTieredStorageService(\n            owningTaskName, igdd, inputGate, subpartitionIndexRange, gateBuffersSpec, metrics);\n    return inputGate;\n}\n\nprivate void createInputChannelsAndTieredStorageService(\n        String owningTaskName,\n        InputGateDeploymentDescriptor inputGateDeploymentDescriptor,\n        SingleInputGate inputGate,\n        IndexRange subpartitionIndexRange,\n        GateBuffersSpec gateBuffersSpec,\n        InputChannelMetrics metrics) {\n    ShuffleDescriptor[] shuffleDescriptors =\n            inputGateDeploymentDescriptor.getShuffleDescriptors();\n\n    ...\n    \n    for (ShuffleDescriptor descriptor : shuffleDescriptors) {\n        TieredStoragePartitionId partitionId =\n                TieredStorageIdMappingUtils.convertId(descriptor.getResultPartitionID());\n        for (int subpartitionIndex = subpartitionIndexRange.getStartIndex();\n                subpartitionIndex <= subpartitionIndexRange.getEndIndex();\n                ++subpartitionIndex) {\n\n            inputChannels[channelIdx] =\n                    createInputChannel(\n                            inputGate,\n                            channelIdx,\n                            gateBuffersSpec.getEffectiveExclusiveBuffersPerChannel(),\n                            descriptor,\n                            subpartitionIndex, // This index is now set from the range\n                            channelStatistics,\n                            metrics);\n            ...\n\n            channelIdx++;\n        }\n    }\n\n    inputGate.setInputChannels(inputChannels);\n\n    ...\n}\n```\n\n### Additional Considerations\n\n- Make sure that the `ResultPartition` class and any relevant methods related to subpartitions are adapted to handle a range of indices.\n- Adjust others' implementations based on how you intend to use the range of indices (e.g., creating subpartition views, buffering logic, etc.).\n- Consider adding checks to ensure valid indices are being requested within the bounds of available subpartitions for the respective partitions.\n- Ensure that your changes are accompanied by appropriate unit tests to validate the new behaviors and ensure existing functionality is unaffected.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 1103,
+                        "prompt_tokens": 5076,
+                        "total_tokens": 6179,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-fc8b6efe-c578-493f-971d-b9f1c706a88f-0",
+                "usage_metadata": {
+                    "input_tokens": 5076,
+                    "output_tokens": 1103,
+                    "total_tokens": 6179,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 6,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "Refactoring code related to window aggregation in Apache Flink to accommodate non-aligned windows requires a clear separation of concerns, improving modularity, and enhancing readability. Here\u2019s a suggested refactor of the relevant classes, promoting good software design principles while preparing for future non-aligned window support.\n\n### 1. Introduce a Base Class for Window Processing\n\nWe can start by introducing an abstract base class that encapsulates common functionalities for both shared and unshared window aggregators:\n\n```java\npublic abstract class BaseWindowAggProcessor {\n    protected final GeneratedNamespaceAggsHandleFunction<Long> genAggsHandler;\n    protected final WindowBuffer.Factory windowBufferFactory;\n    protected final TypeSerializer<RowData> accSerializer;\n    protected final SliceAssigner sliceAssigner;\n\n    protected transient NamespaceAggsHandleFunction<Long> aggregator;\n    protected transient WindowBuffer windowBuffer;\n    protected transient WindowValueState<Long> windowState;\n\n    public BaseWindowAggProcessor(\n            GeneratedNamespaceAggsHandleFunction<Long> genAggsHandler,\n            WindowBuffer.Factory bufferFactory,\n            SliceAssigner sliceAssigner,\n            TypeSerializer<RowData> accSerializer) {\n        this.genAggsHandler = genAggsHandler;\n        this.windowBufferFactory = bufferFactory;\n        this.sliceAssigner = sliceAssigner;\n        this.accSerializer = accSerializer;\n    }\n\n    // Common initialization logic goes here\n    public abstract void open(Context<Long> context) throws Exception;\n    \n    public abstract void fireWindow(Long windowEnd) throws Exception;\n\n    protected abstract long sliceStateMergeTarget(long sliceToMerge) throws Exception;\n}\n```\n\n### 2. Refactor Shared and Unshared Window Aggregators\n\nBoth `SliceSharedWindowAggProcessor` and `SliceUnsharedWindowAggProcessor` now extend from `BaseWindowAggProcessor`, allowing them to implement their specific logic with reduced duplicated code.\n\n```java\npublic final class SliceSharedWindowAggProcessor extends BaseWindowAggProcessor \n        implements SliceSharedAssigner.MergeCallback {\n    \n    private final SliceSharedAssigner sliceSharedAssigner;\n\n    public SliceSharedWindowAggProcessor(\n            GeneratedNamespaceAggsHandleFunction<Long> genAggsHandler,\n            WindowBuffer.Factory bufferFactory,\n            SliceSharedAssigner sliceAssigner,\n            TypeSerializer<RowData> accSerializer) {\n        super(genAggsHandler, bufferFactory, sliceAssigner, accSerializer);\n        this.sliceSharedAssigner = sliceAssigner;\n    }\n\n    @Override\n    public void open(Context<Long> context) throws Exception {\n        // Custom initialization logic\n    }\n\n    @Override\n    public void fireWindow(Long windowEnd) throws Exception {\n        // Logic specific to shared window processing\n    }\n\n    @Override\n    protected long sliceStateMergeTarget(long sliceToMerge) throws Exception {\n        // Implementation for merging slices\n    }\n}\n\npublic final class SliceUnsharedWindowAggProcessor extends BaseWindowAggProcessor {\n\n    public SliceUnsharedWindowAggProcessor(\n            GeneratedNamespaceAggsHandleFunction<Long> genAggsHandler,\n            WindowBuffer.Factory bufferFactory,\n            SliceUnsharedAssigner sliceAssigner,\n            TypeSerializer<RowData> accSerializer) {\n        super(genAggsHandler, bufferFactory, sliceAssigner, accSerializer);\n    }\n\n    @Override\n    public void open(Context<Long> context) throws Exception {\n        // Custom initialization logic\n    }\n\n    @Override\n    public void fireWindow(Long windowEnd) throws Exception {\n        // Logic specific to unshared window processing\n    }\n\n    @Override\n    protected long sliceStateMergeTarget(long sliceToMerge) throws Exception {\n        // Each slice is treated independently, return itself\n        return sliceToMerge;\n    }\n}\n```\n\n### 3. Update Interfaces for Window Processing\n\nInterfaces such as `WindowTimerService` can be enhanced to accommodate different types of windows without cluttering the processor classes with conditionals based on event vs processing time.\n\n```java\npublic interface WindowTimerService<T> {\n    void registerWindowTimer(T window, boolean isEventTime);\n    // Additional timer-related methods\n}\n```\n\n### 4. Enhance Time Management\n\nThe `WindowTimerServiceImpl` class could be modified slightly to accommodate timer registration without needing to react differently for processed vs event time in every processor:\n\n```java\npublic class WindowTimerServiceImpl implements WindowTimerService<Long> {\n    private final InternalTimerService<Long> internalTimerService;\n\n    public WindowTimerServiceImpl(InternalTimerService<Long> internalTimerService) {\n        this.internalTimerService = internalTimerService;\n    }\n\n    @Override\n    public void registerWindowTimer(Long window, boolean isEventTime) {\n        long timerTimestamp = TimeWindowUtil.toEpochMillsForTimer(window - 1, isEventTime);\n        if (isEventTime) {\n            internalTimerService.registerEventTimeTimer(window, timerTimestamp);\n        } else {\n            internalTimerService.registerProcessingTimeTimer(window, timerTimestamp);\n        }\n    }\n}\n```\n\n### Conclusion\n\nThe refactored structure is better organized and adheres to the Single Responsibility Principle through the introduction of base classes, encourages extensibility for future window types, and enhances readability. The changes made create a solid foundation for further development, such as implementing non-aligned window aggregation.\n\nAs you proceed with implementation, remember to test existing functionality thoroughly to validate that the refactor has not altered expected behavior.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 1093,
+                        "prompt_tokens": 5156,
+                        "total_tokens": 6249,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-d5806b50-7e15-4139-91de-146ed5ab4360-0",
+                "usage_metadata": {
+                    "input_tokens": 5156,
+                    "output_tokens": 1093,
+                    "total_tokens": 6249,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 7,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To improve the design and maintainability of the `ExecutionConfig` class in the provided Java code, we can break it up into smaller, more focused classes. This adheres to the Single Responsibility Principle, which suggests that a class should have one reason to change. Here are the suggested changes:\n\n1. **Introduce Separate Configurier Classes**: Each logical grouping of functionalities, such as parallelism configuration, state management, serialization, and closure cleaning can be moved into separate classes. This could also involve creating dedicated classes for handling certain configurations related to the Kryo serialization process and closure cleaner configuration.\n\n2. **Better Organization**: Group related functionalities together more explicitly. \n\n3. **Interface Segregation**: Separate configurations should have their own interfaces if they grow or provide distinct behaviors.\n\nHere's a high-level view of how the new class structure could look like:\n\n```java\npackage org.apache.flink.api.common;\n\nimport org.apache.flink.configuration.Configuration;\n// (Other imports remain the same)\n\n@Public\npublic class ExecutionConfig implements Serializable, Archiveable<ArchivedExecutionConfig> {\n    private static final long serialVersionUID = 1L;\n\n    private final Configuration configuration;\n    private final KryoSerializerConfig kryoSerializerConfig;\n    private final ClosureCleanerConfig closureCleanerConfig;\n\n    public ExecutionConfig() {\n        this.configuration = new Configuration();\n        this.kryoSerializerConfig = new KryoSerializerConfig();\n        this.closureCleanerConfig = new ClosureCleanerConfig();\n    }\n\n    // ... other methods remain similar, but access KryoSerializerConfig and ClosureCleanerConfig as needed ...\n    \n    public KryoSerializerConfig getKryoSerializerConfig() {\n        return kryoSerializerConfig;\n    }\n\n    public ClosureCleanerConfig getClosureCleanerConfig() {\n        return closureCleanerConfig;\n    }\n    \n    // Other existing methods are retained but restructured to delegate to the config classes\n}\n\n// Separate classes for managing other configurations\n\nclass KryoSerializerConfig {\n    private final LinkedHashMap<Class<?>, SerializableSerializer<?>> registeredTypesWithKryoSerializers = new LinkedHashMap<>();\n    private final LinkedHashMap<Class<?>, Class<? extends Serializer<?>>> registeredTypesWithKryoSerializerClasses = new LinkedHashMap<>();\n\n    // Methods for configurations related to Kryo Serializer\n    public void registerTypeWithKryoSerializer(Class<?> type, SerializableSerializer<?> serializer) {\n        this.registeredTypesWithKryoSerializers.put(type, serializer);\n    }\n\n    // Other methods for managing serializers...\n}\n\nclass ClosureCleanerConfig {\n    private ClosureCleanerLevel closureCleanerLevel;\n\n    public ExecutionConfig enableClosureCleaner() {\n        this.closureCleanerLevel = ClosureCleanerLevel.RECURSIVE;\n        return this;\n    }\n\n    // Other methods that deal with the cleaning level...\n}\n\n// Restore utility classes where needed.\n\n```\n\n### Benefits of this design:\n\n- **Improved Maintainability**: Each class now has a single focus, making it easier to understand and manage.\n  \n- **Easier Testing**: Smaller classes are easier to unit test standalone, as there are fewer dependencies in each.\n\n- **Simplicity in ExecutionConfig**: The `ExecutionConfig` class becomes less complex and focuses only on high-level configuration.\n\n- **Flexible Extensibility**: Future additions or modifications to any specific configuration (e.g., adding a new serializer or cleaning strategy) can now be done in isolation without affecting the other parts.\n\nThis refactoring will lead to better structure and higher quality in the `ExecutionConfig` class design, staying consistent with SOLID principles.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 720,
+                        "prompt_tokens": 11318,
+                        "total_tokens": 12038,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-94cf24a1-8d17-402d-8f44-e4739cd3d1db-0",
+                "usage_metadata": {
+                    "input_tokens": 11318,
+                    "output_tokens": 720,
+                    "total_tokens": 12038,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 8,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "The provided Java code for the `RestartStrategies` class is already well-structured and contains thorough documentation. However, a few cosmetic improvements can enhance readability and conform to common Java coding conventions. Below are the suggested changes:\n\n1. **Consistency in Naming Conventions**: Ensure that method names are consistently formatted. For instance, use camel case consistently (e.g., `noRestart`, not `noRestart()`).\n\n2. **Organize Imports**: Format the import statements alphabetically. This improves readability and makes it easier to manage imports.\n\n3. **Add More Inline Comments**: Although the code has extensive documentation, consider adding inline comments where logic could be less clear.\n\n4. **Improve Formatting**: Make sure the code is uniformly indented, and add additional spacing for better readability.\n\n5. **Use `Map<String, Duration>` Instead of Multiple Gets**: Instead of calling `configuration.get()` multiple times in the `switch` statement, consider mapping keys to corresponding duration values to simplify the assignment. \n\n6. **Enhance `toString()` Method**: Provide more useful content in the `toString()` methods of configuration classes for better debugging.\n\nHere's the improved version of the code with these cosmetic changes:\n\n```java\n/*\n * Licensed to the Apache Software Foundation (ASF) under one\n * or more contributor license agreements. See the NOTICE file\n * distributed with this work for additional information\n * regarding copyright ownership. The ASF licenses this file\n * to you under the Apache License, Version 2.0 (the\n * \"License\"); you may not use this file except in compliance\n * with the License. You may obtain a copy of the License at\n *\n *     http://www.apache.org/licenses/LICENSE-2.0\n *\n * Unless required by applicable law or agreed to in writing,\n * software distributed under the License is distributed on an\n * \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,\n * either express or implied. See the License for the specific\n * language governing permissions and limitations under the License.\n */\n\npackage org.apache.flink.api.common.restartstrategy;\n\nimport org.apache.flink.annotation.PublicEvolving;\nimport org.apache.flink.api.common.time.Time;\nimport org.apache.flink.configuration.ReadableConfig;\nimport org.apache.flink.configuration.RestartStrategyOptions;\n\nimport java.io.Serializable;\nimport java.time.Duration;\nimport java.util.Objects;\nimport java.util.Optional;\nimport java.util.concurrent.TimeUnit;\n\n/**\n * This class defines methods to generate RestartStrategyConfigurations. These configurations are\n * used to create RestartStrategies at runtime.\n *\n * <p>The RestartStrategyConfigurations are used to decouple the core module from the runtime\n * module.\n *\n * @deprecated The {@link RestartStrategies} class is marked as deprecated because starting from\n * Flink 1.19, all complex Java objects related to configuration should be replaced by\n * ConfigOption. In a future major version of Flink, this class will be removed entirely. It is\n * recommended to switch to using the ConfigOptions provided by\n * {@link org.apache.flink.configuration.RestartStrategyOptions} for configuring restart strategies\n * like the following code snippet:\n * <pre>{@code\n * Configuration config = new Configuration();\n * config.set(RestartStrategyOptions.RESTART_STRATEGY, \"fixed-delay\");\n * config.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_ATTEMPTS, 3);\n * config.set(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY, Duration.ofMinutes(1));\n * StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(config);\n * }</pre>\n * For more details on using ConfigOption for restart strategies, please refer to the Flink\n * documentation: <a\n * href=\"https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/state/task_failure_recovery/#restart-strategies\">restart-strategies</a>\n */\n@Deprecated\n@PublicEvolving\npublic class RestartStrategies {\n\n    /**\n     * Generates NoRestartStrategyConfiguration.\n     *\n     * @return NoRestartStrategyConfiguration instance indicating no restart\n     */\n    public static RestartStrategyConfiguration noRestart() {\n        return new NoRestartStrategyConfiguration();\n    }\n\n    public static RestartStrategyConfiguration fallBackRestart() {\n        return new FallbackRestartStrategyConfiguration();\n    }\n\n    /**\n     * Generates a FixedDelayRestartStrategyConfiguration.\n     *\n     * @param restartAttempts Number of restart attempts for the FixedDelayRestartStrategy\n     * @param delayBetweenAttempts Delay in milliseconds between restart attempts for the\n     *                             FixedDelayRestartStrategy\n     * @return FixedDelayRestartStrategyConfiguration\n     */\n    public static RestartStrategyConfiguration fixedDelayRestart(int restartAttempts, long delayBetweenAttempts) {\n        return fixedDelayRestart(restartAttempts, Time.of(delayBetweenAttempts, TimeUnit.MILLISECONDS));\n    }\n\n    /**\n     * Generates a FixedDelayRestartStrategyConfiguration.\n     *\n     * @param restartAttempts Number of restart attempts for the FixedDelayRestartStrategy\n     * @param delayInterval Delay in-between restart attempts for the FixedDelayRestartStrategy\n     * @return FixedDelayRestartStrategyConfiguration\n     * @deprecated Use {@link #fixedDelayRestart(int, Duration)}\n     */\n    @Deprecated\n    public static RestartStrategyConfiguration fixedDelayRestart(int restartAttempts, Time delayInterval) {\n        return fixedDelayRestart(restartAttempts, Time.toDuration(delayInterval));\n    }\n\n    /**\n     * Generates a FixedDelayRestartStrategyConfiguration.\n     *\n     * @param restartAttempts Number of restart attempts for the FixedDelayRestartStrategy\n     * @param delayInterval Delay in-between restart attempts for the FixedDelayRestartStrategy\n     * @return FixedDelayRestartStrategyConfiguration\n     */\n    public static RestartStrategyConfiguration fixedDelayRestart(int restartAttempts, Duration delayInterval) {\n        return new FixedDelayRestartStrategyConfiguration(restartAttempts, delayInterval);\n    }\n\n    /**\n     * Generates a FailureRateRestartStrategyConfiguration.\n     *\n     * @param failureRate Maximum number of restarts in given interval {@code failureInterval}\n     *                    before failing a job\n     * @param failureInterval Time interval for failures\n     * @param delayInterval Delay in-between restart attempts\n     * @deprecated Use {@link #failureRateRestart(int, Duration, Duration)}\n     */\n    @Deprecated\n    public static FailureRateRestartStrategyConfiguration failureRateRestart(int failureRate, Time failureInterval, Time delayInterval) {\n        return failureRateRestart(failureRate, Time.toDuration(failureInterval), Time.toDuration(delayInterval));\n    }\n\n    /**\n     * Generates a FailureRateRestartStrategyConfiguration.\n     *\n     * @param failureRate Maximum number of restarts in given interval {@code failureInterval}\n     *                    before failing a job\n     * @param failureInterval Time interval for failures\n     * @param delayInterval Delay in-between restart attempts\n     * @return FailureRateRestartStrategyConfiguration\n     */\n    public static FailureRateRestartStrategyConfiguration failureRateRestart(int failureRate, Duration failureInterval, Duration delayInterval) {\n        return new FailureRateRestartStrategyConfiguration(failureRate, failureInterval, delayInterval);\n    }\n\n    /**\n     * Generates a ExponentialDelayRestartStrategyConfiguration.\n     *\n     * @param initialBackoff Starting duration between restarts\n     * @param maxBackoff The highest possible duration between restarts\n     * @param backoffMultiplier Delay multiplier how many times is the delay longer than before\n     * @param resetBackoffThreshold How long the job must run smoothly to reset the time interval\n     * @param jitterFactor How much the delay may differ (in percentage)\n     * @deprecated Use {@link #exponentialDelayRestart(Duration, Duration, double, Duration, double)}\n     */\n    @Deprecated\n    public static ExponentialDelayRestartStrategyConfiguration exponentialDelayRestart(Time initialBackoff,\n                                                                                      Time maxBackoff,\n                                                                                      double backoffMultiplier,\n                                                                                      Time resetBackoffThreshold,\n                                                                                      double jitterFactor) {\n        return exponentialDelayRestart(Time.toDuration(initialBackoff),\n                Time.toDuration(maxBackoff),\n                backoffMultiplier,\n                Time.toDuration(resetBackoffThreshold),\n                jitterFactor);\n    }\n\n    /**\n     * Generates a ExponentialDelayRestartStrategyConfiguration.\n     *\n     * @param initialBackoff Starting duration between restarts\n     * @param maxBackoff The highest possible duration between restarts\n     * @param backoffMultiplier Delay multiplier how many times is the delay longer than before\n     * @param resetBackoffThreshold How long the job must run smoothly to reset the time interval\n     * @param jitterFactor How much the delay may differ (in percentage)\n     * @return ExponentialDelayRestartStrategyConfiguration\n     */\n    public static ExponentialDelayRestartStrategyConfiguration exponentialDelayRestart(Duration initialBackoff,\n                                                                                        Duration maxBackoff,\n                                                                                        double backoffMultiplier,\n                                                                                        Duration resetBackoffThreshold,\n                                                                                        double jitterFactor) {\n        return new ExponentialDelayRestartStrategyConfiguration(initialBackoff, maxBackoff, backoffMultiplier, resetBackoffThreshold, jitterFactor);\n    }\n\n    /** Abstract configuration for restart strategies. */\n    @PublicEvolving\n    public abstract static class RestartStrategyConfiguration implements Serializable {\n        private static final long serialVersionUID = 6285853591578313960L;\n\n        private RestartStrategyConfiguration() {\n        }\n\n        /**\n         * Returns a description which is shown in the web interface.\n         *\n         * @return Description of the restart strategy\n         */\n        public abstract String getDescription();\n\n        @Override\n        public String toString() {\n            return getDescription();\n        }\n    }\n\n    /** Configuration representing no restart strategy. */\n    @PublicEvolving\n    public static final class NoRestartStrategyConfiguration extends RestartStrategyConfiguration {\n        private static final long serialVersionUID = -5894362702943349962L;\n\n        @Override\n        public String getDescription() {\n            return \"Restart deactivated.\";\n        }\n\n        @Override\n        public boolean equals(Object o) {\n            return this == o || o instanceof NoRestartStrategyConfiguration;\n        }\n\n        @Override\n        public int hashCode() {\n            return Objects.hash();\n        }\n    }\n\n    /** Configuration representing a fixed delay restart strategy. */\n    @PublicEvolving\n    public static final class FixedDelayRestartStrategyConfiguration extends RestartStrategyConfiguration {\n        private static final long serialVersionUID = 4149870149673363190L;\n\n        private final int restartAttempts;\n        private final Duration delayBetweenAttemptsInterval;\n\n        FixedDelayRestartStrategyConfiguration(int restartAttempts, Duration delayBetweenAttemptsInterval) {\n            this.restartAttempts = restartAttempts;\n            this.delayBetweenAttemptsInterval = delayBetweenAttemptsInterval;\n        }\n\n        public int getRestartAttempts() {\n            return restartAttempts;\n        }\n\n        /** @deprecated Use {@link #getDurationBetweenAttempts()} */\n        @Deprecated\n        public Time getDelayBetweenAttemptsInterval() {\n            return Time.fromDuration(getDurationBetweenAttempts());\n        }\n\n        public Duration getDurationBetweenAttempts() {\n            return delayBetweenAttemptsInterval;\n        }\n\n        @Override\n        public int hashCode() {\n            int result = restartAttempts;\n            result = 31 * result + (delayBetweenAttemptsInterval != null ? delayBetweenAttemptsInterval.hashCode() : 0);\n            return result;\n        }\n\n        @Override\n        public boolean equals(Object obj) {\n            if (obj instanceof FixedDelayRestartStrategyConfiguration) {\n                FixedDelayRestartStrategyConfiguration other = (FixedDelayRestartStrategyConfiguration) obj;\n                return restartAttempts == other.restartAttempts && delayBetweenAttemptsInterval.equals(other.delayBetweenAttemptsInterval);\n            }\n            return false;\n        }\n\n        @Override\n        public String getDescription() {\n            return String.format(\"Restart with fixed delay (%s). #%d restart attempts.\",\n                    delayBetweenAttemptsInterval, restartAttempts);\n        }\n    }\n\n    /** Configuration representing an exponential delay restart strategy. */\n    @PublicEvolving\n    public static final class ExponentialDelayRestartStrategyConfiguration extends RestartStrategyConfiguration {\n        private static final long serialVersionUID = 1467941615941965194L;\n        \n        private final Duration initialBackoff;\n        private final Duration maxBackoff;\n        private final double backoffMultiplier;\n        private final Duration resetBackoffThreshold;\n        private final double jitterFactor;\n\n        /**\n         * @deprecated Use {@link\n         *     ExponentialDelayRestartStrategyConfiguration#ExponentialDelayRestartStrategyConfiguration(Duration,\n         *     Duration, double, Duration, double)}\n         */\n        @Deprecated\n        public ExponentialDelayRestartStrategyConfiguration(Time initialBackoff, Time maxBackoff, double backoffMultiplier,\n                                                             Time resetBackoffThreshold, double jitterFactor) {\n            this(Time.toDuration(initialBackoff), Time.toDuration(maxBackoff), backoffMultiplier,\n                 Time.toDuration(resetBackoffThreshold), jitterFactor);\n        }\n\n        public ExponentialDelayRestartStrategyConfiguration(Duration initialBackoff, Duration maxBackoff, double backoffMultiplier,\n                                                             Duration resetBackoffThreshold, double jitterFactor) {\n            this.initialBackoff = initialBackoff;\n            this.maxBackoff = maxBackoff;\n            this.backoffMultiplier = backoffMultiplier;\n            this.resetBackoffThreshold = resetBackoffThreshold;\n            this.jitterFactor = jitterFactor;\n        }\n\n        /** @deprecated Use {@link #getInitialBackoffDuration()} */\n        @Deprecated\n        public Time getInitialBackoff() {\n            return Time.fromDuration(getInitialBackoffDuration());\n        }\n\n        public Duration getInitialBackoffDuration() {\n            return initialBackoff;\n        }\n\n        /** @deprecated Use {@link #getMaxBackoffDuration()} */\n        @Deprecated\n        public Time getMaxBackoff() {\n            return Time.fromDuration(maxBackoff);\n        }\n\n        public Duration getMaxBackoffDuration() {\n            return maxBackoff;\n        }\n\n        public double getBackoffMultiplier() {\n            return backoffMultiplier;\n        }\n\n        /** @deprecated Use {@link #getResetBackoffDurationThreshold()} */\n        @Deprecated\n        public Time getResetBackoffThreshold() {\n            return Time.fromDuration(resetBackoffThreshold);\n        }\n\n        public Duration getResetBackoffDurationThreshold() {\n            return resetBackoffThreshold;\n        }\n\n        public double getJitterFactor() {\n            return jitterFactor;\n        }\n\n        @Override\n        public String getDescription() {\n            return String.format(\"Restart with exponential delay: starting at %s, increasing by %f, with maximum %s. \"\n                            + \"Delay resets after %s with jitter %f\",\n                    initialBackoff, backoffMultiplier, maxBackoff, resetBackoffThreshold, jitterFactor);\n        }\n\n        @Override\n        public boolean equals(Object o) {\n            if (this == o) {\n                return true;\n            }\n            if (o == null || getClass() != o.getClass()) {\n                return false;\n            }\n            ExponentialDelayRestartStrategyConfiguration that = (ExponentialDelayRestartStrategyConfiguration) o;\n            return Double.compare(that.backoffMultiplier, backoffMultiplier) == 0\n                    && Double.compare(that.jitterFactor, jitterFactor) == 0\n                    && Objects.equals(initialBackoff, that.initialBackoff)\n                    && Objects.equals(maxBackoff, that.maxBackoff)\n                    && Objects.equals(resetBackoffThreshold, that.resetBackoffThreshold);\n        }\n\n        @Override\n        public int hashCode() {\n            return Objects.hash(initialBackoff, maxBackoff, backoffMultiplier, resetBackoffThreshold, jitterFactor);\n        }\n    }\n\n    /** Configuration representing a failure rate restart strategy. */\n    @PublicEvolving\n    public static final class FailureRateRestartStrategyConfiguration extends RestartStrategyConfiguration {\n        private static final long serialVersionUID = 1195028697539661739L;\n        \n        private final int maxFailureRate;\n        private final Duration failureInterval;\n        private final Duration delayBetweenAttemptsInterval;\n\n        /**\n         * @deprecated Use {@link #FailureRateRestartStrategyConfiguration(int, Duration, Duration)}\n         */\n        @Deprecated\n        public FailureRateRestartStrategyConfiguration(int maxFailureRate, Time failureInterval, Time delayBetweenAttemptsInterval) {\n            this(maxFailureRate, Time.toDuration(failureInterval), Time.toDuration(delayBetweenAttemptsInterval));\n        }\n\n        public FailureRateRestartStrategyConfiguration(int maxFailureRate, Duration failureInterval, Duration delayBetweenAttemptsInterval) {\n            this.maxFailureRate = maxFailureRate;\n            this.failureInterval = failureInterval;\n            this.delayBetweenAttemptsInterval = delayBetweenAttemptsInterval;\n        }\n\n        public int getMaxFailureRate() {\n            return maxFailureRate;\n        }\n\n        /** @deprecated Use {@link #getFailureIntervalDuration()} */\n        @Deprecated\n        public Time getFailureInterval() {\n            return Time.fromDuration(getFailureIntervalDuration());\n        }\n\n        public Duration getFailureIntervalDuration() {\n            return failureInterval;\n        }\n\n        /** @deprecated Use {@link #getDurationBetweenAttempts()} */\n        @Deprecated\n        public Time getDelayBetweenAttemptsInterval() {\n            return Time.fromDuration(getDurationBetweenAttempts());\n        }\n\n        public Duration getDurationBetweenAttempts() {\n            return delayBetweenAttemptsInterval;\n        }\n\n        @Override\n        public String getDescription() {\n            return String.format(\"Failure rate restart with maximum of %d failures within interval %s and fixed delay %s.\",\n                    maxFailureRate, failureInterval.toString(), delayBetweenAttemptsInterval.toString());\n        }\n\n        @Override\n        public boolean equals(Object o) {\n            if (this == o) {\n                return true;\n            }\n            if (o == null || getClass() != o.getClass()) {\n                return false;\n            }\n            FailureRateRestartStrategyConfiguration that = (FailureRateRestartStrategyConfiguration) o;\n            return maxFailureRate == that.maxFailureRate\n                    && Objects.equals(failureInterval, that.failureInterval)\n                    && Objects.equals(delayBetweenAttemptsInterval, that.delayBetweenAttemptsInterval);\n        }\n\n        @Override\n        public int hashCode() {\n            return Objects.hash(maxFailureRate, failureInterval, delayBetweenAttemptsInterval);\n        }\n    }\n\n    /**\n     * Restart strategy configuration that could be used by jobs to use cluster level restart\n     * strategy. Useful especially when one has a custom implementation of restart strategy set via\n     * flink-conf.yaml.\n     */\n    @PublicEvolving\n    public static final class FallbackRestartStrategyConfiguration extends RestartStrategyConfiguration {\n        private static final long serialVersionUID = -4441787204284085544L;\n\n        @Override\n        public String getDescription() {\n            return \"Cluster level default restart strategy\";\n        }\n\n        @Override\n        public boolean equals(Object o) {\n            return this == o || o instanceof FallbackRestartStrategyConfiguration;\n        }\n\n        @Override\n        public int hashCode() {\n            return Objects.hash();\n        }\n    }\n\n    /**\n     * Reads a {@link RestartStrategyConfiguration} from a given {@link ReadableConfig}.\n     *\n     * @param configuration Configuration object to retrieve parameters from\n     * @return {@link Optional#empty()} when no restart strategy parameters provided\n     */\n    public static Optional<RestartStrategyConfiguration> fromConfiguration(ReadableConfig configuration) {\n        return configuration.getOptional(RestartStrategyOptions.RESTART_STRATEGY)\n                .map(confName -> parseConfiguration(confName, configuration));\n    }\n\n    private static RestartStrategyConfiguration parseConfiguration(String restartstrategyKind, ReadableConfig configuration) {\n        switch (restartstrategyKind.toLowerCase()) {\n            case \"none\":\n            case \"off\":\n            case \"disable\":\n                return noRestart();\n            case \"fixeddelay\":\n            case \"fixed-delay\":\n                int attempts = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_ATTEMPTS);\n                Duration delay = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY);\n                return fixedDelayRestart(attempts, delay);\n            case \"exponentialdelay\":\n            case \"exponential-delay\":\n                Duration initialBackoff = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_EXPONENTIAL_DELAY_INITIAL_BACKOFF);\n                Duration maxBackoff = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_EXPONENTIAL_DELAY_MAX_BACKOFF);\n                double backoffMultiplier = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_EXPONENTIAL_DELAY_BACKOFF_MULTIPLIER);\n                Duration resetBackoffThreshold = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_EXPONENTIAL_DELAY_RESET_BACKOFF_THRESHOLD);\n                double jitter = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_EXPONENTIAL_DELAY_JITTER_FACTOR);\n                return exponentialDelayRestart(initialBackoff, maxBackoff, backoffMultiplier, resetBackoffThreshold, jitter);\n            case \"failurerate\":\n            case \"failure-rate\":\n                int maxFailures = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_FAILURE_RATE_MAX_FAILURES_PER_INTERVAL);\n                Duration failureRateInterval = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_FAILURE_RATE_FAILURE_RATE_INTERVAL);\n                Duration failureRateDelay = configuration.get(RestartStrategyOptions.RESTART_STRATEGY_FAILURE_RATE_DELAY);\n                return failureRateRestart(maxFailures, failureRateInterval, failureRateDelay);\n            default:\n                throw new IllegalArgumentException(\"Unknown restart strategy \" + restartstrategyKind + \".\");\n        }\n    }\n}\n```\n\n### Summary of Changes:\n1. **Improved Comments**: Clearer method descriptions.\n2. **Consistent Naming**: Ensured camelCase method naming.\n3. **Code Formatting**: Enhanced readability with consistent spacing and indentation.\n4. **Streamlined Switch Case Logic**: Reduced repetitions when accessing configuration parameters.\n5. **Enhanced Descriptions**: Improved `toString()` outputs.\n\nThese cosmetic improvements should make the code cleaner and more maintainable without altering its functionality.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 4453,
+                        "prompt_tokens": 4361,
+                        "total_tokens": 8814,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-e7ebbdcb-066b-451f-bb4a-ebec334c5cf1-0",
+                "usage_metadata": {
+                    "input_tokens": 4361,
+                    "output_tokens": 4453,
+                    "total_tokens": 8814,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 9,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To make the `Assembler` interface more extensible, we can implement some design principles such as Dependency Injection, the Strategy Pattern, and interface segregation. By doing this, the code becomes more flexible, easier to modify, and supports the implementation of new instruction sets or assembly behaviors without modifying the core `Assembler` interface.\n\nHere are some recommended changes:\n\n1. **Define Abstract Classes or Interfaces for Extrinsic Functions**:  \n   Instead of having all assembly-related methods within a single `Assembler` interface, define specific interfaces for different aspects of assembly, like `InstructionAssembler`, `LineAssembler`, `ContextHandler`, etc. This allows for specialized implementations.\n\n```java\npublic interface InstructionAssembler {\n    InstructionIterator assemble(Address at, String... listing) throws ...;\n    byte[] assembleLine(Address at, String line) throws ...;\n    AssemblyResolutionResults resolveTree(AssemblyParseResult parse, Address at, AssemblyPatternBlock ctx);\n}\n\npublic interface LineAssembler {\n    AssemblyResolutionResults resolveLine(Address at, String line, AssemblyPatternBlock ctx);\n}\n\npublic interface ContextHandler {\n    AssemblyPatternBlock getContextAt(Address addr);\n}\n```\n\n2. **Use Composition Over Inheritance**:  \n   Instead of being a single monolithic class, have the `Assembler` class composed of various behaviors. This makes it easier to swap in and out different implementations.\n\n```java\npublic class AssemblerImpl implements Assembler {\n    private final InstructionAssembler instructionAssembler;\n    private final LineAssembler lineAssembler;\n    private final ContextHandler contextHandler;\n\n    public AssemblerImpl(InstructionAssembler instructionAssembler, \n                         LineAssembler lineAssembler,\n                         ContextHandler contextHandler) {\n        this.instructionAssembler = instructionAssembler;\n        this.lineAssembler = lineAssembler;\n        this.contextHandler = contextHandler;\n    }\n    \n    // Implement methods using composed classes\n}\n```\n\n3. **Introduce Factory Methods for Builder Creation**:  \n   The `AssemblerBuilder` interface can include a method that allows for the registration of different `Assembler` components, providing a way to create custom assemblers.\n\n```java\npublic interface AssemblerBuilder {\n    ...\n    void registerCustomAssembler(InstructionAssembler assembler);\n}\n```\n\n4. **Add a Plugin Architecture**:  \n   Implement a plugin system to dynamically load different assemblers based on the availability or language support. This can be done with a service loader mechanism or similar.\n\n5. **Make Error Handling a Strategy**:  \n   Instead of hard-coded exceptions, allow users to provide their error handling strategy. This can be useful for different assembly scenarios or languages.\n\n```java\npublic interface AssemblyErrorHandler {\n    void handleAssemblyError(Exception e);\n}\n```\n\nThe above modifications enhance extensibility by allowing the `Assembler` to support a variety of assembly methods, error handling strategies, and to adapt as new assembly languages or modes are introduced. Here's an example of the modified core classes:\n\n```java\npublic interface Assembler {\n    Instructions createInstructions();\n    Lines createLineAssembler();\n}\n\npublic class AssemblerFactory {\n    public static Assembler createAssembler(Language language) {\n        // Create and return a specific assembler based on the language\n    }\n}\n```\n\nBy adopting these strategies, the Ghidra assembler implementation would be better suited for future extensions, allowing developers to add new features or improvements with minimal changes to the existing codebase.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 677,
+                        "prompt_tokens": 2534,
+                        "total_tokens": 3211,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-438de4c2-0b2c-420b-8c59-6899ade2a100-0",
+                "usage_metadata": {
+                    "input_tokens": 2534,
+                    "output_tokens": 677,
+                    "total_tokens": 3211,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 10,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To enhance the quality of the Java code you provided, particularly regarding the event types in the `DomainObject` interface, we can extract these event types into a dedicated enumeration. This will increase code readability, maintainability, and type safety. Here\u2019s how to refactor the code:\n\n### Refactored Code\n\n```java\npackage ghidra.framework.model;\n\n/**\n * Represents different event types that can occur within a DomainObject.\n */\npublic enum DomainObjectEventType {\n    /**\n     * Event type generated when the domain object is saved.\n     */\n    OBJECT_SAVED,\n\n    /**\n     * Event type generated when the domain file associated with\n     * the domain object changes.\n     */\n    DOMAIN_FILE_CHANGED,\n\n    /**\n     * Event type generated when the object name changes.\n     */\n    OBJECT_RENAMED,\n\n    /**\n     * Event type generated when domain object is restored.\n     */\n    OBJECT_RESTORED,\n\n    /**\n     * Event type generated when a property on this DomainObject is changed.\n     */\n    PROPERTY_CHANGED,\n\n    /**\n     * Event type generated when this domain object is closed.\n     */\n    OBJECT_CLOSED,\n\n    /**\n     * Event type generated when a fatal error occurs which renders the domain object invalid.\n     */\n    OBJECT_ERROR\n}\n```\n\n### Updated `DomainObject` Interface\n\nNow, update the `DomainObject` interface to use the new enumeration type for event types. Replace the event type constants with references to `DomainObjectEventType`:\n\n```java\npublic interface DomainObject {\n    /**\n     * Object to synchronize on for undo/redo operations.\n     */\n    Object undoLock = new Object();\n\n    /**\n     * Returns whether the object has changed.\n     * @return whether the object has changed.\n     */\n    boolean isChanged();\n\n    // ... other methods remain unchanged ...\n\n    /**\n     * Notify the appropriate listeners of an event based on the event type.\n     * \n     * @param eventType The type of event that occurred.\n     */\n    void notifyListeners(DomainObjectEventType eventType);\n\n    // ... other methods remain unchanged ...\n}\n```\n\n### Advantages of Refactoring:\n\n1. **Type Safety**: Using an enum for event types helps avoid mistakes caused by using integer constants. \n2. **Readability**: Enums provide a more descriptive way to handle event types, making the code easier to understand.\n3. **Maintainability**: When new event types need to be added or existing ones changed, it will be clearer and more manageable.\n4. **Documentation**: Enums allow for easy generation of documentation since each event type can have a description associated with it.\n\nWith these changes, the code will be cleaner, more maintainable, and less error-prone regarding event handling in `DomainObject`.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 564,
+                        "prompt_tokens": 2647,
+                        "total_tokens": 3211,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-3b7c92cc-bd91-45df-8b2e-f95c7336f896-0",
+                "usage_metadata": {
+                    "input_tokens": 2647,
+                    "output_tokens": 564,
+                    "total_tokens": 3211,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 11,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To improve the quality and maintainability of the `OmfRecord` class in the given Java code, we can take several steps, particularly focusing on splitting the class into smaller utility and subtype classes for better organization and encapsulation. This can make the code easier to read and extend in the future.\n\nHere's a structured approach to achieve this:\n\n### 1. Split Constants into a Separate Class\nWe can create a new utility class to store the record type constants. This makes it easier to manage and document changes to these constants in the future.\n\n```java\npackage ghidra.app.util.bin.format.omf;\n\npublic class OmfRecordType {\n    public static final byte RHEADR = (byte) 0x6E; // Obsolete\n    public static final byte REGINT = (byte) 0x70; // Obsolete\n    // ... add the rest of the constants here\n    public static final byte END = (byte) 0xF1;\n}\n```\n\n### 2. Create a Utility Class for Common Operations\nWe can refactor methods that are utility in nature (for example, checksum calculations, reading integers) into a separate utility class. This allows `OmfRecord` to focus more on its primary responsibilities.\n\n```java\npackage ghidra.app.util.bin.format.omf;\n\nimport java.io.IOException;\n\npublic class OmfUtilities {\n    public static byte calcCheckSum(BinaryReader reader, byte recordLength) throws IOException {\n        byte res = reader.readNextByte();\n        res += reader.readNextByte();\n        res += reader.readNextByte(); // Sum the record header bytes\n        for (int i = 0; i < recordLength; ++i) {\n            res += reader.readNextByte();\n        }\n        return res;\n    }\n\n    public static boolean validCheckSum(BinaryReader reader, byte checkSum, byte recordLength) throws IOException {\n        if (checkSum == 0)\n            return true; // Sum compilers just set this to zero\n        return (calcCheckSum(reader, recordLength) == 0);\n    }\n\n    public static int readInt1Or2(BinaryReader reader, boolean isBig) throws IOException {\n        return isBig ? (reader.readNextShort() & 0xffff) : (reader.readNextByte() & 0xff);\n    }\n\n    public static Omf2or4 readInt2Or4(BinaryReader reader, boolean isBig) throws IOException {\n        return isBig ? new Omf2or4(4, reader.readNextInt()) : new Omf2or4(2, reader.readNextUnsignedShort());\n    }\n\n    public static OmfIndex readIndex(BinaryReader reader) throws IOException {\n        int length;\n        int indexWord;\n        byte firstByte = reader.readNextByte();\n        if ((firstByte & 0x80) != 0) {\n            indexWord = (firstByte & 0x7f) * 0x100 + (reader.readNextByte() & 0xff);\n            length = 2;\n        } else {\n            indexWord = firstByte;\n            length = 1;\n        }\n        return new OmfIndex(length, indexWord);\n    }\n\n    public static OmfString readString(BinaryReader reader) throws IOException {\n        int count = reader.readNextByte() & 0xff;\n        return new OmfString(count, reader.readNextAsciiString(count));\n    }\n}\n```\n\n### 3. Cleanup OmfRecord Class\nNow, we can simplify the `OmfRecord` class by using the new utility methods and the constant class.\n\n```java\npackage ghidra.app.util.bin.format.omf;\n\nimport java.io.IOException;\nimport ghidra.app.util.bin.BinaryReader;\nimport ghidra.app.util.bin.StructConverter;\nimport ghidra.program.model.data.DataType;\nimport ghidra.program.model.data.StructureDataType;\nimport ghidra.program.model.data.ArrayDataType;\nimport ghidra.util.exception.DuplicateNameException;\n\npublic abstract class OmfRecord implements StructConverter {\n    protected byte recordType;\n    protected int recordLength;\n    protected long recordOffset;\n    protected byte checkSum;\n\n    // Getters\n    public byte getRecordType() {\n        return recordType;\n    }\n\n    public int getRecordLength() {\n        return recordLength;\n    }\n\n    public long getRecordOffset() {\n        return recordOffset;\n    }\n\n    // Reading methods\n    public void readRecordHeader(BinaryReader reader) throws IOException {\n        recordOffset = reader.getPointerIndex();\n        recordType = reader.readNextByte();\n        recordLength = reader.readNextShort() & 0xffff;\n    }\n\n    public void readCheckSumByte(BinaryReader reader) throws IOException {\n        checkSum = reader.readNextByte();\n    }\n\n    public boolean hasBigFields() {\n        return (recordType & 1) != 0;\n    }\n\n    // The rest of OmfRecord stays, but uses utilities for checksum validation, reading strings, etc.\n   \n    @Override\n    public String toString() {\n        return String.format(\"name: %s, type: 0x%x, offset: 0x%x, length: 0x%x\",\n                OmfRecord.getRecordName(recordType & (byte) 0xfe), recordType, recordOffset, recordLength);\n    }\n\n    @Override\n    public DataType toDataType() throws DuplicateNameException, IOException {\n        StructureDataType struct = new StructureDataType(getRecordName(getRecordType()), 0);\n        struct.add(BYTE, \"type\", null);\n        struct.add(WORD, \"length\", null);\n        struct.add(new ArrayDataType(BYTE, getRecordLength() - 1, 1), \"contents\", null);\n        struct.add(BYTE, \"checksum\", null);\n        struct.setCategoryPath(new CategoryPath(CATEGORY_PATH));\n        return struct;\n    }\n}\n```\n\n### Conclusion\nThe refactoring process involves the creation of new classes for constants and utility methods, leading to a clean separation of concerns within the code. This makes it easier to manage each aspect of the functionality (`OmfRecord` operations, constants, and utility methods) independently and improves readability.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 1277,
+                        "prompt_tokens": 2531,
+                        "total_tokens": 3808,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_bd83329f63",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-27e139e0-b20b-4e23-9471-8f29abdf3e1b-0",
+                "usage_metadata": {
+                    "input_tokens": 2531,
+                    "output_tokens": 1277,
+                    "total_tokens": 3808,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 12,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To refactor the PdbAnalyzer class according to your specifications, we will change the `searchRemoteLocations` variable and its related properties to use the term \"untrusted\" instead of \"remote\". This reflects the intended usage of the property and improves clarity. \n\nHere's the modified code with the necessary changes highlighted through comments:\n\n```java\n// PdbAnalyzer.java\n\n// License information and package declaration remain unchanged\n\npublic class PdbAnalyzer extends AbstractAnalyzer {\n\t// Other class constants remain unchanged\n\tprivate boolean searchUntrustedLocations = false; // Changed variable name\n\n\t//==============================================================================================\n\tpublic PdbAnalyzer() {\n\t\tsuper(NAME, DESCRIPTION, AnalyzerType.BYTE_ANALYZER);\n\t\tsetDefaultEnablement(DEFAULT_ENABLEMENT);\n\t\tsetPriority(AnalysisPriority.FORMAT_ANALYSIS.after());\n\t\tsetSupportsOneTimeAnalysis();\n\t}\n\n\t@Override\n\tpublic boolean added(Program program, AddressSetView set, TaskMonitor monitor, MessageLog log) {\n\t\t// The logic remains unchanged\n\n\t\tFile pdbFile = PdbAnalyzerCommon.findPdb(this, program, searchUntrustedLocations, monitor); // Updated argument name\n\t\tif (pdbFile == null) {\n\t\t\t// Warnings have already been logged\n\t\t\treturn false;\n\t\t}\n\n\t\tAutoAnalysisManager mgr = AutoAnalysisManager.getAnalysisManager(program);\n\t\treturn parsePdb(pdbFile, program, mgr, monitor, log);\n\t}\n\n\tboolean parsePdb(File pdb, Program program, AutoAnalysisManager mgr, TaskMonitor monitor,\n\t\t\tMessageLog log) {\n\t\t// The method implementation remains unchanged\n\t}\n\n\t@Override\n\tpublic boolean canAnalyze(Program program) {\n\t\t// The canAnalyze method remains unchanged\n\t}\n\n\t@Override\n\tpublic void registerOptions(Options options, Program program) {\n\t\t// Changed option name from searchRemoteLocations to searchUntrustedLocations\n\t\toptions.registerOption(PdbAnalyzerCommon.OPTION_NAME_SEARCH_UNTRUSTED_LOCATIONS,\n\t\t\tsearchUntrustedLocations, null, // Updated argument name\n\t\t\tPdbAnalyzerCommon.OPTION_DESCRIPTION_SEARCH_UNTRUSTED_LOCATIONS); // Updated description\n\t}\n\n\t@Override\n\tpublic void optionsChanged(Options options, Program program) {\n\t\tsearchUntrustedLocations = options.getBoolean(\n\t\t\tPdbAnalyzerCommon.OPTION_NAME_SEARCH_UNTRUSTED_LOCATIONS, searchUntrustedLocations); // Updated argument name\n\t}\n\n\t/**\n\t * The following method remains unchanged\n\t */\n\tpublic static void setPdbFileOption(Program program, File pdbFile) {\n\t\tPdbAnalyzerCommon.setPdbFileOption(NAME, program, pdbFile);\n\t}\n\n\t/**\n\t * Changed method name and comments from allowRemote to allowUntrusted\n\t */\n\tpublic static void setAllowUntrustedOption(Program program, boolean allowUntrusted) {\n\t\tPdbAnalyzerCommon.setAllowUntrustedOption(NAME, program, allowUntrusted); // Updated method to use untrusted\n\t}\n}\n```\n\n### Key Changes Made:\n1. **Variable Renaming**: \n   - Renamed `searchRemoteLocations` to `searchUntrustedLocations`.\n   \n2. **Method Argument Update**: \n   - Updated the method that finds the PDB files to use `searchUntrustedLocations`.\n\n3. **Options Registration Update**:\n   - Changed the option name from `OPTION_NAME_SEARCH_REMOTE_LOCATIONS` to `OPTION_NAME_SEARCH_UNTRUSTED_LOCATIONS`.\n   - Updated the description to reflect the new terminology.\n\n4. **Options Change Update**:\n   - Updated the retrieval of the boolean flag in `optionsChanged` to use the updated option name.\n\n5. **Static Method Update**:\n   - Renamed `setAllowRemoteOption` to `setAllowUntrustedOption` and updated comments accordingly.\n\nThese changes improve the readability of the code and make the intention of the functionality clearer.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 787,
+                        "prompt_tokens": 1524,
+                        "total_tokens": 2311,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-c888c555-1031-43bf-a84a-57e7ac95aad8-0",
+                "usage_metadata": {
+                    "input_tokens": 1524,
+                    "output_tokens": 787,
+                    "total_tokens": 2311,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 13,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "The provided Java code defines two interfaces for handling drag-and-drop functionality: `Draggable` and `Droppable`. While these interfaces have a clear separation of concerns, there are several areas where the code can be refactored to improve readability, maintainability, and usability.\n\n### Refactoring Suggestions:\n\n1. **Use Default Methods**: Consider providing default implementations for methods in the interfaces wherever possible. This can help avoid boilerplate code in classes implementing these interfaces.\n\n2. **Use Consistent Naming Conventions**: Ensure that method names and parameters follow a consistent naming convention, preferably using camelCase for method names.\n\n3. **Reduce Public Modifiers**: It\u2019s a common convention that in interfaces, all methods are implicitly public, so you can omit the public keyword for cleaner code.\n\n4. **Enhance JavaDoc Comments**: While the existing JavaDoc comments are informative, they can be made more concise and focused. Ensure that the comments follow standard practices.\n\n5. **Replace Object with More Specific Types**: In the `Droppable` interface, consider using `Transferable` instead of `Object` for the `add` method parameter to specify what kind of object can be dropped.\n\nHere is the refactored code applying these suggestions:\n\n```java\npackage docking.dnd;\n\nimport java.awt.Point;\nimport java.awt.datatransfer.Transferable;\nimport java.awt.dnd.*;\n\n/**\n * Interface to define a drag source.\n */\npublic interface Draggable {\n\n    /**\n     * Checks if the object at the specified location is draggable.\n     *\n     * @param event the DragGestureEvent that represents the dragging gesture\n     * @return true if the drag can start; false otherwise\n     */\n    boolean isStartDragOk(DragGestureEvent event);\n\n    /**\n     * Returns a listener to handle drag source events.\n     *\n     * @return the DragSourceListener\n     */\n    DragSourceListener getDragSourceListener();\n\n    /**\n     * Performs the move operation when drag and drop completes.\n     */\n    void move();\n\n    /**\n     * Called when the drag operation exits the drop target without dropping.\n     *\n     * @param event the DragSourceDropEvent\n     */\n    void dragCanceled(DragSourceDropEvent event);\n\n    /**\n     * Gets the actions supported by this drag source.\n     *\n     * @return an int representing drag actions\n     */\n    int getDragAction();\n\n    /**\n     * Retrieves the transferable object at the specified location.\n     *\n     * @param point the location of the object\n     * @return the Transferable object to transfer\n     */\n    Transferable getTransferable(Point point);\n}\n\n/**\n * Interface for defining a drop target.\n */\npublic interface Droppable {\n\n    /**\n     * Checks if the drop is acceptable at the current location.\n     *\n     * @param event the DropTargetDragEvent with the current state\n     * @return true if the drop is acceptable; false otherwise\n     */\n    boolean isDropOk(DropTargetDragEvent event);\n\n    /**\n     * Sets the drag feedback according to the specified status.\n     *\n     * @param ok   true if the drop is ok\n     * @param event the DropTargetDragEvent with the current state\n     */\n    void dragUnderFeedback(boolean ok, DropTargetDragEvent event);\n\n    /**\n     * Reverts any drag feedback that was set previously.\n     */\n    void undoDragUnderFeedback();\n\n    /**\n     * Adds the transferable object to the droppable component.\n     *\n     * @param transferable the object to be dropped\n     * @param event       the DropTargetDropEvent with the current state\n     * @param flavor      the DataFlavor representing the data format\n     */\n    void add(Transferable transferable, DropTargetDropEvent event, DataFlavor flavor);\n}\n```\n\n### Key Improvements Made:\n- Ensured that interface methods are concise and self-explanatory.\n- Updated method signatures to use specific data types, enhancing type safety.\n- Removed public modifiers since they are redundant in interfaces.\n- Improved JavaDoc comments for better clarity and conciseness.\n\nThese changes should make the code easier to understand, implement, and maintain while adhering to best practices in Java programming.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 855,
+                        "prompt_tokens": 1028,
+                        "total_tokens": 1883,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-9f431311-185d-4087-9a83-1efb373974db-0",
+                "usage_metadata": {
+                    "input_tokens": 1028,
+                    "output_tokens": 855,
+                    "total_tokens": 1883,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    },
+    {
+        "id": 14,
+        "response": {
+            "lc": 1,
+            "type": "constructor",
+            "id": [
+                "langchain",
+                "schema",
+                "messages",
+                "AIMessage"
+            ],
+            "kwargs": {
+                "content": "To improve the quality of the provided Java code for `FillOutStructureCmd`, several changes can be made for better readability, maintainability, and performance. Below are some suggested improvements:\n\n### 1. **Use Descriptive Variable Names**\nSome variable names could be improved for clarity. For example:\n- `var` can be renamed to `highVariable`, `tempStruct`, or other contextually relevant names.\n- `todoList` could be renamed to `pendingPointerRefs`.\n\n### 2. **Add Method Documentation**\nWhile there are comments for some methods, the documentation can be made more consistent and informative. Ensure that all public methods have clear Javadoc explaining parameters, return values, and exceptions thrown.\n\n### 3. **Reduce Nested Logic**\nMethods like `fillOutStructureDef` are long and deeply nested. Consider breaking them into smaller helper methods that can encapsulate specific functionalities. For example, the logic that differentiates between different Pcode operations can be moved to separate methods.\n\n### 4. **Check for NULL Values Earlier**\nIn multiple places, there are risks of null pointer exceptions when accessing methods on potentially null objects. You may want to check for null conditions earlier and return early for better clarity.\n  \n### 5. **Use Consistent Error Handling**\nCurrently, there are different ways of handling exceptions in various methods. Consider standardizing how exceptions are thrown and handled throughout the class for consistency.\n\n### 6. **Use `Map` Interface Type where Possible**\nInstead of specifically using `HashMap`, declare `addressToCallInputMap` with `Map<Address, Address>` type. This promotes the use of interfaces over implementations, enhancing flexibility.\n\n```java\nprivate Map<Address, Address> addressToCallInputMap = new HashMap<>();\n```\n\n### 7. **Reduce Redundant Code**\nIn the `computeHighVariable` method, the logic for finding `highVariable` can be refactored to eliminate repetition. You can use a loop or a mapping structure to avoid the multiple if conditions.\n\n### 8. **Sanity Check**\nThe `sanityCheck` method can be streamlined or combined with existing error-checking logic to eliminate redundancy and improve clarity.\n\n### 9. **Prefer Enhanced For-Loop**\nInstead of using traditional for-loops (e.g., for iterating through collections), use enhanced for-loops to improve readability.\n\n```java\nfor (Address addr : addressToCallInputMap.keySet()) {\n    ...\n}\n```\n\n### 10. **Use Optional to Avoid Null Checks**\nFor methods that can potentially return null, consider returning an `Optional<T>` instead. This approach forces the caller to handle the absence of a value more gracefully.\n\n### 11. **Remove Unused Imports**\nRemove any unused import statements to reduce clutter and improve readability.\n\n### 12. **Consistent Bracing Style**\nEnsure that the bracing style is consistent throughout the file. For example, all methods and control statements such as if/else should use braces, even for single statements.\n\n### 13. **Improve Logging and Error Messaging**\nUse structured logging instead of plain error messages when throwing exceptions to facilitate easier debugging.\n\n### 14. **Ensure Thread-Safety of Mutable Collections**\nIf this class is used in a multithreaded context, consider reviewing the collection types and wrapping them with synchronization logic or using concurrent collections like `ConcurrentHashMap` for any mutable collections.\n\n### Example of a Refactored Method\nHere's an example of how you might refactor the `fillOutStructureDef` method to reduce complexity and make it easier to understand:\n\n```java\nprivate void fillOutStructureDef(HighVariable highVariable) {\n    Varnode startVarnode = highVariable.getRepresentative();\n    List<PointerRef> pendingPointerRefs = new LinkedList<>();\n    Set<Varnode> processedVarnodes = new HashSet<>();\n\n    // Initial condition\n    pendingPointerRefs.add(new PointerRef(startVarnode, 0));\n    Arrays.stream(highVariable.getInstances()).forEach(processedVarnodes::add);\n\n    // Process pending references\n    while (!pendingPointerRefs.isEmpty()) {\n        PointerRef currentRef = pendingPointerRefs.remove(0);\n        if (currentRef.varnode == null) continue;\n\n        processDescendants(currentRef, pendingPointerRefs, processedVarnodes);\n    }\n}\n\nprivate void processDescendants(PointerRef currentRef, List<PointerRef> pendingPointerRefs, Set<Varnode> processedVarnodes) {\n    for (PcodeOp pcodeOp : currentRef.varnode.getDescendants()) {\n        Varnode output = pcodeOp.getOutput();\n        Varnode[] inputs = pcodeOp.getInputs();\n        \n        switch (pcodeOp.getOpcode()) {\n            case PcodeOp.INT_SUB:\n            case PcodeOp.INT_ADD:\n                handleIntOperation(pcodeOp, inputs, currentRef, pendingPointerRefs, processedVarnodes);\n                break;\n            // Handle other cases...\n        }\n    }\n}\n\nprivate void handleIntOperation(PcodeOp pcodeOp, Varnode[] inputs, PointerRef currentRef, \n    List<PointerRef> pendingPointerRefs, Set<Varnode> processedVarnodes) {\n        if (inputs[1].isConstant()) {\n            // Perform calculations and possibly add to the pendingPointerRefs\n        }\n}\n```\n\nThis organization better defines the task at hand and separates concerns, making later maintenance easier.\n\nOverall, these suggestions aim to enhance the code's clarity, maintainability, and robustness while preserving its original functionality and logic.",
+                "additional_kwargs": {
+                    "refusal": null
+                },
+                "response_metadata": {
+                    "token_usage": {
+                        "completion_tokens": 1142,
+                        "prompt_tokens": 6871,
+                        "total_tokens": 8013,
+                        "completion_tokens_details": {
+                            "accepted_prediction_tokens": 0,
+                            "audio_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "rejected_prediction_tokens": 0
+                        },
+                        "prompt_tokens_details": {
+                            "audio_tokens": 0,
+                            "cached_tokens": 0
+                        }
+                    },
+                    "model_name": "gpt-4o-mini-2024-07-18",
+                    "system_fingerprint": "fp_72ed7ab54c",
+                    "finish_reason": "stop",
+                    "logprobs": null
+                },
+                "type": "ai",
+                "id": "run-1dfdb34d-64b1-4b2a-9a75-9dc304edce0e-0",
+                "usage_metadata": {
+                    "input_tokens": 6871,
+                    "output_tokens": 1142,
+                    "total_tokens": 8013,
+                    "input_token_details": {
+                        "audio": 0,
+                        "cache_read": 0
+                    },
+                    "output_token_details": {
+                        "audio": 0,
+                        "reasoning": 0
+                    }
+                },
+                "tool_calls": [],
+                "invalid_tool_calls": []
+            }
+        }
+    }
+]
