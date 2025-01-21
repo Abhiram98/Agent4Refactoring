@@ -12,6 +12,8 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 
+USE_HINTS = False
+
 benchmark_lite = bm_load.load_benchmark(refagent.benchmark_lite_json)
 print(benchmark_lite)
 
@@ -20,7 +22,7 @@ print(benchmark_lite)
 model = ChatGrazie(grazie_jwt_token=os.getenv("GRAZIE_JWT_TOKEN"),
                    client_auth_type=AuthType.APPLICATION,
                    client_url=GrazieApiGatewayUrls.STAGING,
-                   profile="openai-gpt-4o-mini")
+                   profile="anthropic-claude-3-sonnet")
 
 rm = results_manager.ResultsManager()
 
@@ -37,11 +39,13 @@ for bench_point in benchmark_lite:
     system_message = "Suggest changes to improve the quality of this java code."
     if bench_point.necessary_context != '':
         system_message += f" Please perform the following action - {bench_point.necessary_context}"
+    if USE_HINTS and bench_point.hint!='':
+        system_message += f". {bench_point.hint}\n"
     messages = [
         SystemMessage(system_message),
         HumanMessage(message),
     ]
     response = model.invoke(messages)
-    rm.add(bench_point.ref_id, response.to_json())
+    rm.add(bench_point.ref_id, response.content)
 
 rm.save()
