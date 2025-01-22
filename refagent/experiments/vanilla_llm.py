@@ -6,13 +6,13 @@ import langchain
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 import refagent.benchmark.load as bm_load
-import refagent.experiments.project_manager as pm
+import refagent.utils.project_manager as pm
 import refagent.experiments.results_manager as results_manager
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 
-USE_HINTS = False
+USE_HINTS = True
 
 benchmark_lite = bm_load.load_benchmark(refagent.benchmark_lite_json)
 print(benchmark_lite)

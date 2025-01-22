@@ -1,6 +1,6 @@
 import json
 import refagent
-import refagent.experiments.project_manager as pm
+import refagent.utils.project_manager as pm
 
 bench_lite = refagent.benchmark_lite_json
 
