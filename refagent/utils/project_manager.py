@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 from itertools import groupby
 from pydantic import BaseModel, Field, root_validator
+import os
 
 projects_base_path = pathlib.Path("/Users/abhiram/Documents/TBE/evaluation_projects")
 
@@ -49,6 +50,7 @@ class Hunk(BaseModel):
             content=content,
         )
 
+
 class MyDiff:
     def __init__(self, git_diff: git.Diff):
         self.git_diff = git_diff
@@ -62,9 +64,9 @@ class MyDiff:
             'copied': self.git_diff.copied_file,
             'deleted': self.git_diff.deleted_file,
             'change_type': self.git_diff.change_type,
-            'hunks': [h.dict() for h in self.hunks]
+            'hunks': [h.dict() for h in self.hunks],
+            'patch': self.git_diff.diff.decode('utf-8')
         }
-
 
     @staticmethod
     def parse_hunk_metadata(header):
@@ -111,7 +113,6 @@ class MyDiff:
         return hunks
 
 
-
 class EvalProject:
     def __init__(self, project_name):
         self.project_name = project_name
@@ -140,3 +141,18 @@ class EvalProject:
         parent = commit.parents[0]
         diffs = commit.diff(parent, create_patch=True)
         return [MyDiff(d) for d in diffs]
+
+    def get_unstaged_changes(self):
+        diffs = self.git_repo.git.diff('HEAD', create_patch=True)
+        return [MyDiff(d) for d in diffs]
+
+    def replace_contents(self, file_path, new_content):
+        try:
+            with open(self.get_project_path().joinpath(file_path), "w") as f:
+                f.write(new_content)
+            return True  # success
+        except:
+            return False
+
+    def run_ls(self, directory_path):
+        return os.listdir(self.get_project_path().joinpath(directory_path))
