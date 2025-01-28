@@ -3,62 +3,67 @@ import os
 from typing import Literal
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.prebuilt import create_react_agent
+# from langgraph.prebuilt import create_react_agent
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
-# from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 
-from grazie.api.client.endpoints import GrazieApiGatewayUrls
-from grazie.api.client.gateway import AuthType
-from grazie_langchain_utils.language_models.grazie import ChatGrazie
-
-from pydantic import BaseModel, Field, root_validator
+# from grazie.api.client.endpoints import GrazieApiGatewayUrls
+# from grazie.api.client.gateway import AuthType
+# from grazie_langchain_utils.language_models.grazie import ChatGrazie
+#
+# from pydantic import BaseModel, Field, root_validator
 
 import refagent.benchmark.load as bm_load
 import refagent.utils.project_manager as pm
+import refagent
 
 # Define the tools for the agent to use
 
 current_project: pm.EvalProject
-
-
-@tool
-def replace_file_contents(file_path: str, new_content: str) -> str:
-    """Replace the entire contents of `file_path` with the `new_content`."""
-    print(f"replacing file contents - {file_path}")
-    status = current_project.replace_contents(file_path, new_content)
-    return 'SUCCESS' if status else 'FAIL'
-
-
-@tool
-def read_file_contents(file_path: str) -> str:
-    """Read the contents of the `file_path` file."""
-    print(f"reading file contents - {file_path}")
-    return current_project.get_file_contents(file_path)
-
-
-@tool
-def ls(directory_path: str) -> str:
-    """Run the ls command in the `directory_path` directory."""
-    print(f"performing ls: {directory_path}")
-    return str(current_project.run_ls(directory_path))
+os.environ["OPENAI_API_KEY"] = refagent.OPENAI_KEY
 
 
 class Agent:
     """Simple refactoring agent."""
 
-    model = ChatGrazie(grazie_jwt_token=os.getenv("GRAZIE_JWT_TOKEN"),
-                       client_auth_type=AuthType.APPLICATION,
-                       client_url=GrazieApiGatewayUrls.STAGING,
-                       profile="openai-gpt-4o-mini")
+    # model = ChatGrazie(grazie_jwt_token=os.getenv("GRAZIE_JWT_TOKEN"),
+    #                    client_auth_type=AuthType.APPLICATION,
+    #                    client_url=GrazieApiGatewayUrls.STAGING,
+    #                    profile="openai-gpt-4o-mini")
+
+    model = ChatOpenAI(model="gpt-4o-mini")
     # model = ChatOllama(model="llama3.1", temperature=0)
+
+    def __init__(self):
+        self.files_changed = []
 
     def run(self, bench_point: bm_load.BenchmarkItem) -> list[pm.MyDiff]:
         """run the agent for the benchmark_point"""
         global current_project
         project = pm.EvalProject(bench_point.project_name)
-        project.checkout(bench_point.v1_hash)
         current_project = project
+
+        @tool
+        def replace_file_contents(file_path: str, new_content: str) -> str:
+            """Replace the entire contents of `file_path` with the `new_content`."""
+            print(f"replacing file contents - {file_path}")
+            status = current_project.replace_contents(file_path, new_content)
+            self.files_changed.append(file_path)
+            return 'SUCCESS' if status else 'FAIL'
+
+        @tool
+        def read_file_contents(file_path: str) -> str:
+            """Read the contents of the `file_path` file."""
+            print(f"reading file contents - {file_path}")
+            return current_project.get_file_contents(file_path)
+
+        @tool
+        def ls(directory_path: str) -> str:
+            """Run the ls command in the `directory_path` directory."""
+            print(f"performing ls: {directory_path}")
+            return str(current_project.run_ls(directory_path))
 
         tools = [replace_file_contents, ls, replace_file_contents]
 
@@ -125,8 +130,8 @@ class Agent:
 
         message = ""
         for fname in bench_point.starting_files:
-            # contents = project.get_file_contents(fname)
-            message += f"{fname}"
+            contents = project.get_file_contents(fname)
+            message += f"{fname}: {contents}"
 
         # Use the agent
         final_state = app.invoke(
@@ -134,7 +139,7 @@ class Agent:
                  [{"role": "system", "content": system_message},
                   {"role": "user", "content": message}]
              },
-            config={"configurable": {"thread_id": 42}}
+            config={"configurable": {"thread_id": 42}, "recursion_limit": 10}
         )
         print(final_state["messages"][-1].content)
 

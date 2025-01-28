@@ -163,3 +163,8 @@ class EvalProject:
 
     def add_files(self, files_changed):
         self.git_repo.git.add(files_changed)
+
+    def safe_add(self, files_changed):
+        actual_files = [file for file in files_changed if
+                        os.path.exists(self.get_project_path().joinpath(file))]
+        self.git_repo.git.add(actual_files)
