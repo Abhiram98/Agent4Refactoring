@@ -7,7 +7,7 @@ from itertools import groupby
 from pydantic import BaseModel, Field, root_validator
 import os
 
-projects_base_path = pathlib.Path("/Users/abhiram/Documents/TBE/evaluation_projects")
+projects_base_path = pathlib.Path(os.environ.get('PROJECTS_BASE_PATH'))
 
 
 class Hunk(BaseModel):
@@ -142,8 +142,8 @@ class EvalProject:
         diffs = commit.diff(parent, create_patch=True)
         return [MyDiff(d) for d in diffs]
 
-    def get_unstaged_changes(self):
-        diffs = self.git_repo.git.diff('HEAD', create_patch=True)
+    def get_unstaged_changes(self) -> list[MyDiff]:
+        diffs = self.git_repo.index.diff(None, create_patch=True)
         return [MyDiff(d) for d in diffs]
 
     def replace_contents(self, file_path, new_content):
@@ -156,3 +156,10 @@ class EvalProject:
 
     def run_ls(self, directory_path):
         return os.listdir(self.get_project_path().joinpath(directory_path))
+
+    def commit_all(self, commit_msg):
+        self.git_repo.git.add(all=True)
+        return self.git_repo.index.commit(commit_msg)
+
+    def add_files(self, files_changed):
+        self.git_repo.git.add(files_changed)
