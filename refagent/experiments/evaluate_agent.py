@@ -1,7 +1,10 @@
 import argparse
+import json
 
+import refagent
 import refagent.benchmark.load as bm_load
 import refagent.utils.project_manager as pm
+import refagent.utils.refminer_utils as rminer
 
 
 def find_similar(change, diffs):
@@ -25,6 +28,32 @@ def main():
     args = parser.parse_args()
 
     print(f'File Path: {args.agent_outfile_path}')
+    with open(args.agent_outfile_path) as f:
+        agent_results = json.load(f)
+
+    overall_recall = 0
+    total_oracle = 0
+    benchmark = bm_load.load_benchmark(refagent.benchmark_lite_json)
+    for result, bench_point in zip(agent_results, benchmark):
+        bench_point: bm_load.BenchmarkItem
+        id = result['id']
+        assert id == bench_point.ref_id
+        commit = result['response']['commit_hash']
+        project = pm.EvalProject(bench_point.project_name)
+        refactorings = rminer.default_runner.run(project.get_project_path(), commit)
+        oracle_refactorings = rminer.default_runner.run(project.get_project_path(), bench_point.v2_hash)
+        recall = 0
+        for oracle in oracle_refactorings:
+            for i in refactorings:
+                if oracle == i:
+                    recall += 1
+                    break
+        overall_recall += recall
+        total_oracle += len(oracle_refactorings)
+
+        print(f"recall = {overall_recall / total_oracle}")
+
+
 
 
 if __name__ == '__main__':
