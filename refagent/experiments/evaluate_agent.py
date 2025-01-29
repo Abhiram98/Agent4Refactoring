@@ -52,6 +52,8 @@ def main():
         total_oracle += len(oracle_refactorings)
 
         print(f"recall = {overall_recall / total_oracle}")
+        print(f"{overall_recall=}")
+        print(f"{total_oracle=}")
 
 
 
