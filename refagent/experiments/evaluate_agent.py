@@ -5,6 +5,7 @@ import refagent
 import refagent.benchmark.load as bm_load
 import refagent.utils.project_manager as pm
 import refagent.utils.refminer_utils as rminer
+import refagent.refactoring_types.refactorings as refactoring_types
 
 
 def find_similar(change, diffs):
@@ -44,12 +45,15 @@ def main():
         oracle_refactorings = rminer.default_runner.run(project.get_project_path(), bench_point.v2_hash)
         recall = 0
         for oracle in oracle_refactorings:
+            if oracle.type in ['Extract Variable', 'Inline Variable']:
+                continue
+            total_oracle += 1
             for i in refactorings:
                 if oracle == i:
                     recall += 1
                     break
         overall_recall += recall
-        total_oracle += len(oracle_refactorings)
+        # total_oracle += len(oracle_refactorings)
 
         print(f"recall = {overall_recall / total_oracle}")
         print(f"{overall_recall=}")

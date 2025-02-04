@@ -13,8 +13,6 @@ if __name__ == '__main__':
     results_saver = rm.ResultsManager()
 
     for bench_point in benchmark:
-        if bench_point.ref_id < 11:
-            continue
         project = pm.EvalProject(bench_point.project_name)
         project.checkout(bench_point.v1_hash)
         agent = agent1.Agent()

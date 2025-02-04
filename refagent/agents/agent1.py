@@ -6,18 +6,20 @@ from langgraph.checkpoint.memory import MemorySaver
 # from langgraph.prebuilt import create_react_agent
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
-from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
+# from langchain_openai import ChatOpenAI
+# from langchain_ollama import ChatOllama
 
-# from grazie.api.client.endpoints import GrazieApiGatewayUrls
-# from grazie.api.client.gateway import AuthType
-# from grazie_langchain_utils.language_models.grazie import ChatGrazie
+from grazie.api.client.endpoints import GrazieApiGatewayUrls
+from grazie.api.client.gateway import AuthType
+from grazie_langchain_utils.language_models.grazie import ChatGrazie
 #
 # from pydantic import BaseModel, Field, root_validator
 
 import refagent.benchmark.load as bm_load
 import refagent.utils.project_manager as pm
 import refagent
+
+from pydantic import SecretStr
 
 # Define the tools for the agent to use
 
@@ -31,9 +33,17 @@ class Agent:
     # model = ChatGrazie(grazie_jwt_token=os.getenv("GRAZIE_JWT_TOKEN"),
     #                    client_auth_type=AuthType.APPLICATION,
     #                    client_url=GrazieApiGatewayUrls.STAGING,
-    #                    profile="openai-gpt-4o-mini")
+    #                    profile="openai-gpt-4o"
+    #                    )
+    model = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                       client_auth_type=AuthType.APPLICATION,
+                       client_url=GrazieApiGatewayUrls.STAGING,
+                       profile="openai-gpt-4o-mini",
+                       client_agent_name='vanilla-ref-agent',
+                       client_agent_version='0.1'
+                       )
 
-    model = ChatOpenAI(model="gpt-4o-mini")
+    # model = ChatOpenAI(model="gpt-4o-mini")
     # model = ChatOllama(model="llama3.1", temperature=0)
 
     def __init__(self):
