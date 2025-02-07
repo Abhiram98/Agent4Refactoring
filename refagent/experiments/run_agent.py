@@ -1,6 +1,6 @@
 import argparse
 
-import refagent.agents.agent1 as agent1
+import refagent.agents.simple_agent as agent1
 import refagent.benchmark.load as bm_load
 import refagent
 import refagent.experiments.results_manager as rm
