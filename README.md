@@ -12,6 +12,11 @@ Tested python version: 3.10. (It will probably work with other versions?!)
 pip install -e . # this install the repository in edit mode (good for development) 
 ```
 
+### Install grazie-langchain-utils
+
+1. Open library folder
+2. run `pip install .`
+
 ### Download evaluation projects
 `git clone` these projects in a specific folder (`EVALUATION_PROJECTS_PATH`):
 
@@ -62,3 +67,14 @@ Simple agents: LLM + basic tools (read_file, write_file, LS)
 python refagent/experiments/run_agent.py
 ```
 
+#### Using different Language models.
+Change the LLM profile in `refagent/agents/simple_agent.py:41` 
+```python
+    model = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                       client_auth_type=AuthType.APPLICATION,
+                       client_url=GrazieApiGatewayUrls.STAGING,
+                       profile="openai-gpt-4o-mini", # CHANGE THIS to try a different model
+                       client_agent_name='vanilla-ref-agent',
+                       client_agent_version='0.1'
+                       )
+```
