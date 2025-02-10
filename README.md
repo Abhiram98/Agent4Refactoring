@@ -14,7 +14,7 @@ pip install -e . # this install the repository in edit mode (good for developmen
 
 ### Install grazie-langchain-utils
 
-1. Open library folder
+1. cd `path/to/grazie-langchain-utils`
 2. run `pip install .`
 
 ### Download evaluation projects
