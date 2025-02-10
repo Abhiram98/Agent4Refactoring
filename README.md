@@ -47,9 +47,6 @@ PROJECTS_BASE_PATH='<EVALUATION_PROJECTS_PATH>'
 GRAZIE_JWT_TOKEN='<GRAZIE_KEY_HERE>'
 ```
 
-### Download other repositories.
-
-
 
 # Usage
 
