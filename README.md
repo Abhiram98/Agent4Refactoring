@@ -5,6 +5,9 @@ A refactoring agent + a benchmark to evaluate agents design for refactoring soft
 # Installation & Setup
 
 ### Install package
+
+Tested python version: 3.10. (It will probably work with other versions?!)
+
 ```shell
 pip install -e . # this install the repository in edit mode (good for development) 
 ```
