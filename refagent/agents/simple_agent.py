@@ -96,6 +96,8 @@ class Agent:
             messages = state['messages']
             response = model.invoke(messages)
             # We return a list, because this will get added to the existing list
+            if 'spent' in response.additional_kwargs:
+                del response.additional_kwargs['spent']
             return {"messages": [response]}
 
         # Define a new graph
