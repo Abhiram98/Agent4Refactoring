@@ -1,6 +1,6 @@
 import argparse
 
-import refagent.agents.simple_agent as agent1
+import refagent.agents.simple_agent as simple_agent
 import refagent.benchmark.load as bm_load
 import refagent
 import refagent.experiments.results_manager as rm
@@ -15,7 +15,7 @@ if __name__ == '__main__':
     for bench_point in benchmark:
         project = pm.EvalProject(bench_point.project_name)
         project.checkout(bench_point.v1_hash)
-        agent = agent1.Agent()
+        agent = simple_agent.Agent()
         changes = agent.run(bench_point)
         # changes = project.get_unstaged_changes()
         # files_changed = [i.git_diff.b_rawpath.decode('utf-8') for i in changes]
