@@ -29,6 +29,7 @@ rm = results_manager.ResultsManager()
 for bench_point in benchmark_lite:
     print(f"processing benchmark - {bench_point.ref_id}")
     project = pm.EvalProject(bench_point.project_name)
+    project.git_repo.git.reset("--hard", "HEAD") # Perform a hard reset to drop any uncommit changes.
     project.checkout_previous(bench_point.v2_hash)
 
     message = ""
