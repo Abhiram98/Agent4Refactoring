@@ -36,8 +36,8 @@ class Scraper(BaseModel):
                 count += 1
                 self.process_commit(commit, project)
 
-        with open(self.output_path, "w") as f:
-            json.dump([i.to_json() for i in self.gather_data_points], f, indent=4)
+                with open(self.output_path, "w") as f:
+                    json.dump([i.to_json() for i in self.gather_data_points], f, indent=4)
         print(f"successfully scraped {count} data points.")
 
         # Append to benchmark_file
@@ -62,7 +62,11 @@ class Scraper(BaseModel):
         )
         if len(refactorings) == 0:
             return  # There are no refactorings detected by rminer, which is an odd case.
-        starting_file = refactorings[0].leftSideLocations[0].filePath  # TODO: this is a faux starting path.
+        left = refactorings[0].leftSideLocations
+        if len(left):
+            starting_file = left[0].filePath  # TODO: this is a faux starting path.
+        else:
+            starting_file = ''
                                                                        #  Maybe there are other files
 
         self.gather_data_points.append(
@@ -85,5 +89,7 @@ class Scraper(BaseModel):
 
 
 if __name__ == '__main__':
-    Scraper(project_name='flink',
-            output_path=refagent.data_folder.joinpath('ref_miner/flink.json')).run()
+    Scraper(project_name='kafka',
+            output_path=refagent.data_folder.joinpath('ref_miner/kafka.json'),
+            id_counter=89
+            ).run()
