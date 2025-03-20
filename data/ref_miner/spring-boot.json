@@ -31344,7 +31344,66 @@
                 ],
                 "patch": "@@ -52,7 +52,7 @@ public class BasicJsonParser extends AbstractJsonParser {\n \n \tprivate List<Object> parseListInternal(int nesting, String json) {\n \t\tList<Object> list = new ArrayList<>();\n-\t\tjson = trimEdges(json, '[', ']').trim();\n+\t\tjson = trimLeadingCharacter(trimTrailingCharacter(json, ']'), '[').trim();\n \t\tfor (String value : tokenize(json)) {\n \t\t\tlist.add(parseInternal(nesting + 1, value));\n \t\t}\n@@ -70,39 +70,37 @@ public class BasicJsonParser extends AbstractJsonParser {\n \t\t\treturn parseMapInternal(nesting + 1, json);\n \t\t}\n \t\tif (json.startsWith(\"\\\"\")) {\n-\t\t\treturn trimEdges(json, '\"', '\"');\n+\t\t\treturn trimTrailingCharacter(trimLeadingCharacter(json, '\"'), '\"');\n \t\t}\n-\t\treturn parseNumber(json);\n+\t\ttry {\n+\t\t\treturn Long.valueOf(json);\n+\t\t}\n+\t\tcatch (NumberFormatException ex) {\n+\t\t\t// ignore\n+\t\t}\n+\t\ttry {\n+\t\t\treturn Double.valueOf(json);\n+\t\t}\n+\t\tcatch (NumberFormatException ex) {\n+\t\t\t// ignore\n+\t\t}\n+\t\treturn json;\n \t}\n \n \tprivate Map<String, Object> parseMapInternal(int nesting, String json) {\n \t\tMap<String, Object> map = new LinkedHashMap<>();\n-\t\tjson = trimEdges(json, '{', '}').trim();\n+\t\tjson = trimLeadingCharacter(trimTrailingCharacter(json, '}'), '{').trim();\n \t\tfor (String pair : tokenize(json)) {\n \t\t\tString[] values = StringUtils.trimArrayElements(StringUtils.split(pair, \":\"));\n \t\t\tAssert.state(values[0].startsWith(\"\\\"\") && values[0].endsWith(\"\\\"\"),\n \t\t\t\t\t\"Expecting double-quotes around field names\");\n-\t\t\tString key = trimEdges(values[0], '\"', '\"');\n+\t\t\tString key = trimLeadingCharacter(trimTrailingCharacter(values[0], '\"'), '\"');\n \t\t\tObject value = parseInternal(nesting, values[1]);\n \t\t\tmap.put(key, value);\n \t\t}\n \t\treturn map;\n \t}\n \n-\tprivate Object parseNumber(String json) {\n-\t\ttry {\n-\t\t\treturn Long.valueOf(json);\n-\t\t}\n-\t\tcatch (NumberFormatException ex) {\n-\t\t\ttry {\n-\t\t\t\treturn Double.valueOf(json);\n-\t\t\t}\n-\t\t\tcatch (NumberFormatException ex2) {\n-\t\t\t\treturn json;\n-\t\t\t}\n-\t\t}\n-\t}\n-\n \tprivate static String trimTrailingCharacter(String string, char c) {\n \t\tif (!string.isEmpty() && string.charAt(string.length() - 1) == c) {\n \t\t\treturn string.substring(0, string.length() - 1);\n@@ -117,10 +115,6 @@ public class BasicJsonParser extends AbstractJsonParser {\n \t\treturn string;\n \t}\n \n-\tprivate static String trimEdges(String string, char leadingChar, char trailingChar) {\n-\t\treturn trimTrailingCharacter(trimLeadingCharacter(string, leadingChar), trailingChar);\n-\t}\n-\n \tprivate List<String> tokenize(String json) {\n \t\tList<String> list = new ArrayList<>();\n \t\tint index = 0;\n"
             }
-        ]
+        ],
+        "pull_request": {
+            "title": "Refactor BasicJsonParser to simplify JSON parsing logic",
+            "body": "This pull request refactors the `BasicJsonParser` class to simplify the JSON parsing logic.\r\n\r\nThe following changes are made:\r\n\r\n- Consolidated `trimLeadingCharacter` and `trimTrailingCharacter` methods into a single `trimEdges` method to reduce code duplication and improve clarity.\r\n- Extracted the number parsing logic into a new `parseNumber` method to separate concerns and enhance maintainability.\r\n\r\nThese changes aim to improve code readability and make future maintenance easier.\r\nNo functional changes are introduced.\r\n\r\nThank you for reviewing this pull request!",
+            "comments": [
+                {
+                    "comment": "",
+                    "time": "2024-08-16T07:36:51Z",
+                    "author": "asashour"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-08-16T14:40:46Z",
+                    "author": "wilkinsona"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-08-16T15:36:11Z",
+                    "author": "hyunmin0317"
+                }
+            ],
+            "number": 41876,
+            "updated_at": "2024-08-21T11:37:27Z",
+            "created_at": "2024-08-15T13:03:17Z",
+            "review_comments": [
+                {
+                    "comment": "This method could be `static`.",
+                    "time": "2024-08-16T07:36:51Z",
+                    "author": "asashour",
+                    "file_path": "spring-boot-project/spring-boot/src/main/java/org/springframework/boot/json/BasicJsonParser.java",
+                    "start_line_num": 92,
+                    "diff_hunk": "@@ -70,37 +70,37 @@ private Object parseInternal(int nesting, String json) {\n \t\t\treturn parseMapInternal(nesting + 1, json);\n \t\t}\n \t\tif (json.startsWith(\"\\\"\")) {\n-\t\t\treturn trimTrailingCharacter(trimLeadingCharacter(json, '\"'), '\"');\n+\t\t\treturn trimEdges(json, '\"', '\"');\n \t\t}\n-\t\ttry {\n-\t\t\treturn Long.valueOf(json);\n-\t\t}\n-\t\tcatch (NumberFormatException ex) {\n-\t\t\t// ignore\n-\t\t}\n-\t\ttry {\n-\t\t\treturn Double.valueOf(json);\n-\t\t}\n-\t\tcatch (NumberFormatException ex) {\n-\t\t\t// ignore\n-\t\t}\n-\t\treturn json;\n+\t\treturn parseNumber(json);\n \t}\n \n \tprivate Map<String, Object> parseMapInternal(int nesting, String json) {\n \t\tMap<String, Object> map = new LinkedHashMap<>();\n-\t\tjson = trimLeadingCharacter(trimTrailingCharacter(json, '}'), '{').trim();\n+\t\tjson = trimEdges(json, '{', '}').trim();\n \t\tfor (String pair : tokenize(json)) {\n \t\t\tString[] values = StringUtils.trimArrayElements(StringUtils.split(pair, \":\"));\n \t\t\tAssert.state(values[0].startsWith(\"\\\"\") && values[0].endsWith(\"\\\"\"),\n \t\t\t\t\t\"Expecting double-quotes around field names\");\n-\t\t\tString key = trimLeadingCharacter(trimTrailingCharacter(values[0], '\"'), '\"');\n+\t\t\tString key = trimEdges(values[0], '\"', '\"');\n \t\t\tObject value = parseInternal(nesting, values[1]);\n \t\t\tmap.put(key, value);\n \t\t}\n \t\treturn map;\n \t}\n \n+\tprivate Object parseNumber(String json) {",
+                    "comment_url": "https://github.com/spring-projects/spring-boot/pull/41876#discussion_r1719476338",
+                    "commit_id": "11c86d2f69d72f077d95adeb4cc9abbc72338dcb",
+                    "original_commit_id": "087c91e2db8832e514f0ee975e18370f7fa9ce74"
+                },
+                {
+                    "comment": "Thanks for trying to help, @asashour, but this suggestion doesn't align with our code style where, generally speaking, we only declare methods as static when they're used in a static context. `BasicJsonParser` has no instance variables so, in theory, every method other than those that are being overridden could be declared static but that just makes the code more verbose and adds some visual noise. It would be better leave this as it is.",
+                    "time": "2024-08-16T14:40:45Z",
+                    "author": "wilkinsona",
+                    "file_path": "spring-boot-project/spring-boot/src/main/java/org/springframework/boot/json/BasicJsonParser.java",
+                    "start_line_num": 92,
+                    "diff_hunk": "@@ -70,37 +70,37 @@ private Object parseInternal(int nesting, String json) {\n \t\t\treturn parseMapInternal(nesting + 1, json);\n \t\t}\n \t\tif (json.startsWith(\"\\\"\")) {\n-\t\t\treturn trimTrailingCharacter(trimLeadingCharacter(json, '\"'), '\"');\n+\t\t\treturn trimEdges(json, '\"', '\"');\n \t\t}\n-\t\ttry {\n-\t\t\treturn Long.valueOf(json);\n-\t\t}\n-\t\tcatch (NumberFormatException ex) {\n-\t\t\t// ignore\n-\t\t}\n-\t\ttry {\n-\t\t\treturn Double.valueOf(json);\n-\t\t}\n-\t\tcatch (NumberFormatException ex) {\n-\t\t\t// ignore\n-\t\t}\n-\t\treturn json;\n+\t\treturn parseNumber(json);\n \t}\n \n \tprivate Map<String, Object> parseMapInternal(int nesting, String json) {\n \t\tMap<String, Object> map = new LinkedHashMap<>();\n-\t\tjson = trimLeadingCharacter(trimTrailingCharacter(json, '}'), '{').trim();\n+\t\tjson = trimEdges(json, '{', '}').trim();\n \t\tfor (String pair : tokenize(json)) {\n \t\t\tString[] values = StringUtils.trimArrayElements(StringUtils.split(pair, \":\"));\n \t\t\tAssert.state(values[0].startsWith(\"\\\"\") && values[0].endsWith(\"\\\"\"),\n \t\t\t\t\t\"Expecting double-quotes around field names\");\n-\t\t\tString key = trimLeadingCharacter(trimTrailingCharacter(values[0], '\"'), '\"');\n+\t\t\tString key = trimEdges(values[0], '\"', '\"');\n \t\t\tObject value = parseInternal(nesting, values[1]);\n \t\t\tmap.put(key, value);\n \t\t}\n \t\treturn map;\n \t}\n \n+\tprivate Object parseNumber(String json) {",
+                    "comment_url": "https://github.com/spring-projects/spring-boot/pull/41876#discussion_r1719941799",
+                    "commit_id": "11c86d2f69d72f077d95adeb4cc9abbc72338dcb",
+                    "original_commit_id": "087c91e2db8832e514f0ee975e18370f7fa9ce74"
+                },
+                {
+                    "comment": "Dear @asashour and @wilkinsona,\r\n\r\nThank you very much for taking the time to review my pull request.\r\nI greatly appreciate your valuable feedback and suggestions!\r\n\r\nI have addressed all the comments and made the necessary changes.\r\nPlease let me know if there are any additional adjustments needed.\r\n\r\nThank you again for your support and guidance.",
+                    "time": "2024-08-16T15:36:11Z",
+                    "author": "hyunmin0317",
+                    "file_path": "spring-boot-project/spring-boot/src/main/java/org/springframework/boot/json/BasicJsonParser.java",
+                    "start_line_num": 92,
+                    "diff_hunk": "@@ -70,37 +70,37 @@ private Object parseInternal(int nesting, String json) {\n \t\t\treturn parseMapInternal(nesting + 1, json);\n \t\t}\n \t\tif (json.startsWith(\"\\\"\")) {\n-\t\t\treturn trimTrailingCharacter(trimLeadingCharacter(json, '\"'), '\"');\n+\t\t\treturn trimEdges(json, '\"', '\"');\n \t\t}\n-\t\ttry {\n-\t\t\treturn Long.valueOf(json);\n-\t\t}\n-\t\tcatch (NumberFormatException ex) {\n-\t\t\t// ignore\n-\t\t}\n-\t\ttry {\n-\t\t\treturn Double.valueOf(json);\n-\t\t}\n-\t\tcatch (NumberFormatException ex) {\n-\t\t\t// ignore\n-\t\t}\n-\t\treturn json;\n+\t\treturn parseNumber(json);\n \t}\n \n \tprivate Map<String, Object> parseMapInternal(int nesting, String json) {\n \t\tMap<String, Object> map = new LinkedHashMap<>();\n-\t\tjson = trimLeadingCharacter(trimTrailingCharacter(json, '}'), '{').trim();\n+\t\tjson = trimEdges(json, '{', '}').trim();\n \t\tfor (String pair : tokenize(json)) {\n \t\t\tString[] values = StringUtils.trimArrayElements(StringUtils.split(pair, \":\"));\n \t\t\tAssert.state(values[0].startsWith(\"\\\"\") && values[0].endsWith(\"\\\"\"),\n \t\t\t\t\t\"Expecting double-quotes around field names\");\n-\t\t\tString key = trimLeadingCharacter(trimTrailingCharacter(values[0], '\"'), '\"');\n+\t\t\tString key = trimEdges(values[0], '\"', '\"');\n \t\t\tObject value = parseInternal(nesting, values[1]);\n \t\t\tmap.put(key, value);\n \t\t}\n \t\treturn map;\n \t}\n \n+\tprivate Object parseNumber(String json) {",
+                    "comment_url": "https://github.com/spring-projects/spring-boot/pull/41876#discussion_r1720007913",
+                    "commit_id": "11c86d2f69d72f077d95adeb4cc9abbc72338dcb",
+                    "original_commit_id": "087c91e2db8832e514f0ee975e18370f7fa9ce74"
+                }
+            ]
+        }
     },
     {
         "id": 48,
@@ -31648,7 +31707,16 @@
                 ],
                 "patch": "@@ -52,7 +52,7 @@ public class BasicJsonParser extends AbstractJsonParser {\n \n \tprivate List<Object> parseListInternal(int nesting, String json) {\n \t\tList<Object> list = new ArrayList<>();\n-\t\tjson = trimEdges(json, '[', ']').trim();\n+\t\tjson = trimLeadingCharacter(trimTrailingCharacter(json, ']'), '[').trim();\n \t\tfor (String value : tokenize(json)) {\n \t\t\tlist.add(parseInternal(nesting + 1, value));\n \t\t}\n@@ -70,39 +70,37 @@ public class BasicJsonParser extends AbstractJsonParser {\n \t\t\treturn parseMapInternal(nesting + 1, json);\n \t\t}\n \t\tif (json.startsWith(\"\\\"\")) {\n-\t\t\treturn trimEdges(json, '\"', '\"');\n+\t\t\treturn trimTrailingCharacter(trimLeadingCharacter(json, '\"'), '\"');\n \t\t}\n-\t\treturn parseNumber(json);\n+\t\ttry {\n+\t\t\treturn Long.valueOf(json);\n+\t\t}\n+\t\tcatch (NumberFormatException ex) {\n+\t\t\t// ignore\n+\t\t}\n+\t\ttry {\n+\t\t\treturn Double.valueOf(json);\n+\t\t}\n+\t\tcatch (NumberFormatException ex) {\n+\t\t\t// ignore\n+\t\t}\n+\t\treturn json;\n \t}\n \n \tprivate Map<String, Object> parseMapInternal(int nesting, String json) {\n \t\tMap<String, Object> map = new LinkedHashMap<>();\n-\t\tjson = trimEdges(json, '{', '}').trim();\n+\t\tjson = trimLeadingCharacter(trimTrailingCharacter(json, '}'), '{').trim();\n \t\tfor (String pair : tokenize(json)) {\n \t\t\tString[] values = StringUtils.trimArrayElements(StringUtils.split(pair, \":\"));\n \t\t\tAssert.state(values[0].startsWith(\"\\\"\") && values[0].endsWith(\"\\\"\"),\n \t\t\t\t\t\"Expecting double-quotes around field names\");\n-\t\t\tString key = trimEdges(values[0], '\"', '\"');\n+\t\t\tString key = trimLeadingCharacter(trimTrailingCharacter(values[0], '\"'), '\"');\n \t\t\tObject value = parseInternal(nesting, values[1]);\n \t\t\tmap.put(key, value);\n \t\t}\n \t\treturn map;\n \t}\n \n-\tprivate Object parseNumber(String json) {\n-\t\ttry {\n-\t\t\treturn Long.valueOf(json);\n-\t\t}\n-\t\tcatch (NumberFormatException e) {\n-\t\t\ttry {\n-\t\t\t\treturn Double.valueOf(json);\n-\t\t\t}\n-\t\t\tcatch (NumberFormatException ex) {\n-\t\t\t\treturn json;\n-\t\t\t}\n-\t\t}\n-\t}\n-\n \tprivate static String trimTrailingCharacter(String string, char c) {\n \t\tif (!string.isEmpty() && string.charAt(string.length() - 1) == c) {\n \t\t\treturn string.substring(0, string.length() - 1);\n@@ -117,10 +115,6 @@ public class BasicJsonParser extends AbstractJsonParser {\n \t\treturn string;\n \t}\n \n-\tprivate static String trimEdges(String string, char leadingChar, char trailingChar) {\n-\t\treturn trimTrailingCharacter(trimLeadingCharacter(string, leadingChar), trailingChar);\n-\t}\n-\n \tprivate List<String> tokenize(String json) {\n \t\tList<String> list = new ArrayList<>();\n \t\tint index = 0;\n"
             }
-        ]
+        ],
+        "pull_request": {
+            "title": "Refactor BasicJsonParser to simplify JSON parsing logic",
+            "body": "This pull request refactors the `BasicJsonParser` class to simplify the JSON parsing logic.\r\n\r\nThe following changes are made:\r\n\r\n- Consolidated `trimLeadingCharacter` and `trimTrailingCharacter` methods into a single `trimEdges` method to reduce code duplication and improve clarity.\r\n- Extracted the number parsing logic into a new `parseNumber` method to separate concerns and enhance maintainability.\r\n\r\nThese changes aim to improve code readability and make future maintenance easier.\r\nNo functional changes are introduced.\r\n\r\nThank you for reviewing this pull request!",
+            "comments": [],
+            "number": 41876,
+            "updated_at": "2024-08-21T11:37:27Z",
+            "created_at": "2024-08-15T13:03:17Z",
+            "review_comments": []
+        }
     },
     {
         "id": 49,

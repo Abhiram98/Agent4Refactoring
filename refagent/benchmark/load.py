@@ -2,14 +2,16 @@ from __future__ import annotations
 from typing import Optional
 import refagent.utils.project_manager as pm
 import refagent.refactoring_types.refactorings as refactoring_types
-
+import refagent.benchmark.creation.add_gh_comments as gh_comment
 
 class BenchmarkItem:
     def __init__(self, ref_id: int, project_name: str,
                  v1_hash: str, v2_hash: str, intent: str,
                  necessary_context: str, hint: str,
                  starting_files: list[str], changes: list[refactoring_types.RefminerOut],
-                 diffs: list[pm.MyDiff]):
+                 diffs: list[pm.MyDiff],
+                 # pull_request: gh_comment.GithubPR
+                 ):
         self.ref_id = ref_id
         self.project_name = project_name
         self.v1_hash = v1_hash
@@ -20,6 +22,7 @@ class BenchmarkItem:
         self.starting_files = starting_files
         self.changes = changes
         self.diffs: list[pm.MyDiff] = diffs
+        # self.pull_request = pull_request
 
     @classmethod
     def load(cls, _json) -> BenchmarkItem:

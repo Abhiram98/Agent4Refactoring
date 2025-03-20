@@ -1171,7 +1171,16 @@
                     }
                 ]
             }
-        ]
+        ],
+        "pull_request": {
+            "title": "[FLINK-32852][JUnit5 migration] Migrate ExceptionHistoryEntryTest and RootExceptionHistoryEntryTest to Junit5 and Assertj",
+            "body": "-  [FLINK-32852][JUnit5 migration] Migrate ExceptionHistoryEntryTest and RootExceptionHistoryEntryTest to Junit5 and Assertj\r\n\r\n## Purpose \r\n\r\nI'm working on FLINK-33565, this is a pre-PR to migrate some tests. \r\n\r\nIt will reduce the work load for code review of FLINK-33565.",
+            "comments": [],
+            "number": 24062,
+            "updated_at": "2024-04-04T09:58:22Z",
+            "created_at": "2024-01-10T09:25:17Z",
+            "review_comments": []
+        }
     },
     {
         "id": 2,
@@ -17812,7 +17821,16 @@
                     }
                 ]
             }
-        ]
+        ],
+        "pull_request": {
+            "title": "[FLINK-33697][state][metrics] Trace RocksDBIncremental remote files download time",
+            "body": "This PR builds on top of https://github.com/apache/flink/pull/23908\r\n\r\n## Brief change log\r\n\r\nPlease check individual commit messages\r\n\r\n## Verifying this change\r\n\r\nThis change has been manually tested and added a unit test that metric has been created.\r\n\r\n## Does this pull request potentially affect one of the following parts:\r\n\r\n  - Dependencies (does it add or upgrade a dependency): (yes / **no**)\r\n  - The public API, i.e., is any changed class annotated with `@Public(Evolving)`: (**yes** / no)\r\n  - The serializers: (yes / **no** / don't know)\r\n  - The runtime per-record code paths (performance sensitive): (yes / **no** / don't know)\r\n  - Anything that affects deployment or recovery: JobManager (and its components), Checkpointing, Kubernetes/Yarn, ZooKeeper: (yes / **no** / don't know)\r\n  - The S3 file system connector: (yes / **no** / don't know)\r\n\r\n## Documentation\r\n\r\n  - Does this pull request introduce a new feature? (**yes** / no)\r\n  - If yes, how is the feature documented? (not applicable / **docs** / **JavaDocs** / not documented)\r\n",
+            "comments": [],
+            "number": 24023,
+            "updated_at": "2024-04-04T09:58:53Z",
+            "created_at": "2024-01-03T15:09:06Z",
+            "review_comments": []
+        }
     },
     {
         "id": 4,
@@ -25400,7 +25418,16 @@
                     }
                 ]
             }
-        ]
+        ],
+        "pull_request": {
+            "title": "[FLINK-33743][runtime] Support consuming multiple subpartitions on a single channel",
+            "body": "## What is the purpose of the change\r\n\r\nThis pull request adds support for consuming multiple subpartitions in a single input channel.\r\n\r\n\r\n## Brief change log\r\n\r\n- Separate the notion of subpartition and channel in terms of naming, signature and comments.\r\n- Union the output from multiple subpartitions with one ResultSubpartitionView and TierConsumerAgent\r\n- Control the partial record split logic when writing buffers into subpartition to avoid potential deadlocks\r\n\r\n\r\n## Verifying this change\r\n\r\nThis change added tests and can be verified as follows:\r\n\r\n- Extended HybridShuffleITCase to cover cases when the feature proposed in this PR comes into effect.\r\n- Added unit tests for newly introduced options and classes\r\n- Manually verified situations that are not covered by e2e tests, like when tiered hybrid shuffle uses sort buffer.\r\n\r\n## Does this pull request potentially affect one of the following parts:\r\n\r\n  - Dependencies (does it add or upgrade a dependency): no\r\n  - The public API, i.e., is any changed class annotated with `@Public(Evolving)`: no\r\n  - The serializers: yes\r\n  - The runtime per-record code paths (performance sensitive): yes\r\n  - Anything that affects deployment or recovery: JobManager (and its components), Checkpointing, Kubernetes/Yarn, ZooKeeper: no\r\n  - The S3 file system connector: no\r\n\r\n## Documentation\r\n\r\n  - Does this pull request introduce a new feature? yes\r\n  - If yes, how is the feature documented? no need to document\r\n",
+            "comments": [],
+            "number": 23927,
+            "updated_at": "2024-04-04T10:00:18Z",
+            "created_at": "2023-12-14T07:22:44Z",
+            "review_comments": []
+        }
     },
     {
         "id": 5,
@@ -33040,7 +33067,16 @@
                     }
                 ]
             }
-        ]
+        ],
+        "pull_request": {
+            "title": "[FLINK-33743][runtime] Support consuming multiple subpartitions on a single channel",
+            "body": "## What is the purpose of the change\r\n\r\nThis pull request adds support for consuming multiple subpartitions in a single input channel.\r\n\r\n\r\n## Brief change log\r\n\r\n- Separate the notion of subpartition and channel in terms of naming, signature and comments.\r\n- Union the output from multiple subpartitions with one ResultSubpartitionView and TierConsumerAgent\r\n- Control the partial record split logic when writing buffers into subpartition to avoid potential deadlocks\r\n\r\n\r\n## Verifying this change\r\n\r\nThis change added tests and can be verified as follows:\r\n\r\n- Extended HybridShuffleITCase to cover cases when the feature proposed in this PR comes into effect.\r\n- Added unit tests for newly introduced options and classes\r\n- Manually verified situations that are not covered by e2e tests, like when tiered hybrid shuffle uses sort buffer.\r\n\r\n## Does this pull request potentially affect one of the following parts:\r\n\r\n  - Dependencies (does it add or upgrade a dependency): no\r\n  - The public API, i.e., is any changed class annotated with `@Public(Evolving)`: no\r\n  - The serializers: yes\r\n  - The runtime per-record code paths (performance sensitive): yes\r\n  - Anything that affects deployment or recovery: JobManager (and its components), Checkpointing, Kubernetes/Yarn, ZooKeeper: no\r\n  - The S3 file system connector: no\r\n\r\n## Documentation\r\n\r\n  - Does this pull request introduce a new feature? yes\r\n  - If yes, how is the feature documented? no need to document\r\n",
+            "comments": [],
+            "number": 23927,
+            "updated_at": "2024-04-04T10:00:18Z",
+            "created_at": "2023-12-14T07:22:44Z",
+            "review_comments": []
+        }
     },
     {
         "id": 6,
@@ -42223,7 +42259,421 @@
                     }
                 ]
             }
-        ]
+        ],
+        "pull_request": {
+            "title": "[FLINK-34049][table]Refactor classes related to window TVF aggregation to prepare for non-aligned windows",
+            "body": "## What is the purpose of the change\r\n\r\nCurrently, the implementation of the window aggregate op with new WINDOW TVF syntax is strongly bound to slicing windows such as TUMBLE, HOP and CUMULATE. This brings difficulties to the introduction of unslicing windows such as SESSION.\r\n\r\nThis pr aims to refactor some classes about window aggregate op to do the preparation for the introduction of unslicing windows.\r\n\r\n\r\n## Brief change log\r\n\r\n*(for example:)*\r\n  - *add two package 'groupwindow' and 'windowtvf' under 'org.apache.flink.table.runtime.operators.window' to split the different implements about the legacy group window agg and the new window tvf agg*\r\n  - *move the classes related into these two new packages*\r\n  - *extract abstract class about slicing window processor and operator*\r\n\r\n\r\n## Verifying this change\r\n\r\nExistent tests can cover this changes.\r\n\r\n## Does this pull request potentially affect one of the following parts:\r\n\r\n  - Dependencies (does it add or upgrade a dependency): no\r\n  - The public API, i.e., is any changed class annotated with `@Public(Evolving)`: no\r\n  - The serializers: no\r\n  - The runtime per-record code paths (performance sensitive): no\r\n  - Anything that affects deployment or recovery: JobManager (and its components), Checkpointing, Kubernetes/Yarn, ZooKeeper: no\r\n  - The S3 file system connector: no\r\n\r\n## Documentation\r\n\r\n  - Does this pull request introduce a new feature? no\r\n  - If yes, how is the feature documented? no\r\n",
+            "comments": [
+                {
+                    "comment": "<!--\nMeta data\n{\n  \"version\" : 1,\n  \"metaDataEntries\" : [ {\n    \"hash\" : \"fd074024357c148202e3ff3e218309480ba12569\",\n    \"status\" : \"DELETED\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56237\",\n    \"triggerID\" : \"fd074024357c148202e3ff3e218309480ba12569\",\n    \"triggerType\" : \"PUSH\"\n  }, {\n    \"hash\" : \"99919f762fb260cabc12a7dc28c7da5b093f4340\",\n    \"status\" : \"DELETED\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56264\",\n    \"triggerID\" : \"99919f762fb260cabc12a7dc28c7da5b093f4340\",\n    \"triggerType\" : \"PUSH\"\n  }, {\n    \"hash\" : \"2fb66b9756ee2ed3eab32cb3fc919ad133564c00\",\n    \"status\" : \"DELETED\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56321\",\n    \"triggerID\" : \"2fb66b9756ee2ed3eab32cb3fc919ad133564c00\",\n    \"triggerType\" : \"PUSH\"\n  }, {\n    \"hash\" : \"4660f55ea93c3a611344752dc05d9cf3cac2dffc\",\n    \"status\" : \"DELETED\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56328\",\n    \"triggerID\" : \"4660f55ea93c3a611344752dc05d9cf3cac2dffc\",\n    \"triggerType\" : \"PUSH\"\n  }, {\n    \"hash\" : \"d9d6c1873f981b6d80174344e6cc9a054a909d60\",\n    \"status\" : \"DELETED\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56351\",\n    \"triggerID\" : \"d9d6c1873f981b6d80174344e6cc9a054a909d60\",\n    \"triggerType\" : \"PUSH\"\n  }, {\n    \"hash\" : \"1fa136fca9cac92a3ca3f9888d29a062bb7ad063\",\n    \"status\" : \"DELETED\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56432\",\n    \"triggerID\" : \"1fa136fca9cac92a3ca3f9888d29a062bb7ad063\",\n    \"triggerType\" : \"PUSH\"\n  }, {\n    \"hash\" : \"124529b8dd8d5781b906f83d84424f33d91c026d\",\n    \"status\" : \"DELETED\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56544\",\n    \"triggerID\" : \"124529b8dd8d5781b906f83d84424f33d91c026d\",\n    \"triggerType\" : \"PUSH\"\n  }, {\n    \"hash\" : \"124529b8dd8d5781b906f83d84424f33d91c026d\",\n    \"status\" : \"DELETED\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56544\",\n    \"triggerID\" : \"1897862786\",\n    \"triggerType\" : \"MANUAL\"\n  }, {\n    \"hash\" : \"124529b8dd8d5781b906f83d84424f33d91c026d\",\n    \"status\" : \"DELETED\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56544\",\n    \"triggerID\" : \"1898142251\",\n    \"triggerType\" : \"MANUAL\"\n  }, {\n    \"hash\" : \"571f65ad22e1ce21427f02ae9f17b26cf44c8c90\",\n    \"status\" : \"SUCCESS\",\n    \"url\" : \"https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56576\",\n    \"triggerID\" : \"571f65ad22e1ce21427f02ae9f17b26cf44c8c90\",\n    \"triggerType\" : \"PUSH\"\n  } ]\n}-->\n## CI report:\n\n* 571f65ad22e1ce21427f02ae9f17b26cf44c8c90 Azure: [SUCCESS](https://dev.azure.com/apache-flink/98463496-1af2-4620-8eab-a2ecc1a2e6fe/_build/results?buildId=56576) \n\n<details>\n<summary>Bot commands</summary>\n  The @flinkbot bot supports the following commands:\n\n - `@flinkbot run azure` re-run the last Azure build\n</details>",
+                    "time": "2024-01-11T05:49:03Z",
+                    "author": "flinkbot"
+                },
+                {
+                    "comment": "The CI failure is caused by https://issues.apache.org/jira/browse/FLINK-34077",
+                    "time": "2024-01-15T02:31:24Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "Hi, @fsk119 . Thank you for your review. \r\nI think some of the questions you raised are valuable and meaningful. I have created several independent JIRA to follow up and further optimize the old code that was previously implemented. For this PR, the changes are purely refactoring. No changes to the nature of the original implementation will be introduced.",
+                    "time": "2024-01-18T05:34:35Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "@flinkbot run azure",
+                    "time": "2024-01-18T06:08:28Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "@flinkbot run azure",
+                    "time": "2024-01-18T09:50:03Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "Thanks for your contribution. Continue reviewing when I am free...",
+                    "time": "2024-01-17T16:12:14Z",
+                    "author": "fsk119"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T03:53:41Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T03:54:10Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T03:54:17Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T03:55:11Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T03:59:46Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T04:00:39Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T04:01:33Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "Thanks for your update.",
+                    "time": "2024-01-18T13:09:41Z",
+                    "author": "fsk119"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T14:48:16Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T14:48:30Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T14:48:36Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "",
+                    "time": "2024-01-18T14:48:42Z",
+                    "author": "xuyangzhong"
+                },
+                {
+                    "comment": "Thanks for your contribution. LGTM\r\n\r\nMinor Suggestions: GroupWindowAssigner is not very easy for others to understand. If it is possible, it's better to rename to legacy window.",
+                    "time": "2024-01-22T02:14:07Z",
+                    "author": "fsk119"
+                }
+            ],
+            "number": 24068,
+            "updated_at": "2024-04-04T09:58:17Z",
+            "created_at": "2024-01-11T05:42:37Z",
+            "review_comments": [
+                {
+                    "comment": "Return true if xxx",
+                    "time": "2024-01-17T15:23:51Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/logical/WindowSpec.java",
+                    "start_line_num": 37,
+                    "diff_hunk": "@@ -31,4 +32,15 @@\n public interface WindowSpec {\n \n     String toSummaryString(String windowing);\n+\n+    /**\n+     * Return if the window is a aligned window.",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455848131",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Remove todo or replace with a jira issue.",
+                    "time": "2024-01-17T15:24:24Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/logical/WindowSpec.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -31,4 +32,15 @@\n public interface WindowSpec {\n \n     String toSummaryString(String windowing);\n+\n+    /**\n+     * Return if the window is a aligned window.\n+     *\n+     * <p>See more details about aligned window and unaligned window in {@link\n+     * org.apache.flink.table.runtime.operators.window.windowtvf.common.AbstractWindowOperator}.\n+     *\n+     * <p>TODO introduce unaligned window like session window.",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455849547",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "unslicing -> unaligned\r\n\r\nuse jira issue id here ",
+                    "time": "2024-01-17T15:26:58Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/windowtvf/common/AbstractWindowOperator.java",
+                    "start_line_num": 77,
+                    "diff_hunk": "@@ -73,34 +68,18 @@\n  * <p>Because aligned windows can be divided into finite number of non-overlapping chunks (a.k.a.\n  * slices), which can apply efficient processing to share intermediate results.\n  *\n- * <h3>Concept of Slice</h3>\n- *\n- * <p>Dividing a window of aligned windows into a finite number of non-overlapping chunks, where the\n- * chunks are slices. It has the following properties:\n- *\n- * <ul>\n- *   <li>An element must only belong to a single slice.\n- *   <li>Slices are non-overlapping, i.e. S_i and S_j should not have any shared elements if i != j.\n- *   <li>A window is consist of a finite number of slices.\n- * </ul>\n- *\n- * <h3>Abstraction of Slicing Window Operator</h3>\n- *\n- * <p>A slicing window operator is a simple wrap of {@link SlicingWindowProcessor}. It delegates all\n- * the important methods to the underlying processor, where the processor can have different\n- * implementation for aggregate and topk or others.\n+ * <p>Note: currently, {@link AbstractWindowOperator} doesn't support early-fire and late-arrival.\n+ * Thus late elements (elements belong to emitted windows) will be simply dropped.\n  *\n- * <p>A {@link SlicingWindowProcessor} usually leverages the {@link SliceAssigner} to assign slices\n- * and calculate based on the slices. See {@link SliceSharedWindowAggProcessor} as an example.\n+ * <p>See more details in {@link\n+ * org.apache.flink.table.runtime.operators.window.windowtvf.slicing.SlicingWindowOperator}.\n  *\n- * <p>Note: since {@link SlicingWindowProcessor} leverages slicing optimization for aligned windows,\n- * therefore, it doesn't support unaligned windows, e.g. session window.\n+ * <p>TODO support unslicing window operator.",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455855832",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "ditto",
+                    "time": "2024-01-17T15:27:06Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/windowtvf/common/AbstractWindowOperator.java",
+                    "start_line_num": 79,
+                    "diff_hunk": "@@ -73,34 +68,18 @@\n  * <p>Because aligned windows can be divided into finite number of non-overlapping chunks (a.k.a.\n  * slices), which can apply efficient processing to share intermediate results.\n  *\n- * <h3>Concept of Slice</h3>\n- *\n- * <p>Dividing a window of aligned windows into a finite number of non-overlapping chunks, where the\n- * chunks are slices. It has the following properties:\n- *\n- * <ul>\n- *   <li>An element must only belong to a single slice.\n- *   <li>Slices are non-overlapping, i.e. S_i and S_j should not have any shared elements if i != j.\n- *   <li>A window is consist of a finite number of slices.\n- * </ul>\n- *\n- * <h3>Abstraction of Slicing Window Operator</h3>\n- *\n- * <p>A slicing window operator is a simple wrap of {@link SlicingWindowProcessor}. It delegates all\n- * the important methods to the underlying processor, where the processor can have different\n- * implementation for aggregate and topk or others.\n+ * <p>Note: currently, {@link AbstractWindowOperator} doesn't support early-fire and late-arrival.\n+ * Thus late elements (elements belong to emitted windows) will be simply dropped.\n  *\n- * <p>A {@link SlicingWindowProcessor} usually leverages the {@link SliceAssigner} to assign slices\n- * and calculate based on the slices. See {@link SliceSharedWindowAggProcessor} as an example.\n+ * <p>See more details in {@link\n+ * org.apache.flink.table.runtime.operators.window.windowtvf.slicing.SlicingWindowOperator}.\n  *\n- * <p>Note: since {@link SlicingWindowProcessor} leverages slicing optimization for aligned windows,\n- * therefore, it doesn't support unaligned windows, e.g. session window.\n+ * <p>TODO support unslicing window operator.\n  *\n- * <p>Note: currently, {@link SlicingWindowOperator} doesn't support early-fire and late-arrival.\n- * Thus late elements (elements belong to emitted windows) will be simply dropped.\n+ * <p>TODO support early / late fire.",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455856126",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "windowtvf? ",
+                    "time": "2024-01-17T15:31:19Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/logical/SliceAttachedWindowingStrategy.java",
+                    "start_line_num": 21,
+                    "diff_hunk": "@@ -18,7 +18,7 @@\n \n package org.apache.flink.table.planner.plan.logical;\n \n-import org.apache.flink.table.runtime.operators.window.slicing.SlicingWindowOperator;\n+import org.apache.flink.table.runtime.operators.window.windowtvf.slicing.SlicingWindowOperator;",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455866867",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Make it as an inner class?",
+                    "time": "2024-01-17T15:36:13Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/builder/AbstractWindowAggOperatorBuilder.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -0,0 +1,98 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.aggregate.window.builder;\n+\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.generated.GeneratedNamespaceAggsHandleFunction;\n+import org.apache.flink.table.runtime.operators.window.windowtvf.common.AbstractWindowOperator;\n+import org.apache.flink.table.runtime.typeutils.AbstractRowDataSerializer;\n+import org.apache.flink.table.runtime.typeutils.PagedTypeSerializer;\n+\n+import java.time.ZoneId;\n+\n+import static org.apache.flink.util.Preconditions.checkNotNull;\n+\n+/**\n+ * The {@link AbstractWindowAggOperatorBuilder} is a base class for building window aggregate\n+ * operators.\n+ *\n+ * <p>See more details in {@link SlicingWindowAggOperatorBuilder}.\n+ *\n+ * <p>TODO support UnslicingWindowAggOperatorBuilder.\n+ *\n+ * @param <W> The type of the window. {@link Long} for slicing window.\n+ * @param <T> The implementation of the abstract builder.\n+ */\n+public abstract class AbstractWindowAggOperatorBuilder<",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455878964",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "What's the usage here? Can we delay this part when introducing session window?",
+                    "time": "2024-01-17T15:37:36Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/builder/AbstractWindowAggOperatorBuilder.java",
+                    "start_line_num": 95,
+                    "diff_hunk": "@@ -0,0 +1,98 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.aggregate.window.builder;\n+\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.generated.GeneratedNamespaceAggsHandleFunction;\n+import org.apache.flink.table.runtime.operators.window.windowtvf.common.AbstractWindowOperator;\n+import org.apache.flink.table.runtime.typeutils.AbstractRowDataSerializer;\n+import org.apache.flink.table.runtime.typeutils.PagedTypeSerializer;\n+\n+import java.time.ZoneId;\n+\n+import static org.apache.flink.util.Preconditions.checkNotNull;\n+\n+/**\n+ * The {@link AbstractWindowAggOperatorBuilder} is a base class for building window aggregate\n+ * operators.\n+ *\n+ * <p>See more details in {@link SlicingWindowAggOperatorBuilder}.\n+ *\n+ * <p>TODO support UnslicingWindowAggOperatorBuilder.\n+ *\n+ * @param <W> The type of the window. {@link Long} for slicing window.\n+ * @param <T> The implementation of the abstract builder.\n+ */\n+public abstract class AbstractWindowAggOperatorBuilder<\n+        W, T extends AbstractWindowAggOperatorBuilder> {\n+\n+    protected AbstractRowDataSerializer<RowData> inputSerializer;\n+    protected PagedTypeSerializer<RowData> keySerializer;\n+    protected AbstractRowDataSerializer<RowData> accSerializer;\n+    protected GeneratedNamespaceAggsHandleFunction<W> generatedAggregateFunction;\n+    protected GeneratedNamespaceAggsHandleFunction<W> localGeneratedAggregateFunction;\n+    protected GeneratedNamespaceAggsHandleFunction<W> globalGeneratedAggregateFunction;\n+    protected ZoneId shiftTimeZone;\n+\n+    public T inputSerializer(AbstractRowDataSerializer<RowData> inputSerializer) {\n+        this.inputSerializer = inputSerializer;\n+        return self();\n+    }\n+\n+    public T shiftTimeZone(ZoneId shiftTimeZone) {\n+        this.shiftTimeZone = shiftTimeZone;\n+        return self();\n+    }\n+\n+    public T keySerializer(PagedTypeSerializer<RowData> keySerializer) {\n+        this.keySerializer = keySerializer;\n+        return self();\n+    }\n+\n+    public T aggregate(\n+            GeneratedNamespaceAggsHandleFunction<W> generatedAggregateFunction,\n+            AbstractRowDataSerializer<RowData> accSerializer) {\n+        this.generatedAggregateFunction = generatedAggregateFunction;\n+        this.accSerializer = accSerializer;\n+        return self();\n+    }\n+\n+    public T globalAggregate(\n+            GeneratedNamespaceAggsHandleFunction<W> localGeneratedAggregateFunction,\n+            GeneratedNamespaceAggsHandleFunction<W> globalGeneratedAggregateFunction,\n+            GeneratedNamespaceAggsHandleFunction<W> stateGeneratedAggregateFunction,\n+            AbstractRowDataSerializer<RowData> accSerializer) {\n+        this.localGeneratedAggregateFunction = localGeneratedAggregateFunction;\n+        this.globalGeneratedAggregateFunction = globalGeneratedAggregateFunction;\n+        this.generatedAggregateFunction = stateGeneratedAggregateFunction;\n+        this.accSerializer = accSerializer;\n+        return self();\n+    }\n+\n+    public AbstractWindowOperator<RowData, ?> build() {\n+        checkNotNull(inputSerializer);\n+        checkNotNull(keySerializer);\n+        checkNotNull(shiftTimeZone);\n+        return buildInner();\n+    }\n+\n+    protected abstract AbstractWindowOperator<RowData, ?> buildInner();",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455882450",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "return this?",
+                    "time": "2024-01-17T15:41:24Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/builder/AbstractWindowAggOperatorBuilder.java",
+                    "start_line_num": 65,
+                    "diff_hunk": "@@ -0,0 +1,98 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.aggregate.window.builder;\n+\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.generated.GeneratedNamespaceAggsHandleFunction;\n+import org.apache.flink.table.runtime.operators.window.windowtvf.common.AbstractWindowOperator;\n+import org.apache.flink.table.runtime.typeutils.AbstractRowDataSerializer;\n+import org.apache.flink.table.runtime.typeutils.PagedTypeSerializer;\n+\n+import java.time.ZoneId;\n+\n+import static org.apache.flink.util.Preconditions.checkNotNull;\n+\n+/**\n+ * The {@link AbstractWindowAggOperatorBuilder} is a base class for building window aggregate\n+ * operators.\n+ *\n+ * <p>See more details in {@link SlicingWindowAggOperatorBuilder}.\n+ *\n+ * <p>TODO support UnslicingWindowAggOperatorBuilder.\n+ *\n+ * @param <W> The type of the window. {@link Long} for slicing window.\n+ * @param <T> The implementation of the abstract builder.\n+ */\n+public abstract class AbstractWindowAggOperatorBuilder<\n+        W, T extends AbstractWindowAggOperatorBuilder> {\n+\n+    protected AbstractRowDataSerializer<RowData> inputSerializer;\n+    protected PagedTypeSerializer<RowData> keySerializer;\n+    protected AbstractRowDataSerializer<RowData> accSerializer;\n+    protected GeneratedNamespaceAggsHandleFunction<W> generatedAggregateFunction;\n+    protected GeneratedNamespaceAggsHandleFunction<W> localGeneratedAggregateFunction;\n+    protected GeneratedNamespaceAggsHandleFunction<W> globalGeneratedAggregateFunction;\n+    protected ZoneId shiftTimeZone;\n+\n+    public T inputSerializer(AbstractRowDataSerializer<RowData> inputSerializer) {\n+        this.inputSerializer = inputSerializer;\n+        return self();\n+    }\n+\n+    public T shiftTimeZone(ZoneId shiftTimeZone) {\n+        this.shiftTimeZone = shiftTimeZone;\n+        return self();\n+    }\n+\n+    public T keySerializer(PagedTypeSerializer<RowData> keySerializer) {\n+        this.keySerializer = keySerializer;\n+        return self();",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455891913",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "windowtvf -> tvf ?\r\n",
+                    "time": "2024-01-17T15:46:35Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/combines/GlobalAggCombiner.java",
+                    "start_line_num": 29,
+                    "diff_hunk": "@@ -25,11 +25,11 @@\n import org.apache.flink.table.runtime.dataview.PerWindowStateDataViewStore;\n import org.apache.flink.table.runtime.generated.GeneratedNamespaceAggsHandleFunction;\n import org.apache.flink.table.runtime.generated.NamespaceAggsHandleFunction;\n-import org.apache.flink.table.runtime.operators.window.combines.RecordsCombiner;\n-import org.apache.flink.table.runtime.operators.window.slicing.WindowTimerService;\n-import org.apache.flink.table.runtime.operators.window.state.StateKeyContext;\n-import org.apache.flink.table.runtime.operators.window.state.WindowState;\n-import org.apache.flink.table.runtime.operators.window.state.WindowValueState;\n+import org.apache.flink.table.runtime.operators.window.windowtvf.combines.RecordsCombiner;\n+import org.apache.flink.table.runtime.operators.window.windowtvf.common.WindowTimerService;",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455904705",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "BTW, the API is confusing... merge method doesn't return a result.",
+                    "time": "2024-01-17T15:58:51Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/MergeCallback.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -0,0 +1,43 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window;\n+\n+import javax.annotation.Nullable;\n+\n+/**\n+ * Callback to be used in when merging slices or windows for specifying which slices or windows\n+ * should be merged.\n+ *\n+ * @param <W> The type {@link Window} for windows or the type {@link Long} for slices that this\n+ *     callback used to merge.\n+ * @param <R> The result type like {@link java.util.Collection} or {@link Iterable} to specify which\n+ *     slices or windows should be merged. TODO use {@link java.util.Collection} uniformly.\n+ */\n+public interface MergeCallback<W, R> {\n+\n+    /**\n+     * Specifies that states of the given windows or slices should be merged into the result window\n+     * or slice.\n+     *\n+     * @param mergeResult The resulting merged window or slice, {@code null} if it represents a\n+     *     non-state namespace.\n+     * @param toBeMerged Windows or slices that should be merged into one window or slice.\n+     */\n+    void merge(@Nullable W mergeResult, R toBeMerged) throws Exception;",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455935719",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Phthon?",
+                    "time": "2024-01-17T16:00:36Z",
+                    "author": "fsk119",
+                    "file_path": "flink-python/src/main/java/org/apache/flink/table/runtime/operators/python/aggregate/arrow/stream/StreamArrowPythonGroupWindowAggregateFunctionOperator.java",
+                    "start_line_num": 197,
+                    "diff_hunk": "@@ -193,7 +194,7 @@ public void open() throws Exception {\n         windowProperty = new GenericRowData(namedProperties.length);\n         windowAggResult = new JoinedRowData();\n \n-        WindowContext windowContext = new WindowContext();\n+        PhthonWindowContext windowContext = new PhthonWindowContext();",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455940010",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": " Do we need generic type for key?",
+                    "time": "2024-01-17T16:01:08Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/groupwindow/context/WindowContext.java",
+                    "start_line_num": 32,
+                    "diff_hunk": "@@ -0,0 +1,74 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.groupwindow.context;\n+\n+import org.apache.flink.api.common.state.State;\n+import org.apache.flink.api.common.state.StateDescriptor;\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.operators.window.Window;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.internal.InternalWindowProcessFunction;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.triggers.Trigger;\n+\n+import java.time.ZoneId;\n+import java.util.Collection;\n+\n+/** A context contains some information used for {@link InternalWindowProcessFunction}. */\n+public interface WindowContext<K, W extends Window> {",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455941337",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "BTW, if a context provide some actions, it's better to rename it...",
+                    "time": "2024-01-17T16:03:06Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/groupwindow/context/WindowContext.java",
+                    "start_line_num": 67,
+                    "diff_hunk": "@@ -0,0 +1,74 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.groupwindow.context;\n+\n+import org.apache.flink.api.common.state.State;\n+import org.apache.flink.api.common.state.StateDescriptor;\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.operators.window.Window;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.internal.InternalWindowProcessFunction;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.triggers.Trigger;\n+\n+import java.time.ZoneId;\n+import java.util.Collection;\n+\n+/** A context contains some information used for {@link InternalWindowProcessFunction}. */\n+public interface WindowContext<K, W extends Window> {\n+\n+    /**\n+     * Creates a partitioned state handle, using the state backend configured for this task.\n+     *\n+     * @throws IllegalStateException Thrown, if the key/value state was already initialized.\n+     * @throws Exception Thrown, if the state backend cannot create the key/value state.\n+     */\n+    <S extends State> S getPartitionedState(StateDescriptor<S, ?> stateDescriptor) throws Exception;\n+\n+    /** @return current key of current processed element. */\n+    K currentKey();\n+\n+    /** Returns the current processing time. */\n+    long currentProcessingTime();\n+\n+    /** Returns the current event-time watermark. */\n+    long currentWatermark();\n+\n+    /** Returns the shifted timezone of the window. */\n+    ZoneId getShiftTimeZone();\n+\n+    /** Gets the accumulators of the given window. */\n+    RowData getWindowAccumulators(W window) throws Exception;\n+\n+    /** Sets the accumulators of the given window. */\n+    void setWindowAccumulators(W window, RowData acc) throws Exception;\n+\n+    /** Clear window state of the given window. */\n+    void clearWindowState(W window) throws Exception;\n+\n+    /** Clear previous agg state (used for retraction) of the given window. */\n+    void clearPreviousState(W window) throws Exception;\n+\n+    /** Call {@link Trigger#clear(Window)}} on trigger. */\n+    void clearTrigger(W window) throws Exception;",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455946473",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Window Assigner doesn't care about event time or processing time? It assign the element according to its time.",
+                    "time": "2024-01-17T16:11:28Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/windowtvf/common/WindowAssigner.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -0,0 +1,43 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.windowtvf.common;\n+\n+import org.apache.flink.table.runtime.operators.window.groupwindow.assigners.GroupWindowAssigner;\n+\n+import java.io.Serializable;\n+\n+/**\n+ * WindowAssigner is used to assign windows to elements.\n+ *\n+ * <p>The differences between {@link WindowAssigner} and {@link GroupWindowAssigner} is that, this\n+ * window assigner is translated from the new window TVF syntax, but the other is from the legacy\n+ * GROUP WINDOW FUNCTION syntax. In the long future, {@link GroupWindowAssigner} will be dropped.\n+ *\n+ * <p>See more details in {@link AbstractWindowOperator}.\n+ *\n+ * <p>TODO support UnsliceAssigner.\n+ */\n+public interface WindowAssigner extends Serializable {\n+\n+    /**\n+     * Returns {@code true} if elements are assigned to windows based on event time, {@code false}\n+     * based on processing time.\n+     */\n+    boolean isEventTime();",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1455967109",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Add a jira issue for it.",
+                    "time": "2024-01-18T03:53:41Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/logical/WindowSpec.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -31,4 +32,15 @@\n public interface WindowSpec {\n \n     String toSummaryString(String windowing);\n+\n+    /**\n+     * Return if the window is a aligned window.\n+     *\n+     * <p>See more details about aligned window and unaligned window in {@link\n+     * org.apache.flink.table.runtime.operators.window.windowtvf.common.AbstractWindowOperator}.\n+     *\n+     * <p>TODO introduce unaligned window like session window.",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1456817108",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Remove it and do this refactor later.",
+                    "time": "2024-01-18T03:54:10Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/builder/AbstractWindowAggOperatorBuilder.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -0,0 +1,98 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.aggregate.window.builder;\n+\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.generated.GeneratedNamespaceAggsHandleFunction;\n+import org.apache.flink.table.runtime.operators.window.windowtvf.common.AbstractWindowOperator;\n+import org.apache.flink.table.runtime.typeutils.AbstractRowDataSerializer;\n+import org.apache.flink.table.runtime.typeutils.PagedTypeSerializer;\n+\n+import java.time.ZoneId;\n+\n+import static org.apache.flink.util.Preconditions.checkNotNull;\n+\n+/**\n+ * The {@link AbstractWindowAggOperatorBuilder} is a base class for building window aggregate\n+ * operators.\n+ *\n+ * <p>See more details in {@link SlicingWindowAggOperatorBuilder}.\n+ *\n+ * <p>TODO support UnslicingWindowAggOperatorBuilder.\n+ *\n+ * @param <W> The type of the window. {@link Long} for slicing window.\n+ * @param <T> The implementation of the abstract builder.\n+ */\n+public abstract class AbstractWindowAggOperatorBuilder<",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1456817705",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Remove it and do this refactor later.",
+                    "time": "2024-01-18T03:54:17Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/builder/AbstractWindowAggOperatorBuilder.java",
+                    "start_line_num": 95,
+                    "diff_hunk": "@@ -0,0 +1,98 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.aggregate.window.builder;\n+\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.generated.GeneratedNamespaceAggsHandleFunction;\n+import org.apache.flink.table.runtime.operators.window.windowtvf.common.AbstractWindowOperator;\n+import org.apache.flink.table.runtime.typeutils.AbstractRowDataSerializer;\n+import org.apache.flink.table.runtime.typeutils.PagedTypeSerializer;\n+\n+import java.time.ZoneId;\n+\n+import static org.apache.flink.util.Preconditions.checkNotNull;\n+\n+/**\n+ * The {@link AbstractWindowAggOperatorBuilder} is a base class for building window aggregate\n+ * operators.\n+ *\n+ * <p>See more details in {@link SlicingWindowAggOperatorBuilder}.\n+ *\n+ * <p>TODO support UnslicingWindowAggOperatorBuilder.\n+ *\n+ * @param <W> The type of the window. {@link Long} for slicing window.\n+ * @param <T> The implementation of the abstract builder.\n+ */\n+public abstract class AbstractWindowAggOperatorBuilder<\n+        W, T extends AbstractWindowAggOperatorBuilder> {\n+\n+    protected AbstractRowDataSerializer<RowData> inputSerializer;\n+    protected PagedTypeSerializer<RowData> keySerializer;\n+    protected AbstractRowDataSerializer<RowData> accSerializer;\n+    protected GeneratedNamespaceAggsHandleFunction<W> generatedAggregateFunction;\n+    protected GeneratedNamespaceAggsHandleFunction<W> localGeneratedAggregateFunction;\n+    protected GeneratedNamespaceAggsHandleFunction<W> globalGeneratedAggregateFunction;\n+    protected ZoneId shiftTimeZone;\n+\n+    public T inputSerializer(AbstractRowDataSerializer<RowData> inputSerializer) {\n+        this.inputSerializer = inputSerializer;\n+        return self();\n+    }\n+\n+    public T shiftTimeZone(ZoneId shiftTimeZone) {\n+        this.shiftTimeZone = shiftTimeZone;\n+        return self();\n+    }\n+\n+    public T keySerializer(PagedTypeSerializer<RowData> keySerializer) {\n+        this.keySerializer = keySerializer;\n+        return self();\n+    }\n+\n+    public T aggregate(\n+            GeneratedNamespaceAggsHandleFunction<W> generatedAggregateFunction,\n+            AbstractRowDataSerializer<RowData> accSerializer) {\n+        this.generatedAggregateFunction = generatedAggregateFunction;\n+        this.accSerializer = accSerializer;\n+        return self();\n+    }\n+\n+    public T globalAggregate(\n+            GeneratedNamespaceAggsHandleFunction<W> localGeneratedAggregateFunction,\n+            GeneratedNamespaceAggsHandleFunction<W> globalGeneratedAggregateFunction,\n+            GeneratedNamespaceAggsHandleFunction<W> stateGeneratedAggregateFunction,\n+            AbstractRowDataSerializer<RowData> accSerializer) {\n+        this.localGeneratedAggregateFunction = localGeneratedAggregateFunction;\n+        this.globalGeneratedAggregateFunction = globalGeneratedAggregateFunction;\n+        this.generatedAggregateFunction = stateGeneratedAggregateFunction;\n+        this.accSerializer = accSerializer;\n+        return self();\n+    }\n+\n+    public AbstractWindowOperator<RowData, ?> build() {\n+        checkNotNull(inputSerializer);\n+        checkNotNull(keySerializer);\n+        checkNotNull(shiftTimeZone);\n+        return buildInner();\n+    }\n+\n+    protected abstract AbstractWindowOperator<RowData, ?> buildInner();",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1456818150",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Agree with you. I create an extra JIRA for this. https://issues.apache.org/jira/browse/FLINK-34138",
+                    "time": "2024-01-18T03:55:11Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/MergeCallback.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -0,0 +1,43 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window;\n+\n+import javax.annotation.Nullable;\n+\n+/**\n+ * Callback to be used in when merging slices or windows for specifying which slices or windows\n+ * should be merged.\n+ *\n+ * @param <W> The type {@link Window} for windows or the type {@link Long} for slices that this\n+ *     callback used to merge.\n+ * @param <R> The result type like {@link java.util.Collection} or {@link Iterable} to specify which\n+ *     slices or windows should be merged. TODO use {@link java.util.Collection} uniformly.\n+ */\n+public interface MergeCallback<W, R> {\n+\n+    /**\n+     * Specifies that states of the given windows or slices should be merged into the result window\n+     * or slice.\n+     *\n+     * @param mergeResult The resulting merged window or slice, {@code null} if it represents a\n+     *     non-state namespace.\n+     * @param toBeMerged Windows or slices that should be merged into one window or slice.\n+     */\n+    void merge(@Nullable W mergeResult, R toBeMerged) throws Exception;",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1456822860",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "I'm afraid so, as in some places where the window context is used (such as InternalWindowProcessFunction), a more generic type parameter K is employed instead of the specific RowData type. I believe maintaining the most generic key type is not necessarily a bad thing.\r\nOf course, if you think it needs to be changed to the specific RowData type, I can introduce a separate JIRA to address it.",
+                    "time": "2024-01-18T03:59:46Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/groupwindow/context/WindowContext.java",
+                    "start_line_num": 32,
+                    "diff_hunk": "@@ -0,0 +1,74 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.groupwindow.context;\n+\n+import org.apache.flink.api.common.state.State;\n+import org.apache.flink.api.common.state.StateDescriptor;\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.operators.window.Window;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.internal.InternalWindowProcessFunction;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.triggers.Trigger;\n+\n+import java.time.ZoneId;\n+import java.util.Collection;\n+\n+/** A context contains some information used for {@link InternalWindowProcessFunction}. */\n+public interface WindowContext<K, W extends Window> {",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1456842979",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Agree! I create a new JIRA for it. https://issues.apache.org/jira/browse/FLINK-34140.",
+                    "time": "2024-01-18T04:00:39Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/groupwindow/context/WindowContext.java",
+                    "start_line_num": 67,
+                    "diff_hunk": "@@ -0,0 +1,74 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.groupwindow.context;\n+\n+import org.apache.flink.api.common.state.State;\n+import org.apache.flink.api.common.state.StateDescriptor;\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.operators.window.Window;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.internal.InternalWindowProcessFunction;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.triggers.Trigger;\n+\n+import java.time.ZoneId;\n+import java.util.Collection;\n+\n+/** A context contains some information used for {@link InternalWindowProcessFunction}. */\n+public interface WindowContext<K, W extends Window> {\n+\n+    /**\n+     * Creates a partitioned state handle, using the state backend configured for this task.\n+     *\n+     * @throws IllegalStateException Thrown, if the key/value state was already initialized.\n+     * @throws Exception Thrown, if the state backend cannot create the key/value state.\n+     */\n+    <S extends State> S getPartitionedState(StateDescriptor<S, ?> stateDescriptor) throws Exception;\n+\n+    /** @return current key of current processed element. */\n+    K currentKey();\n+\n+    /** Returns the current processing time. */\n+    long currentProcessingTime();\n+\n+    /** Returns the current event-time watermark. */\n+    long currentWatermark();\n+\n+    /** Returns the shifted timezone of the window. */\n+    ZoneId getShiftTimeZone();\n+\n+    /** Gets the accumulators of the given window. */\n+    RowData getWindowAccumulators(W window) throws Exception;\n+\n+    /** Sets the accumulators of the given window. */\n+    void setWindowAccumulators(W window, RowData acc) throws Exception;\n+\n+    /** Clear window state of the given window. */\n+    void clearWindowState(W window) throws Exception;\n+\n+    /** Clear previous agg state (used for retraction) of the given window. */\n+    void clearPreviousState(W window) throws Exception;\n+\n+    /** Call {@link Trigger#clear(Window)}} on trigger. */\n+    void clearTrigger(W window) throws Exception;",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1456843334",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Agree it! I create a new JIRA for it. https://issues.apache.org/jira/browse/FLINK-34139.",
+                    "time": "2024-01-18T04:01:33Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/windowtvf/common/WindowAssigner.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -0,0 +1,43 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.windowtvf.common;\n+\n+import org.apache.flink.table.runtime.operators.window.groupwindow.assigners.GroupWindowAssigner;\n+\n+import java.io.Serializable;\n+\n+/**\n+ * WindowAssigner is used to assign windows to elements.\n+ *\n+ * <p>The differences between {@link WindowAssigner} and {@link GroupWindowAssigner} is that, this\n+ * window assigner is translated from the new window TVF syntax, but the other is from the legacy\n+ * GROUP WINDOW FUNCTION syntax. In the long future, {@link GroupWindowAssigner} will be dropped.\n+ *\n+ * <p>See more details in {@link AbstractWindowOperator}.\n+ *\n+ * <p>TODO support UnsliceAssigner.\n+ */\n+public interface WindowAssigner extends Serializable {\n+\n+    /**\n+     * Returns {@code true} if elements are assigned to windows based on event time, {@code false}\n+     * based on processing time.\n+     */\n+    boolean isEventTime();",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1456843664",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "Add issue id",
+                    "time": "2024-01-18T12:02:05Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/common/CommonExecWindowTableFunction.java",
+                    "start_line_num": 103,
+                    "diff_hunk": "@@ -96,4 +97,16 @@ protected Transformation<RowData> translateToPlanInternal(\n                 inputTransform.getParallelism(),\n                 false);\n     }\n+\n+    private WindowTableFunctionOperator createAlignedWindowTableFunctionOperator(\n+            ExecNodeConfig config) {\n+        // TODO use WindowAssigner instead of using GroupWindowAssigner",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1457344385",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "124529b8dd8d5781b906f83d84424f33d91c026d"
+                },
+                {
+                    "comment": "0.0 Why context can provide state?",
+                    "time": "2024-01-18T12:38:13Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/groupwindow/context/WindowContext.java",
+                    "start_line_num": 40,
+                    "diff_hunk": "@@ -0,0 +1,74 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.groupwindow.context;\n+\n+import org.apache.flink.api.common.state.State;\n+import org.apache.flink.api.common.state.StateDescriptor;\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.operators.window.Window;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.internal.InternalWindowProcessFunction;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.triggers.Trigger;\n+\n+import java.time.ZoneId;\n+import java.util.Collection;\n+\n+/** A context contains some information used for {@link InternalWindowProcessFunction}. */\n+public interface WindowContext<K, W extends Window> {\n+\n+    /**\n+     * Creates a partitioned state handle, using the state backend configured for this task.\n+     *\n+     * @throws IllegalStateException Thrown, if the key/value state was already initialized.\n+     * @throws Exception Thrown, if the state backend cannot create the key/value state.\n+     */\n+    <S extends State> S getPartitionedState(StateDescriptor<S, ?> stateDescriptor) throws Exception;",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1457383043",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "124529b8dd8d5781b906f83d84424f33d91c026d"
+                },
+                {
+                    "comment": "Return",
+                    "time": "2024-01-18T12:49:47Z",
+                    "author": "fsk119",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/groupwindow/context/WindowContext.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -0,0 +1,74 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.groupwindow.context;\n+\n+import org.apache.flink.api.common.state.State;\n+import org.apache.flink.api.common.state.StateDescriptor;\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.operators.window.Window;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.internal.InternalWindowProcessFunction;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.triggers.Trigger;\n+\n+import java.time.ZoneId;\n+import java.util.Collection;\n+\n+/** A context contains some information used for {@link InternalWindowProcessFunction}. */\n+public interface WindowContext<K, W extends Window> {\n+\n+    /**\n+     * Creates a partitioned state handle, using the state backend configured for this task.\n+     *\n+     * @throws IllegalStateException Thrown, if the key/value state was already initialized.\n+     * @throws Exception Thrown, if the state backend cannot create the key/value state.\n+     */\n+    <S extends State> S getPartitionedState(StateDescriptor<S, ?> stateDescriptor) throws Exception;\n+\n+    /** @return current key of current processed element. */",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1457395858",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "124529b8dd8d5781b906f83d84424f33d91c026d"
+                },
+                {
+                    "comment": "removed changes on it",
+                    "time": "2024-01-18T14:48:16Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/groupwindow/context/WindowContext.java",
+                    "start_line_num": 32,
+                    "diff_hunk": "@@ -0,0 +1,74 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.groupwindow.context;\n+\n+import org.apache.flink.api.common.state.State;\n+import org.apache.flink.api.common.state.StateDescriptor;\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.operators.window.Window;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.internal.InternalWindowProcessFunction;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.triggers.Trigger;\n+\n+import java.time.ZoneId;\n+import java.util.Collection;\n+\n+/** A context contains some information used for {@link InternalWindowProcessFunction}. */\n+public interface WindowContext<K, W extends Window> {",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1457549471",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "1fa136fca9cac92a3ca3f9888d29a062bb7ad063"
+                },
+                {
+                    "comment": "removed it",
+                    "time": "2024-01-18T14:48:30Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/common/CommonExecWindowTableFunction.java",
+                    "start_line_num": 103,
+                    "diff_hunk": "@@ -96,4 +97,16 @@ protected Transformation<RowData> translateToPlanInternal(\n                 inputTransform.getParallelism(),\n                 false);\n     }\n+\n+    private WindowTableFunctionOperator createAlignedWindowTableFunctionOperator(\n+            ExecNodeConfig config) {\n+        // TODO use WindowAssigner instead of using GroupWindowAssigner",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1457549799",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "124529b8dd8d5781b906f83d84424f33d91c026d"
+                },
+                {
+                    "comment": "removed changes on it",
+                    "time": "2024-01-18T14:48:36Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/groupwindow/context/WindowContext.java",
+                    "start_line_num": 40,
+                    "diff_hunk": "@@ -0,0 +1,74 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.groupwindow.context;\n+\n+import org.apache.flink.api.common.state.State;\n+import org.apache.flink.api.common.state.StateDescriptor;\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.operators.window.Window;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.internal.InternalWindowProcessFunction;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.triggers.Trigger;\n+\n+import java.time.ZoneId;\n+import java.util.Collection;\n+\n+/** A context contains some information used for {@link InternalWindowProcessFunction}. */\n+public interface WindowContext<K, W extends Window> {\n+\n+    /**\n+     * Creates a partitioned state handle, using the state backend configured for this task.\n+     *\n+     * @throws IllegalStateException Thrown, if the key/value state was already initialized.\n+     * @throws Exception Thrown, if the state backend cannot create the key/value state.\n+     */\n+    <S extends State> S getPartitionedState(StateDescriptor<S, ?> stateDescriptor) throws Exception;",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1457549928",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "124529b8dd8d5781b906f83d84424f33d91c026d"
+                },
+                {
+                    "comment": "removed changes on it",
+                    "time": "2024-01-18T14:48:42Z",
+                    "author": "xuyangzhong",
+                    "file_path": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/groupwindow/context/WindowContext.java",
+                    "start_line_num": 42,
+                    "diff_hunk": "@@ -0,0 +1,74 @@\n+/*\n+ * Licensed to the Apache Software Foundation (ASF) under one\n+ * or more contributor license agreements.  See the NOTICE file\n+ * distributed with this work for additional information\n+ * regarding copyright ownership.  The ASF licenses this file\n+ * to you under the Apache License, Version 2.0 (the\n+ * \"License\"); you may not use this file except in compliance\n+ * with the License.  You may obtain a copy of the License at\n+ *\n+ *     http://www.apache.org/licenses/LICENSE-2.0\n+ *\n+ * Unless required by applicable law or agreed to in writing, software\n+ * distributed under the License is distributed on an \"AS IS\" BASIS,\n+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n+ * See the License for the specific language governing permissions and\n+ * limitations under the License.\n+ */\n+\n+package org.apache.flink.table.runtime.operators.window.groupwindow.context;\n+\n+import org.apache.flink.api.common.state.State;\n+import org.apache.flink.api.common.state.StateDescriptor;\n+import org.apache.flink.table.data.RowData;\n+import org.apache.flink.table.runtime.operators.window.Window;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.internal.InternalWindowProcessFunction;\n+import org.apache.flink.table.runtime.operators.window.groupwindow.triggers.Trigger;\n+\n+import java.time.ZoneId;\n+import java.util.Collection;\n+\n+/** A context contains some information used for {@link InternalWindowProcessFunction}. */\n+public interface WindowContext<K, W extends Window> {\n+\n+    /**\n+     * Creates a partitioned state handle, using the state backend configured for this task.\n+     *\n+     * @throws IllegalStateException Thrown, if the key/value state was already initialized.\n+     * @throws Exception Thrown, if the state backend cannot create the key/value state.\n+     */\n+    <S extends State> S getPartitionedState(StateDescriptor<S, ?> stateDescriptor) throws Exception;\n+\n+    /** @return current key of current processed element. */",
+                    "comment_url": "https://github.com/apache/flink/pull/24068#discussion_r1457550115",
+                    "commit_id": "571f65ad22e1ce21427f02ae9f17b26cf44c8c90",
+                    "original_commit_id": "124529b8dd8d5781b906f83d84424f33d91c026d"
+                }
+            ]
+        }
     },
     {
         "id": 7,
@@ -43912,7 +44362,16 @@
                     }
                 ]
             }
-        ]
+        ],
+        "pull_request": {
+            "title": "[FLINK-33865][runtime] Adding an ITCase to ensure `exponential-delay.attempts-before-reset-backoff` works well",
+            "body": "## What is the purpose of the change\r\n\r\nBefore FLINK-33980, exponential-delay.attempts-before-reset-backoff doesn't work when it's set in Job Configuration.\r\n\r\n[FLINK-33980](https://issues.apache.org/jira/browse/FLINK-33980) fixed it, and this PR (FLINK-33865) only adds an ITCase to test it.\r\n\r\n\r\n## Brief change log\r\n\r\n- [FLINK-33865][runtime][refactor] Refactor the RestartStrategyType to reduce repeated magic string\r\n- [FLINK-33865][runtime] Adding an ITCase to ensure `exponential-delay.attempts-before-reset-backoff` works well\r\n",
+            "comments": [],
+            "number": 23942,
+            "updated_at": "2024-04-04T10:00:07Z",
+            "created_at": "2023-12-17T14:51:36Z",
+            "review_comments": []
+        }
     },
     {
         "id": 9,

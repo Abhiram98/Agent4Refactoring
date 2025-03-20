@@ -64,10 +64,10 @@ class Scraper(BaseModel):
             return  # There are no refactorings detected by rminer, which is an odd case.
         left = refactorings[0].leftSideLocations
         if len(left):
-            starting_file = left[0].filePath  # TODO: this is a faux starting path.
+            starting_file = left[0].filePath  # TODO: this is a faux starting path. Maybe there are other files
         else:
             starting_file = ''
-                                                                       #  Maybe there are other files
+
 
         self.gather_data_points.append(
             benchmark.BenchmarkItem(
@@ -81,7 +81,8 @@ class Scraper(BaseModel):
                 hint=commit.message,  # TODO: get real hints by using code-review context.
                 starting_files=[starting_file],  # TODO: Figure out the most impacted files.
                 changes=refactorings,
-                diffs=project.get_changes(commit.hexsha)
+                diffs=project.get_changes(commit.hexsha),
+                pull_request=self.get_pr()
             )
         )
         self.id_counter += 1
