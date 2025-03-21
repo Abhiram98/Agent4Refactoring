@@ -10,7 +10,7 @@ class BenchmarkItem:
                  necessary_context: str, hint: str,
                  starting_files: list[str], changes: list[refactoring_types.RefminerOut],
                  diffs: list[pm.MyDiff],
-                 # pull_request: gh_comment.GithubPR
+                 pull_request: Optional[gh_comment.GithubPR]
                  ):
         self.ref_id = ref_id
         self.project_name = project_name
@@ -22,7 +22,7 @@ class BenchmarkItem:
         self.starting_files = starting_files
         self.changes = changes
         self.diffs: list[pm.MyDiff] = diffs
-        # self.pull_request = pull_request
+        self.pull_request = pull_request
 
     @classmethod
     def load(cls, _json) -> BenchmarkItem:
@@ -31,7 +31,9 @@ class BenchmarkItem:
                    _json['intent'], _json['necessary_context'],
                    _json['hint'], _json['starting_files'],
                    [refactoring_types.RefminerOut(**c) for c in _json['changes']],
-                   pm.EvalProject(_json['project']).get_changes(_json['v2_hash']))
+                   pm.EvalProject(_json['project']).get_changes(_json['v2_hash']),
+                   gh_comment.GithubPR(**_json['pull_request']) if _json.get("pull_request") else None
+                   )
 
     def to_json(self):
         return {
