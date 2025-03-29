@@ -17,4 +17,5 @@ LAST_ID = benchmark_lite_json[-1]['id']
 #     OPENAI_KEY = f.read().split('\n')[0].split('=')[1].strip('\'')
 OPENAI_KEY = os.environ.get('OPENAI_API_KEY')
 GH_TOKEN = os.environ.get('GH_TOKEN')
+IJ_SERVER_URL = os.environ.get('IJ_SERVER_URL')
 
