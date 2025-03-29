@@ -21,8 +21,8 @@ import requests
 
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
-import refagent.agents.supported_refactorings as sup_refs
-import refagent.agents.perform_refactoring as perform_ref
+import refagent.agents.refactrix.supported_refactorings as sup_refs
+import refagent.agents.refactrix.perform_refactoring as perform_ref
 
 class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")

@@ -6,7 +6,7 @@ from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 from langchain_core.messages import AIMessage
 
-import refagent.agents.supported_refactorings as sup_ref
+import refagent.agents.refactrix.supported_refactorings as sup_ref
 
 
 class PerformRefactoring(BaseModel):
