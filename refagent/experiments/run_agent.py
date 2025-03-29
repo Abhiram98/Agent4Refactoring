@@ -7,7 +7,7 @@ import refagent
 import refagent.experiments.results_manager as rm
 import refagent.utils.project_manager as pm
 import argparse
-import refagent.agents.refactoring_agent as ra
+import refagent.agents.refactrix.refactoring_agent as ra
 import refagent.utils.intellij_server as ij
 
 if __name__ == '__main__':
