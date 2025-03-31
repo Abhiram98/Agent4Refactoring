@@ -183,3 +183,26 @@ def test_custom_refactoring(mocker):
 
     # Check that refactorings have been reverted, due to failing tests.
     assert init_source_code == source_code
+
+
+def test_flink_flaky():
+
+    # initialize repo.
+    project = pm.EvalProject('flink')
+    project.checkout('21403e31f4761bdddf5e4e802e0e5eb9b4533202')
+
+    # create IJ server connection
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    server.open_project(project_path=project.get_project_path())
+    rel_file_path = Path("flink-runtime/src/test/java/org/apache/flink/"
+                         "runtime/scheduler/exceptionhistory/ExceptionHistoryEntryTest.java")
+    server.open_file(rel_file_path)
+
+    # create agent
+    agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini')
+    output = agent.run(initial_intent="please split up methods into reusable code fragments",
+                       starting_file=str(rel_file_path))
+    print(output)
+
+    source_code = server.call_tool_get("get_source_code")
+
