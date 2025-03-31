@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 import refagent.utils.intellij_server as ij_server
 from langchain_core.tools import tool, BaseTool
-from typing import Optional
+from typing import Optional, Annotated
 
 
 class RefactoringToolProvider(BaseModel):
@@ -9,14 +9,14 @@ class RefactoringToolProvider(BaseModel):
 
     def get(self) -> dict[str, BaseTool]:
         @tool
-        def extract_method(start_line: int = Field(description="The starting line number from which the block of code "
-                                                               "will be extracted. Must be a positive integer."),
-                           end_line: int = Field(description="The ending line number to which the block of code will "
-                                                             "be extracted. Must be a positive integer greater than "
-                                                             "or equal to `start_line`."),
-                           new_method_name: str = Field(description="The name of the new method that will contain the "
-                                                                    "extracted block of code. Must be a valid "
-                                                                    "method name.")):
+        def extract_method(start_line: Annotated[int, "The starting line number from which "
+                                                      "the block of code will be extracted. Must be a positive integer."],
+                           end_line: Annotated[int , "The ending line number to which the block of code will "
+                                                     "be extracted. Must be a positive integer greater than "
+                                                     "or equal to `start_line`."],
+                           new_method_name: Annotated[str, "The name of the new method that will contain the "
+                                                            "extracted block of code. Must be a valid "
+                                                            "method name."]):
             """Extracts a method from the specified range of lines in a source code file and creates a new method
             with the given name. This is intended to refactor a block of code within a file, taking the
             lines from `start_line` to `end_line`, inclusive, and moving them into a new method named
@@ -26,12 +26,13 @@ class RefactoringToolProvider(BaseModel):
                                       start_line=start_line, end_line=end_line, new_method_name=new_method_name)
 
 
+
         @tool
-        def rename(old_name: str = Field(description="The name of the variable to be renamed."),
-                   new_name: str = Field(description="The new name for the variable."),
-                   line_num: Optional[int] = Field(description="An optional parameter to identify the variable using "
-                                                               "a line number, if there are multiple variables with "
-                                                               "the same name", default=None)):
+        def rename(old_name: Annotated[str, "The name of the variable to be renamed."],
+                   new_name: Annotated[str, "The new name for the variable."],
+                   line_num:  Annotated[Optional[int], "An optional parameter to identify the variable using "
+                                                       "a line number, if there are multiple variables with "
+                                                       "the same name"] = None):
             """Renames occurrences of an entity (variable, field, class) within the scope of a method/class.
 
             This will refactor the code by replacing all occurrences of the variable named `old_name`
@@ -40,9 +41,9 @@ class RefactoringToolProvider(BaseModel):
 
         @tool
         def replace_file_contents(
-                file_path: str = Field(description="The path to the file that will be updated."),
-                new_contents: str = Field(description="The replacement text to overwrite the original file contents "
-                                                      "with.")
+                file_path: Annotated[str, "The path to the file that will be updated."],
+                new_contents: Annotated[str, "The replacement text to overwrite the original file contents "
+                                                      "with."]
                                   ):
             """Replace the entire contents of the chosen file with the newly provided contents,
                  overwriting any existing data."""
@@ -51,10 +52,10 @@ class RefactoringToolProvider(BaseModel):
 
         @tool
         def replace_method_contents(
-                file_path: str = Field(description="The path to the file that will be updated."),
-                method_name: str = Field(description="The name of the method that will be updated."),
-                new_content: str = Field(description="The replacement text to overwrite the method's contents with."),
-                line_num: Optional[int] = Field(description="Line number to identify the method at", default=None)
+                file_path: Annotated[str, "The path to the file that will be updated."],
+                method_name: Annotated[str, "The name of the method that will be updated."],
+                new_content: Annotated[str, "The replacement text to overwrite the method's contents with."],
+                line_num: Annotated[Optional[int], "Line number to identify the method at"] = None
         ):
             """Replace the entire contents of the chosen method with the newly provided contents, overwriting
                 any existing data."""

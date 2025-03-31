@@ -34,8 +34,9 @@ class Agent(BaseModel):
         super().__init__(*args, **kwargs)
 
         self._files_changed: list[Path] = []
-        self.source_code: str = ""
-        self.tools: dict[str, BaseTool] = ref_tools.RefactoringToolProvider(ide_server=self.ide_server).get()
+        self._source_code: str = ""
+        self._tools: dict[str, BaseTool] = ref_tools.RefactoringToolProvider(ide_server=self.ide_server).get()
+        self._iterations = 0
 
     def create_model(self) -> BaseChatModel:
         return ChatOpenAI(self.model_name)
@@ -43,16 +44,17 @@ class Agent(BaseModel):
     def files_changed(self) -> list[Path]:
         return self._files_changed
 
-    async def run(self, initial_intent: str, starting_file: str):
+    def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
         initial_message = initial_intent
-        self.source_code = starting_file  # TODO: Read the starting file
+        self._source_code = starting_file  # TODO: Read the starting file
+        self._iterations = 0
 
         model = self.create_model()
 
         graph = self.compile_graph(model=model)
-        final_state = await graph.ainvoke(  # TODO: edit these messages
+        final_state = graph.invoke(  # TODO: edit these messages
             {
                 "messages": [
                     SystemMessage("You are an expert developer who makes refactoring suggestions to "
@@ -64,17 +66,17 @@ class Agent(BaseModel):
         print("Final message: ", final_state["messages"][-1].content)
         return final_state["messages"][-1].content
 
-    async def update_source_code(self) -> bool:
+    def update_source_code(self) -> bool:
         """Call the environment to fetch the current version
          of the source code under operation"""
 
-        new_source_code = await self.ide_server.call_tool_get(
+        new_source_code = self.ide_server.call_tool_get(
             "get_source_code",
         )
         source_code_changed = False
-        if self.source_code != new_source_code:
+        if self._source_code != new_source_code:
             source_code_changed = True
-        self.source_code = new_source_code
+        self._source_code = new_source_code
         return source_code_changed
 
     def get_available_tools(self,
@@ -82,11 +84,11 @@ class Agent(BaseModel):
         print(refactoring_type)
 
         if refactoring_type == sup_refs.SupportedRefactorings.EXTRACT_METHOD:
-            return [self.tools.get(sup_refs.SupportedRefactorings.EXTRACT_METHOD.name)]
+            return [self._tools.get(sup_refs.SupportedRefactorings.EXTRACT_METHOD.value)]
         elif refactoring_type == sup_refs.SupportedRefactorings.RENAME:
-            return [self.tools.get(sup_refs.SupportedRefactorings.RENAME.name)]
+            return [self._tools.get(sup_refs.SupportedRefactorings.RENAME.value)]
         elif refactoring_type == sup_refs.SupportedRefactorings.CUSTOM:
-            return [self.tools.get('replace_file_contents'), self.tools.get('replace_method_contents')]
+            return [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
         else:
             raise Exception("Unknown refactoring type.")
 
@@ -104,58 +106,58 @@ class Agent(BaseModel):
             """
             Select a refactoring action to perform and provide a reason.
             """
-            # NOTE: This tools doesn't actually get called.
+            # NOTE: This _tools doesn't actually get called.
             # It is used to make sure the LLM output is formatted
             print(refactoring_type)
             print(reason)
 
-        async def curate_tests(state: MessagesState):
+        def curate_tests(state: MessagesState):
             """Find appropriate test class, run the test, and note which ones are passing.
             This is useful to verify that refactoring hasn't broken the code later."""
 
-            await self.ide_server.call_tool("curate_test_class", file_path="")
+            self.ide_server.call_tool("curate_test_class", file_path="")
 
-        async def run_tests(state: MessagesState):
+        def run_tests(state: MessagesState):
             # TODO: add arguments, if necessary
-            await self.ide_server.call_tool("run_test_class", file_path="")
+            self.ide_server.call_tool("run_test_class", file_path="")
 
         def select_refactoring(state: MessagesState):
             """First LLM call to generate refactoring ideas"""
             self.update_source_code()
-            if self.iterations >= 3:  # stop after 3 iterations
-                return
+            # if self._iterations >= 3:  # stop after 3 _iterations
+            #     return
             llm_with_tools = model.bind_tools([
                 choose_refactoring
             ])
-            extra_message = "" if self.iterations == 0 else "Here's the modified source code: \n"
+            extra_message = "" if self._iterations == 0 else "Here's the modified source code: \n"
             new_messages = state['messages'] + [HumanMessage(content=
                                                              extra_message +
-                                                             code_utils.add_line_numbers(self.source_code))]
+                                                             code_utils.add_line_numbers(self._source_code))]
             # try:
             response = llm_with_tools.invoke(
                 new_messages
             )
             # except Exception as e:
             #     raise e
-            self.iterations += 1
+            self._iterations += 1
             new_messages.append(response)
             return {"messages": new_messages}
 
-        async def perform_selected_refactoring(state: MessagesState):
+        def perform_selected_refactoring(state: MessagesState):
             """Perform refactoring in retry loop"""
             # tools_by_name = {"choose_refactoring": choose_refactoring}
             result = []
             for tool_call in state["messages"][-1].tool_calls:
-                updated = await self.update_source_code()
+                updated = self.update_source_code()
                 if updated:
                     # Change human message which has the source code.
                     state['messages'][1] = HumanMessage(
-                        code_utils.add_line_numbers(self.source_code))
+                        code_utils.add_line_numbers(self._source_code))
 
                 refactoring_type = sup_refs.SupportedRefactorings(
                     tool_call['args']['refactoring_type'])
                 reason = tool_call['args']['reason']
-                tools = await self.get_tools(self.get_available_tools(refactoring_type))
+                tools = self.get_available_tools(refactoring_type)
                 perform_refactoring_graph = perform_ref.PerformRefactoring(
                     tools=tools,
                     model=model,
@@ -164,7 +166,7 @@ class Agent(BaseModel):
                 ).compile()
                 messages = state['messages'][:-1] + [
                     AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}")]
-                observation = await perform_refactoring_graph.ainvoke({"messages": messages})
+                observation = perform_refactoring_graph.invoke({"messages": messages})
                 last_message = observation['messages'][-1]
                 result.append(ToolMessage(content=last_message.content,
                                           tool_call_id=tool_call["id"],
