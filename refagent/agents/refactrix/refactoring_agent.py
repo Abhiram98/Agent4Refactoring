@@ -5,7 +5,7 @@ from typing import Optional
 from langgraph.graph import StateGraph, START, END
 # from IPython.display import Image, display
 from enum import Enum
-from langchain_core.tools import tool
+from langchain_core.tools import tool, BaseTool
 from langchain_openai import ChatOpenAI
 import refagent
 import os
@@ -23,6 +23,8 @@ import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
 import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.perform_refactoring as perform_ref
+import refagent.agents.refactrix.tools as ref_tools
+
 
 class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
@@ -33,14 +35,13 @@ class Agent(BaseModel):
 
         self._files_changed: list[Path] = []
         self.source_code: str = ""
-
+        self.tools: dict[str, BaseTool] = ref_tools.RefactoringToolProvider(ide_server=self.ide_server).get()
 
     def create_model(self) -> BaseChatModel:
         return ChatOpenAI(self.model_name)
 
     def files_changed(self) -> list[Path]:
         return self._files_changed
-
 
     async def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
@@ -63,15 +64,12 @@ class Agent(BaseModel):
         print("Final message: ", final_state["messages"][-1].content)
         return final_state["messages"][-1].content
 
-
-
     async def update_source_code(self) -> bool:
         """Call the environment to fetch the current version
          of the source code under operation"""
 
-        new_source_code = await self.ide_server.call_tool(
+        new_source_code = await self.ide_server.call_tool_get(
             "get_source_code",
-            file_path=""
         )
         source_code_changed = False
         if self.source_code != new_source_code:
@@ -80,20 +78,15 @@ class Agent(BaseModel):
         return source_code_changed
 
     def get_available_tools(self,
-                            refactoring_type: sup_refs.SupportedRefactorings) -> list: # TODO: annotate return type with tools list.
+                            refactoring_type: sup_refs.SupportedRefactorings) -> list[BaseTool]:
         print(refactoring_type)
 
-        # TODO: return the right tools for the job.
-
         if refactoring_type == sup_refs.SupportedRefactorings.EXTRACT_METHOD:
-            return []
+            return [self.tools.get(sup_refs.SupportedRefactorings.EXTRACT_METHOD.name)]
         elif refactoring_type == sup_refs.SupportedRefactorings.RENAME:
-            return []
+            return [self.tools.get(sup_refs.SupportedRefactorings.RENAME.name)]
         elif refactoring_type == sup_refs.SupportedRefactorings.CUSTOM:
-            return []
-        # elif refactoring_type == refagent_utils.SupportedRefactorings.MOVE:
-        #     # tools.append(move_method)
-        #     pass
+            return [self.tools.get('replace_file_contents'), self.tools.get('replace_method_contents')]
         else:
             raise Exception("Unknown refactoring type.")
 

@@ -34,7 +34,7 @@ if __name__ == '__main__':
         # ij_server.reload_project()
 
         agent = ra.Agent(ij_server=ij_server, model_name='gpt-4o-mini')
-        changes = agent.run(intent=bench_point.hint, starting_file=bench_point.starting_files[0]) # run the agent with commit message
+        changes = agent.run(initial_intent=bench_point.hint, starting_file=bench_point.starting_files[0]) # run the agent with commit message
         # changes = project.get_unstaged_changes()
         # files_changed = [i.git_diff.b_rawpath.decode('utf-8') for i in changes]
 

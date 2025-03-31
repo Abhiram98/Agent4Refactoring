@@ -36,10 +36,20 @@ class PerformRefactoring(BaseModel):
             print("Failed to perform the refactoring.")
             return {"messages": [AIMessage("Cannot perform this refactoring.")]}
 
-        def retry_condition(state: MessagesState) -> bool:
+        def retry_condition(state: MessagesState) -> str:
             last_message = state['messages'][-1].content
             # False -> retry
-            return 'success' in last_message.lower()  # retry in case tool call fails.
+            tool_call_success = 'success' in last_message.lower()  # retry in case tool call fails.
+
+            if tool_call_success:
+                return "success_handler"
+
+            if self.retry_count <= 0:
+                # retried more than threshold times
+                return "failure_handler"
+
+            return "llm_tool"  # retry the tool call
+
 
         llm_tool_workflow = StateGraph(MessagesState)
         tool_node = ToolNode(self.tools)
@@ -57,19 +67,11 @@ class PerformRefactoring(BaseModel):
         workflow.add_node("llm_tool", llm_tool)
         llm_tool.__name__ = "llm_tool"
 
-        retry_subgraph = RetrySubgraph(
-            external_state_schema=MessagesState,
-            condition_fn=retry_condition,
-            action_node=llm_tool,
-            success_node_name="success_handler",
-            failure_node_name="failure_handler",
-            max_steps=3,  # Retry up to 3 times
-            # max_time=100_000,  # Optional timeout in milliseconds
-            cleanup_on_failure=False  # Whether to clean up state on failure
-        )
-        workflow.add_edge(START, "retry_subgraph")
+        workflow.add_edge(START, "llm_tool")
+        workflow.add_conditional_edges("llm_tool", retry_condition)
+        workflow.add_edge("success_handler", END)
+        workflow.add_edge("failure_handler", END)
 
-        retry_subgraph.integrate_into_graph(workflow, retry_subgraph_name="retry_subgraph")
         compiled_flow = workflow.compile()
 
         return compiled_flow
