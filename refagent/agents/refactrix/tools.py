@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 import refagent.utils.intellij_server as ij_server
 from langchain_core.tools import tool, BaseTool
 from typing import Optional, Annotated

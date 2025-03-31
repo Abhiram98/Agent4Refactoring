@@ -1,23 +1,19 @@
 from langgraph.graph.state import CompiledStateGraph
-from typing_extensions import Literal, TypedDict
-from langchain_core.messages import HumanMessage, SystemMessage
-from typing import Optional
 from langgraph.graph import StateGraph, START, END
-# from IPython.display import Image, display
-from enum import Enum
 from langchain_core.tools import tool, BaseTool
 from langchain_openai import ChatOpenAI
-import refagent
 import os
 from pathlib import Path
-# from pydantic.v1 import Field, BaseModel, PrivateAttr
-from pydantic import Field, BaseModel, PrivateAttr
-from langgraph.prebuilt import ToolNode, tools_condition
+from pydantic.v1 import Field, BaseModel, PrivateAttr, SecretStr
 from langgraph.graph import MessagesState
-from langgraph.graph.graph import CompiledGraph
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage
 from langchain_core.language_models import BaseChatModel
-import requests
+from grazie_langchain_utils.language_models.grazie import ChatGrazie
+from grazie.api.client.endpoints import GrazieApiGatewayUrls
+from grazie.api.client.gateway import AuthType
+
+from typing import Annotated
+
 
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
@@ -29,17 +25,32 @@ import refagent.agents.refactrix.tools as ref_tools
 class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
+    _files_changed: list[Path] = PrivateAttr(default=[])
+    _source_code: str = PrivateAttr(default="")
+    _tools: dict[str, BaseTool] = PrivateAttr(default=[])
+    _iterations: int = PrivateAttr(default=0)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._files_changed: list[Path] = []
-        self._source_code: str = ""
         self._tools: dict[str, BaseTool] = ref_tools.RefactoringToolProvider(ide_server=self.ide_server).get()
-        self._iterations = 0
 
     def create_model(self) -> BaseChatModel:
-        return ChatOpenAI(self.model_name)
+        # Assumes that self.model_name looks like
+        # 'openai:gpt-4o', or 'grazie:openai-gpt-4o', or 'anthropic:claude-sonnet'
+        vendor, model_name = self.model_name.split(':')
+
+        if vendor == 'grazie':
+            # create grazie model
+            return ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                            client_auth_type=AuthType.APPLICATION,
+                            client_url=GrazieApiGatewayUrls.STAGING,
+                            profile=model_name,
+                            client_agent_name='ref-agent',
+                            client_agent_version='0.1')
+        elif vendor == 'openai':
+            return ChatOpenAI(model_name)
+        raise Exception(f"Unknown AI vendor {vendor}")
 
     def files_changed(self) -> list[Path]:
         return self._files_changed
@@ -97,11 +108,10 @@ class Agent(BaseModel):
 
         @tool
         def choose_refactoring(
-                refactoring_type: sup_refs.SupportedRefactorings = Field(
-                    description=f"select the type of refactoring. "
+                refactoring_type: Annotated[sup_refs.SupportedRefactorings, f"select the type of refactoring. "
                                 f"Choose `{sup_refs.SupportedRefactorings.CUSTOM.value}"
-                                f" to perform refactorings not in the list.`"),
-                reason: str = Field(description="explanation for why the refactoring should be carried out")
+                                f" to perform refactorings not in the list.`"],
+                reason: Annotated[str, "explanation for why the refactoring should be carried out"]
         ):
             """
             Select a refactoring action to perform and provide a reason.
