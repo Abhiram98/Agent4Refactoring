@@ -61,6 +61,7 @@ class Agent(BaseModel):
         initial_message = initial_intent
         self._source_code = starting_file  # TODO: Read the starting file
         self._iterations = 0
+        self._files_changed.append(Path(starting_file)) # assuming the file will be changed.
 
         model = self.create_model()
 

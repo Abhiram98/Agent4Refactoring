@@ -14,7 +14,7 @@ class IntellijServer(BaseModel):
 
     def reload_project(self):
         """Reload the project's gradle/maven things + re-indexing."""
-        pass
+        return self.call_tool('wait_for_reload')
 
     def call_tool(self, tool_name, **kwargs):
         """call any generic tool on the intellij server."""
