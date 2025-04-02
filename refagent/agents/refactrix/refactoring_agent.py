@@ -20,6 +20,7 @@ import refagent.utils.code_utils as code_utils
 import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.perform_refactoring as perform_ref
 import refagent.agents.refactrix.tools as ref_tools
+import refagent.agents.refactrix.planning as planning
 
 
 class Agent(BaseModel):
@@ -58,19 +59,19 @@ class Agent(BaseModel):
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
-        initial_message = initial_intent
         self._source_code = starting_file  # TODO: Read the starting file
         self._iterations = 0
         self._files_changed.append(Path(starting_file)) # assuming the file will be changed.
 
         model = self.create_model()
 
-        graph = self.compile_graph(model=model)
+        graph = self.compile_graph(model=model, initial_intent=initial_intent)
         final_state = graph.invoke(  # TODO: edit these messages
             {
                 "messages": [
-                    SystemMessage("You are an expert developer who makes refactoring suggestions to "
-                                  "improve the quality of the given code. ONLY make TOOL CALLS to perform actions."),
+                    SystemMessage(f"You are an expert developer who aims to improve the quality of the given code. "
+                                  f"Please do the follow: {initial_intent}. "
+                                  f"ONLY make TOOL CALLS to perform actions."),
                 ]
             },
             config={"configurable": {"thread_id": 42}}
@@ -104,7 +105,7 @@ class Agent(BaseModel):
         else:
             raise Exception("Unknown refactoring type.")
 
-    def compile_graph(self, model) -> CompiledStateGraph:
+    def compile_graph(self, model, initial_intent) -> CompiledStateGraph:
         """Compile the graph with the given model"""
 
         @tool
@@ -187,16 +188,25 @@ class Agent(BaseModel):
             # return {"messages_state": {"messages": messages}}
             return {"messages": messages}
 
+        planning_component = planning.PlanningComponent(
+            initial_intent=initial_intent,
+            model=model,
+            source_code=self._source_code
+        )
+        planning_compiled = planning_component.compile()
+
+
         workflow = StateGraph(MessagesState)
         # Add nodes
+        workflow.add_node("planning", planning_compiled)
         workflow.add_node("curate_tests", curate_tests)
         workflow.add_node("select_refactoring", select_refactoring)
         # select_refactoring_tool = ToolNode([choose_refactoring])
         workflow.add_node("perform_refactoring", perform_selected_refactoring)
 
         # Add edges to connect nodes
-        # workflow.add_edge(START, "select_refactoring")
-        workflow.add_edge(START, "curate_tests")
+        workflow.add_edge(START, "planning")
+        workflow.add_edge("planning", "curate_tests")
         workflow.add_edge("curate_tests", "select_refactoring")
 
         def has_tool_call(state: MessagesState) -> bool:
