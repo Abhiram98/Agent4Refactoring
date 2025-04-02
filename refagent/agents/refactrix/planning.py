@@ -10,6 +10,18 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.tools import tool, BaseTool
 
 
+
+class PlanningStep(BaseModel):
+    """An actionable step to improve the code-quality."""
+
+    # step_number: int = Field(description="The ")
+    reason: str = Field(description="The reason why this action should be applied.")
+    code_location: str = Field(description="The source code where the change should be applied.")
+    final_code: str = Field(description="The improved, modified version of the source code.")
+
+
+# structured_llm = llm.with_structured_output(Joke)
+
 class PlanningComponent(BaseModel):
     initial_intent: str = Field(description="initial intent from the user")
     # developer_callback: Callable = Field(description="the function to call to get further"
@@ -69,7 +81,51 @@ class PlanningComponent(BaseModel):
         compiled_flow = workflow.compile()
         return compiled_flow
 
-    def run(self):
+    def run(self) -> list[PlanningStep]:
         compiled_flow = self.compile()
         final_messages = compiled_flow.invoke({'messages':[]})
         return final_messages['messages'][-2].content
+
+
+class NaivePlanningComponent(BaseModel):
+    initial_intent: str = Field(description="initial intent from the user")
+    # developer_callback: Callable = Field(description="the function to call to get further"
+    #                                                  " clarifications from the developer.")
+    model: BaseChatModel = Field(description="model to use to generate the plan")
+    source_code: str = Field(description="source code to work with")
+
+    def compile(self) -> CompiledStateGraph:
+        def generate_plan(messages: MessagesState):
+
+            messages1 = [
+                SystemMessage("Please generate a detailed step by step plan to "
+                              f"perform the following: {self.initial_intent}. "
+                              f"Please provide a plan ONLY to perform refactorings. "
+                              f"Assume that other action steps will be taken care of by the developer."
+                              f"Make sure that your plan is actionable on the given code. "
+                              f"Do not include generic steps in this plan. "),
+                HumanMessage(self.source_code)
+            ]
+            response = self.model.invoke(
+                messages1
+            )
+
+            return {'messages': [response]}
+
+        def summarize_plan(messages: MessagesState):
+            # use the last but one message, because that was tehe accepted plan
+            return {'messages': messages['messages'][-2]}
+
+
+        workflow = StateGraph(MessagesState)
+        workflow.add_node("generate_plan", generate_plan)
+        workflow.add_edge(START, "generate_plan")
+        workflow.add_edge("generate_plan", END)
+
+        compiled_flow = workflow.compile()
+        return compiled_flow
+
+    def run(self) -> AIMessage:
+        compiled_flow = self.compile()
+        final_messages = compiled_flow.invoke({'messages':[]})
+        return final_messages['messages'][-1] # return the last message. that was the plan.

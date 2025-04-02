@@ -42,12 +42,12 @@ class RefactoringToolProvider(BaseModel):
         @tool
         def replace_file_contents(
                 file_path: Annotated[str, "The path to the file that will be updated."],
-                new_contents: Annotated[str, "The replacement text to overwrite the original file contents "
-                                                      "with."]
+                new_content: Annotated[str, "The replacement text to overwrite the original file contents "
+                                            "with."]
                                   ):
             """Replace the entire contents of the chosen file with the newly provided contents,
                  overwriting any existing data."""
-            return self.ide_server.call_tool("replace_file_contents", file_path=file_path, new_contents=new_contents)
+            return self.ide_server.call_tool("replace_file_contents", file_path=file_path, new_content=new_content)
 
 
         @tool
@@ -59,8 +59,9 @@ class RefactoringToolProvider(BaseModel):
         ):
             """Replace the entire contents of the chosen method with the newly provided contents, overwriting
                 any existing data."""
-            return self.ide_server.call_tool("replace_method_contents", file_path=file_path, method_name=method_name,
-                                      new_content=new_content, line_num=line_num)
+            return self.ide_server.call_tool("replace_method_contents",
+                                             file_path=file_path, method_name=method_name,
+                                             new_content=new_content, line_num=line_num)
 
         all_tools: list[BaseTool] = [extract_method, rename, replace_file_contents, replace_method_contents]
 

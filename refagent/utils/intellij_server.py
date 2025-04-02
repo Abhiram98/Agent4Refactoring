@@ -20,8 +20,14 @@ class IntellijServer(BaseModel):
         """call any generic tool on the intellij server."""
 
         response = requests.post(f'{self.server_url}/{tool_name}', json=kwargs)
-        return response.text
+        if response.ok:
+            return response.text
+        else:
+            return f"tool call failed - {response.status_code}: {response.text}"
 
     def call_tool_get(self, tool_name):
         response = requests.get(f'{self.server_url}/{tool_name}')
-        return response.text
+        if response.ok:
+            return response.text
+        else:
+            return f"tool call failed - {response.status_code}: {response.text}"

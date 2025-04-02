@@ -66,11 +66,19 @@ class Agent(BaseModel):
         model = self.create_model()
 
         graph = self.compile_graph(model=model, initial_intent=initial_intent)
+
+        planning_component = planning.NaivePlanningComponent(
+            initial_intent=initial_intent,
+            model=model,
+            source_code=self._source_code
+        )
+        plan_message = planning_component.run()
+
         final_state = graph.invoke(  # TODO: edit these messages
             {
                 "messages": [
                     SystemMessage(f"You are an expert developer who aims to improve the quality of the given code. "
-                                  f"Please do the follow: {initial_intent}. "
+                                  f"Please do the follow: {plan_message.content}. "
                                   f"ONLY make TOOL CALLS to perform actions."),
                 ]
             },
@@ -136,8 +144,8 @@ class Agent(BaseModel):
         def select_refactoring(state: MessagesState):
             """First LLM call to generate refactoring ideas"""
             self.update_source_code()
-            # if self._iterations >= 3:  # stop after 3 _iterations
-            #     return
+            if self._iterations >= 5:  # stop after 3 _iterations
+                return
             llm_with_tools = model.bind_tools([
                 choose_refactoring
             ])
@@ -188,29 +196,22 @@ class Agent(BaseModel):
             # return {"messages_state": {"messages": messages}}
             return {"messages": messages}
 
-        planning_component = planning.PlanningComponent(
-            initial_intent=initial_intent,
-            model=model,
-            source_code=self._source_code
-        )
-        planning_compiled = planning_component.compile()
-
-
         workflow = StateGraph(MessagesState)
         # Add nodes
-        workflow.add_node("planning", planning_compiled)
+        # workflow.add_node("planning", planning_compiled)
         workflow.add_node("curate_tests", curate_tests)
         workflow.add_node("select_refactoring", select_refactoring)
         # select_refactoring_tool = ToolNode([choose_refactoring])
         workflow.add_node("perform_refactoring", perform_selected_refactoring)
 
         # Add edges to connect nodes
-        workflow.add_edge(START, "planning")
-        workflow.add_edge("planning", "curate_tests")
+        # workflow.add_edge(START, "planning")
+        workflow.add_edge(START, "curate_tests")
         workflow.add_edge("curate_tests", "select_refactoring")
 
         def has_tool_call(state: MessagesState) -> bool:
-            return len(state['messages'][-1].tool_calls) != 0
+            return (hasattr(state['messages'][-1], 'tool_calls') and
+                    len(state['messages'][-1].tool_calls) != 0)
 
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
