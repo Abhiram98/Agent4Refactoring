@@ -42,6 +42,7 @@ if __name__ == '__main__':
             {
                 "changes": [c.to_json() for c in changes],
                 "commit_hash": str(new_hash),
+                "trajectory": [i.to_json() for i in agent.get_trajectory()['messages']]
             }
         )
         results_saver.save()

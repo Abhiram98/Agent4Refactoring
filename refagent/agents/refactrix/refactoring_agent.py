@@ -6,7 +6,8 @@ import os
 from pathlib import Path
 from pydantic.v1 import Field, BaseModel, PrivateAttr, SecretStr
 from langgraph.graph import MessagesState
-from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage, BaseMessage
 from langchain_core.language_models import BaseChatModel
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
@@ -23,6 +24,7 @@ import refagent.agents.refactrix.tools as ref_tools
 import refagent.agents.refactrix.planning as planning
 
 
+
 class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
@@ -30,11 +32,15 @@ class Agent(BaseModel):
     _source_code: str = PrivateAttr(default="")
     _tools: dict[str, BaseTool] = PrivateAttr(default=[])
     _iterations: int = PrivateAttr(default=0)
+    _trajectory: list[BaseMessage] = PrivateAttr(default=[])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._tools: dict[str, BaseTool] = ref_tools.RefactoringToolProvider(ide_server=self.ide_server).get()
+
+    def get_trajectory(self):
+        return self._trajectory
 
     def create_model(self) -> BaseChatModel:
         # Assumes that self.model_name looks like
@@ -73,6 +79,7 @@ class Agent(BaseModel):
             source_code=self._source_code
         )
         plan_message = planning_component.run()
+        self._trajectory.append(plan_message)
 
         final_state = graph.invoke(  # TODO: edit these messages
             {
@@ -84,6 +91,7 @@ class Agent(BaseModel):
             },
             config={"configurable": {"thread_id": 42}}
         )
+        self._trajectory = final_state
         print("Final message: ", final_state["messages"][-1].content)
         return final_state["messages"][-1].content
 
