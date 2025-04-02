@@ -206,3 +206,134 @@ def test_flink_flaky():
 
     source_code = server.call_tool_get("get_source_code")
 
+
+
+def test_ghidra_12(mocker):
+
+    plan = """To refactor the PDB symbol server property 'remote' to 'untrusted' in the given file, follow these actionable steps:
+
+### Step-by-Step Refactoring Plan
+
+1. **Identify the Property Definition**:
+   - Open `PdbAnalyzer.java` in your code editor.
+   - Locate the definition of the 'remote' property. This is usually found in a static property declaration or as part of the constructor where properties are initialized.
+
+2. **Rename the Property**:
+   - Change the property name from `remote` to `untrusted`. Update any annotations if present.
+   - Example:
+     ```java
+     @Option(
+         description = "PDB symbol server URL (untrusted)",
+         // other parameters...
+     )
+     private String untrusted; // Previously remote
+     ```
+
+3. **Update References in the Class**:
+   - Conduct a search within `PdbAnalyzer.java` for occurrences of `remote`. Update each occurrence to reference the new property name `untrusted`.
+   - This includes:
+     - Method parameters
+     - Local variables
+     - Any method calls that utilize this property
+     - Comments if they mention 'remote'
+
+4. **Adjust Method Parameters**:
+   - If there are methods that accept `remote` as a parameter, change the parameter name to `untrusted`.
+   - Example:
+     ```java
+     public void setSymbolServer(String untrusted) {
+         // Use the new property name
+     }
+     ```
+
+5. **Update Configuration Processing Logic**:
+   - If there is logic in the class responsible for retrieving or processing configuration values related to `remote`, modify it so that it references `untrusted`. This may include updating any default values or handling logic.
+
+6. **Modify Any Documentation or Comments**:
+   - Go through the class and update any relevant comments or documentation that mention the `remote` property to clarify that it has been refactored to `untrusted`. Ensure that any usage examples also reflect the change.
+
+7. **Test Existing Functionality**:
+   - If there are unit tests or integration tests related to the PDB functionality, ensure that they are updated to accommodate the change from `remote` to `untrusted`. Adjust any test data or expected results accordingly.
+   - If there are no tests covering this functionality, consider writing new tests to ensure the refactor maintains the expected behavior.
+
+8. **Code Review**:
+   - After making the changes, submit your code for review to ensure that it meets the new naming conventions and does not break existing functionality.
+
+9. **Final Cleanup**:
+   - After obtaining feedback from the code review, make any necessary adjustments and finalize the changes.
+   - Run the complete test suite to confirm that everything is functioning correctly after the refactor.
+
+By following this plan step-by-step, you will successfully refactor the 'remote' property to 'untrusted' in the `PdbAnalyzer.java` file."""
+
+    # initialize repo.
+    project = pm.EvalProject('ghidra')
+    project.checkout('21d433b26c9d68a585d3c8956cb87b1e3929aed1')
+
+    # create IJ server connection
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    server.open_project(project_path=project.get_project_path())
+    rel_file_path = Path("Ghidra/Features/PDB/src/main/java/ghidra/app/plugin/core/analysis/PdbAnalyzer.java")
+    server.open_file(rel_file_path)
+    # server.reload_project()
+
+    planning_patch = mocker.patch('refagent.agents.refactrix.planning.NaivePlanningComponent.run')
+    planning_patch.return_value = AIMessage(content=plan)
+    # create agent
+    agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini')
+    output = agent.run(initial_intent="refactor pdb symbol server 'remote' to 'untrusted'. "
+                                      "Change name of symbolserver 'remote' property to 'untrusted' "
+                                      "to reflect its intended usage.",
+                       starting_file=str(rel_file_path))
+    print(output)
+
+    source_code = server.call_tool_get("get_source_code")
+    print(source_code)
+    print(agent.get_trajectory())
+
+
+
+def test_kafka_155():
+    # The source file is so large that it wouldn't fit in the context window.
+    # Need to write a component that summarizes the code
+    # initialize repo.
+    project = pm.EvalProject('kafka')
+    project.checkout('be6653c8bc25717e25a7db164527635a6579b4cc')
+
+    # create IJ server connection
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    server.open_project(project_path=project.get_project_path())
+    rel_file_path = Path("group-coordinator/src/test/java/org/apache/"
+                         "kafka/coordinator/group/GroupMetadataManagerTest.java")
+    server.open_file(rel_file_path)
+
+    # create agent
+    agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini')
+    output = agent.run(initial_intent="`GroupMetadataManagerTest` class got a little under control. "
+                                      "We have too many things defined in it.",
+                       starting_file=str(rel_file_path))
+    print(output)
+
+    source_code = server.call_tool_get("get_source_code")
+
+
+
+def test_kafka_99():
+
+    project = pm.EvalProject('kafka')
+    project.checkout('b31aa651156fbc961fbb8460604393fef1c09185')
+
+    # create IJ server connection
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    server.open_project(project_path=project.get_project_path())
+    rel_file_path = Path("streams/src/main/java/org/apache/"
+                         "kafka/streams/kstream/internals/suppress/TimeDefinitions.java")
+    server.open_file(rel_file_path)
+
+    # create agent
+    agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini')
+    output = agent.run(initial_intent="Refactor TimeDefintiions to not use old ProcessorContext any longer",
+                       starting_file=str(rel_file_path))
+    print(output)
+
+    source_code = server.call_tool_get("get_source_code")
+
