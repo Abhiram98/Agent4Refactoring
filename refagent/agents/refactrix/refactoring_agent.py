@@ -12,6 +12,7 @@ from langchain_core.language_models import BaseChatModel
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
+from grazie.api.client.chat.response import Credit
 
 from typing import Annotated
 
@@ -40,6 +41,12 @@ class Agent(BaseModel):
         self._tools: dict[str, BaseTool] = ref_tools.RefactoringToolProvider(ide_server=self.ide_server).get()
 
     def get_trajectory(self):
+        for i in self._trajectory:
+            if (isinstance(i, AIMessage)
+                    and 'spent' in i.additional_kwargs
+                    and isinstance(i.additional_kwargs['spent'], Credit)):
+                i.additional_kwargs['spent'] = i.additional_kwargs['spent'].amount
+
         return self._trajectory
 
     def create_model(self) -> BaseChatModel:
