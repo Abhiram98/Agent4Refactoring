@@ -291,6 +291,50 @@ By following this plan step-by-step, you will successfully refactor the 'remote'
     print(agent.get_trajectory())
 
 
+def test_flink_4():
+    project = pm.EvalProject('flink')
+    project.checkout('cdf314d30b59994283e0bbf70f350618de02118c')
+
+    # create IJ server connection
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    server.open_project(project_path=project.get_project_path())
+    rel_file_path = Path("flink-runtime/src/main/java/org/apache/"
+                         "flink/runtime/io/network/partition/BufferWithChannel.java")
+    server.open_file(rel_file_path)
+
+    # create agent
+    agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini')
+    output = agent.run(initial_intent="Distinguish between channel and subpartition, by renaming appropriate elements",
+                       starting_file=str(rel_file_path))
+    print(output)
+
+    source_code = server.call_tool_get("get_source_code")
+    print(source_code)
+    print(agent.get_trajectory())
+
+
+def test_flink_16():
+    project = pm.EvalProject('flink')
+    project.checkout('4cce1bffb8160d2bfe64a4fb26172fc639e26dc1')
+
+    # create IJ server connection
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    server.open_project(project_path=project.get_project_path())
+    rel_file_path = Path("flink-runtime/src/test/java/org/apache/"
+                         "flink/runtime/taskexecutor/slot/TaskSlotTableImplTest.java")
+    server.open_file(rel_file_path)
+
+    # create agent
+    agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini')
+    output = agent.run(initial_intent="Refactors test to use proper Executor service for the main thread",
+                       starting_file=str(rel_file_path))
+    print(output)
+
+    source_code = server.call_tool_get("get_source_code")
+    print(source_code)
+    print(agent.get_trajectory())
+
+
 
 def test_kafka_155():
     # The source file is so large that it wouldn't fit in the context window.
