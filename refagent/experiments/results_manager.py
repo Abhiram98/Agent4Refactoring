@@ -15,7 +15,7 @@ class ResultsManager:
             pass
 
         if os.path.exists(self.save_path.joinpath(self.save_file)):
-            with open(os.path.exists(self.save_path.joinpath(self.save_file))) as f:
+            with open(self.save_path.joinpath(self.save_file)) as f:
                 self.responses = json.load(f)
 
 

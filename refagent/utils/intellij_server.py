@@ -10,7 +10,7 @@ class IntellijServer(BaseModel):
         self.call_tool("open-project", abs_project_path=str(project_path.absolute()))
 
     def open_file(self, rel_file_path: Path):
-        self.call_tool("open-file", rel_file_path=str(rel_file_path))
+        return self.call_tool("open-file", rel_file_path=str(rel_file_path))
 
     def reload_project(self):
         """Reload the project's gradle/maven things + re-indexing."""

@@ -41,7 +41,7 @@ class Agent(BaseModel):
         self._tools: dict[str, BaseTool] = ref_tools.RefactoringToolProvider(ide_server=self.ide_server).get()
 
     def get_trajectory(self):
-        for i in self._trajectory:
+        for i in self._trajectory['messages']:
             if (isinstance(i, AIMessage)
                     and 'spent' in i.additional_kwargs
                     and isinstance(i.additional_kwargs['spent'], Credit)):
@@ -133,6 +133,8 @@ class Agent(BaseModel):
 
         @tool
         def choose_refactoring(
+                relative_file_path: Annotated[str, "relative path from the project root"
+                                                   " to the file that needs to change"],
                 refactoring_type: Annotated[sup_refs.SupportedRefactorings, f"select the type of refactoring. "
                                 f"Choose `{sup_refs.SupportedRefactorings.CUSTOM.value}"
                                 f" to perform refactorings not in the list.`"],
@@ -145,6 +147,7 @@ class Agent(BaseModel):
             # It is used to make sure the LLM output is formatted
             print(refactoring_type)
             print(reason)
+            print(relative_file_path)
 
         def curate_tests(state: MessagesState):
             """Find appropriate test class, run the test, and note which ones are passing.
@@ -192,12 +195,14 @@ class Agent(BaseModel):
                 refactoring_type = sup_refs.SupportedRefactorings(
                     tool_call['args']['refactoring_type'])
                 reason = tool_call['args']['reason']
+                rel_file_path = tool_call['args']['relative_file_path']
                 tools = self.get_available_tools(refactoring_type)
                 perform_refactoring_graph = perform_ref.PerformRefactoring(
                     tools=tools,
                     model=model,
                     reason=reason,
-                    refactoring_type=refactoring_type
+                    refactoring_type=refactoring_type,
+                    rel_file_path=rel_file_path
                 ).compile()
                 messages = state['messages'][:-1] + [
                     AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}")]

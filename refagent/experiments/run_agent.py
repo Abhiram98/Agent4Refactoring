@@ -22,11 +22,11 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     ij_server.open_project(project_path=project.get_project_path())
     ij_server.open_file(rel_file_path=Path(bench_point.starting_files[0]))
     # TODO: reload IJ project
-    ij_server.reload_project()
+    # ij_server.reload_project()
 
     agent = ra.Agent(ide_server=ij_server, model_name='grazie:openai-gpt-4o-mini')
-    changes = agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,
-                        starting_file=bench_point.starting_files[0])  # run the agent with commit message
+    final_message = agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,
+                              starting_file=bench_point.starting_files[0])  # run the agent with commit message
 
     project.safe_add(agent.files_changed())
     new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id}")

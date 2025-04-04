@@ -4,9 +4,11 @@ from langchain_core.language_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
+from pathlib import Path
 
 import refagent.agents.refactrix.supported_refactorings as sup_ref
+import refagent.utils.intellij_server as ij
 
 
 class PerformRefactoring(BaseModel):
@@ -15,8 +17,20 @@ class PerformRefactoring(BaseModel):
     model: BaseChatModel = Field(description="Langchain Chat model")
     reason: str = Field(description="Reason to perform the refactoring. Usually provided by the LM.")
     refactoring_type: sup_ref.SupportedRefactorings = Field(description="The type of refactoring to be performed.")
+    rel_file_path: str = Field(description="relative file path from repo root. file to be edited.")
+    ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
 
     def compile(self) -> CompiledGraph:
+
+        def open_file(state: MessagesState):
+            # TODO: open file here. If cannot, throw error.
+            response = self.ide_server.open_file(Path(self.rel_file_path))
+            if response.startswith('tool call failed '):
+                return {"messages": [HumanMessage(response)]}
+            return {"messages": [HumanMessage("Opened file successfully.")]}
+
+        def successful_file_open(state: MessagesState):
+            return state['messages'][-1].content == "Opened file successfully."
 
         def call_llm(state: MessagesState):
             # if self.retry_count <=0:
@@ -26,7 +40,6 @@ class PerformRefactoring(BaseModel):
             response = model_with_tools.invoke(messages)
             self.retry_count -= 1
             return {"messages": [response]}
-
 
         def success_handler(state: MessagesState):
             print("Successfully performed the refactoring")
@@ -56,18 +69,22 @@ class PerformRefactoring(BaseModel):
         llm_tool_workflow.add_node("call_llm", call_llm)
         llm_tool_workflow.add_node("tools", tool_node)
         llm_tool_workflow.add_edge(START, "call_llm")
+
         def has_tool_call(state: MessagesState) -> bool:
             return len(state['messages'][-1].tool_calls) > 0
         llm_tool_workflow.add_conditional_edges("call_llm", has_tool_call, {True: "tools", False: END})
         llm_tool = llm_tool_workflow.compile()
 
         workflow = StateGraph(MessagesState)
+        workflow.add_node("open_file", open_file)
         workflow.add_node("success_handler", success_handler)
         workflow.add_node("failure_handler", failure_handler)
         workflow.add_node("llm_tool", llm_tool)
         llm_tool.__name__ = "llm_tool"
 
-        workflow.add_edge(START, "llm_tool")
+        workflow.add_edge(START, "open_file")
+        workflow.add_conditional_edges("open_file", successful_file_open,
+                                       {True: "llm_tool", False: END})
         workflow.add_conditional_edges("llm_tool", retry_condition)
         workflow.add_edge("success_handler", END)
         workflow.add_edge("failure_handler", END)
