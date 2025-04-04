@@ -12,6 +12,17 @@ class IntellijServer(BaseModel):
     def open_file(self, rel_file_path: Path):
         return self.call_tool("open-file", rel_file_path=str(rel_file_path))
 
+    def create_file(self, rel_file_path: Path):
+        return self.call_tool("create-file", rel_file_path=str(rel_file_path))
+
+    def try_open_file(self, rel_file_path: Path):
+        # when the caller is unsure about the path,
+        # and additional searching is needed to find the right file.
+        return self.call_tool("try-open-file", rel_file_path=str(rel_file_path))
+
+    def try_create_file(self, rel_file_path: Path):
+        return self.call_tool("try-create-file", rel_file_path=str(rel_file_path))
+
     def reload_project(self):
         """Reload the project's gradle/maven things + re-indexing."""
         return self.call_tool('wait_for_reload')

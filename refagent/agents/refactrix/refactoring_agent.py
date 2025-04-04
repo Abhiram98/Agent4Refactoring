@@ -31,6 +31,7 @@ class Agent(BaseModel):
     model_name: str = Field(description="model name")
     _files_changed: list[Path] = PrivateAttr(default=[])
     _source_code: str = PrivateAttr(default="")
+    _rel_file_path: str = PrivateAttr(default="")
     _tools: dict[str, BaseTool] = PrivateAttr(default=[])
     _iterations: int = PrivateAttr(default=0)
     _trajectory: list[BaseMessage] = PrivateAttr(default=[])
@@ -113,6 +114,7 @@ class Agent(BaseModel):
         if self._source_code != new_source_code:
             source_code_changed = True
         self._source_code = new_source_code
+        self._rel_file_path = self.ide_server.call_tool_get("get_rel_file_path")
         return source_code_changed
 
     def get_available_tools(self,
@@ -169,8 +171,8 @@ class Agent(BaseModel):
             ])
             extra_message = "" if self._iterations == 0 else "Here's the modified source code: \n"
             new_messages = state['messages'] + [HumanMessage(content=
-                                                             extra_message +
-                                                             code_utils.add_line_numbers(self._source_code))]
+                                                             f"{self._rel_file_path}: {extra_message}"
+                                                             f"\n {code_utils.add_line_numbers(self._source_code)}")]
             # try:
             response = llm_with_tools.invoke(
                 new_messages
@@ -202,7 +204,8 @@ class Agent(BaseModel):
                     model=model,
                     reason=reason,
                     refactoring_type=refactoring_type,
-                    rel_file_path=rel_file_path
+                    rel_file_path=rel_file_path,
+                    ide_server=self.ide_server
                 ).compile()
                 messages = state['messages'][:-1] + [
                     AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}")]

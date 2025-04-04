@@ -23,9 +23,18 @@ class PerformRefactoring(BaseModel):
     def compile(self) -> CompiledGraph:
 
         def open_file(state: MessagesState):
-            # TODO: open file here. If cannot, throw error.
-            response = self.ide_server.open_file(Path(self.rel_file_path))
+            response = self.ide_server.try_open_file(Path(self.rel_file_path))
             if response.startswith('tool call failed '):
+                create_file = self.model.invoke(
+                    state['messages'] +
+                    [HumanMessage(f"{response}. Would you like to create this file? Answer YES/NO.")])
+
+                if 'YES' in create_file.content:
+                    create_response = self.ide_server.create_file(Path(self.rel_file_path))
+                    if create_response == 'success':
+                        open_response = self.ide_server.open_file(Path(self.rel_file_path))
+                        return {"messages": [HumanMessage(f"Created and opened file successfully.")]}
+
                 return {"messages": [HumanMessage(response)]}
             return {"messages": [HumanMessage("Opened file successfully.")]}
 
@@ -93,10 +102,3 @@ class PerformRefactoring(BaseModel):
 
         return compiled_flow
 
-
-class RetrySubgraph:
-    def __init__(self, **kwargs):
-        raise Exception("To be implemented")
-
-    def integrate_into_graph(self, workflow: StateGraph, retry_subgraph_name: str):
-        raise Exception("To be implemented")
