@@ -17,12 +17,12 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
                   ij_server: ij.IntellijServer,
                   results_saver: rm.ResultsManager):
     project = pm.EvalProject(bench_point.project_name)
+    ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
     project.checkout(bench_point.v1_hash)
 
     ij_server.open_project(project_path=project.get_project_path())
     ij_server.open_file(rel_file_path=Path(bench_point.starting_files[0]))
-    # TODO: reload IJ project
-    # ij_server.reload_project()
+    ij_server.reload_project()
 
     agent = ra.Agent(ide_server=ij_server, model_name='grazie:openai-gpt-4o-mini')
     final_message = agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,

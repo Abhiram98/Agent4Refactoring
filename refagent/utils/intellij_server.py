@@ -27,6 +27,13 @@ class IntellijServer(BaseModel):
         """Reload the project's gradle/maven things + re-indexing."""
         return self.call_tool('wait_for_reload')
 
+    def reset_project_reload_counters(self):
+        """There are some internal counters, that keep track whether the project is in a loading state.
+        Sometimes, these get deadlocked, and need to be reset. This is a workaround for other bugs.
+        """
+        return self.call_tool('reset_waiting')
+
+
     def call_tool(self, tool_name, **kwargs):
         """call any generic tool on the intellij server."""
 
