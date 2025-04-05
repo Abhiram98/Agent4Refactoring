@@ -29,7 +29,7 @@ import refagent.agents.refactrix.planning as planning
 class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
-    _files_changed: list[Path] = PrivateAttr(default=[])
+    _files_changed: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
     _rel_file_path: str = PrivateAttr(default="")
     _tools: dict[str, BaseTool] = PrivateAttr(default=[])
@@ -68,14 +68,14 @@ class Agent(BaseModel):
         raise Exception(f"Unknown AI vendor {vendor}")
 
     def files_changed(self) -> list[Path]:
-        return self._files_changed
+        return list(self._files_changed)
 
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
         self._source_code = starting_file  # TODO: Read the starting file
         self._iterations = 0
-        self._files_changed.append(Path(starting_file)) # assuming the file will be changed.
+        self._files_changed.add(Path(starting_file)) # assuming the file will be changed.
 
         model = self.create_model()
 
@@ -198,6 +198,8 @@ class Agent(BaseModel):
                     tool_call['args']['refactoring_type'])
                 reason = tool_call['args']['reason']
                 rel_file_path = tool_call['args']['relative_file_path']
+                self._files_changed.add(Path(rel_file_path))
+
                 tools = self.get_available_tools(refactoring_type)
                 perform_refactoring_graph = perform_ref.PerformRefactoring(
                     tools=tools,
