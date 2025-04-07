@@ -63,7 +63,24 @@ class RefactoringToolProvider(BaseModel):
                                              file_path=file_path, method_name=method_name,
                                              new_content=new_content, line_num=line_num)
 
-        all_tools: list[BaseTool] = [extract_method, rename, replace_file_contents, replace_method_contents]
+        @tool
+        def extract_class(
+                extract_interface: Annotated[bool, "whether to extract an interface, or superclass. If true, an interface will be extracted"],
+                members: Annotated[list[str], "names of fields/methods in the host class to be extracted into the super class."],
+                super_class_name: Annotated[str, "the name of the super class to be extracted"],
+                sub_class_name: Annotated[str, "the name of the current class after extraction."]
+        ):
+            """Extract a super class/interface from an existing class.
+            Choose relevant fields and methods that need to go into the super class.
+            Also provide a name for the superclass and the subclass."""
+            return self.ide_server.call_tool("extract-class",
+                                      extract_interface=extract_interface,
+                                      new_class_name=super_class_name,
+                                      sub_class_name=sub_class_name,
+                                      members=members)
+
+        all_tools: list[BaseTool] = [extract_method, rename, extract_class,
+                                     replace_file_contents, replace_method_contents]
 
         return {i.name: i for i in all_tools}
 

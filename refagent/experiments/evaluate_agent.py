@@ -35,10 +35,12 @@ def main():
     overall_recall = 0
     total_oracle = 0
     benchmark = bm_load.load_benchmark(refagent.benchmark_lite_json)
-    for result, bench_point in zip(agent_results, benchmark):
+    for result in agent_results:
         #TODO: map the agent results and benchmark better ^
+        bench_points = [i for i in benchmark if i.ref_id==result['id']]
+        assert len(bench_points) == 1
+        bench_point = bench_points[0]
 
-        bench_point: bm_load.BenchmarkItem
         id = result['id']
         assert id == bench_point.ref_id
         commit = result['response']['commit_hash']

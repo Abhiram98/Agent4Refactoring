@@ -125,6 +125,8 @@ class Agent(BaseModel):
             return [self._tools.get(sup_refs.SupportedRefactorings.EXTRACT_METHOD.value)]
         elif refactoring_type == sup_refs.SupportedRefactorings.RENAME:
             return [self._tools.get(sup_refs.SupportedRefactorings.RENAME.value)]
+        elif refactoring_type == sup_refs.SupportedRefactorings.EXTRACT_CLASS:
+            return [self._tools.get(sup_refs.SupportedRefactorings.EXTRACT_CLASS.value)]
         elif refactoring_type == sup_refs.SupportedRefactorings.CUSTOM:
             return [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
         else:
