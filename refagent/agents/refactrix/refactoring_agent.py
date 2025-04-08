@@ -1,3 +1,5 @@
+import json
+
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
 from langchain_core.tools import tool, BaseTool
@@ -79,28 +81,34 @@ class Agent(BaseModel):
 
         model = self.create_model()
 
-        graph = self.compile_graph(model=model, initial_intent=initial_intent)
-
-        planning_component = planning.NaivePlanningComponent(
+        plan_type = planning.NaivePlanningComponent
+        # plan_type = planning.PlanningComponent
+        planning_component = plan_type(
             initial_intent=initial_intent,
             model=model,
             source_code=self._source_code
         )
-        plan_message = planning_component.run()
-        self._trajectory.append(plan_message)
+        ref_plan = planning_component.run()
+        self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
-        final_state = graph.invoke(  # TODO: edit these messages
-            {
-                "messages": [
-                    SystemMessage(f"You are an expert developer who aims to improve the quality of the given code. "
-                                  f"Please do the follow: {plan_message.content}. "
-                                  f"ONLY make TOOL CALLS to perform actions."),
-                ]
-            },
-            config={"configurable": {"thread_id": 42}}
-        )
-        self._trajectory = final_state
-        print("Final message: ", final_state["messages"][-1].content)
+        for i, step in enumerate(ref_plan.steps):
+            print(f"Executing step {i+1} in plan.")
+            graph = self.compile_graph(model=model,
+                                       initial_intent=initial_intent,
+                                       plan_step=step)
+            final_state = graph.invoke(
+                {
+                    "messages": [
+                        SystemMessage(f"You are an expert developer who executes refactorings to"
+                                      f" improve the quality of the given code. "
+                                      f"Please do the follow: {step.refactoring_type}: {step.reason}. "
+                                      f"ONLY make TOOL CALLS to perform actions."),
+                    ]
+                },
+                config={"configurable": {"thread_id": 42}}
+            )
+            self._trajectory += final_state
+            print("Result of executing step 1: ", final_state["messages"][-1].content)
         return final_state["messages"][-1].content
 
     def update_source_code(self) -> bool:
@@ -132,16 +140,19 @@ class Agent(BaseModel):
         else:
             raise Exception("Unknown refactoring type.")
 
-    def compile_graph(self, model, initial_intent) -> CompiledStateGraph:
-        """Compile the graph with the given model"""
+    def compile_graph(self, model: BaseChatModel,
+                      initial_intent: str,
+                      plan_step: planning.PlanningStep) -> CompiledStateGraph:
+        """Compile the graph with the given model and the given planning step"""
 
         @tool
         def choose_refactoring(
                 relative_file_path: Annotated[str, "relative path from the project root"
                                                    " to the file that needs to change"],
                 refactoring_type: Annotated[sup_refs.SupportedRefactorings, f"select the type of refactoring. "
-                                f"Choose `{sup_refs.SupportedRefactorings.CUSTOM.value}"
-                                f" to perform refactorings not in the list.`"],
+                                # f"Choose `{sup_refs.SupportedRefactorings.CUSTOM.value}"
+                                # f" to perform refactorings not in the list.`"
+                ],
                 reason: Annotated[str, "explanation for why the refactoring should be carried out"]
         ):
             """
@@ -240,11 +251,23 @@ class Agent(BaseModel):
             return (hasattr(state['messages'][-1], 'tool_calls') and
                     len(state['messages'][-1].tool_calls) != 0)
 
+        def finished_refactoring(state: MessagesState) -> bool:
+            response = model.invoke(state['messages'] +
+                         [HumanMessage('Please reflect whether the original ask has been completed successfully.'
+                                       f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}'
+                                       f'Here is the modified code: {code_utils.add_line_numbers(self.ide_server.call_tool("get_source_code"))}'
+                                       'If the task is complete say YES. Otherwise, say NO. Only respond with YES/NO')])
+            if 'YES' in response.content:
+                return True
+            else:
+                return False
+
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
         )
 
-        workflow.add_edge("perform_refactoring", "select_refactoring")
+        workflow.add_conditional_edges("perform_refactoring", finished_refactoring,
+                                       {True: END, False: "select_refactoring"})
 
         # Compile
         graph = workflow.compile()

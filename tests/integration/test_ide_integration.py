@@ -10,6 +10,7 @@ import refagent.agents.refactrix.refactoring_agent as ra
 import refagent
 import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
+import refagent.agents.refactrix.planning as planning
 
 class MyFakeListChatModel(FakeMessagesListChatModel):
     def bind_tools(
@@ -337,142 +338,30 @@ def test_flink_16():
 def test_flink_2(mocker):
     # This one requires multi file editing.
 
-    plan_message = """To improve the design and extensibility by introducing the interface and default implementation of `JobInfo` and `TaskInfo`, the following actionable step-by-step refactoring plan is outlined based on the existing code structure in `TaskInfo.java`. This plan will guide you through the process of refactoring the `TaskInfo` class into an interface and a default implementation.
-
-### Step-by-Step Refactoring Plan
-
-#### Step 1: Create `JobInfo` Interface
-1. **Create a new interface named `JobInfo`**:
-   - Create a file named `JobInfo.java` in the same package as `TaskInfo`.
-   - Define the methods that need to be part of the `JobInfo` interface.
-
-```java
-package org.apache.flink.api.common;
-
-public interface JobInfo {
-    // Define relevant methods
-    String getJobId();
-    String getJobName();
-    // Add more methods as needed
-}
-```
-
-2. **Document the interface**:
-   - Add JavaDoc comments to describe the purpose of `JobInfo`, its methods, and expected behavior.
-
-#### Step 2: Create Default Implementation for `JobInfo`
-1. **Create a new class named `DefaultJobInfo`**:
-   - This class will implement the `JobInfo` interface.
-   - Similarly, place it in the same package.
-
-```java
-package org.apache.flink.api.common;
-
-public class DefaultJobInfo implements JobInfo {
-    private final String jobId;
-    private final String jobName;
-
-    public DefaultJobInfo(String jobId, String jobName) {
-        this.jobId = jobId;
-        this.jobName = jobName;
-    }
-
-    @Override
-    public String getJobId() {
-        return jobId;
-    }
-
-    @Override
-    public String getJobName() {
-        return jobName;
-    }
-}
-```
-
-2. **Document the class**:
-   - Add JavaDoc comments to `DefaultJobInfo` for clarity on its purpose and usage.
-
-#### Step 3: Refactor `TaskInfo` into an Interface
-1. **Transform `TaskInfo` into an interface**:
-   - Modify the existing `TaskInfo.java` file to convert it from a class to an interface, defining necessary methods that must be part of `TaskInfo`.
-
-```java
-package org.apache.flink.api.common;
-
-public interface TaskInfo {
-    String getTaskId();
-    String getTaskName();
-    // Other methods relevant to TaskInfo
-}
-```
-
-2. **Document the interface**:
-   - Add JavaDoc comments that describe what `TaskInfo` represents and its methods.
-
-#### Step 4: Create Default Implementation for `TaskInfo`
-1. **Create a new class named `DefaultTaskInfo`**:
-   - This class will implement the `TaskInfo` interface.
-   - It should include the relevant fields required for `TaskInfo`.
-
-```java
-package org.apache.flink.api.common;
-
-public class DefaultTaskInfo implements TaskInfo {
-    private final String taskId;
-    private final String taskName;
-
-    public DefaultTaskInfo(String taskId, String taskName) {
-        this.taskId = taskId;
-        this.taskName = taskName;
-    }
-
-    @Override
-    public String getTaskId() {
-        return taskId;
-    }
-
-    @Override
-    public String getTaskName() {
-        return taskName;
-    }
-}
-```
-
-2. **Document the class**:
-   - Add JavaDoc comments to `DefaultTaskInfo` to clarify its role and implementation logic.
-
-#### Step 5: Update Client Code
-1. **Identify all places where `TaskInfo` was used**:
-   - Perform a code search throughout the project for instances where `TaskInfo` is instantiated or referenced.
-
-2. **Refactor client code to use `DefaultTaskInfo` class**:
-   - Replace instances of `TaskInfo` where necessary to the use of `DefaultTaskInfo` or appropriate implementations.
-   - If needed, create factories or builder patterns to facilitate easy instantiation of `DefaultTaskInfo`.
-
-#### Step 6: Update Tests
-1. **Identify existing tests for `TaskInfo`**:
-   - Locate all test classes that reference `TaskInfo`.
-
-2. **Refactor tests**:
-   - Update those test cases to use the new `JobInfo` and `TaskInfo` interfaces as well as `DefaultJobInfo` and `DefaultTaskInfo` implementations.
-   - Add new tests if applicable to ensure complete coverage of the new interfaces and their implementations.
-
-#### Step 7: Ensure Backward Compatibility
-1. **Evaluate backward compatibility**:
-   - If the project has clients that heavily depend on old classes, consider adding adapter classes that will mimic the old behavior using the new interface and default implementation.
-   - If possible, mark the old classes as deprecated with appropriate documentation.
-
-#### Step 8: Conduct Cleanup
-1. **Remove any unused imports and classes**:
-   - After ensuring everything is working, clean up any outdated references to the old class names and remove them if they are no longer needed.
-
-#### Step 9: Review Code
-1. **Code review**: 
-   - Make sure to conduct a thorough code review to ensure that all changes are up to standard and align with project guidelines.
-
-Following these detailed steps will ensure a successful refactoring process that introduces the interface and default implementation for both `JobInfo` and `TaskInfo`, improving the design and making it more extensible. Each step should be carefully executed, tested, and documented to maintain code quality and project integrity.. ONLY make TOOL CALLS to perform actions."""
+    plan = planning.RefactoringPlan(
+        steps=[
+            planning.PlanningStep(reason='To separate job and task specific information for better code organization',
+                                  refactoring_type='Introduce Interface',
+                                  code_location='flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java',
+                                  final_code='public interface TaskInfo {\n    // define methods specific to task information\n}\n'),
+            planning.PlanningStep(reason='To ensure TaskInfo has a clear implementation for common task attributes',
+                                  refactoring_type='Implement Default Class',
+                                  code_location='flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java',
+                                  final_code='public class DefaultTaskInfo implements TaskInfo {\n    // implementation of the methods defined in TaskInfo\n}\n'),
+            planning.PlanningStep(
+                reason='To provide a contract for job-related information and better future extensibility',
+                refactoring_type='Introduce Interface',
+                code_location='flink-core/src/main/java/org/apache/flink/api/common/JobInfo.java',
+                final_code='public interface JobInfo {\n    // define methods specific to job information\n}\n'),
+            planning.PlanningStep(
+                reason='To create a concrete class that fulfills the contract of JobInfo',
+                refactoring_type='Implement Default Class',
+                code_location='flink-core/src/main/java/org/apache/flink/api/common/JobInfo.java',
+                final_code='public class DefaultJobInfo implements JobInfo {\n    // implementation of the methods defined in JobInfo\n}\n')
+        ]
+    )
     planning_patch = mocker.patch('refagent.agents.refactrix.planning.NaivePlanningComponent.run')
-    planning_patch.return_value = AIMessage(content=plan_message)
+    planning_patch.return_value = plan
 
 
     project = pm.EvalProject('flink')
