@@ -340,23 +340,23 @@ def test_flink_2(mocker):
 
     plan = planning.RefactoringPlan(
         steps=[
-            planning.PlanningStep(reason='To separate job and task specific information for better code organization',
+            planning.PlanningStep(reason='To create an interface for TaskInfo, by extracting common fragments from it.',
                                   refactoring_type='Introduce Interface',
-                                  code_location='flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java',
+                                  file_path='flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java',
                                   final_code='public interface TaskInfo {\n    // define methods specific to task information\n}\n'),
-            planning.PlanningStep(reason='To ensure TaskInfo has a clear implementation for common task attributes',
-                                  refactoring_type='Implement Default Class',
-                                  code_location='flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java',
-                                  final_code='public class DefaultTaskInfo implements TaskInfo {\n    // implementation of the methods defined in TaskInfo\n}\n'),
+            # planning.PlanningStep(reason='To ensure TaskInfo has a clear implementation for common task attributes',
+            #                       refactoring_type='Implement Default Class',
+            #                       file_path='flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java',
+            #                       final_code='public class DefaultTaskInfo implements TaskInfo {\n    // implementation of the methods defined in TaskInfo\n}\n'),
             planning.PlanningStep(
                 reason='To provide a contract for job-related information and better future extensibility',
                 refactoring_type='Introduce Interface',
-                code_location='flink-core/src/main/java/org/apache/flink/api/common/JobInfo.java',
+                file_path='flink-core/src/main/java/org/apache/flink/api/common/JobInfo.java',
                 final_code='public interface JobInfo {\n    // define methods specific to job information\n}\n'),
             planning.PlanningStep(
                 reason='To create a concrete class that fulfills the contract of JobInfo',
                 refactoring_type='Implement Default Class',
-                code_location='flink-core/src/main/java/org/apache/flink/api/common/JobInfo.java',
+                file_path='flink-core/src/main/java/org/apache/flink/api/common/DefaultJobInfo.java',
                 final_code='public class DefaultJobInfo implements JobInfo {\n    // implementation of the methods defined in JobInfo\n}\n')
         ]
     )

@@ -3,6 +3,7 @@ import json
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
 from langchain_core.tools import tool, BaseTool
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_openai import ChatOpenAI
 import os
 from pathlib import Path
@@ -16,7 +17,7 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie.api.client.chat.response import Credit
 
-from typing import Annotated
+from typing import Annotated, Optional
 
 
 import refagent.utils.intellij_server as ij
@@ -25,6 +26,14 @@ import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.perform_refactoring as perform_ref
 import refagent.agents.refactrix.tools as ref_tools
 import refagent.agents.refactrix.planning as planning
+
+
+class SelectedRefactoring(BaseModel):
+    """
+    Select a refactoring action to perform and provide a reason.
+    """
+    reason: str = Field(description="explanation for why the refactoring should be carried out")
+    refactoring_type: sup_refs.SupportedRefactorings = Field(description=f"select the type of refactoring. ")
 
 
 
@@ -37,6 +46,7 @@ class Agent(BaseModel):
     _tools: dict[str, BaseTool] = PrivateAttr(default=[])
     _iterations: int = PrivateAttr(default=0)
     _trajectory: list[BaseMessage] = PrivateAttr(default=[])
+    _selected_refactoring: Optional[SelectedRefactoring] = PrivateAttr(default=None)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,7 +54,7 @@ class Agent(BaseModel):
         self._tools: dict[str, BaseTool] = ref_tools.RefactoringToolProvider(ide_server=self.ide_server).get()
 
     def get_trajectory(self):
-        for i in self._trajectory['messages']:
+        for i in self._trajectory:
             if (isinstance(i, AIMessage)
                     and 'spent' in i.additional_kwargs
                     and isinstance(i.additional_kwargs['spent'], Credit)):
@@ -72,6 +82,16 @@ class Agent(BaseModel):
     def files_changed(self) -> list[Path]:
         return list(self._files_changed)
 
+    def try_open_file(self, rel_file_path: str):
+        response = self.ide_server.try_open_file(Path(rel_file_path))
+        if response.startswith('tool call failed '):
+            create_response = self.ide_server.create_file(Path(rel_file_path))
+            if create_response == 'success':
+                open_response = self.ide_server.open_file(Path(rel_file_path))
+            else:
+                raise Exception("Failed to open file and did not create one either.")
+        self._rel_file_path = rel_file_path
+
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
@@ -93,6 +113,7 @@ class Agent(BaseModel):
 
         for i, step in enumerate(ref_plan.steps):
             print(f"Executing step {i+1} in plan.")
+            self.try_open_file(step.file_path)
             graph = self.compile_graph(model=model,
                                        initial_intent=initial_intent,
                                        plan_step=step)
@@ -107,7 +128,7 @@ class Agent(BaseModel):
                 },
                 config={"configurable": {"thread_id": 42}}
             )
-            self._trajectory += final_state
+            self._trajectory += final_state['messages']
             print("Result of executing step 1: ", final_state["messages"][-1].content)
         return final_state["messages"][-1].content
 
@@ -145,24 +166,10 @@ class Agent(BaseModel):
                       plan_step: planning.PlanningStep) -> CompiledStateGraph:
         """Compile the graph with the given model and the given planning step"""
 
-        @tool
-        def choose_refactoring(
-                relative_file_path: Annotated[str, "relative path from the project root"
-                                                   " to the file that needs to change"],
-                refactoring_type: Annotated[sup_refs.SupportedRefactorings, f"select the type of refactoring. "
-                                # f"Choose `{sup_refs.SupportedRefactorings.CUSTOM.value}"
-                                # f" to perform refactorings not in the list.`"
-                ],
-                reason: Annotated[str, "explanation for why the refactoring should be carried out"]
-        ):
-            """
-            Select a refactoring action to perform and provide a reason.
-            """
-            # NOTE: This _tools doesn't actually get called.
-            # It is used to make sure the LLM output is formatted
-            print(refactoring_type)
-            print(reason)
-            print(relative_file_path)
+        def open_file(state: MessagesState):
+            """Open the required file. create it if it doesn't exist."""
+
+            self.ide_server.call_tool("curate_test_class", file_path="")
 
         def curate_tests(state: MessagesState):
             """Find appropriate test class, run the test, and note which ones are passing.
@@ -179,64 +186,80 @@ class Agent(BaseModel):
             self.update_source_code()
             if self._iterations >= 5:  # stop after 3 _iterations
                 return
-            llm_with_tools = model.bind_tools([
-                choose_refactoring
-            ])
+            # llm_with_tools = model.bind_tools([
+            #     choose_refactoring
+            # ])
             extra_message = "" if self._iterations == 0 else "Here's the modified source code: \n"
-            new_messages = state['messages'] + [HumanMessage(content=
-                                                             f"{self._rel_file_path}: {extra_message}"
-                                                             f"\n {code_utils.add_line_numbers(self._source_code)}")]
+            parser = PydanticOutputParser(pydantic_object=SelectedRefactoring)
+            new_messages = state['messages'] + [
+                HumanMessage(
+                    content=f"{self._rel_file_path}: {extra_message}"
+                            f"\n {code_utils.add_line_numbers(self._source_code)}"),
+                HumanMessage("Please choose a refactoring type, along with reason. "
+                             "If nothing needs to be done, OR if there is no appropriate refactoring type,"
+                             "please provide reasoning."
+                             f"{parser.get_format_instructions()}")
+            ]
             # try:
-            response = llm_with_tools.invoke(
+            response = model.invoke(
                 new_messages
             )
-            # except Exception as e:
-            #     raise e
+            self._selected_refactoring = parser.invoke(response)
             self._iterations += 1
-            new_messages.append(response)
-            return {"messages": new_messages}
+            # new_messages.append(response)
+            return {"messages": [response]}
 
         def perform_selected_refactoring(state: MessagesState):
             """Perform refactoring in retry loop"""
-            # tools_by_name = {"choose_refactoring": choose_refactoring}
-            result = []
-            for tool_call in state["messages"][-1].tool_calls:
-                updated = self.update_source_code()
-                if updated:
-                    # Change human message which has the source code.
-                    state['messages'][1] = HumanMessage(
-                        code_utils.add_line_numbers(self._source_code))
+            updated = self.update_source_code()
+            if updated:
+                # Change human message which has the source code.
+                state['messages'][1] = HumanMessage(
+                    code_utils.add_line_numbers(self._source_code))
 
-                refactoring_type = sup_refs.SupportedRefactorings(
-                    tool_call['args']['refactoring_type'])
-                reason = tool_call['args']['reason']
-                rel_file_path = tool_call['args']['relative_file_path']
-                self._files_changed.add(Path(rel_file_path))
+            refactoring_type = self._selected_refactoring.refactoring_type
+            reason = self._selected_refactoring.reason
+            rel_file_path = self._rel_file_path
+            self._files_changed.add(Path(rel_file_path))
 
-                tools = self.get_available_tools(refactoring_type)
-                perform_refactoring_graph = perform_ref.PerformRefactoring(
-                    tools=tools,
-                    model=model,
-                    reason=reason,
-                    refactoring_type=refactoring_type,
-                    rel_file_path=rel_file_path,
-                    ide_server=self.ide_server
-                ).compile()
-                messages = state['messages'][:-1] + [
-                    AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}")]
-                observation = perform_refactoring_graph.invoke({"messages": messages})
-                last_message = observation['messages'][-1]
-                result.append(ToolMessage(content=last_message.content,
-                                          tool_call_id=tool_call["id"],
-                                          name='choose_refactoring'))
+            tools = self.get_available_tools(refactoring_type)
+            perform_refactoring_graph = perform_ref.PerformRefactoring(
+                tools=tools,
+                model=model,
+                reason=reason,
+                refactoring_type=refactoring_type,
+                rel_file_path=rel_file_path,
+                ide_server=self.ide_server
+            ).compile()
+            messages = state['messages'] + [
+                AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}")]
+
+            observation = perform_refactoring_graph.invoke({"messages": messages})
+            last_message = observation['messages'][-1]
             messages = state["messages"]
-            messages += result
-            # return {"messages_state": {"messages": messages}}
+            messages += [last_message]
+
             return {"messages": messages}
+
+        def finished_refactoring(state: MessagesState) -> bool:
+
+            if self.ide_server.call_tool_get("get_source_code") == '':
+                return False
+
+            response = model.invoke(state['messages'] +
+                         [HumanMessage('Please reflect whether the original ask has been completed successfully.'
+                                       f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}'
+                                       f'Here is the modified code: {code_utils.add_line_numbers(self.ide_server.call_tool_get("get_source_code"))}'
+                                       'If the task is complete say YES. Otherwise, say NO. Only respond with YES/NO')])
+            if 'YES' in response.content:
+                return True
+            else:
+                return False
 
         workflow = StateGraph(MessagesState)
         # Add nodes
         # workflow.add_node("planning", planning_compiled)
+        workflow.add_node("open_file", open_file)
         workflow.add_node("curate_tests", curate_tests)
         workflow.add_node("select_refactoring", select_refactoring)
         # select_refactoring_tool = ToolNode([choose_refactoring])
@@ -244,23 +267,13 @@ class Agent(BaseModel):
 
         # Add edges to connect nodes
         # workflow.add_edge(START, "planning")
-        workflow.add_edge(START, "curate_tests")
+        # workflow.add_edge(START, "curate_tests")
+        workflow.add_conditional_edges(START, finished_refactoring,
+                                       {True: END, False: "curate_tests"})
         workflow.add_edge("curate_tests", "select_refactoring")
 
         def has_tool_call(state: MessagesState) -> bool:
-            return (hasattr(state['messages'][-1], 'tool_calls') and
-                    len(state['messages'][-1].tool_calls) != 0)
-
-        def finished_refactoring(state: MessagesState) -> bool:
-            response = model.invoke(state['messages'] +
-                         [HumanMessage('Please reflect whether the original ask has been completed successfully.'
-                                       f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}'
-                                       f'Here is the modified code: {code_utils.add_line_numbers(self.ide_server.call_tool("get_source_code"))}'
-                                       'If the task is complete say YES. Otherwise, say NO. Only respond with YES/NO')])
-            if 'YES' in response.content:
-                return True
-            else:
-                return False
+            return self._selected_refactoring.refactoring_type!=sup_refs.SupportedRefactorings.UNSUPPORTED
 
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}

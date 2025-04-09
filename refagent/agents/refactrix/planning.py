@@ -18,7 +18,7 @@ class PlanningStep(BaseModel):
     # step_number: int = Field(description="The ")
     reason: str = Field(description="The reason why this action should be applied.")
     refactoring_type: str = Field(description="The type of change that is needed.")
-    code_location: str = Field(description="The source code where the change should be applied.")
+    file_path: str = Field(description="The path to the source code where the change should be applied.")
     final_code: str = Field(description="The improved, modified version of the source code.")
 
 
