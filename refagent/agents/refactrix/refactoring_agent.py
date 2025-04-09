@@ -70,11 +70,12 @@ class Agent(BaseModel):
         if vendor == 'grazie':
             # create grazie model
             return ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
-                            client_auth_type=AuthType.APPLICATION,
-                            client_url=GrazieApiGatewayUrls.STAGING,
-                            profile=model_name,
-                            client_agent_name='ref-agent',
-                            client_agent_version='0.1')
+                              client_auth_type=AuthType.APPLICATION,
+                              client_url=GrazieApiGatewayUrls.STAGING,
+                              profile=model_name,
+                              client_agent_name='ref-agent',
+                              client_agent_version='0.1',
+                              temperature=0.7)
         elif vendor == 'openai':
             return ChatOpenAI(model_name)
         raise Exception(f"Unknown AI vendor {vendor}")
@@ -100,10 +101,9 @@ class Agent(BaseModel):
         self._files_changed.add(Path(starting_file)) # assuming the file will be changed.
 
         model = self.create_model()
+        # tool_calling_model = self.create_model(model_name_="grazie:openai-gpt-4o-mini")
 
-        plan_type = planning.NaivePlanningComponent
-        # plan_type = planning.PlanningComponent
-        planning_component = plan_type(
+        planning_component = planning.PlanningComponent(
             initial_intent=initial_intent,
             model=model,
             source_code=self._source_code
@@ -123,6 +123,7 @@ class Agent(BaseModel):
                         SystemMessage(f"You are an expert developer who executes refactorings to"
                                       f" improve the quality of the given code. "
                                       f"Please do the follow: {step.refactoring_type}: {step.reason}. "
+                                      f"The final could is expected to look something like this: {step.final_code}"
                                       f"ONLY make TOOL CALLS to perform actions."),
                     ]
                 },
@@ -192,6 +193,7 @@ class Agent(BaseModel):
             extra_message = "" if self._iterations == 0 else "Here's the modified source code: \n"
             parser = PydanticOutputParser(pydantic_object=SelectedRefactoring)
             new_messages = state['messages'] + [
+                # SystemMessage(f"Here is what the final code might look like: {plan_step.final_code}"),
                 HumanMessage(
                     content=f"{self._rel_file_path}: {extra_message}"
                             f"\n {code_utils.add_line_numbers(self._source_code)}"),

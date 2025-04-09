@@ -55,3 +55,25 @@ def test_reasoning2():
         'messages': []
     })
     print(result)
+
+
+def test_reasoning_flink_2():
+    project = pm.EvalProject('flink')
+    project.checkout('1d15930275545f16a94d19c4a9b67043d5667498')
+
+    rel_file_path = Path("flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java")
+    grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                            client_auth_type=AuthType.APPLICATION,
+                            client_url=GrazieApiGatewayUrls.STAGING,
+                            profile="openai-gpt-4o-mini",
+                            client_agent_name='ref-agent',
+                            client_agent_version='0.1',
+                            temperature=0.7
+                            )
+    refactoring_plan = planning.PlanningComponent(
+        model=grazie_llm,
+        initial_intent="Introduce the interface and default implementation of TaskInfo",
+        source_code=project.get_file_contents(rel_file_path)
+    ).run()
+
+    print(refactoring_plan)
