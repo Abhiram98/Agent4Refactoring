@@ -68,7 +68,7 @@ def test_reasoning_flink_2():
                             profile="openai-gpt-4o-mini",
                             client_agent_name='ref-agent',
                             client_agent_version='0.1',
-                            temperature=0.7
+                            temperature=0.3
                             )
     refactoring_plan = planning.PlanningComponent(
         model=grazie_llm,

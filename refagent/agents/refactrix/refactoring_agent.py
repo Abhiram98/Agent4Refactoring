@@ -75,7 +75,7 @@ class Agent(BaseModel):
                               profile=model_name,
                               client_agent_name='ref-agent',
                               client_agent_version='0.1',
-                              temperature=0.7)
+                              temperature=0.3)
         elif vendor == 'openai':
             return ChatOpenAI(model_name)
         raise Exception(f"Unknown AI vendor {vendor}")
@@ -149,17 +149,13 @@ class Agent(BaseModel):
 
     def get_available_tools(self,
                             refactoring_type: sup_refs.SupportedRefactorings) -> list[BaseTool]:
-        print(refactoring_type)
-
-        if refactoring_type == sup_refs.SupportedRefactorings.EXTRACT_METHOD:
-            return [self._tools.get(sup_refs.SupportedRefactorings.EXTRACT_METHOD.value)]
-        elif refactoring_type == sup_refs.SupportedRefactorings.RENAME:
-            return [self._tools.get(sup_refs.SupportedRefactorings.RENAME.value)]
-        elif refactoring_type == sup_refs.SupportedRefactorings.EXTRACT_CLASS:
-            return [self._tools.get(sup_refs.SupportedRefactorings.EXTRACT_CLASS.value)]
-        elif refactoring_type == sup_refs.SupportedRefactorings.CUSTOM:
+        print(f"getting tools for {refactoring_type}")
+        if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
             return [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
         else:
+            tools = self._tools.get(refactoring_type.value)
+            if len(tools) > 0:
+                return tools
             raise Exception("Unknown refactoring type.")
 
     def compile_graph(self, model: BaseChatModel,

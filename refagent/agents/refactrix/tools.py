@@ -1,7 +1,7 @@
 from pydantic.v1 import BaseModel, Field
 import refagent.utils.intellij_server as ij_server
 from langchain_core.tools import tool, BaseTool
-from typing import Optional, Annotated
+from typing import Optional, Annotated, List
 
 
 class RefactoringToolProvider(BaseModel):
@@ -79,7 +79,40 @@ class RefactoringToolProvider(BaseModel):
                                       sub_class_name=sub_class_name,
                                       members=members)
 
-        all_tools: list[BaseTool] = [extract_method, rename, extract_class,
+
+        @tool
+        def pull_up(
+                members: Annotated[List[str], "The members of the class to pull up into super class/ interface"],
+                super_class: Annotated[str, "The name of the super class/interface to move the members into."],
+                make_abstract: Annotated[Optional[bool], "Whether to keep a copy of the member in the current class, "
+                                                         "and make it abstract in the super class/interface."] = True
+        ):
+            """Move members of a class (fields/methods) into it's super class/interface.
+            If `make_abstract` is True, a copy of the member will be maintained in the current class,
+            with an abstract version in the super class.
+            """
+
+            return self.ide_server.call_tool('pull-up',
+                                             super_class=super_class,
+                                             members=members,
+                                             make_abstract=make_abstract)
+
+        @tool
+        def push_down(
+                members: Annotated[List[str], "The members of the class to push down into sub class"],
+                keep_abstract: Annotated[Optional[bool], "Whether to keep an abstract copy of "
+                                                         "the member in the super class/interface"] = True
+        ):
+            """Move members of a super-class or interface (fields/methods) into its sub classes.
+            If `keep_abstract` is True, an abstract copy of the member will be maintained in the super class/ interface,
+            while pushing down the definition into sub classes.
+            """
+
+            return self.ide_server.call_tool('push-down',
+                                             members=members,
+                                             keep_abstract=keep_abstract)
+
+        all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
                                      replace_file_contents, replace_method_contents]
 
         return {i.name: i for i in all_tools}
