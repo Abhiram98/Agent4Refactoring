@@ -24,7 +24,8 @@ def test_reasoning():
     compiled_flow = planning.PlanningComponent(
         model=grazie_llm,
         initial_intent="please split up methods into reusable code fragments",
-        source_code=project.get_file_contents(rel_file_path)
+        source_code=project.get_file_contents(rel_file_path),
+        source_file_path=rel_file_path
     ).compile()
 
     result = compiled_flow.invoke({
@@ -48,7 +49,8 @@ def test_reasoning2():
     compiled_flow = planning.PlanningComponent(
         model=grazie_llm,
         initial_intent="please split up methods into reusable code fragments",
-        source_code=project.get_file_contents(rel_file_path)
+        source_code=project.get_file_contents(rel_file_path),
+        source_file_path=rel_file_path
     ).compile()
 
     result = compiled_flow.invoke({
@@ -73,7 +75,8 @@ def test_reasoning_flink_2():
     refactoring_plan = planning.PlanningComponent(
         model=grazie_llm,
         initial_intent="Introduce the interface and default implementation of TaskInfo",
-        source_code=project.get_file_contents(rel_file_path)
+        source_code=project.get_file_contents(rel_file_path),
+        source_file_path=rel_file_path
     ).run()
 
     print(refactoring_plan)

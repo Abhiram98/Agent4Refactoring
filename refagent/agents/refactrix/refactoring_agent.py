@@ -106,7 +106,8 @@ class Agent(BaseModel):
         planning_component = planning.PlanningComponent(
             initial_intent=initial_intent,
             model=model,
-            source_code=self._source_code
+            source_code=self._source_code,
+            source_file_path=starting_file
         )
         ref_plan = planning_component.run()
         self._trajectory.append(AIMessage(content=str(ref_plan.steps)))

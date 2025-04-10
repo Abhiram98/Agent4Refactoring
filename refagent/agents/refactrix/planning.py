@@ -37,6 +37,7 @@ class PlanningComponent(BaseModel):
     # developer_callback: Callable = Field(description="the function to call to get further"
     #                                                  " clarifications from the developer.")
     model: BaseChatModel = Field(description="model to use to generate the plan")
+    source_file_path: str = Field(description="the file path to the starting source code.")
     source_code: str = Field(description="source code to work with")
     _ref_plan: Optional[RefactoringPlan] = PrivateAttr(default=None)
 
@@ -44,7 +45,9 @@ class PlanningComponent(BaseModel):
         def generate_plan(messages: MessagesState):
             parser = PydanticOutputParser(pydantic_object=RefactoringPlan)
             messages1 = [
-                SystemMessage("Please generate a detailed step by step plan to "
+                SystemMessage("You are an expert developer using a powerful IDE IntelliJ IDEA, "
+                              "capable of performing refactorng."
+                              "Please generate a step by step plan of IDE refactoring actions to "
                               f"perform the following: {self.initial_intent}. "
                               f"Please provide a plan ONLY to perform refactorings. "
                               f"Assume that other action steps will be taken care of by the developer."
@@ -52,7 +55,7 @@ class PlanningComponent(BaseModel):
                               f"Do not include generic steps in this plan. "
                               f"{parser.get_format_instructions()}"
                               f"Here is some documentation for each refactoring type: {sup_ref.documentation}"),
-                HumanMessage(self.source_code)
+                HumanMessage(f"{self.source_file_path}: \n{self.source_code}")
             ]
             # Set up a parser + inject instructions into the prompt template.
 
@@ -63,7 +66,7 @@ class PlanningComponent(BaseModel):
 
             return {'messages': messages1 + [response]}
 
-        def critique_plan_steps(messages: MessagesState):
+        def detail_plan_steps(messages: MessagesState):
             parser = PydanticOutputParser(pydantic_object=PlanningStep)
 
             for i, cur_step in enumerate(self._ref_plan.steps):
@@ -86,10 +89,10 @@ class PlanningComponent(BaseModel):
 
         workflow = StateGraph(MessagesState)
         workflow.add_node("generate_plan", generate_plan)
-        workflow.add_node("critique_plan", critique_plan_steps)
+        workflow.add_node("detail_plan", detail_plan_steps)
         workflow.add_edge(START, "generate_plan")
-        workflow.add_edge("generate_plan", "critique_plan")
-        workflow.add_edge("critique_plan", END)
+        workflow.add_edge("generate_plan", "detail_plan")
+        workflow.add_edge("detail_plan", END)
 
         compiled_flow = workflow.compile()
         return compiled_flow
