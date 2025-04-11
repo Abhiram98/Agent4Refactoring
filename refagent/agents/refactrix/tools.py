@@ -5,7 +5,7 @@ from typing import Optional, Annotated, List
 
 
 class RefactoringToolProvider(BaseModel):
-    ide_server: ij_server.IntellijServer = Field(description="ide server object to interract with")
+    ide_server: Optional[ij_server.IntellijServer] = Field(description="ide server object to interract with")
 
     def get(self) -> dict[str, BaseTool]:
         @tool

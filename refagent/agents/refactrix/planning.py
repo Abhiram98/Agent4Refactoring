@@ -11,6 +11,8 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.tools import tool, BaseTool
 
 import refagent.agents.refactrix.supported_refactorings as sup_ref
+import refagent.agents.refactrix.tools as tools
+import refagent.utils.tool_documentation as td
 
 
 class PlanningStep(BaseModel):
@@ -19,6 +21,9 @@ class PlanningStep(BaseModel):
     # step_number: int = Field(description="The ")
     reason: str = Field(description="The reason why this action should be applied.")
     final_code: str = Field(description="The improved, modified version of the source code.")
+    execution_details: str = Field(description="Details about what needs to change. "
+                                               "E.g. rename variable x->index, or "
+                                               "move method `bark` to target class `Dog`")
     refactoring_type: sup_ref.SupportedRefactorings = Field(
         description="The type of change that is needed. "
         "Please refer to the Fowler catalog of refactorings and pick one.")
@@ -41,6 +46,7 @@ class PlanningComponent(BaseModel):
     source_code: str = Field(description="source code to work with")
     _ref_plan: Optional[RefactoringPlan] = PrivateAttr(default=None)
     _generation_count: int = PrivateAttr(default=0)
+    _tools: dict[str, BaseTool] = PrivateAttr(default=tools.RefactoringToolProvider(ide_server=None).get())
 
     def compile(self) -> CompiledStateGraph:
         def generate_plan(messages: MessagesState):
@@ -74,20 +80,35 @@ class PlanningComponent(BaseModel):
             parser = PydanticOutputParser(pydantic_object=PlanningStep)
 
             for i, cur_step in enumerate(self._ref_plan.steps):
+                cur_step.execution_details = "to be determined."
                 previous_steps = self._ref_plan.steps[:i+1]
-                step_messages = "\n".join([f"step {i}: {s}" for i, s in enumerate(previous_steps)])
-                messages_  = [
+                step_messages = "\n".join([f"step {i}: {s.json()}" for i, s in enumerate(previous_steps)])
+                tool = self._tools.get(cur_step.refactoring_type.value)
+                if tool is not None:
+                    tool_description = td.get_tool_documentation(tool)
+                    api_call_text = f"Please refer to this API documentation of {cur_step.refactoring_type.value} "
+                    f"to fill detail the `execution_details` field: \n"
+                    f"{tool_description}\n"
+                else:
+                    api_call_text = ""
+
+                messages_ = [
                     SystemMessage(f"You are a expert developer who adds details to an existing refactoring plan."),
                     HumanMessage(self.source_code),
                     AIMessage(f"Here are the steps in the refactoring plan: {step_messages}"),
                     HumanMessage(f"Please critique the last step, and improve it: {cur_step}. "
-                                 f"by answering the following question:"
-                                 f"Are there any missing details in the code? If yes, fill them out."
+                                 f"{api_call_text}"
+                                 f"Answer the following question: "
+                                 f"Are there any missing details in the code? If yes, fill them out. "
                                  f"{parser.get_format_instructions()}")
                 ]
                 response = self.model.invoke(messages_)
-                new_step = parser.invoke(response)
-                self._ref_plan.steps[i] = new_step
+                try:
+                    new_step = parser.invoke(response)
+                    self._ref_plan.steps[i] = new_step
+                except:
+                    print("Failed to get the details.")
+
 
             return {'messages': [AIMessage(content=f"Here's the plan: \n{self._ref_plan.json()}")]}
 
