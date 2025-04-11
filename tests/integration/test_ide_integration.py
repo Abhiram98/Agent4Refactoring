@@ -449,4 +449,35 @@ def test_kafka_99():
     print(output)
 
     source_code = server.call_tool_get("get_source_code")
+    
+    
+
+def test_flink_4(mocker):
+    planning.RefactoringPlan(steps = [
+        planning.PlanningStep(reason='To clarify the purpose of the variable and avoid confusion with channels.',
+                          final_code='private final int numSubpartitions;',
+                          execution_details="Rename variable 'numSubpartitions' to 'numberOfSubpartitions' to enhance clarity. This change will involve replacing all occurrences of 'numSubpartitions' with 'numberOfSubpartitions' within the scope of the SortBufferAccumulator class.",
+                          refactoring_type= sup_ref.SupportedRefactorings.RENAME, file_path = 'flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java'),
+    planning.PlanningStep(
+        reason='To ensure consistency in terminology throughout the code, making it clearer and easier to understand.',
+        final_code='private boolean isBroadcastBuffer;',
+        execution_details="Rename variable 'isBroadcastDataBuffer' to 'isBroadcastBuffer'. This will involve replacing all occurrences of 'isBroadcastDataBuffer' with 'isBroadcastBuffer' within the scope of the SortBufferAccumulator class. This change should be applied to the declaration on line 60 and any other references to this variable throughout the class.",
+        refactoring_type= sup_ref.SupportedRefactorings.RENAME, file_path = 'flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java'), 
+    planning.PlanningStep(
+        reason='To maintain clarity in method parameters and avoid confusion with channels by renaming the parameter for better understanding.',
+        final_code='public void receive(ByteBuffer record, TieredStorageSubpartitionId subpartitionId, Buffer.DataType dataType, boolean isBroadcast) throws IOException',
+        execution_details="Rename the parameter 'isBroadcast' to 'isBroadcastMode' to enhance clarity. This will involve replacing all occurrences of 'isBroadcast' with 'isBroadcastMode' within the scope of the receive method. The line number for the parameter declaration is 45.",
+        refactoring_type= sup_ref.SupportedRefactorings.RENAME , file_path = 'flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java'), 
+    planning.PlanningStep(
+        reason='To improve clarity and consistency in naming conventions.',
+        final_code='flushBuffer(new BufferWithChannel(new NetworkBuffer(writeBuffer, checkNotNull(bufferRecycler), dataType, toCopy), subpartitionId));',
+        execution_details="Rename the variable 'bufferWithChannel' to 'channelBuffer' for better clarity. This will involve replacing all occurrences of 'bufferWithChannel' with 'channelBuffer' within the scope of the flushBuffer method. The line number for the declaration is 112.",
+        refactoring_type= sup_ref.SupportedRefactorings.RENAME, file_path = 'flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java'),
+    planning.PlanningStep(
+        reason="To ensure that the comments accurately reflect the terminology used in the code, specifically updating references to 'numBuffers' to 'numberOfSubpartitions' for consistency.",
+        final_code='The {@link SortBufferAccumulator} can help use fewer buffers to accumulate data, which decouples the buffer usage from the number of parallel tasks. The number of buffers used by the {@link SortBufferAccumulator} will be at most numberOfSubpartitions.',
+        execution_details="Replace all occurrences of 'numBuffers' with 'numberOfSubpartitions' in the comments within the SortBufferAccumulator class, specifically in the comment block starting at line 25.",
+        refactoring_type= sup_ref.SupportedRefactorings.RENAME, file_path = 'flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java')]
+    )
+
 

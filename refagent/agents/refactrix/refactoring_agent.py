@@ -127,7 +127,7 @@ class Agent(BaseModel):
                     "messages": [
                         SystemMessage(f"You are an expert developer who executes refactorings to"
                                       f" improve the quality of the given code. "
-                                      f"Please do the follow: {step.refactoring_type}: {step.reason}. "
+                                      f"Please do the follow: {step.refactoring_type}: {step.reason}. {step.execution_details} "
                                       f"The final could is expected to look something like this: {step.final_code}"
                                       f"ONLY make TOOL CALLS to perform actions."),
                     ]
@@ -262,7 +262,7 @@ class Agent(BaseModel):
 
             response = model.invoke(state['messages'] +
                          [HumanMessage('Please reflect whether the original ask has been completed successfully.'
-                                       f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}'
+                                       f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
                                        f'{self.get_changed_file_contents().content}'
                                        'If the task is complete say YES. Otherwise, say NO. Only respond with YES/NO')])
             if 'YES' in response.content:

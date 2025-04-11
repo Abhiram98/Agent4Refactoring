@@ -80,3 +80,27 @@ def test_reasoning_flink_2():
     ).run()
 
     print(refactoring_plan)
+
+def test_reasoning_flink_4():
+    project = pm.EvalProject('flink')
+    project.checkout('cdf314d30b59994283e0bbf70f350618de02118c')
+
+    rel_file_path = Path("flink-runtime/src/main/java/org/apache/flink/runtime/"
+                         "io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java")
+    grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                            client_auth_type=AuthType.APPLICATION,
+                            client_url=GrazieApiGatewayUrls.STAGING,
+                            profile="openai-gpt-4o-mini",
+                            client_agent_name='ref-agent',
+                            client_agent_version='0.1',
+                            temperature=0.3
+                            )
+    refactoring_plan = planning.PlanningComponent(
+        model=grazie_llm,
+        initial_intent="Distinguish between channel and subpartition, "
+                       "by renaming appropriate elements to use the word subpartition instead of channel",
+        source_code=project.get_file_contents(rel_file_path),
+        source_file_path=str(rel_file_path)
+    ).run()
+
+    print(refactoring_plan)

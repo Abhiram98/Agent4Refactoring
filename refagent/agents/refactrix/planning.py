@@ -1,10 +1,10 @@
 import refagent
 from pydantic.v1 import BaseModel, Field, PrivateAttr
 from typing import Callable, List, Optional
-from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.output_parsers import PydanticOutputParser, JsonOutputParser
 
 from langgraph.graph import MessagesState
-from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage
+from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage, BaseMessage
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
@@ -48,12 +48,11 @@ class PlanningComponent(BaseModel):
     _generation_count: int = PrivateAttr(default=0)
     _tools: dict[str, BaseTool] = PrivateAttr(default=tools.RefactoringToolProvider(ide_server=None).get())
 
-    def compile(self) -> CompiledStateGraph:
-        def generate_plan(messages: MessagesState):
-            parser = PydanticOutputParser(pydantic_object=RefactoringPlan)
-            self._generation_count += 1
-            messages1 = [
-                SystemMessage("You are an expert developer using a powerful IDE IntelliJ IDEA, "
+    @property
+    def generation_system_message(self) -> SystemMessage:
+        parser = PydanticOutputParser(pydantic_object=RefactoringPlan)
+
+        return SystemMessage( "You are an expert developer using a powerful IDE IntelliJ IDEA, "
                               "capable of performing refactorng."
                               "Please generate a step by step plan of IDE refactoring actions to "
                               f"perform the following: {self.initial_intent}. "
@@ -62,33 +61,47 @@ class PlanningComponent(BaseModel):
                               f"Make sure that your plan is actionable on the given code. "
                               f"Do not include generic steps in this plan. "
                               f"{parser.get_format_instructions()}"
-                              f"Here is some documentation for each refactoring type: {sup_ref.documentation}"),
-                HumanMessage(f"{self.source_file_path}: \n{self.source_code}")
-            ]
+                              f"Here is some documentation for each refactoring type: {sup_ref.documentation}")
+
+
+    def try_parsing(self, response: BaseMessage) -> Optional[PlanningStep]:
+        try:
+            json_ = JsonOutputParser().parse(response.content)
+            return PlanningStep(**json_['properties'])
+        except:
+            return None
+
+    def compile(self) -> CompiledStateGraph:
+        def generate_plan(messages: MessagesState):
+            parser = PydanticOutputParser(pydantic_object=RefactoringPlan)
+            self._generation_count += 1
             # Set up a parser + inject instructions into the prompt template.
 
             response = self.model.invoke(
-                messages1
+                messages['messages']
             )
             self._ref_plan = parser.invoke(response)
-            # if self._generation_count !=1:
-            #     messages1 += response
+            messages_ret = []
+            if self._generation_count !=1:
+                messages_ret += response
 
-            return {'messages': messages1}
+            return {'messages': messages_ret}
 
         def detail_plan_steps(messages: MessagesState):
             parser = PydanticOutputParser(pydantic_object=PlanningStep)
 
             for i, cur_step in enumerate(self._ref_plan.steps):
+                old_exec_details = cur_step.execution_details
                 cur_step.execution_details = "to be determined."
                 previous_steps = self._ref_plan.steps[:i+1]
                 step_messages = "\n".join([f"step {i}: {s.json()}" for i, s in enumerate(previous_steps)])
                 tool = self._tools.get(cur_step.refactoring_type.value)
                 if tool is not None:
                     tool_description = td.get_tool_documentation(tool)
-                    api_call_text = f"Please refer to this API documentation of {cur_step.refactoring_type.value} "
-                    f"to fill detail the `execution_details` field: \n"
-                    f"{tool_description}\n"
+                    api_call_text = (f"Please refer to this API documentation of {cur_step.refactoring_type.value} "
+                                     f"to detail the `execution_details` field. THIS IS IMPORTANT. "
+                                     f"MAKE SURE the API can be called with the information you provide.: \n"
+                                     f"{tool_description}\n")
                 else:
                     api_call_text = ""
 
@@ -105,12 +118,17 @@ class PlanningComponent(BaseModel):
                 response = self.model.invoke(messages_)
                 try:
                     new_step = parser.invoke(response)
-                    self._ref_plan.steps[i] = new_step
                 except:
-                    print("Failed to get the details.")
+                    print("Failed to parse the object :/.")
+                    new_step = self.try_parsing(response)
 
+                if new_step!=None:
+                    self._ref_plan.steps[i] = new_step
+                else:
+                    cur_step.execution_details = old_exec_details # revert back the execution details
 
             return {'messages': [AIMessage(content=f"Here's the plan: \n{self._ref_plan.json()}")]}
+
 
         def critique_plan(messages: MessagesState):
             response = self.model.with_config(temperature=0.7).invoke(
@@ -126,7 +144,7 @@ class PlanningComponent(BaseModel):
                 ]
             )
 
-            return response
+            return {'messages': [response]}
 
         def should_regenerate_plan(state: MessagesState) -> bool:
             last_message = state['messages'][-1]
@@ -152,7 +170,10 @@ class PlanningComponent(BaseModel):
 
     def run(self) -> RefactoringPlan:
         compiled_flow = self.compile()
-        messages = compiled_flow.invoke({'messages': []})
+        messages = compiled_flow.invoke({'messages': [
+            self.generation_system_message,
+            HumanMessage(f"{self.source_file_path}: \n{self.source_code}")
+        ]})
         return self._ref_plan
 
 
