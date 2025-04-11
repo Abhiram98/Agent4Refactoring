@@ -40,10 +40,12 @@ class PlanningComponent(BaseModel):
     source_file_path: str = Field(description="the file path to the starting source code.")
     source_code: str = Field(description="source code to work with")
     _ref_plan: Optional[RefactoringPlan] = PrivateAttr(default=None)
+    _generation_count: int = PrivateAttr(default=0)
 
     def compile(self) -> CompiledStateGraph:
         def generate_plan(messages: MessagesState):
             parser = PydanticOutputParser(pydantic_object=RefactoringPlan)
+            self._generation_count += 1
             messages1 = [
                 SystemMessage("You are an expert developer using a powerful IDE IntelliJ IDEA, "
                               "capable of performing refactorng."
@@ -63,8 +65,10 @@ class PlanningComponent(BaseModel):
                 messages1
             )
             self._ref_plan = parser.invoke(response)
+            # if self._generation_count !=1:
+            #     messages1 += response
 
-            return {'messages': messages1 + [response]}
+            return {'messages': messages1}
 
         def detail_plan_steps(messages: MessagesState):
             parser = PydanticOutputParser(pydantic_object=PlanningStep)
@@ -85,14 +89,42 @@ class PlanningComponent(BaseModel):
                 new_step = parser.invoke(response)
                 self._ref_plan.steps[i] = new_step
 
-            return {}
+            return {'messages': [AIMessage(content=f"Here's the plan: \n{self._ref_plan.json()}")]}
+
+        def critique_plan(messages: MessagesState):
+            response = self.model.with_config(temperature=0.7).invoke(
+                [
+                    SystemMessage("You are an expert developer who critiques refactoring plans. "
+                                  "You are aware of refactoring actions available in powerful IDEs "
+                                  "like IntelliJ IDEA."
+                                  "Critique the quality of the given plans. At the end of your critique, "
+                                  "use the word ACCEPT/REJECT to indicate whether you accept the plan."),
+                    HumanMessage(f"{self.initial_intent}"),
+                    HumanMessage(self.source_code),
+                    HumanMessage(f"Refactoring plan: {self._ref_plan.json()}")
+                ]
+            )
+
+            return response
+
+        def should_regenerate_plan(state: MessagesState) -> bool:
+            last_message = state['messages'][-1]
+            return 'REJECT' in last_message.content
 
         workflow = StateGraph(MessagesState)
         workflow.add_node("generate_plan", generate_plan)
         workflow.add_node("detail_plan", detail_plan_steps)
+        workflow.add_node("critique_plan", critique_plan)
+
         workflow.add_edge(START, "generate_plan")
-        workflow.add_edge("generate_plan", "detail_plan")
-        workflow.add_edge("detail_plan", END)
+        # On the first generation, add more details to the plan.
+        workflow.add_conditional_edges("generate_plan",
+                                       lambda messages: self._generation_count == 1,
+                                       {True: "detail_plan", False: "critique_plan"})
+        workflow.add_edge("detail_plan", "critique_plan")
+        workflow.add_conditional_edges("critique_plan",
+                                       should_regenerate_plan, {True: "generate_plan", False: END})
+        # workflow.add_edge("detail_plan", END)
 
         compiled_flow = workflow.compile()
         return compiled_flow
