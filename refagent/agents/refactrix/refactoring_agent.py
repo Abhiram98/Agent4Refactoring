@@ -144,8 +144,12 @@ class Agent(BaseModel):
         self._files_changed = self._files_changed.union(changed_files)
 
         current_source_code = "Here is the state of the changed files in the repo: \n"
-        for rel_file_path in self._files_changed:
+
+        file_in_same_root = [i for i in self._files_changed if
+                             str(Path(self._rel_file_path).parent) in str(i)]
+        for rel_file_path in file_in_same_root:
             try:
+                self.project.get_diff()
                 source = self.project.get_file_contents(rel_file_path)
             except FileNotFoundError:
                 continue
