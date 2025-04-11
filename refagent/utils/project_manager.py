@@ -6,6 +6,7 @@ import re
 from itertools import groupby
 from pydantic import BaseModel, Field, root_validator
 import os
+import subprocess
 
 projects_base_path = pathlib.Path(os.environ.get('PROJECTS_BASE_PATH'))
 
@@ -145,6 +146,11 @@ class EvalProject:
     def get_unstaged_changes(self) -> list[MyDiff]:
         diffs = self.git_repo.index.diff(None, create_patch=True)
         return [MyDiff(d) for d in diffs]
+
+    def get_changed_files(self) -> list[str]:
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'status', '--short'], capture_output=True, text=True, check=True)
+        return [i.split(' ')[-1] for i in result.stdout.strip().splitlines()]
 
     def replace_contents(self, file_path, new_content):
         try:

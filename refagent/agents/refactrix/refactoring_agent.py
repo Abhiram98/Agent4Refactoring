@@ -26,6 +26,7 @@ import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.perform_refactoring as perform_ref
 import refagent.agents.refactrix.tools as ref_tools
 import refagent.agents.refactrix.planning as planning
+import refagent.utils.project_manager as pm
 
 
 class SelectedRefactoring(BaseModel):
@@ -40,6 +41,7 @@ class SelectedRefactoring(BaseModel):
 class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
+    project: pm.EvalProject = Field(description="the evaluation project to run the agent on.")
     _files_changed: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
     _rel_file_path: str = PrivateAttr(default="")
@@ -47,6 +49,8 @@ class Agent(BaseModel):
     _iterations: int = PrivateAttr(default=0)
     _trajectory: list[BaseMessage] = PrivateAttr(default=[])
     _selected_refactoring: Optional[SelectedRefactoring] = PrivateAttr(default=None)
+    class Config:
+        arbitrary_types_allowed = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -134,6 +138,21 @@ class Agent(BaseModel):
             print("Result of executing step 1: ", final_state["messages"][-1].content)
         return final_state["messages"][-1].content
 
+    def get_changed_file_contents(self) -> HumanMessage:
+        self.ide_server.call_tool('save_all_changes')
+        changed_files = set(self.project.get_changed_files())
+        self._files_changed = self._files_changed.union(changed_files)
+
+        current_source_code = "Here is the state of the changed files in the repo: \n"
+        for rel_file_path in self._files_changed:
+            try:
+                source = self.project.get_file_contents(rel_file_path)
+            except FileNotFoundError:
+                continue
+            current_source_code += f"{rel_file_path}: \n{source}"
+
+        return HumanMessage(content=current_source_code)
+
     def update_source_code(self) -> bool:
         """Call the environment to fetch the current version
          of the source code under operation"""
@@ -154,20 +173,15 @@ class Agent(BaseModel):
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
             return [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
         else:
-            tools = self._tools.get(refactoring_type.value)
-            if len(tools) > 0:
-                return tools
+            tool = self._tools.get(refactoring_type.value)
+            if tool is not None:
+                return [tool]
             raise Exception("Unknown refactoring type.")
 
     def compile_graph(self, model: BaseChatModel,
                       initial_intent: str,
                       plan_step: planning.PlanningStep) -> CompiledStateGraph:
         """Compile the graph with the given model and the given planning step"""
-
-        def open_file(state: MessagesState):
-            """Open the required file. create it if it doesn't exist."""
-
-            self.ide_server.call_tool("curate_test_class", file_path="")
 
         def curate_tests(state: MessagesState):
             """Find appropriate test class, run the test, and note which ones are passing.
@@ -187,13 +201,10 @@ class Agent(BaseModel):
             # llm_with_tools = model.bind_tools([
             #     choose_refactoring
             # ])
-            extra_message = "" if self._iterations == 0 else "Here's the modified source code: \n"
+            # extra_message = "" if self._iterations == 0 else "Here's the modified source code: \n"
             parser = PydanticOutputParser(pydantic_object=SelectedRefactoring)
             new_messages = state['messages'] + [
-                # SystemMessage(f"Here is what the final code might look like: {plan_step.final_code}"),
-                HumanMessage(
-                    content=f"{self._rel_file_path}: {extra_message}"
-                            f"\n {code_utils.add_line_numbers(self._source_code)}"),
+                self.get_changed_file_contents(),
                 HumanMessage("Please choose a refactoring type, along with reason. "
                              "If nothing needs to be done, OR if there is no appropriate refactoring type,"
                              "please provide reasoning."
@@ -248,7 +259,7 @@ class Agent(BaseModel):
             response = model.invoke(state['messages'] +
                          [HumanMessage('Please reflect whether the original ask has been completed successfully.'
                                        f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}'
-                                       f'Here is the modified code: {code_utils.add_line_numbers(self.ide_server.call_tool_get("get_source_code"))}'
+                                       f'{self.get_changed_file_contents().content}'
                                        'If the task is complete say YES. Otherwise, say NO. Only respond with YES/NO')])
             if 'YES' in response.content:
                 return True
@@ -258,7 +269,6 @@ class Agent(BaseModel):
         workflow = StateGraph(MessagesState)
         # Add nodes
         # workflow.add_node("planning", planning_compiled)
-        workflow.add_node("open_file", open_file)
         workflow.add_node("curate_tests", curate_tests)
         workflow.add_node("select_refactoring", select_refactoring)
         # select_refactoring_tool = ToolNode([choose_refactoring])

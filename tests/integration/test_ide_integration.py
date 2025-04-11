@@ -393,7 +393,7 @@ def test_flink_2(mocker):
     server.open_file(rel_file_path)
 
     # create agent
-    agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini')
+    agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
     # agent = ra.Agent(ide_server=server, model_name='grazie:anthropic-claude-3.5-haiku')
     output = agent.run(initial_intent="Introduce the interface and default implementation of TaskInfo",
                        starting_file=str(rel_file_path))
