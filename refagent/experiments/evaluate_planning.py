@@ -4,6 +4,7 @@ from grazie_langchain_utils.language_models.grazie import ChatGrazie
 from pydantic.v1 import SecretStr
 from grazie.api.client.gateway import GrazieApiGatewayUrls, AuthType
 import os
+import json
 
 import refagent
 import refagent.agents.refactrix.planning as planning
@@ -30,7 +31,7 @@ def run_planning(bench_point: bm_load.BenchmarkItem,
         source_code=project.get_file_contents(bench_point.starting_files[0])
     )
     ref_plan = planner.run()
-    results_saver.add(bench_point.ref_id, ref_plan.json())
+    results_saver.add(bench_point.ref_id, json.loads(ref_plan.json()))
     results_saver.save()
 
 
