@@ -104,3 +104,29 @@ def test_reasoning_flink_4():
     ).run()
 
     print(refactoring_plan)
+
+
+def test_reasoning_flink_5():
+
+    project = pm.EvalProject('flink')
+    project.checkout('c65d5f18ad5dfe91ca01bfda86d36f09ba11a78a')
+
+    rel_file_path = Path("flink-runtime/src/main/java/org/apache/"
+                         "flink/runtime/io/network/partition/ResultPartitionManager.java")
+    grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                            client_auth_type=AuthType.APPLICATION,
+                            client_url=GrazieApiGatewayUrls.STAGING,
+                            profile="openai-gpt-4o-mini",
+                            client_agent_name='ref-agent',
+                            client_agent_version='0.1',
+                            temperature=0.3
+                            )
+    refactoring_plan = planning.PlanningComponent(
+        model=grazie_llm,
+        initial_intent="Modify subpartitionIndex to subpartitionIndexSet (start to end index). "
+                       "Encapsulate int in special object which contains start and end index information",
+        source_code=project.get_file_contents(rel_file_path),
+        source_file_path=str(rel_file_path)
+    ).run()
+
+    print(refactoring_plan)
