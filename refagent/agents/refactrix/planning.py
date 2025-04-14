@@ -83,7 +83,7 @@ class PlanningComponent(BaseModel):
             self._ref_plan = parser.invoke(response)
             messages_ret = []
             if self._generation_count !=1:
-                messages_ret += response
+                messages_ret += [response]
 
             return {'messages': messages_ret}
 
