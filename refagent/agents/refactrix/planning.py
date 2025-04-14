@@ -1,6 +1,6 @@
 import refagent
 from pydantic.v1 import BaseModel, Field, PrivateAttr
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Type
 from langchain_core.output_parsers import PydanticOutputParser, JsonOutputParser
 
 from langgraph.graph import MessagesState
@@ -37,7 +37,11 @@ class RefactoringPlan(BaseModel):
 # structured_llm = llm.with_structured_output(Joke)
 
 
-class PlanningComponent(BaseModel):
+class Planner(BaseModel):
+    def run(self) -> RefactoringPlan:
+        return RefactoringPlan(steps=[])
+
+class PlanningComponent(Planner):
     initial_intent: str = Field(description="initial intent from the user")
     # developer_callback: Callable = Field(description="the function to call to get further"
     #                                                  " clarifications from the developer.")
@@ -177,7 +181,7 @@ class PlanningComponent(BaseModel):
         return self._ref_plan
 
 
-class NaivePlanningComponent(BaseModel):
+class NaivePlanningComponent(Planner):
     initial_intent: str = Field(description="initial intent from the user")
     # developer_callback: Callable = Field(description="the function to call to get further"
     #                                                  " clarifications from the developer.")
@@ -222,3 +226,17 @@ class NaivePlanningComponent(BaseModel):
         compiled_flow = self.compile()
         messages = compiled_flow.invoke({'messages':[]})
         return self._ref_plan
+
+
+def get_mock_planning_component(plan: RefactoringPlan) -> Type[Planner]:
+
+    class MockPlanningComponent(Planner):
+        initial_intent: str = Field(description="initial intent from the user")
+        model: BaseChatModel = Field(description="model to use to generate the plan")
+        source_file_path: str = Field(description="the file path to the starting source code.")
+        source_code: str = Field(description="source code to work with")
+        def run(self) -> RefactoringPlan:
+            return plan
+
+    return MockPlanningComponent
+

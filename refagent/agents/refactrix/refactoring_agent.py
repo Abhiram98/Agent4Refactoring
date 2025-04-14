@@ -17,7 +17,7 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie.api.client.chat.response import Credit
 
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Type
 
 
 import refagent.utils.intellij_server as ij
@@ -42,6 +42,8 @@ class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
     project: pm.EvalProject = Field(description="the evaluation project to run the agent on.")
+    plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
+                                                   default=planning.PlanningComponent)
     _files_changed: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
     _rel_file_path: str = PrivateAttr(default="")
@@ -107,7 +109,7 @@ class Agent(BaseModel):
         model = self.create_model()
         # tool_calling_model = self.create_model(model_name_="grazie:openai-gpt-4o-mini")
 
-        planning_component = planning.PlanningComponent(
+        planning_component = self.plan_component(
             initial_intent=initial_intent,
             model=model,
             source_code=self._source_code,

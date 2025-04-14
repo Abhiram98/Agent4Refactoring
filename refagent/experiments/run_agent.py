@@ -1,5 +1,7 @@
 import argparse
 from pathlib import Path
+import json
+from typing import Optional
 
 # import refagent.agents.simple_agent as simple_agent
 import refagent.benchmark.load as bm_load
@@ -9,13 +11,15 @@ import refagent.utils.project_manager as pm
 import argparse
 import refagent.agents.refactrix.refactoring_agent as ra
 import refagent.utils.intellij_server as ij
+import refagent.agents.refactrix.planning as planning
 
 import langsmith as ls
 
 
 def setup_and_run(bench_point: bm_load.BenchmarkItem,
                   ij_server: ij.IntellijServer,
-                  results_saver: rm.ResultsManager):
+                  results_saver: rm.ResultsManager,
+                  plan: Optional[planning.RefactoringPlan]):
     project = pm.EvalProject(bench_point.project_name)
     ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
     project.checkout(bench_point.v1_hash)
@@ -23,8 +27,15 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     ij_server.open_project(project_path=project.get_project_path())
     ij_server.open_file(rel_file_path=Path(bench_point.starting_files[0]))
     ij_server.reload_project()
+    if plan is not None:
+        plan_type = planning.get_mock_planning_component(plan)
+    else:
+        plan_type = planning.PlanningComponent
 
-    agent = ra.Agent(ide_server=ij_server, model_name='grazie:openai-gpt-4o-mini', project=project)
+    agent = ra.Agent(ide_server=ij_server,
+                     model_name='grazie:openai-gpt-4o-mini',
+                     project=project,
+                     plan_component=plan_type)
     final_message = agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,
                               starting_file=bench_point.starting_files[0])  # run the agent with commit message
 
@@ -52,11 +63,18 @@ if __name__ == '__main__':
     parser.add_argument('-run_identifier', type=str, help='An identifier to '
                                                           'checkpoint the performance of the agent',
                         default="default")
+    parser.add_argument('-planning_results_file', type=str, help='Use results from previous planning '
+                                                                 'run to avoid double work.', default=None)
     args = parser.parse_args()
 
     selected_ref_ids = [int(i) for i in args.ref_ids.split(',')] if args.ref_ids is not None else None
 
     ij_server = ij.IntellijServer(server_url=args.ij_server_url)
+
+    planning_results = {}
+    if args.planning_results_file is not None:
+        with open(refagent.data_folder.joinpath(args.planning_results_file)) as f:
+            planning_results = {i['id']: planning.RefactoringPlan(**i['response']) for i in json.load(f)}
 
     use_previous = False
     benchmark = bm_load.load_benchmark(refagent.benchmark_lite_json)
@@ -76,4 +94,4 @@ if __name__ == '__main__':
 
         with ls.trace(name=f"refactoring agent - {args.run_identifier}",
                       tags=[args.run_identifier]) as tracer:
-            setup_and_run(bench_point, ij_server, results_saver)
+            setup_and_run(bench_point, ij_server, results_saver, plan=planning_results.get(bench_point.ref_id))
