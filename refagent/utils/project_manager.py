@@ -174,3 +174,8 @@ class EvalProject:
         actual_files = [file for file in files_changed if
                         os.path.exists(self.get_project_path().joinpath(file))]
         self.git_repo.git.add(actual_files)
+
+    def get_git_diff(self, file_path: str) -> str:
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'diff', file_path], capture_output=True, text=True, check=True)
+        return result.stdout

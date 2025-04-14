@@ -119,7 +119,7 @@ class Agent(BaseModel):
         self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
         for i, step in enumerate(ref_plan.steps):
-            print(f"Executing step {i+1} in plan.")
+            print(f"Executing step {i+1}/{len(ref_plan.steps)} in plan.")
             self.try_open_file(step.file_path)
             graph = self.compile_graph(model=model,
                                        initial_intent=initial_intent,
@@ -145,17 +145,22 @@ class Agent(BaseModel):
         changed_files = set(self.project.get_changed_files())
         self._files_changed = self._files_changed.union(changed_files)
 
-        current_source_code = "Here is the state of the changed files in the repo: \n"
+        current_source_code = "Here is the current state of files in the repository: \n"
 
         file_in_same_root = [i for i in self._files_changed if
                              str(Path(self._rel_file_path).parent) in str(i)]
+        self.project.safe_add(self._files_changed)
         for rel_file_path in file_in_same_root:
             try:
-                self.project.get_diff()
+                diff = self.project.get_git_diff(str(rel_file_path))
                 source = self.project.get_file_contents(rel_file_path)
+                if diff!='':
+                    changes = diff if len(diff) < len(source) else source
+                else:
+                    changes = source
             except FileNotFoundError:
                 continue
-            current_source_code += f"{rel_file_path}: \n{source}"
+            current_source_code += f"{rel_file_path}: \n{changes}"
 
         return HumanMessage(content=current_source_code)
 
@@ -179,10 +184,17 @@ class Agent(BaseModel):
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
             return [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
         else:
-            tool = self._tools.get(refactoring_type.value)
-            if tool is not None:
-                return [tool]
-            raise Exception("Unknown refactoring type.")
+            special_tool = self._tools.get(refactoring_type.value)
+            tools = []
+            if special_tool is not None:
+                tools += [special_tool]
+                if self._iterations >= 2:
+                    # more than one iteration on the same step. It means that tool calls are not working.
+                    print("supplying generic tools, as tool calls are not working")
+                    tools += [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
+                return tools
+            print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
+            return [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
 
     def compile_graph(self, model: BaseChatModel,
                       initial_intent: str,
