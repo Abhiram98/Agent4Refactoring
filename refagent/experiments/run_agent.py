@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 import json
 from typing import Optional
-
+import traceback
 # import refagent.agents.simple_agent as simple_agent
 import refagent.benchmark.load as bm_load
 import refagent
@@ -32,12 +32,17 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     else:
         plan_type = planning.PlanningComponent
 
-    agent = ra.Agent(ide_server=ij_server,
+    try:
+        agent = ra.Agent(ide_server=ij_server,
                      model_name='grazie:openai-gpt-4o-mini',
                      project=project,
                      plan_component=plan_type)
-    final_message = agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,
-                              starting_file=bench_point.starting_files[0])  # run the agent with commit message
+        final_message = agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,
+                                  starting_file=bench_point.starting_files[0])  # run the agent with commit message
+    except Exception as e:
+        print("Agent execution failed ;/")
+        # traceback.print_stack()
+
 
     project.safe_add(agent.files_changed())
     new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id}")

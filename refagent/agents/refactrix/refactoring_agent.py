@@ -92,6 +92,7 @@ class Agent(BaseModel):
     def try_open_file(self, rel_file_path: str):
         response = self.ide_server.try_open_file(Path(rel_file_path))
         if response.startswith('tool call failed '):
+            # TODO: Ask agent if it would like to open a different file, or
             create_response = self.ide_server.create_file(Path(rel_file_path))
             if create_response == 'success':
                 open_response = self.ide_server.open_file(Path(rel_file_path))
@@ -117,10 +118,14 @@ class Agent(BaseModel):
         )
         ref_plan = planning_component.run()
         self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
+        last_file_opened = None
 
         for i, step in enumerate(ref_plan.steps):
             print(f"Executing step {i+1}/{len(ref_plan.steps)} in plan.")
-            self.try_open_file(step.file_path)
+            self._iterations = 0
+            if step.file_path != last_file_opened:
+                self.try_open_file(step.file_path)
+                last_file_opened = step.file_path
             graph = self.compile_graph(model=model,
                                        initial_intent=initial_intent,
                                        plan_step=step)
@@ -152,8 +157,9 @@ class Agent(BaseModel):
         self.project.safe_add(self._files_changed)
         for rel_file_path in file_in_same_root:
             try:
+                source = code_utils.add_line_numbers(
+                    self.project.get_file_contents(rel_file_path))
                 diff = self.project.get_git_diff(str(rel_file_path))
-                source = self.project.get_file_contents(rel_file_path)
                 if diff!='':
                     changes = diff if len(diff) < len(source) else source
                 else:
@@ -214,8 +220,8 @@ class Agent(BaseModel):
         def select_refactoring(state: MessagesState):
             """First LLM call to generate refactoring ideas"""
             self.update_source_code()
-            if self._iterations >= 5:  # stop after 3 _iterations
-                return
+            # if self._iterations >= 5:  # stop after 3 _iterations
+            #     return
             # llm_with_tools = model.bind_tools([
             #     choose_refactoring
             # ])
@@ -270,6 +276,10 @@ class Agent(BaseModel):
             return {"messages": messages}
 
         def finished_refactoring(state: MessagesState) -> bool:
+
+            if self._iterations >= 5:
+                # Stopping because limit has been reached.
+                return True
 
             if self.ide_server.call_tool_get("get_source_code") == '':
                 return False

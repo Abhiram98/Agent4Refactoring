@@ -52,11 +52,16 @@ class PerformRefactoring(BaseModel):
 
         def success_handler(state: MessagesState):
             print("Successfully performed the refactoring")
-            return {'messages': [AIMessage("Successfully performed the refactoring.")]}
+            success_msg = state['messages'][-1].content
+            final_message = "Successfully performed the refactoring."
+            if success_msg != 'success':
+                final_message += success_msg
+            return {'messages': [HumanMessage(final_message)]}
 
         def failure_handler(state: MessagesState):
             print("Failed to perform the refactoring.")
-            return {"messages": [AIMessage("Cannot perform this refactoring.")]}
+            return {"messages": [HumanMessage("Cannot perform this refactoring. "
+                                           f"Reason: {state['messages'][-1].content}")]}
 
         def retry_condition(state: MessagesState) -> str:
             last_message = state['messages'][-1].content

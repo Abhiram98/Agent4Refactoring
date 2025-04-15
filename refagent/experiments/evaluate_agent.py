@@ -36,7 +36,6 @@ def main():
     total_oracle = 0
     benchmark = bm_load.load_benchmark(refagent.benchmark_lite_json)
     for result in agent_results:
-        #TODO: map the agent results and benchmark better ^
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
         assert len(bench_points) == 1
         bench_point = bench_points[0]
@@ -48,15 +47,16 @@ def main():
         refactorings = rminer.default_runner.run(project.get_project_path(), commit)
         oracle_refactorings = rminer.default_runner.run(project.get_project_path(), bench_point.v2_hash)
         recall = 0
+        total_oracle += 1
         for oracle in oracle_refactorings:
             # if oracle.type in ['Extract Variable', 'Inline Variable']:
             #     continue
-            total_oracle += 1
             for i in refactorings:
                 if oracle == i:
                     recall += 1
                     break
-        overall_recall += recall
+        print(f"captured {recall}/{len(oracle_refactorings)} in bench point {bench_point.ref_id}")
+        overall_recall += recall/len(oracle_refactorings)
         # total_oracle += len(oracle_refactorings)
 
         print(f"recall = {overall_recall / total_oracle}")
