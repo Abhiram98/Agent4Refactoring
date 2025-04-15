@@ -143,12 +143,13 @@ class Agent(BaseModel):
             )
             self._trajectory += final_state['messages']
             print("Result of executing step 1: ", final_state["messages"][-1].content)
+
+        self.update_changed_files()
         return final_state["messages"][-1].content
 
     def get_changed_file_contents(self) -> HumanMessage:
         self.ide_server.call_tool('save_all_changes')
-        changed_files = set(self.project.get_changed_files())
-        self._files_changed = self._files_changed.union(changed_files)
+        self.update_changed_files()
 
         current_source_code = "Here is the current state of files in the repository: \n"
 
@@ -170,6 +171,10 @@ class Agent(BaseModel):
 
         return HumanMessage(content=current_source_code)
 
+    def update_changed_files(self):
+        changed_files = set(self.project.get_changed_files())
+        self._files_changed = self._files_changed.union(changed_files)
+
     def update_source_code(self) -> bool:
         """Call the environment to fetch the current version
          of the source code under operation"""
@@ -188,7 +193,7 @@ class Agent(BaseModel):
                             refactoring_type: sup_refs.SupportedRefactorings) -> list[BaseTool]:
         print(f"getting tools for {refactoring_type}")
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
-            return [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
+            return [ self._tools.get('replace_method_contents')]
         else:
             special_tool = self._tools.get(refactoring_type.value)
             tools = []
@@ -197,10 +202,10 @@ class Agent(BaseModel):
                 if self._iterations >= 2:
                     # more than one iteration on the same step. It means that tool calls are not working.
                     print("supplying generic tools, as tool calls are not working")
-                    tools += [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
+                    tools += [self._tools.get('replace_method_contents')]
                 return tools
             print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
-            return [self._tools.get('replace_file_contents'), self._tools.get('replace_method_contents')]
+            return [self._tools.get('replace_method_contents')]
 
     def compile_graph(self, model: BaseChatModel,
                       initial_intent: str,

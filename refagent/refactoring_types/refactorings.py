@@ -106,6 +106,7 @@ class Rename(RefminerOut):
     def __eq__(self, other: RefminerOut):
         if not self.base_eq(other):  # Call the parent class equality check
             return False
+        # true if the same code element was renamed.
         return self.leftSideLocations[0].codeElement == other.leftSideLocations[0].codeElement
 
 
