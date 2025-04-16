@@ -25,8 +25,8 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     project.checkout(bench_point.v1_hash)
 
     ij_server.open_project(project_path=project.get_project_path())
-    ij_server.open_file(rel_file_path=Path(bench_point.starting_files[0]))
     ij_server.reload_project()
+    ij_server.open_file(rel_file_path=Path(bench_point.starting_files[0]))
     if plan is not None:
         plan_type = planning.get_mock_planning_component(plan)
     else:

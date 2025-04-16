@@ -56,7 +56,8 @@ def main():
                     recall += 1
                     break
         print(f"captured {recall}/{len(oracle_refactorings)} in bench point {bench_point.ref_id}")
-        overall_recall += recall/len(oracle_refactorings)
+        if len(oracle_refactorings) > 0:
+            overall_recall += recall/len(oracle_refactorings)
         # total_oracle += len(oracle_refactorings)
 
         print(f"recall = {overall_recall / total_oracle}")
