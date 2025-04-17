@@ -119,7 +119,26 @@ class RefactoringToolProvider(BaseModel):
                                              members=members,
                                              keep_abstract=keep_abstract)
 
+        @tool
+        def change_method_signature(
+                method_name: Annotated[str, "The name of the method whose signature needs to be changed"],
+                method_line_num: Annotated[Optional[int], "The line number to indentify the method at"],
+                new_signature: Annotated[sup_ref.MethodSignature, "The new signature of the method. "
+                                                        "If None, the signature of the method will not be changed"]
+        ):
+            """
+            Change the signature of the given method.
+            To leave some elements of the method signature unchanged, do not pass any value for them.
+            For example, to only change the return type, pass new_signature = {"return_type": "String"}.
+            """
+
+            return self.ide_server.call_tool('change_signature',
+                                             method_name=method_name,
+                                             method_line_num=method_line_num,
+                                             new_signature=new_signature)
+
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
+                                     change_method_signature,
                                      replace_file_contents, replace_method_contents]
 
         return {i.name: i for i in all_tools}
