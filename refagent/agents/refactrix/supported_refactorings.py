@@ -1,6 +1,12 @@
 from enum import Enum
 
 
+class ExtractionType(Enum):
+    INTERFACE = "interface"
+    SUPER_CLASS = "super_class"
+    CLASS = "class"
+    ENUM = "enum"
+
 class SupportedRefactorings(Enum):
     EXTRACT_METHOD = "extract_method"
     RENAME = "rename"

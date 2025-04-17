@@ -3,6 +3,8 @@ import refagent.utils.intellij_server as ij_server
 from langchain_core.tools import tool, BaseTool
 from typing import Optional, Annotated, List
 
+import refagent.agents.refactrix.supported_refactorings as sup_ref
+
 
 class RefactoringToolProvider(BaseModel):
     ide_server: Optional[ij_server.IntellijServer] = Field(description="ide server object to interract with")
@@ -65,19 +67,21 @@ class RefactoringToolProvider(BaseModel):
 
         @tool
         def extract_class(
-                extract_interface: Annotated[bool, "whether to extract an interface, or superclass. If true, an interface will be extracted"],
+                extraction_type: Annotated[sup_ref.ExtractionType, "whether to extract an interface/super_class/class/enum. "
+                                                                   "Extracting a super class will inherit from it. Extracting a `class` "
+                                                                   "will create a new class without inheritance "],
                 members: Annotated[list[str], "names of fields/methods in the host class to be extracted into the super class."],
-                super_class_name: Annotated[str, "the name of the super class to be extracted"],
+                new_class_name: Annotated[str, "the name of the new class to be extracted"],
                 sub_class_name: Annotated[str, "the name of the current class after extraction."]
         ):
-            """Extract a super class/interface from an existing class.
-            Choose relevant fields and methods that need to go into the super class.
-            Also provide a name for the superclass and the subclass."""
+            """Extract a class/interface/superclass/enum from an existing class.
+            Choose relevant fields and methods that need to go into the new class.
+            Also provide a name for the extracted class and the subclass."""
             return self.ide_server.call_tool("extract-class",
-                                      extract_interface=extract_interface,
-                                      new_class_name=super_class_name,
-                                      sub_class_name=sub_class_name,
-                                      members=members)
+                                             extraction_type=extraction_type.value,
+                                             new_class_name=new_class_name,
+                                             sub_class_name=sub_class_name,
+                                             members=members)
 
 
         @tool
