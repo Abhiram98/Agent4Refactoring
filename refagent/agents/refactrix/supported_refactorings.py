@@ -24,7 +24,8 @@ documentation = {
     SupportedRefactorings.RENAME: "rename a program element, such as a variable, field, method, class.",
     SupportedRefactorings.MOVE: "move a program element (class/method/field) to another location. "
                                 "E.g. move a method to another class, move a class to a different package.",
-    SupportedRefactorings.EXTRACT_CLASS: "extract an super class/interface from an existing class.",
+    SupportedRefactorings.EXTRACT_CLASS: "extract an class/super_class/interface/enum from an existing class. "
+                                         "choose to perform composition instead of inheritance if possible",
     SupportedRefactorings.PUSH_DOWN: "push down a member of a class (method/field) into a subclass, "
                                      "or implementation of interface.",
     SupportedRefactorings.PULL_UP: "pull up a member of a class (method/field) into its super class/interface.",

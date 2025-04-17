@@ -94,14 +94,6 @@ class PushDownAttribute(RefminerOut):
         return self.leftSideLocations[0].codeElement == other.leftSideLocations[0].codeElement
 
 
-# class ExtractSubclass(RefminerOut):
-#     TYPE: ClassVar[str] = 'Extract Subclass'
-#
-#     def __eq__(self, other: RefminerOut):
-#         if not self.base_eq(other):  # Call the parent class equality check
-#             return False
-#         return self.leftSideLocations[0].codeElement == other.leftSideLocations[0].codeElement
-
 class Rename(RefminerOut):
     def __eq__(self, other: RefminerOut):
         if not self.base_eq(other):  # Call the parent class equality check
@@ -141,3 +133,18 @@ class ExtractMethod(RefminerOut):
         assert len(self_method) == 1
         assert len(other_method) == 1
         return self_method[0].codeElement == other_method[0].codeElement
+
+
+
+class ExtractClass(RefminerOut):
+    TYPE: ClassVar[str] = 'Extract Class'
+
+    def __eq__(self, other: RefminerOut):
+        if not self.base_eq(other):  # Call the parent class equality check
+            return False
+        # match the extracted class name
+        extracted_name_self = self.description.split('Extract Class ')[-1].split(' from class')[0].split('.')[-1]
+        extracted_name_other = other.description.split('Extract Class ')[-1].split(' from class')[0].split('.')[-1]
+        # TODO: match at least one of the extracted fields/methods.
+        #  This information is available in the leftSideLocations.
+        return extracted_name_self == extracted_name_other

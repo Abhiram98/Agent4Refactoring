@@ -67,16 +67,19 @@ class RefactoringToolProvider(BaseModel):
 
         @tool
         def extract_class(
-                extraction_type: Annotated[sup_ref.ExtractionType, "whether to extract an interface/super_class/class/enum. "
-                                                                   "Extracting a super class will inherit from it. Extracting a `class` "
-                                                                   "will create a new class without inheritance "],
-                members: Annotated[list[str], "names of fields/methods in the host class to be extracted into the super class."],
-                new_class_name: Annotated[str, "the name of the new class to be extracted"],
-                sub_class_name: Annotated[str, "the name of the current class after extraction."]
+                extraction_type: Annotated[sup_ref.ExtractionType,
+                                    "Specifies the type of extraction: choose from 'interface', 'super_class', 'class', or 'enum'. "
+                                    "Selecting 'super_class' will make the current class inherit from the extracted one. "
+                                    "Selecting 'class' creates a new class without inheritance."],
+                members: Annotated[list[str], "List of member names (fields or methods) in the current class to move into the extracted class."],
+                new_class_name: Annotated[str, "Name of the new class/interface/superclass/enum to be created"],
+                sub_class_name: Annotated[str, "Name of the updated version of the current class after extraction."]
         ):
-            """Extract a class/interface/superclass/enum from an existing class.
-            Choose relevant fields and methods that need to go into the new class.
-            Also provide a name for the extracted class and the subclass."""
+            """Extracts a new class, interface, superclass, or enum from an existing class.
+            This refactoring tool allows you to modularize code by moving selected fields and methods
+            from a current class into a newly created type. You can specify what kind of type to extract
+            (e.g., superclass or interface), which members to move, and the names of both the new and
+            remaining class."""
             return self.ide_server.call_tool("extract-class",
                                              extraction_type=extraction_type.value,
                                              new_class_name=new_class_name,
