@@ -158,8 +158,10 @@ class Agent(BaseModel):
         self.project.safe_add(self._files_changed)
         for rel_file_path in file_in_same_root:
             try:
+                file_contents = self.project.get_file_contents(rel_file_path)
                 source = code_utils.add_line_numbers(
-                    self.project.get_file_contents(rel_file_path))
+                    "// This file is empty." if file_contents=="" else file_contents)
+
                 diff = self.project.get_git_diff(str(rel_file_path))
                 if diff!='':
                     changes = diff if len(diff) < len(source) else source
@@ -192,11 +194,29 @@ class Agent(BaseModel):
     def get_available_tools(self,
                             refactoring_type: sup_refs.SupportedRefactorings) -> list[BaseTool]:
         print(f"getting tools for {refactoring_type}")
+
+        multi_map = {
+            sup_refs.SupportedRefactorings.CHANGE_SIGNATURE:
+                [self._tools[sup_refs.SupportedRefactorings.CHANGE_SIGNATURE.value],
+                 self._tools['introduce_parameter_object']],
+            sup_refs.SupportedRefactorings.EXTRACT_CLASS:
+                [self._tools[sup_refs.SupportedRefactorings.EXTRACT_CLASS.value],
+                 self._tools['introduce_parameter_object']]
+        }
+
+        file_rewrite_tool = []
+        if self.current_file_empty():
+            # Supply file rewrite when it is empty
+            file_rewrite_tool.append(self._tools.get('replace_file_contents'))
+
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
-            return [ self._tools.get('replace_method_contents')]
+            return file_rewrite_tool + [self._tools.get('replace_method_contents')]
+        elif refactoring_type in multi_map:
+            # In case there are multiple tools that can be invoked for a single refactoring type
+            return file_rewrite_tool + multi_map[refactoring_type]
         else:
             special_tool = self._tools.get(refactoring_type.value)
-            tools = []
+            tools = file_rewrite_tool
             if special_tool is not None:
                 tools += [special_tool]
                 if self._iterations >= 2:
@@ -205,7 +225,10 @@ class Agent(BaseModel):
                     tools += [self._tools.get('replace_method_contents')]
                 return tools
             print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
-            return [self._tools.get('replace_method_contents')]
+            return file_rewrite_tool + [self._tools.get('replace_method_contents')]
+
+    def current_file_empty(self):
+        return self._source_code == ''
 
     def compile_graph(self, model: BaseChatModel,
                       initial_intent: str,
