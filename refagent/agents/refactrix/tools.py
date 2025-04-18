@@ -1,3 +1,5 @@
+import json
+
 from pydantic.v1 import BaseModel, Field
 import refagent.utils.intellij_server as ij_server
 from langchain_core.tools import tool, BaseTool
@@ -123,19 +125,24 @@ class RefactoringToolProvider(BaseModel):
         def change_method_signature(
                 method_name: Annotated[str, "The name of the method whose signature needs to be changed"],
                 method_line_num: Annotated[Optional[int], "The line number to indentify the method at"],
-                new_signature: Annotated[sup_ref.MethodSignature, "The new signature of the method. "
-                                                        "If None, the signature of the method will not be changed"]
+                new_method_name: Annotated[Optional[str], "The name of the new method"],
+                new_parameters: Annotated[Optional[List[sup_ref.Parameter]], "The updated list of parameters to method"],
+                new_return_type: Annotated[Optional[str], "The new return type of the method"],
+                new_modifier: Annotated[Optional[str], "The new modifiers (private/public/protected) of the method. "]
         ):
             """
             Change the signature of the given method.
             To leave some elements of the method signature unchanged, do not pass any value for them.
-            For example, to only change the return type, pass new_signature = {"return_type": "String"}.
             """
 
             return self.ide_server.call_tool('change_signature',
                                              method_name=method_name,
                                              method_line_num=method_line_num,
-                                             new_signature=new_signature)
+                                             new_signature={'method_name': new_method_name,
+                                                            'parameters': [json.loads(i.json()) for i in new_parameters],
+                                                            'return_type': new_return_type,
+                                                            'modifier': new_modifier
+                                                            })
 
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
                                      change_method_signature,

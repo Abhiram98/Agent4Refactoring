@@ -142,7 +142,7 @@ class Agent(BaseModel):
                 config={"configurable": {"thread_id": 42}}
             )
             self._trajectory += final_state['messages']
-            print("Result of executing step 1: ", final_state["messages"][-1].content)
+            print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
 
         self.update_changed_files()
         return final_state["messages"][-1].content
@@ -271,8 +271,9 @@ class Agent(BaseModel):
                 ide_server=self.ide_server
             ).compile()
             messages = state['messages'] + [
-                AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}")]
-
+                AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}."),
+                self.get_changed_file_contents()
+            ]
             observation = perform_refactoring_graph.invoke({"messages": messages})
             last_message = observation['messages'][-1]
             messages = state["messages"]

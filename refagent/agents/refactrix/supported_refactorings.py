@@ -8,13 +8,6 @@ class Parameter(BaseModel):
     param_type: str = Field(description="the type of the parameter")
 
 
-class MethodSignature(BaseModel):
-    method_name: Optional[str] = Field(description="The name of the method")
-    parameters: Optional[List[Parameter]] = Field(description="The entire list of parameters to the method")
-    return_type: Optional[str] = Field(description="Return type of the method")
-    modifier: Optional[str] = Field(description="The modifier (private/public/protected) of the method. ")
-
-
 class ExtractionType(Enum):
     INTERFACE = "interface"
     SUPER_CLASS = "super_class"
