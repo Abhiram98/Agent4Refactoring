@@ -144,8 +144,32 @@ class RefactoringToolProvider(BaseModel):
                                                             'modifier': new_modifier
                                                             })
 
+        @tool
+        def introduce_parameter_object(
+                method_name: Annotated[str, "The name of the method to refactor."],
+                method_line_num: Annotated[Optional[int], "The line number where the method is defined (if known)." 
+                                                          "If None, the method will be located using just its name."],
+                parameter_names: Annotated[List[str], "The list of parameter names "
+                                                  "that should be encapsulated in the new class."],
+                new_class_name: Annotated[str, "The name of the new class "
+                                               "that will encapsulate the specified parameters."]
+
+        ):
+            """
+            This refactoring replaces a group of parameters in a method with a single object that encapsulates them.
+            It helps to improve code readability, reduce duplication, and group related data more meaningfully.
+            Use this refactoring to extract a class from a method's parameters
+            """
+            return self.ide_server.call_tool(
+                "introduce_param_object",
+                method_name=method_name,
+                method_line_num=method_line_num,
+                parameter_names=parameter_names,
+                new_class_name=new_class_name
+            )
+
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
-                                     change_method_signature,
+                                     change_method_signature, introduce_parameter_object,
                                      replace_file_contents, replace_method_contents]
 
         return {i.name: i for i in all_tools}
