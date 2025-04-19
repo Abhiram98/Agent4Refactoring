@@ -201,7 +201,8 @@ class Agent(BaseModel):
                  self._tools['introduce_parameter_object']],
             sup_refs.SupportedRefactorings.EXTRACT_CLASS:
                 [self._tools[sup_refs.SupportedRefactorings.EXTRACT_CLASS.value],
-                 self._tools['introduce_parameter_object']]
+                 self._tools['introduce_parameter_object']],
+            sup_refs.SupportedRefactorings.TYPE_CHANGE: [self._tools['change_method_signature']]
         }
 
         file_rewrite_tool = []

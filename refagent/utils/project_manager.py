@@ -123,8 +123,8 @@ class EvalProject:
         project_path = projects_base_path.joinpath(self.project_name)
         return project_path
 
-    def checkout(self, sha1):
-        self.git_repo.git.checkout(sha1)
+    def checkout(self, sha1, force=False):
+        self.git_repo.git.checkout(sha1, force=force)
 
     def checkout_previous(self, sha1):
         self.git_repo.git.checkout(

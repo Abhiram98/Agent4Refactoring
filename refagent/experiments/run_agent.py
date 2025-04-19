@@ -22,7 +22,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
                   plan: Optional[planning.RefactoringPlan]):
     project = pm.EvalProject(bench_point.project_name)
     ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
-    project.checkout(bench_point.v1_hash)
+    project.checkout(bench_point.v1_hash, force=True)
 
     ij_server.open_project(project_path=project.get_project_path())
     ij_server.reload_project()
