@@ -168,8 +168,22 @@ class RefactoringToolProvider(BaseModel):
                 new_class_name=new_class_name
             )
 
+        @tool
+        def move_method(
+                method_name: Annotated[str, "The name of the method to move."],
+                target_class: Annotated[str, "The class to move the method to"]
+        ):
+            """
+            Moves a method to a given target class, changing references accordingly.
+            """
+            return self.ide_server.call_tool(
+                "move-method",
+                method_name=method_name,
+                target_class=target_class
+            )
+
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
-                                     change_method_signature, introduce_parameter_object,
+                                     change_method_signature, introduce_parameter_object, move_method,
                                      replace_file_contents, replace_method_contents]
 
         return {i.name: i for i in all_tools}
