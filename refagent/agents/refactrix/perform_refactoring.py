@@ -1,4 +1,4 @@
-from pydantic.v1 import BaseModel, Field
+from pydantic.v1 import BaseModel, Field, PrivateAttr
 from typing import List, Callable
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
@@ -19,6 +19,8 @@ class PerformRefactoring(BaseModel):
     refactoring_type: sup_ref.SupportedRefactorings = Field(description="The type of refactoring to be performed.")
     rel_file_path: str = Field(description="relative file path from repo root. file to be edited.")
     ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
+    _file_open_status: bool = PrivateAttr(default=False)
+    _active_tool_call: str = PrivateAttr(default="")
 
     def compile(self) -> CompiledGraph:
 
@@ -32,16 +34,18 @@ class PerformRefactoring(BaseModel):
                 if 'YES' in create_file.content:
                     create_response = self.ide_server.create_file(Path(self.rel_file_path))
                     if create_response == 'success':
+                        self._file_open_status = True
                         open_response = self.ide_server.open_file(Path(self.rel_file_path))
                         return {"messages": [HumanMessage(f"Created and opened file successfully. "
                                                           f"You are now editing {self.rel_file_path}")]}
 
                 return {"messages": [HumanMessage(response)]}
+            self._file_open_status = True
             return {"messages": [HumanMessage(f"Opened file successfully. "
                                               f"You are now editing {self.rel_file_path}")]}
 
         def successful_file_open(state: MessagesState):
-            return state['messages'][-1].content == "Opened file successfully."
+            return self._file_open_status
 
         def call_llm(state: MessagesState):
             # if self.retry_count <=0:
@@ -53,7 +57,8 @@ class PerformRefactoring(BaseModel):
             return {"messages": [response]}
 
         def success_handler(state: MessagesState):
-            print("Successfully performed the refactoring")
+            print("Successfully performed the following refactoring -> "
+                  f"{self._active_tool_call}")
             success_msg = state['messages'][-1].content
             final_message = "Successfully performed the refactoring."
             if success_msg != 'success':
@@ -87,7 +92,14 @@ class PerformRefactoring(BaseModel):
         llm_tool_workflow.add_edge(START, "call_llm")
 
         def has_tool_call(state: MessagesState) -> bool:
-            return len(state['messages'][-1].tool_calls) > 0
+            if len(state['messages'][-1].tool_calls) > 0:
+                if 'repalce_file_contents' in str(state['messages'][-1].tool_calls[0]):
+                    self._active_tool_call = f"Replaced file contents of {self.rel_file_path}."
+                else:
+                    self._active_tool_call = str(state['messages'][-1].tool_calls)
+                return True
+            return False
+
         llm_tool_workflow.add_conditional_edges("call_llm", has_tool_call, {True: "tools", False: END})
         llm_tool = llm_tool_workflow.compile()
 

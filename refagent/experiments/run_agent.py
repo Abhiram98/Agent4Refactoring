@@ -41,8 +41,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
                                   starting_file=bench_point.starting_files[0])  # run the agent with commit message
     except Exception as e:
         print("Agent execution failed ;/")
-        # traceback.print_stack()
-
+        traceback.print_exc()
 
     project.safe_add(agent.files_changed())
     new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id}")

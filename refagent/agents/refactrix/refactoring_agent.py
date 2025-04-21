@@ -202,11 +202,13 @@ class Agent(BaseModel):
             sup_refs.SupportedRefactorings.EXTRACT_CLASS:
                 [self._tools[sup_refs.SupportedRefactorings.EXTRACT_CLASS.value],
                  self._tools['introduce_parameter_object']],
-            sup_refs.SupportedRefactorings.TYPE_CHANGE: [self._tools['change_method_signature']]
+            sup_refs.SupportedRefactorings.TYPE_CHANGE: [self._tools['change_method_signature']],
+            sup_refs.SupportedRefactorings.MOVE: [self._tools['move_method']]
         }
 
         if self.current_file_empty():
             # Supply file rewrite when it is empty
+            print("supplying file replace tool")
             return [self._tools.get('replace_file_contents')]
 
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
@@ -331,30 +333,23 @@ class Agent(BaseModel):
 
         workflow = StateGraph(MessagesState)
         # Add nodes
-        # workflow.add_node("planning", planning_compiled)
-        workflow.add_node("curate_tests", curate_tests)
+        # workflow.add_node("curate_tests", curate_tests)
         workflow.add_node("select_refactoring", select_refactoring)
-        # select_refactoring_tool = ToolNode([choose_refactoring])
         workflow.add_node("perform_refactoring", perform_selected_refactoring)
         workflow.add_node("finished_refactoring", finished_refactoring)
 
         # Add edges to connect nodes
-        # workflow.add_edge(START, "planning")
         workflow.add_edge(START, "finished_refactoring")
-        # workflow.add_edge("curate_tests", "finished_refactoring")
-        workflow.add_conditional_edges("finished_refactoring", has_finished_refactoring,
-                                       {True: END, False: "curate_tests"})
-        workflow.add_edge("curate_tests", "select_refactoring")
-
         def has_tool_call(state: MessagesState) -> bool:
             return self._selected_refactoring.refactoring_type!=sup_refs.SupportedRefactorings.UNSUPPORTED
 
+        workflow.add_conditional_edges("finished_refactoring", has_finished_refactoring,
+                                       {True: END, False: "select_refactoring"})
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
         )
         workflow.add_edge("perform_refactoring", "finished_refactoring")
-        workflow.add_conditional_edges("finished_refactoring", has_finished_refactoring,
-                                       {True: END, False: "select_refactoring"})
+
 
         # Compile
         graph = workflow.compile()
