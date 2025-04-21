@@ -33,10 +33,12 @@ class PerformRefactoring(BaseModel):
                     create_response = self.ide_server.create_file(Path(self.rel_file_path))
                     if create_response == 'success':
                         open_response = self.ide_server.open_file(Path(self.rel_file_path))
-                        return {"messages": [HumanMessage(f"Created and opened file successfully.")]}
+                        return {"messages": [HumanMessage(f"Created and opened file successfully. "
+                                                          f"You are now editing {self.rel_file_path}")]}
 
                 return {"messages": [HumanMessage(response)]}
-            return {"messages": [HumanMessage("Opened file successfully.")]}
+            return {"messages": [HumanMessage(f"Opened file successfully. "
+                                              f"You are now editing {self.rel_file_path}")]}
 
         def successful_file_open(state: MessagesState):
             return state['messages'][-1].content == "Opened file successfully."

@@ -205,19 +205,18 @@ class Agent(BaseModel):
             sup_refs.SupportedRefactorings.TYPE_CHANGE: [self._tools['change_method_signature']]
         }
 
-        file_rewrite_tool = []
         if self.current_file_empty():
             # Supply file rewrite when it is empty
-            file_rewrite_tool.append(self._tools.get('replace_file_contents'))
+            return [self._tools.get('replace_file_contents')]
 
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
-            return file_rewrite_tool + [self._tools.get('replace_method_contents')]
+            return [self._tools.get('replace_method_contents')]
         elif refactoring_type in multi_map:
             # In case there are multiple tools that can be invoked for a single refactoring type
-            return file_rewrite_tool + multi_map[refactoring_type]
+            return multi_map[refactoring_type]
         else:
             special_tool = self._tools.get(refactoring_type.value)
-            tools = file_rewrite_tool
+            tools = []
             if special_tool is not None:
                 tools += [special_tool]
                 if self._iterations >= 2:
@@ -226,7 +225,7 @@ class Agent(BaseModel):
                     tools += [self._tools.get('replace_method_contents')]
                 return tools
             print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
-            return file_rewrite_tool + [self._tools.get('replace_method_contents')]
+            return [self._tools.get('replace_method_contents')]
 
     def current_file_empty(self):
         return self._source_code == ''
@@ -305,24 +304,30 @@ class Agent(BaseModel):
 
             return {"messages": messages}
 
-        def finished_refactoring(state: MessagesState) -> bool:
+        def finished_refactoring(state: MessagesState):
 
             if self._iterations >= 5:
                 # Stopping because limit has been reached.
-                return True
+                return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
 
             if self.ide_server.call_tool_get("get_source_code") == '':
-                return False
+                return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
 
             response = model.invoke(state['messages'] +
-                         [HumanMessage('Please reflect whether the original ask has been completed successfully.'
+                         [HumanMessage('Please reflect whether the original ask has been completed successfully'
                                        f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
                                        f'{self.get_changed_file_contents().content}'
-                                       'If the task is complete say YES. Otherwise, say NO. Only respond with YES/NO')])
-            if 'YES' in response.content:
-                return True
-            else:
-                return False
+                                       f'Please reflect whether the task is complete, '
+                                       f'by answering the following questions:'
+                                       '1. Has the original ask been met?'
+                                       f'2. Are there other locations within the file {self._rel_file_path} '
+                                       f'where the same change can be applied?'
+                                       'Finally say whether the task is complete '
+                                       'using the word DONE/INCOMPLETE appropriately.')])
+            return {'messages': [response]}
+
+        def has_finished_refactoring(state: MessagesState) -> bool:
+            return 'DONE' in state['messages'][-1].content
 
         workflow = StateGraph(MessagesState)
         # Add nodes
@@ -331,11 +336,13 @@ class Agent(BaseModel):
         workflow.add_node("select_refactoring", select_refactoring)
         # select_refactoring_tool = ToolNode([choose_refactoring])
         workflow.add_node("perform_refactoring", perform_selected_refactoring)
+        workflow.add_node("finished_refactoring", finished_refactoring)
 
         # Add edges to connect nodes
         # workflow.add_edge(START, "planning")
-        # workflow.add_edge(START, "curate_tests")
-        workflow.add_conditional_edges(START, finished_refactoring,
+        workflow.add_edge(START, "finished_refactoring")
+        # workflow.add_edge("curate_tests", "finished_refactoring")
+        workflow.add_conditional_edges("finished_refactoring", has_finished_refactoring,
                                        {True: END, False: "curate_tests"})
         workflow.add_edge("curate_tests", "select_refactoring")
 
@@ -345,8 +352,8 @@ class Agent(BaseModel):
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
         )
-
-        workflow.add_conditional_edges("perform_refactoring", finished_refactoring,
+        workflow.add_edge("perform_refactoring", "finished_refactoring")
+        workflow.add_conditional_edges("finished_refactoring", has_finished_refactoring,
                                        {True: END, False: "select_refactoring"})
 
         # Compile
