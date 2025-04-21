@@ -27,7 +27,8 @@ import refagent.agents.refactrix.perform_refactoring as perform_ref
 import refagent.agents.refactrix.tools as ref_tools
 import refagent.agents.refactrix.planning as planning
 import refagent.utils.project_manager as pm
-
+import refagent.agents.refactrix.replication as replication
+import refagent.agents.refactrix.error_fixing as error_fixing
 
 class SelectedRefactoring(BaseModel):
     """
@@ -145,6 +146,20 @@ class Agent(BaseModel):
             print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
 
         self.update_changed_files()
+
+        # Run replication component
+        replication.Replication(
+            model=model,
+            executed_plan=ref_plan,
+            ide_server=self.ide_server
+        ).compile_and_run()
+
+        # Run error-fixing component
+        error_fixing.ErrorFixing(
+            model=model,
+            ide_server=self.ide_server
+        ).compile_and_run()
+
         return final_state["messages"][-1].content
 
     def get_changed_file_contents(self) -> HumanMessage:
@@ -329,7 +344,8 @@ class Agent(BaseModel):
             return {'messages': [response]}
 
         def has_finished_refactoring(state: MessagesState) -> bool:
-            return 'DONE' in state['messages'][-1].content
+            return (state['messages'][-1].content.endswith('DONE') or
+                    'INCOMPLETE' not in state['messages'][-1].content)
 
         workflow = StateGraph(MessagesState)
         # Add nodes
