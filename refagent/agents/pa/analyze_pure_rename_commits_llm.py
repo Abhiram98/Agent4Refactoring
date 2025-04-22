@@ -87,23 +87,23 @@ def create_rename_batches(name_pairs, max_tokens_per_batch=18000, min_pairs_per_
     current_token_count = 0
     
     # Calculate prompt template tokens
-    template_text = """You are an expert in code naming conventions and refactoring. 
-    Analyze the following variable name changes and identify patterns in naming conventions:
+    # template_text = """You are an expert in code naming conventions and refactoring. 
+    # Analyze the following variable name changes and identify patterns in naming conventions:
 
-    For each pair, identify:
-    1. The type of change (e.g., spelling correction, style change, semantic improvement)
-    2. The naming convention being followed (e.g., camelCase, PascalCase, snake_case)
-    3. The reason for the change (e.g., consistency, clarity, correctness)
-    """
-    template_tokens = count_tokens_with_tiktoken(template_text, model_name)
+    # For each pair, identify:
+    # 1. The type of change (e.g., spelling correction, style change, semantic improvement)
+    # 2. The naming convention being followed (e.g., camelCase, PascalCase, snake_case)
+    # 3. The reason for the change (e.g., consistency, clarity, correctness)
+    # """
+    # template_tokens = count_tokens_with_tiktoken(template_text, model_name)
     response_buffer_tokens = get_response_buffer_size(model_name)
     
     # Calculate available tokens for pairs content
-    available_tokens = max_tokens_per_batch - template_tokens - response_buffer_tokens
+    available_tokens = max_tokens_per_batch  - response_buffer_tokens
     
     print(f"\nCreating batches (max {max_tokens_per_batch} tokens per batch)...")
     print(f"Model: {model_name}")
-    print(f"Template tokens: {template_tokens}")
+    # print(f"Template tokens: {template_tokens}")
     print(f"Response buffer tokens: {response_buffer_tokens}")
     print(f"Available tokens for pairs content: {available_tokens}")
     
@@ -140,7 +140,7 @@ def create_rename_batches(name_pairs, max_tokens_per_batch=18000, min_pairs_per_
     for i, batch in enumerate(batches):
         batch_text = json.dumps(batch)
         batch_tokens = count_tokens_with_tiktoken(batch_text, model_name)
-        total_batch_tokens = batch_tokens + template_tokens + response_buffer_tokens
+        total_batch_tokens = batch_tokens  + response_buffer_tokens
         print(f"  Batch {i+1}: {len(batch)} pairs")
         print(f"    - Content tokens: {batch_tokens}")
         print(f"    - Total tokens (with template): {total_batch_tokens}")
@@ -157,7 +157,8 @@ def analyze_naming_patterns_with_grazie(name_pairs):
         client_url=GrazieApiGatewayUrls.STAGING,
         profile="openai-gpt-4o-mini",  # Using GPT-4o mini model
         client_agent_name='naming-patterns-agent',
-        client_agent_version='0.1'
+        client_agent_version='0.1',
+        temperature=0.7
     )
 
     # Get model context window and create batches
@@ -173,7 +174,7 @@ def analyze_naming_patterns_with_grazie(name_pairs):
         
         # Create prompt for this batch
         prompt = f"""You are an expert in code naming conventions and refactoring. 
-        You are given a list of variable name changes from commits. Analyze the following variable name changes and identify patterns in naming conventions:
+        You are given a list of variable name changes from commits. Each pair has before and after variable names and type of variable. Analyze the following variable name changes and identify patterns in naming conventions:
 
         {json.dumps(batch, indent=2)}
 
@@ -181,18 +182,23 @@ def analyze_naming_patterns_with_grazie(name_pairs):
         You keep in mind the following points to make the rules:
         1. Common patterns in naming conventions.
         2. Common style changes in naming conventions.
-        3. Frequently prefix, suffix, infix, abbreviations, acronyms, etc.
+        3. Frequently used prefix, suffix, infix, abbreviations, acronyms, etc.
         Return a JSON object in the following structure:
         {{
              "rules": [
                 {{
                     "rule": "rule_description",
-                    "example_names": [List of variable names as before -> after]
+                    "example_names": [{{
+                        "before": "variable_name_before",
+                        "after": "variable_name_after",
+                        "type": "type_of_variable"
+                    }}] // don't swap and mix before and after in example_names, use only relevant example names with the rule.
                 }}
             ]
         }}
-        Make sure the rules are applicable to the project and are not too general. Write at least 10 rules. Don't put same name as before -> after in example_names.
+        Make sure the rules are applicable to the project and are not too general. Write at least 10 rules. Don't put same name as before and after in example_names. Don't put example names that are not relevant to the rule.
         Some of the pairs may be wrong and never used in the code and got rejected by the developer. So try to understand the majority of the pairs and common patterns and make rules accordingly. Don't include incorrect pairs in the rules.
+        Don't include anything else outside of the provided context.
         """
 
         try:
@@ -269,6 +275,156 @@ def aggregate_batch_results(batch_results):
     
     return aggregated
 
+def aggregate_batch_results_with_llm(batch_results, model_name="gpt-4"):
+    """
+    Aggregate batch results using LLM to provide a comprehensive analysis.
+    
+    Args:
+        batch_results (list): List of batch results to aggregate
+        model_name (str): Name of the LLM model to use
+    
+    Returns:
+        dict: Aggregated analysis with rules and example names
+    """
+    try:
+        # Prepare the prompt for the LLM
+        prompt = f"""
+        Analyze the following batch results from rename refactoring analysis and provide a comprehensive summary.
+        The focus is to aggregate the rules from the batches to remove duplicates, redundancies and make the rules more specific and applicable to the project.
+        Remove any example names that are not relevant to the rule.
+        
+        Batch Results:
+        {json.dumps(batch_results, indent=2)}
+        
+        Return a JSON object in the following structure:
+        {{
+             "rules": [
+                {{
+                    "rule": "rule_description",
+                    "example_names": [{{
+                        "before": "variable_name_before",
+                        "after": "variable_name_after",
+                        "type": "type_of_variable"
+                    }}]
+                }}
+            ]
+        }}
+        """
+        
+        # Initialize the LLM model
+        model = ChatGrazie(
+             grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+             client_auth_type=AuthType.APPLICATION,
+             client_url=GrazieApiGatewayUrls.STAGING,
+             profile="openai-gpt-4o-mini",  # Using GPT-4o mini model
+             client_agent_name='naming-patterns-agent',
+             client_agent_version='0.1',
+             temperature=0.7
+             )
+        
+        # Get the response from the LLM
+        response = model.invoke(prompt)
+        
+        # Extract and parse the JSON response
+        response_text = response.content
+        
+        # Try different patterns to extract JSON
+        json_str = None
+        patterns = [
+            r'```json\n(.*?)\n```',  # JSON in code block
+            r'```(.*?)```',          # Any code block
+            r'\{.*\}',               # Any JSON object
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, response_text, re.DOTALL)
+            if match:
+                json_str = match.group(1) if pattern != r'\{.*\}' else match.group(0)
+                break
+        
+        if not json_str:
+            # If no pattern matched, try to find the first JSON-like structure
+            try:
+                # Find the first occurrence of { and last occurrence of }
+                start = response_text.find('{')
+                end = response_text.rfind('}')
+                if start != -1 and end != -1:
+                    json_str = response_text[start:end+1]
+            except:
+                json_str = response_text
+        
+        # Clean up the JSON string
+        json_str = re.sub(r'```.*?```', '', json_str, flags=re.DOTALL)
+        json_str = json_str.strip()
+        
+        # Parse the response
+        try:
+            result = json.loads(json_str)
+            
+            # Validate the structure
+            if not isinstance(result, dict):
+                raise ValueError("Response is not a JSON object")
+            
+            if 'rules' not in result:
+                raise ValueError("Response missing 'rules' key")
+            
+            if not isinstance(result['rules'], list):
+                raise ValueError("'rules' must be a list")
+            
+            # Validate each rule's structure
+            for rule in result['rules']:
+                if not isinstance(rule, dict):
+                    raise ValueError("Each rule must be a dictionary")
+                
+                if 'rule' not in rule:
+                    raise ValueError("Rule missing 'rule' key")
+                
+                if 'example_names' not in rule:
+                    raise ValueError("Rule missing 'example_names' key")
+                
+                if not isinstance(rule['example_names'], list):
+                    raise ValueError("'example_names' must be a list")
+                
+                # Validate each example name's structure
+                for example in rule['example_names']:
+                    if not isinstance(example, dict):
+                        raise ValueError("Each example must be a dictionary")
+                    
+                    required_keys = {'before', 'after', 'type'}
+                    if not all(key in example for key in required_keys):
+                        raise ValueError(f"Example missing required keys: {required_keys}")
+            
+            # Calculate total pairs analyzed from all batches
+            total_pairs_analyzed = 0
+            for batch in batch_results:
+                if "metadata" in batch and "pairs_in_batch" in batch["metadata"]:
+                    total_pairs_analyzed += batch["metadata"]["pairs_in_batch"]
+            
+            # Add metadata with the correct structure
+            result["metadata"] = {
+                "total_pairs_analyzed": total_pairs_analyzed,
+                "batches": [batch.get("metadata", {}) for batch in batch_results if "metadata" in batch],
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            return result
+            
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON response: {str(e)}")
+            print(f"Raw response: {json_str}")
+            raise
+        
+    except Exception as e:
+        print(f"Error in LLM aggregation: {str(e)}")
+        return {
+            "error": str(e),
+            "metadata": {
+                "total_pairs_analyzed": 0,
+                "batches": [],
+                "timestamp": datetime.now().isoformat()
+            }
+        }
+
 def main():
     base_dir = Path.cwd()
     input_file = base_dir / "rename_analysis_results" / "pure_rename_variables.csv"
@@ -297,8 +453,8 @@ def main():
     batch_results = analyze_naming_patterns_with_grazie(name_pairs)
     
     # Aggregate results
-    aggregated_results = aggregate_batch_results(batch_results)
-    
+    # aggregated_results = aggregate_batch_results(batch_results)
+    aggregated_results = aggregate_batch_results_with_llm(batch_results, model_name="gpt-4o")
     # Save results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
