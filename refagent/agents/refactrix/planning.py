@@ -27,7 +27,8 @@ class PlanningStep(BaseModel):
     refactoring_type: sup_ref.SupportedRefactorings = Field(
         description="The type of change that is needed. "
         "Please refer to the Fowler catalog of refactorings and pick one.")
-    file_path: str = Field(description="The path to the source code where the change should be applied.")
+    file_path: str = Field(description="The path to the source code where the "
+                                       "refactoring operation should be triggered.")
 
 
 

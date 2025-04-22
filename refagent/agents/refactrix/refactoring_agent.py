@@ -46,6 +46,7 @@ class Agent(BaseModel):
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
     _files_changed: set[Path] = PrivateAttr(default=set())
+    _directly_edited_files: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
     _rel_file_path: str = PrivateAttr(default="")
     _tools: dict[str, BaseTool] = PrivateAttr(default=[])
@@ -100,13 +101,15 @@ class Agent(BaseModel):
             else:
                 raise Exception("Failed to open file and did not create one either.")
         self._rel_file_path = rel_file_path
+        self._directly_edited_files.add(Path(rel_file_path))
 
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
         self._source_code = starting_file  # TODO: Read the starting file
         self._iterations = 0
-        self._files_changed.add(Path(starting_file)) # assuming the file will be changed.
+        self._files_changed.add(Path(starting_file))
+        self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
 
         model = self.create_model()
         # tool_calling_model = self.create_model(model_name_="grazie:openai-gpt-4o-mini")
@@ -119,10 +122,36 @@ class Agent(BaseModel):
         )
         ref_plan = planning_component.run()
         self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
-        last_file_opened = None
 
+        final_state = self.execute_plan(initial_intent, model, ref_plan)
+
+        self.update_changed_files()
+
+        # Run replication component
+        replicator = replication.Replication(
+            model=model,
+            executed_plan=ref_plan,
+            ide_server=self.ide_server,
+            initial_intent=initial_intent,
+            edited_files=list(self._files_changed),
+            project=self.project
+        )
+        for plan in replicator.compile_and_run():
+            self.execute_plan(initial_intent, model, plan)
+            self.update_changed_files()
+
+        # Run error-fixing component
+        error_fixing.ErrorFixing(
+            model=model,
+            ide_server=self.ide_server
+        ).compile_and_run()
+
+        return final_state["messages"][-1].content
+
+    def execute_plan(self, initial_intent, model, ref_plan):
+        last_file_opened = None
         for i, step in enumerate(ref_plan.steps):
-            print(f"Executing step {i+1}/{len(ref_plan.steps)} in plan.")
+            print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
             self._iterations = 0
             if step.file_path != last_file_opened:
                 self.try_open_file(step.file_path)
@@ -144,23 +173,11 @@ class Agent(BaseModel):
             )
             self._trajectory += final_state['messages']
             print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
+        return final_state
 
-        self.update_changed_files()
-
-        # Run replication component
-        replication.Replication(
-            model=model,
-            executed_plan=ref_plan,
-            ide_server=self.ide_server
-        ).compile_and_run()
-
-        # Run error-fixing component
-        error_fixing.ErrorFixing(
-            model=model,
-            ide_server=self.ide_server
-        ).compile_and_run()
-
-        return final_state["messages"][-1].content
+    def compute_most_important(self, file_changed):
+        # Compute the relevant files that were changed.
+        return list(self._directly_edited_files)
 
     def get_changed_file_contents(self) -> HumanMessage:
         self.ide_server.call_tool('save_all_changes')
@@ -171,7 +188,9 @@ class Agent(BaseModel):
         file_in_same_root = [i for i in self._files_changed if
                              str(Path(self._rel_file_path).parent) in str(i)]
         self.project.safe_add(self._files_changed)
-        for rel_file_path in file_in_same_root:
+
+        important_files = self.compute_most_important(self._files_changed)
+        for rel_file_path in important_files:
             try:
                 file_contents = self.project.get_file_contents(rel_file_path)
                 source = code_utils.add_line_numbers(
