@@ -49,6 +49,7 @@ class PlanningComponent(Planner):
     model: BaseChatModel = Field(description="model to use to generate the plan")
     source_file_path: str = Field(description="the file path to the starting source code.")
     source_code: str = Field(description="source code to work with")
+    detail_steps: bool = Field(description="detail the execution steps", default=True)
     _ref_plan: Optional[RefactoringPlan] = PrivateAttr(default=None)
     _generation_count: int = PrivateAttr(default=0)
     _tools: dict[str, BaseTool] = PrivateAttr(default=tools.RefactoringToolProvider(ide_server=None).get())
@@ -87,12 +88,15 @@ class PlanningComponent(Planner):
             )
             self._ref_plan = parser.invoke(response)
             messages_ret = []
-            if self._generation_count !=1:
+            if self._generation_count !=1 or not self.detail_steps:
                 messages_ret += [response]
 
             return {'messages': messages_ret}
 
         def detail_plan_steps(messages: MessagesState):
+            if not self.detail_steps:
+                return # don't detail the steps.
+
             parser = PydanticOutputParser(pydantic_object=PlanningStep)
 
             for i, cur_step in enumerate(self._ref_plan.steps):

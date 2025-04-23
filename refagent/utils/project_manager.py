@@ -179,3 +179,6 @@ class EvalProject:
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'diff', file_path], capture_output=True, text=True, check=True)
         return result.stdout
+
+    def file_exists(self, file_path: str) -> bool:
+        return os.path.exists(self.get_project_path().joinpath(file_path))

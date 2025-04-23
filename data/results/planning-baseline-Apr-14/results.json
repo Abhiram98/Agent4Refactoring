@@ -196,62 +196,6 @@
         }
     },
     {
-        "id": 4,
-        "response": {
-            "steps": [
-                {
-                    "reason": "To clarify the purpose of the class, we rename it to reflect that it deals with subpartitions.",
-                    "final_code": "public class SubpartitionSortBufferAccumulator implements BufferAccumulator {",
-                    "execution_details": "Rename occurrences of 'SortBufferAccumulator' to 'SubpartitionSortBufferAccumulator' throughout the class. This includes the class declaration, constructor, and any references to this class in other classes or methods. Ensure that the new name is consistent across the entire codebase to avoid any compilation errors.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
-                },
-                {
-                    "reason": "To maintain consistency in terminology, we rename the variable that holds the number of subpartitions to better reflect its purpose.",
-                    "final_code": "private final int numberOfSubpartitions;",
-                    "execution_details": "Rename the variable 'numSubpartitions' to 'numberOfSubpartitions' throughout the class. This includes updating the constructor, any method parameters, and all references to this variable within the class. Ensure that the new name is consistent across the entire codebase to avoid any compilation errors. Use the rename API to replace occurrences: `rename(old_name='numSubpartitions', new_name='numberOfSubpartitions')`.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
-                },
-                {
-                    "reason": "To clarify the purpose of the method, we rename the parameter to reflect that it represents the ID of a subpartition.",
-                    "final_code": "public void receive(ByteBuffer record, TieredStorageSubpartitionId targetSubpartitionId, Buffer.DataType dataType, boolean isBroadcast) throws IOException {",
-                    "execution_details": "Rename the parameter 'subpartitionId' to 'targetSubpartitionId' within the method 'receive'. This change should be applied to all occurrences of this parameter within the method's scope. Use the rename API to replace occurrences: `rename(old_name='subpartitionId', new_name='targetSubpartitionId')`.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
-                },
-                {
-                    "reason": "To clarify the purpose of the variable, we rename it to better reflect that it represents the ID of a target subpartition.",
-                    "final_code": "int targetSubpartitionId = subpartitionId.getSubpartitionId();",
-                    "execution_details": "Rename the variable 'targetSubpartition' to 'targetSubpartitionId' within the method 'receive'. This change should be applied to all occurrences of this variable within the method's scope. Use the rename API to replace occurrences: `rename(old_name='targetSubpartition', new_name='targetSubpartitionId', line_num=XX)` where XX is the line number of the variable declaration.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
-                },
-                {
-                    "reason": "To clarify the purpose of the method, we rename the method to reflect that it specifically flushes buffers associated with subpartitions.",
-                    "final_code": "private void flushSubpartitionBuffer(BufferWithSubpartition bufferWithSubpartition) {",
-                    "execution_details": "Rename the method 'flushBuffer' to 'flushSubpartitionBuffer'. This change should be applied to all occurrences of this method within the class. Use the rename API to replace occurrences: `rename(old_name='flushBuffer', new_name='flushSubpartitionBuffer')`.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
-                },
-                {
-                    "reason": "To clarify the purpose of the method, we rename the method to reflect that it specifically handles the writing of large records to a subpartition.",
-                    "final_code": "private void writeLargeRecordToSubpartition(ByteBuffer record, int subpartitionId, Buffer.DataType dataType) {",
-                    "execution_details": "Rename the method 'writeLargeRecord' to 'writeLargeRecordToSubpartition'. This change should be applied to all occurrences of this method within the class. Use the rename API to replace occurrences: `rename(old_name='writeLargeRecord', new_name='writeLargeRecordToSubpartition', line_num=XX)` where XX is the line number of the method declaration.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
-                },
-                {
-                    "reason": "To clarify the purpose of the method, we rename the method to reflect that it creates a new data buffer for subpartitions.",
-                    "final_code": "private DataBuffer createNewSubpartitionDataBuffer() {",
-                    "execution_details": "Rename the method 'createNewDataBuffer' to 'createNewSubpartitionDataBuffer'. This change should be applied to all occurrences of this method within the class. Use the rename API to replace occurrences: `rename(old_name='createNewDataBuffer', new_name='createNewSubpartitionDataBuffer', line_num=XX)` where XX is the line number of the method declaration.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
-                }
-            ]
-        }
-    },
-    {
         "id": 8,
         "response": {
             "steps": [
@@ -450,6 +394,20 @@
                     "execution_details": "Extract the fields and methods related to serializers and types management from ExecutionConfig into SerializerConfig. The following members should be extracted: registeredTypesWithKryoSerializers, registeredTypesWithKryoSerializerClasses, defaultKryoSerializers, defaultKryoSerializerClasses, registeredKryoTypes, registeredPojoTypes. The new class will be named SerializerConfig, and the updated ExecutionConfig will maintain a reference to an instance of SerializerConfig.",
                     "refactoring_type": "extract_class",
                     "file_path": "flink-core/src/main/java/org/apache/flink/api/common/ExecutionConfig.java"
+                }
+            ]
+        }
+    },
+    {
+        "id": 4,
+        "response": {
+            "steps": [
+                {
+                    "reason": "To improve clarity and maintainability of the code by using a more appropriate term.",
+                    "final_code": "public class SortBufferAccumulator implements BufferAccumulator {\n    /** The number of the subpartitions. */\n    private final int numSubpartitions;\n    /** The total number of the buffers used by the {@link SortBufferAccumulator}. */\n    private final int numBuffers;\n    /** The byte size of one single buffer. */\n    private final int bufferSizeBytes;\n    /** The empty buffers without storing data. */\n    private final LinkedList<MemorySegment> freeSegments = new LinkedList<>();\n    /** The memory manager of the tiered storage. */\n    private final TieredStorageMemoryManager memoryManager;\n    @Nullable private DataBuffer currentDataBuffer;\n    @Nullable private BufferRecycler bufferRecycler;\n    @Nullable private BiConsumer<TieredStorageSubpartitionId, List<Buffer>> accumulatedBufferFlusher;\n    private boolean isBroadcastDataBuffer;\n    public SortBufferAccumulator(\n            int numSubpartitions,\n            int numBuffers,\n            int bufferSizeBytes,\n            TieredStorageMemoryManager memoryManager) {\n        this.numSubpartitions = numSubpartitions;\n        this.bufferSizeBytes = bufferSizeBytes;\n        this.numBuffers = numBuffers;\n        this.memoryManager = memoryManager;\n    }\n    @Override\n    public void setup(BiConsumer<TieredStorageSubpartitionId, List<Buffer>> bufferFlusher) {\n        this.accumulatedBufferFlusher = bufferFlusher;\n    }\n    @Override\n    public void receive(\n            ByteBuffer record,\n            TieredStorageSubpartitionId subpartitionId,\n            Buffer.DataType dataType,\n            boolean isBroadcast)\n            throws IOException {\n        int targetSubpartition = subpartitionId.getSubpartitionId();\n        switchCurrentDataBufferIfNeeded(isBroadcast);\n        if (!checkNotNull(currentDataBuffer).append(record, targetSubpartition, dataType)) {\n            return;\n        }\n        if (!currentDataBuffer.hasRemaining()) {\n            currentDataBuffer.release();\n            writeLargeRecord(record, targetSubpartition, dataType);\n            return;\n        }\n        flushDataBuffer();\n        checkState(record.hasRemaining(), \"Empty record.\");\n        receive(record, subpartitionId, dataType, isBroadcast);\n    }\n    @Override\n    public void close() {\n        flushCurrentDataBuffer();\n        releaseFreeBuffers();\n        if (currentDataBuffer != null) {\n            currentDataBuffer.release();\n        }\n    }\n    private void switchCurrentDataBufferIfNeeded(boolean isBroadcast) {\n        if (isBroadcast == isBroadcastDataBuffer\n                && currentDataBuffer != null\n                && !currentDataBuffer.isReleased()\n                && !currentDataBuffer.isFinished()) {\n            return;\n        }\n        isBroadcastDataBuffer = isBroadcast;\n        flushCurrentDataBuffer();\n        currentDataBuffer = createNewDataBuffer();\n    }\n    private DataBuffer createNewDataBuffer() {\n        requestBuffers();\n        int numBuffersForSort = freeSegments.size() / 2;\n        return new TieredStorageSortBuffer(\n                freeSegments,\n                this::recycleBuffer,\n                numSubpartitions,\n                bufferSizeBytes,\n                numBuffersForSort);\n    }\n    private void requestBuffers() {\n        while (freeSegments.size() < numBuffers) {\n            Buffer buffer = requestBuffer();\n            freeSegments.add(checkNotNull(buffer).getMemorySegment());\n            if (bufferRecycler == null) {\n                bufferRecycler = buffer.getRecycler();\n            }\n        }\n    }\n    private void flushDataBuffer() {\n        if (currentDataBuffer == null || currentDataBuffer.isReleased() || !currentDataBuffer.hasRemaining()) {\n            return;\n        }\n        currentDataBuffer.finish();\n        do {\n            MemorySegment freeSegment = getFreeSegment();\n            BufferWithChannel bufferWithChannel = currentDataBuffer.getNextBuffer(freeSegment);\n            if (bufferWithChannel == null) {\n                break;\n            }\n            flushBuffer(bufferWithChannel);\n        } while (true);\n        releaseFreeBuffers();\n        currentDataBuffer.release();\n    }\n    private void flushCurrentDataBuffer() {\n        if (currentDataBuffer != null) {\n            flushDataBuffer();\n            currentDataBuffer = null;\n        }\n    }\n    private void writeLargeRecord(ByteBuffer record, int subpartitionId, Buffer.DataType dataType) {\n        checkState(dataType != Buffer.DataType.EVENT_BUFFER);\n        while (record.hasRemaining()) {\n            int toCopy = Math.min(record.remaining(), bufferSizeBytes);\n            MemorySegment writeBuffer = requestBuffer().getMemorySegment();\n            writeBuffer.put(0, record, toCopy);\n            flushBuffer(\n                    new BufferWithChannel(\n                            new NetworkBuffer(\n                                    writeBuffer, checkNotNull(bufferRecycler), dataType, toCopy),\n                            subpartitionId));\n        }\n        releaseFreeBuffers();\n    }\n    private MemorySegment getFreeSegment() {\n        MemorySegment freeSegment = freeSegments.poll();\n        if (freeSegment == null) {\n            freeSegment = requestBuffer().getMemorySegment();\n        }\n        return freeSegment;\n    }\n    private void flushBuffer(BufferWithChannel bufferWithChannel) {\n        checkNotNull(accumulatedBufferFlusher)\n                .accept(\n                        new TieredStorageSubpartitionId(bufferWithChannel.getChannelIndex()),\n                        Collections.singletonList(bufferWithChannel.getBuffer()));\n    }\n    private Buffer requestBuffer() {\n        BufferBuilder bufferBuilder = memoryManager.requestBufferBlocking(this);\n        BufferConsumer bufferConsumer = bufferBuilder.createBufferConsumerFromBeginning();\n        Buffer buffer = bufferConsumer.build();\n        bufferBuilder.close();\n        bufferConsumer.close();\n        return buffer;\n    }\n    private void releaseFreeBuffers() {\n        freeSegments.forEach(this::recycleBuffer);\n        freeSegments.clear();\n    }\n    private void recycleBuffer(MemorySegment memorySegment) {\n        checkNotNull(bufferRecycler).recycle(memorySegment);\n    }\n}",
+                    "execution_details": "Rename the class 'SortBufferAccumulator' to 'SubpartitionBufferAccumulator' and all instances of 'channel' to 'subpartition' in the class and its methods. Update all references to this class in related files to ensure consistency.",
+                    "refactoring_type": "rename",
+                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
                 }
             ]
         }

@@ -39,15 +39,19 @@ class Replication(BaseModel):
         files_to_inspect += self.get_linked_files(most_edited_file)
         inspected_files = []
 
-        for file in files_to_inspect:
+        for i, file in enumerate(files_to_inspect):
+            print(f"attempting to replicate change to {file}. ({i+1}/{len(files_to_inspect)})")
             if file in inspected_files:
                 print(f"Skipping the replication to {file} "
                       f"as it was previously done.")
                 continue
+            if not self.project.file_exists(file):
+                print("skipping because file does not exist.")
             # compile and run graph
             inspected_files.append(file)
             ask_replicate = self.compile(file)
             should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
+            print(should_replicate.content)
 
             if 'YES' in should_replicate.content: # should replicate the content
                 plan = planning.PlanningComponent(
@@ -55,7 +59,9 @@ class Replication(BaseModel):
                     model=self.model,
                     source_file_path=file,
                     source_code=self.project.get_file_contents(file),
-                    project=self.project
+                    project=self.project,
+                    detail_steps=False # don't waste extra time detailing the steps.
+                    # The examples are already good enough to do the job.
                 ).run()
                 yield plan
 
@@ -76,7 +82,10 @@ class Replication(BaseModel):
         """Compile the langgraph."""
 
         def ask_replicate(state: MessagesState):
-            file_contents = self.project.get_file_contents(file_to_inspect)
+            try:
+                file_contents = self.project.get_file_contents(file_to_inspect)
+            except FileNotFoundError:
+                return {'messages': AIMessage("File not found. cannot replicate here.")}
             examples = '\n'.join([i.execution_details for i in self.executed_plan.steps])
             response = self.model.invoke(
                 [
