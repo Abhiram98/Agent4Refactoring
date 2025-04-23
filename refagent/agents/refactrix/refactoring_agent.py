@@ -134,7 +134,8 @@ class Agent(BaseModel):
             ide_server=self.ide_server,
             initial_intent=initial_intent,
             edited_files=list(self._files_changed),
-            project=self.project
+            project=self.project,
+            starting_file=starting_file
         )
         for plan in replicator.compile_and_run():
             self.execute_plan(initial_intent, model, plan)

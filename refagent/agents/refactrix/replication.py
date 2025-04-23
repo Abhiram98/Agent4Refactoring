@@ -3,7 +3,7 @@ import json
 from pydantic.v1 import BaseModel, Field, PrivateAttr
 from langchain_core.language_models import BaseChatModel
 from typing import List, Iterable
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from pathlib import Path
 import os
@@ -21,6 +21,7 @@ class Replication(BaseModel):
     initial_intent: str = Field(description="Intent from the developer")
     ide_server: ij.IntellijServer = Field(description="intellij server to interract with")
     executed_plan: planning.RefactoringPlan = Field(description="executed plan that needs replication")
+    starting_file: str = Field(description="The first file that was edited.")
 
     class Config:
         arbitrary_types_allowed = True
@@ -39,6 +40,13 @@ class Replication(BaseModel):
         files_to_inspect += self.get_linked_files(most_edited_file)
         inspected_files = []
 
+        should_replicate_msg = self.should_replicate()
+        if not 'YES' in should_replicate_msg.content:
+            # The change does not need replication to other files,
+            # the developer did not ask for it.
+            return []
+
+
         for i, file in enumerate(files_to_inspect):
             print(f"attempting to replicate change to {file}. ({i+1}/{len(files_to_inspect)})")
             if file in inspected_files:
@@ -50,7 +58,7 @@ class Replication(BaseModel):
             # compile and run graph
             inspected_files.append(file)
             ask_replicate = self.compile(file)
-            should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
+            should_replicate = ask_replicate.invoke({"messages": [should_replicate_msg]})['messages'][-1]
             print(should_replicate.content)
 
             if 'YES' in should_replicate.content: # should replicate the content
@@ -77,6 +85,26 @@ class Replication(BaseModel):
         unique_files = [i for i in set(linked_files) if i.endswith('.java')]
         return unique_files
 
+    def should_replicate(self) -> BaseMessage:
+
+        file_contents = self.project.get_file_contents(self.starting_file)
+
+        response = self.model.invoke(
+            [
+                SystemMessage("You are an expert developer who decides whether a "
+                              "refactoring needs to be replicated in other files "
+                              "for the sake of consistency, based on a user's request. "),
+                HumanMessage(f"Here are the contents of the file: {file_contents}"),
+                HumanMessage(f"Here was the request from the user: {self.initial_intent}"),
+                HumanMessage("Answer the following question: "
+                             f"Should this change be carried out in other files? Or is the current state of the file "
+                             f"sufficient to complete the user's request?"
+                             f"Then, add a YES/NO at the end of your reply,"
+                             f" indicating whether to "
+                             f"replicate the refactoring concept to other files.")
+            ]
+        )
+        return response
 
     def compile(self, file_to_inspect: str):
         """Compile the langgraph."""
@@ -88,6 +116,7 @@ class Replication(BaseModel):
                 return {'messages': AIMessage("File not found. cannot replicate here.")}
             examples = '\n'.join([i.execution_details for i in self.executed_plan.steps])
             response = self.model.invoke(
+                state['messages'] +
                 [
                     SystemMessage("You are an expert developer who decides whether a "
                                   "refactoring needs to be replicated in a certain file, "
@@ -96,7 +125,7 @@ class Replication(BaseModel):
                     HumanMessage(f"Here are some intent that need to be "
                                  f"replicated: {self.initial_intent}"
                                  f"Here are the EXACT kinds of refactorings that "
-                                 f"need to be replicated:\n"
+                                 f"need to be replicated. These refactorings were already performed:\n"
                                  f"{examples}"),
                     HumanMessage("Answer the following question: "
                                  f"Are there any code elements in {file_to_inspect}, "
