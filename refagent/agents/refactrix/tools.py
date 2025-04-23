@@ -51,7 +51,9 @@ class RefactoringToolProvider(BaseModel):
                                   ):
             """Replace the entire contents of the chosen file with the newly provided contents,
                  overwriting any existing data."""
-            return self.ide_server.call_tool("replace_file_contents", file_path=file_path, new_content=new_content)
+            response = self.ide_server.call_tool("replace_file_contents", file_path=file_path, new_content=new_content)
+            self.ide_server.call_tool('run_code_inspection')
+            return response
 
 
         @tool

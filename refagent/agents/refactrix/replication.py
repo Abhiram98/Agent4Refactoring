@@ -11,6 +11,7 @@ import os
 import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
+import refagent.agents.refactrix.supported_refactorings as sup_ref
 
 class Replication(BaseModel):
 
@@ -41,7 +42,7 @@ class Replication(BaseModel):
         inspected_files = []
 
         should_replicate_msg = self.should_replicate()
-        if not 'YES' in should_replicate_msg.content:
+        if not should_replicate_msg:
             # The change does not need replication to other files,
             # the developer did not ask for it.
             return []
@@ -58,7 +59,7 @@ class Replication(BaseModel):
             # compile and run graph
             inspected_files.append(file)
             ask_replicate = self.compile(file)
-            should_replicate = ask_replicate.invoke({"messages": [should_replicate_msg]})['messages'][-1]
+            should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
             print(should_replicate.content)
 
             if 'YES' in should_replicate.content: # should replicate the content
@@ -85,26 +86,30 @@ class Replication(BaseModel):
         unique_files = [i for i in set(linked_files) if i.endswith('.java')]
         return unique_files
 
-    def should_replicate(self) -> BaseMessage:
+    def should_replicate(self) -> bool:
+        executed_types = [i.refactoring_type for i in self.executed_plan.steps]
+        if sup_ref.SupportedRefactorings.RENAME in executed_types:
+            return True # Only replicate renames for now.
+        return False
 
-        file_contents = self.project.get_file_contents(self.starting_file)
-
-        response = self.model.invoke(
-            [
-                SystemMessage("You are an expert developer who decides whether a "
-                              "refactoring needs to be replicated in other files "
-                              "for the sake of consistency, based on a user's request. "),
-                HumanMessage(f"Here are the contents of the file: {file_contents}"),
-                HumanMessage(f"Here was the request from the user: {self.initial_intent}"),
-                HumanMessage("Answer the following question: "
-                             f"Should this change be carried out in other files? Or is the current state of the file "
-                             f"sufficient to complete the user's request?"
-                             f"Then, add a YES/NO at the end of your reply,"
-                             f" indicating whether to "
-                             f"replicate the refactoring concept to other files.")
-            ]
-        )
-        return response
+        # file_contents = self.project.get_file_contents(self.starting_file)
+        #
+        # response = self.model.invoke(
+        #     [
+        #         SystemMessage("You are an expert developer who decides whether a "
+        #                       "refactoring needs to be replicated in other files "
+        #                       "for the sake of consistency, based on a user's request. "),
+        #         HumanMessage(f"Here are the contents of the file: {file_contents}"),
+        #         HumanMessage(f"Here was the request from the user: {self.initial_intent}"),
+        #         HumanMessage("Answer the following question: "
+        #                      f"Should this change be carried out in other files? Or is the current state of the file "
+        #                      f"sufficient to complete the user's request?"
+        #                      f"Then, add a YES/NO at the end of your reply,"
+        #                      f" indicating whether to "
+        #                      f"replicate the refactoring concept to other files.")
+        #     ]
+        # )
+        # return response
 
     def compile(self, file_to_inspect: str):
         """Compile the langgraph."""
