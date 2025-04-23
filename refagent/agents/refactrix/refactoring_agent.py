@@ -123,8 +123,7 @@ class Agent(BaseModel):
         ref_plan = planning_component.run()
         self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
-        final_state = self.execute_plan(initial_intent, model, ref_plan)
-
+        final_state = self.execute_initial_plan(initial_intent, model, ref_plan)
         self.update_changed_files()
 
         # Run replication component
@@ -148,6 +147,10 @@ class Agent(BaseModel):
         ).compile_and_run()
 
         return final_state["messages"][-1].content
+
+    def execute_initial_plan(self, initial_intent, model, ref_plan):
+        final_state = self.execute_plan(initial_intent, model, ref_plan)
+        return final_state
 
     def execute_plan(self, initial_intent, model, ref_plan):
         last_file_opened = None
@@ -244,6 +247,7 @@ class Agent(BaseModel):
         if self.current_file_empty():
             # Supply file rewrite when it is empty
             print("supplying file replace tool")
+            self._directly_edited_files.add(Path(self._rel_file_path))
             return [self._tools.get('replace_file_contents')]
 
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:

@@ -39,6 +39,7 @@ class Replication(BaseModel):
         most_edited_file = files_to_inspect[0]
         # files_to_inspect += self.get_files_in_package(most_edited_file)
         files_to_inspect += self.get_linked_files(most_edited_file)
+        files_to_inspect_sorted = sorted(files_to_inspect, key=lambda x: 'Test' in x)
         inspected_files = []
 
         should_replicate_msg = self.should_replicate()
@@ -48,8 +49,8 @@ class Replication(BaseModel):
             return []
 
 
-        for i, file in enumerate(files_to_inspect):
-            print(f"attempting to replicate change to {file}. ({i+1}/{len(files_to_inspect)})")
+        for i, file in enumerate(files_to_inspect_sorted):
+            print(f"attempting to replicate change to {file}. ({i+1}/{len(files_to_inspect_sorted)})")
             if file in inspected_files:
                 print(f"Skipping the replication to {file} "
                       f"as it was previously done.")
