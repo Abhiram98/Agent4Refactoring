@@ -23,6 +23,7 @@ class SupportedRefactorings(Enum):
     PULL_UP = "pull_up"
     TYPE_CHANGE = "type_change"
     CHANGE_SIGNATURE = "change_method_signature"
+    EXTRACT_FIELD = "extract_field"
     UNSUPPORTED = "not_supported"
 
 
@@ -38,6 +39,9 @@ documentation = {
     SupportedRefactorings.PULL_UP: "pull up a member of a class (method/field) into its super class/interface.",
     SupportedRefactorings.TYPE_CHANGE: "Change the type of a program element (variable, field, parameter)",
     SupportedRefactorings.CHANGE_SIGNATURE: "Change the signature of a method - "
-                                            "add a parameter, delete a parameter, change return type",
+                                            "add a parameter, delete a parameter, change parameter type, "
+                                            "change return type",
+    SupportedRefactorings.EXTRACT_FIELD: "Extract a field from a method's local variable/ literal expression. "
+                                         "Use this refactoring to generate a class's field out of existing code",
     SupportedRefactorings.UNSUPPORTED: "Cannot classify the refactoring into on of the other types."
 }

@@ -114,13 +114,7 @@ class Agent(BaseModel):
         model = self.create_model()
         # tool_calling_model = self.create_model(model_name_="grazie:openai-gpt-4o-mini")
 
-        planning_component = self.plan_component(
-            initial_intent=initial_intent,
-            model=model,
-            source_code=self._source_code,
-            source_file_path=starting_file
-        )
-        ref_plan = planning_component.run()
+        ref_plan = self.generate_initial_plan(initial_intent, model, starting_file)
         self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
         final_state = self.execute_initial_plan(initial_intent, model, ref_plan)
@@ -147,6 +141,16 @@ class Agent(BaseModel):
         ).compile_and_run()
 
         return final_state["messages"][-1].content
+
+    def generate_initial_plan(self, initial_intent, model, starting_file):
+        planning_component = self.plan_component(
+            initial_intent=initial_intent,
+            model=model,
+            source_code=self._source_code,
+            source_file_path=starting_file
+        )
+        ref_plan = planning_component.run()
+        return ref_plan
 
     def execute_initial_plan(self, initial_intent, model, ref_plan):
         final_state = self.execute_plan(initial_intent, model, ref_plan)

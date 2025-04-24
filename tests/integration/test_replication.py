@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Sequence, Union, Dict, Any, Type, Callable
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
+import langsmith as ls
+
 
 import refagent.agents.refactrix.refactoring_agent as ra
 import refagent
@@ -50,7 +52,7 @@ def test_flink_5(mocker):
     ]
     )
 
-    planning_patch = mocker.patch('refagent.agents.refactrix.planning.PlanningComponent.run')
+    planning_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan')
     planning_patch.return_value = plan
 
     execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
@@ -65,10 +67,12 @@ def test_flink_5(mocker):
     server.open_file(rel_file_path)
 
     # create agent
-    agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
-    output = agent.run(initial_intent="Modify subpartitionIndex to subpartitionIndexSet (start to end index). "
-                                      "Encapsulate int in special object which contains "
-                                      "start and end index information.",
+    with ls.trace(name=f"refactoring agent test - test_replication:test_flink_5",
+                  tags=["test"]) as tracer:
+        agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
+        output = agent.run(initial_intent="Modify subpartitionIndex to subpartitionIndexSet (start to end index). "
+                                          "Encapsulate int in special object which contains "
+                                          "start and end index information.",
                        starting_file=str(rel_file_path))
     print(output)
 

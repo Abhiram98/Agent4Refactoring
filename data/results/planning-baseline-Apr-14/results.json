@@ -203,7 +203,7 @@
                     "reason": "To reduce the use of magic strings for restart strategy types, we will define constants for each strategy type, improving maintainability and readability.",
                     "final_code": "public static final String RESTART_STRATEGY_NONE = \"none\";\npublic static final String RESTART_STRATEGY_FIXED_DELAY = \"fixed-delay\";\npublic static final String RESTART_STRATEGY_EXPONENTIAL_DELAY = \"exponential-delay\";\npublic static final String RESTART_STRATEGY_FAILURE_RATE = \"failure-rate\";",
                     "execution_details": "Extract the string literals for restart strategy types from the existing code in the `parseConfiguration` method (lines 150-180) into a new method named `getRestartStrategyConstants`. This method will return a Map<String, String> containing the constants. Replace the string literals in the `parseConfiguration` method with calls to this new method.",
-                    "refactoring_type": "extract_method",
+                    "refactoring_type": "extract_field",
                     "file_path": "flink-core/src/main/java/org/apache/flink/api/common/restartstrategy/RestartStrategies.java"
                 },
                 {
