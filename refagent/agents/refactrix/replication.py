@@ -135,7 +135,7 @@ class Replication(BaseModel):
                                  f"{examples}"),
                     HumanMessage("Answer the following question: "
                                  f"Are there any code elements in {file_to_inspect}, "
-                                 f"that could use a similar change? "
+                                 f"that could this exact change? "
                                  f"Then, add a YES/NO at the end of your reply,"
                                  f" indicating whether to "
                                  f"replicate the refactoring concept in this file.")

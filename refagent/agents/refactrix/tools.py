@@ -184,8 +184,48 @@ class RefactoringToolProvider(BaseModel):
                 target_class=target_class
             )
 
+        @tool
+        def extract_field(
+                field_name: Annotated[str, "The name of the newly created field"],
+                make_static: Annotated[bool, "Whether to make the field static?"],
+                expression: Annotated[str, "The expression from which"],
+                line_num: Annotated[int, "The line number to find the expression at"]
+        ):
+            """
+            Extracts a field from the given expression.
+            """
+            if expression.isidentifier():
+                return self.ide_server.call_tool(
+                    "extract_field",
+                    new_field_name=field_name,
+                    variable_name=expression,
+                    line_num=line_num,
+                    make_static=make_static
+                )
+            else:
+                return self.ide_server.call_tool(
+                    "extract_field_from_literal",
+                    new_field_name=field_name,
+                    line_num=line_num,
+                    literal_value=expression,
+                    make_static=make_static
+                )
+
+        def type_change(
+                variable_name: Annotated[str, "The variable who's type needs to change"],
+                new_type: Annotated[str, "The new type for the variable"],
+                line_num: Annotated[Optional[int], "A line number to identify the variable at"]
+        ):
+            return self.ide_server.call_tool(
+                "type_change",
+                variable_name=variable_name,
+                new_type=new_type,
+                line_num=line_num
+            )
+
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
                                      change_method_signature, introduce_parameter_object, move_method,
+                                     extract_field, type_change,
                                      replace_file_contents, replace_method_contents]
 
         return {i.name: i for i in all_tools}

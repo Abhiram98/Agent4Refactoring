@@ -62,6 +62,7 @@ class PlanningComponent(Planner):
     @property
     def generation_system_message(self) -> SystemMessage:
         parser = PydanticOutputParser(pydantic_object=RefactoringPlan)
+        documentation_str = "\n".join([f"{k.value}: {v}" for k,v in sup_ref.documentation.items()])
 
         return SystemMessage( "You are an expert developer using a powerful IDE IntelliJ IDEA, "
                               "capable of performing refactorng."
@@ -72,7 +73,7 @@ class PlanningComponent(Planner):
                               f"Make sure that your plan is actionable on the given code. "
                               f"Do not include generic steps in this plan. "
                               f"{parser.get_format_instructions()}"
-                              f"Here is some documentation for each refactoring type: {sup_ref.documentation}")
+                              f"Here is some documentation for each refactoring type: {documentation_str}")
 
 
     def try_parsing(self, response: BaseMessage) -> Optional[PlanningStep]:

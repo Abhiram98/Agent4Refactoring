@@ -244,7 +244,6 @@ class Agent(BaseModel):
             sup_refs.SupportedRefactorings.EXTRACT_CLASS:
                 [self._tools[sup_refs.SupportedRefactorings.EXTRACT_CLASS.value],
                  self._tools['introduce_parameter_object']],
-            sup_refs.SupportedRefactorings.TYPE_CHANGE: [self._tools['change_method_signature']],
             sup_refs.SupportedRefactorings.MOVE: [self._tools['move_method']]
         }
 
@@ -293,12 +292,13 @@ class Agent(BaseModel):
         def select_refactoring(state: MessagesState):
             """First LLM call to generate refactoring ideas"""
             self.update_source_code()
-            # if self._iterations >= 5:  # stop after 3 _iterations
-            #     return
-            # llm_with_tools = model.bind_tools([
-            #     choose_refactoring
-            # ])
-            # extra_message = "" if self._iterations == 0 else "Here's the modified source code: \n"
+            if self._iterations == 0:
+                # return the pre-selected refactoring type.
+                self._selected_refactoring = SelectedRefactoring(
+                    reason=plan_step.reason,
+                    refactoring_type=plan_step.refactoring_type)
+                self._iterations += 1
+                return {'messages': [AIMessage(f"{plan_step.reason}. {plan_step.refactoring_type.value}")]}
             parser = PydanticOutputParser(pydantic_object=SelectedRefactoring)
             new_messages = state['messages'] + [
                 self.get_changed_file_contents(),
