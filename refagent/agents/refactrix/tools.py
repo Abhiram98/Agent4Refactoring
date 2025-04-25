@@ -216,6 +216,8 @@ class RefactoringToolProvider(BaseModel):
                 new_type: Annotated[str, "The new type for the variable"],
                 line_num: Annotated[Optional[int], "A line number to identify the variable at"]
         ):
+            """Change the type of a program element to a new type.
+            E.g. change the type of a variable, parameter, field"""
             return self.ide_server.call_tool(
                 "type_change",
                 variable_name=variable_name,
