@@ -13,7 +13,7 @@ import refagent.utils.intellij_server as ij
 
 class PerformRefactoring(BaseModel):
     tools: List = Field(description="refactoring tools that are available") # TODO: Type annotate with tool type.
-    retry_count: int = Field(description="how many times to allow the LLM to retry", default=3)
+    retry_count: int = Field(description="how many times to allow the LLM to retry", default=2)
     model: BaseChatModel = Field(description="Langchain Chat model")
     reason: str = Field(description="Reason to perform the refactoring. Usually provided by the LM.")
     refactoring_type: sup_ref.SupportedRefactorings = Field(description="The type of refactoring to be performed.")
@@ -21,6 +21,7 @@ class PerformRefactoring(BaseModel):
     ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
     _file_open_status: bool = PrivateAttr(default=False)
     _active_tool_call: str = PrivateAttr(default="")
+    _tool_call_status: dict = PrivateAttr(default={})
 
     def compile(self) -> CompiledGraph:
 
@@ -60,7 +61,12 @@ class PerformRefactoring(BaseModel):
             print("Successfully performed the following refactoring -> "
                   f"{self._active_tool_call}")
             success_msg = state['messages'][-1].content
-            final_message = "Successfully performed the refactoring."
+
+            tool_call_status = str(self._active_tool_call)
+            if 'replace_file_contents' in str(self._active_tool_call):
+                tool_call_status = "replaced file contents."
+            final_message = ("Successfully performed the refactoring. "
+                             f"{tool_call_status}")
             if success_msg != 'success':
                 final_message += success_msg
             return {'messages': [HumanMessage(final_message)]}
@@ -68,12 +74,14 @@ class PerformRefactoring(BaseModel):
         def failure_handler(state: MessagesState):
             print("Failed to perform the refactoring.")
             return {"messages": [HumanMessage("Cannot perform this refactoring. "
-                                           f"Reason: {state['messages'][-1].content}")]}
+                                              f"{self._active_tool_call}"
+                                              f"Reason: {state['messages'][-1].content}")]}
 
         def retry_condition(state: MessagesState) -> str:
             last_message = state['messages'][-1].content
             # False -> retry
             tool_call_success = 'success' in last_message.lower()  # retry in case tool call fails.
+            self._tool_call_status[self._active_tool_call] = tool_call_success
 
             if tool_call_success:
                 return "success_handler"
@@ -100,7 +108,9 @@ class PerformRefactoring(BaseModel):
                 return True
             return False
 
-        llm_tool_workflow.add_conditional_edges("call_llm", has_tool_call, {True: "tools", False: END})
+        llm_tool_workflow.add_conditional_edges("call_llm",
+                                                has_tool_call,
+                                                {True: "tools", False: END})
         llm_tool = llm_tool_workflow.compile()
 
         workflow = StateGraph(MessagesState)

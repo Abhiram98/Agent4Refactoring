@@ -37,6 +37,10 @@ class Replication(BaseModel):
         """
         files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
         most_edited_file = files_to_inspect[0]
+        # TODO: find edited method names and line numbers.
+        #  Or, if fields are edited, pick out the methods using those fields.
+
+        
         # files_to_inspect += self.get_files_in_package(most_edited_file)
         files_to_inspect += self.get_linked_files(most_edited_file)
         files_to_inspect_sorted = sorted(files_to_inspect, key=lambda x: 'Test' in x)

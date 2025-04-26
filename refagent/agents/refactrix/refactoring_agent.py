@@ -240,7 +240,8 @@ class Agent(BaseModel):
         multi_map = {
             sup_refs.SupportedRefactorings.CHANGE_SIGNATURE:
                 [self._tools[sup_refs.SupportedRefactorings.CHANGE_SIGNATURE.value],
-                 self._tools['introduce_parameter_object']],
+                 self._tools['introduce_parameter_object'],
+                 self._tools.get('replace_method_contents')],
             sup_refs.SupportedRefactorings.EXTRACT_CLASS:
                 [self._tools[sup_refs.SupportedRefactorings.EXTRACT_CLASS.value],
                  self._tools['introduce_parameter_object']],
@@ -363,10 +364,10 @@ class Agent(BaseModel):
                                        f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
                                        f'{self.get_changed_file_contents().content}'
                                        f'Please reflect whether the task is complete, '
-                                       f'by answering the following questions:'
-                                       '1. Has the original ask been met?'
+                                       f'by answering the following questions: '
+                                       '1. Has the original ask been met? '
                                        f'2. Are there other locations within the file {self._rel_file_path} '
-                                       f'where the same change can be applied?'
+                                       f'where the same change can be applied? '
                                        'Finally say whether the task is complete '
                                        'using the word DONE/INCOMPLETE appropriately.')])
             return {'messages': [response]}

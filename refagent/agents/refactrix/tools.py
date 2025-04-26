@@ -64,7 +64,7 @@ class RefactoringToolProvider(BaseModel):
                 line_num: Annotated[Optional[int], "Line number to identify the method at"] = None
         ):
             """Replace the entire contents of the chosen method with the newly provided contents, overwriting
-                any existing data."""
+                any existing data. Make sure to include the method's signature while in `new_content` parameter"""
             return self.ide_server.call_tool("replace_method_contents",
                                              file_path=file_path, method_name=method_name,
                                              new_content=new_content, line_num=line_num)
@@ -211,6 +211,8 @@ class RefactoringToolProvider(BaseModel):
                     make_static=make_static
                 )
 
+
+        @tool
         def type_change(
                 variable_name: Annotated[str, "The variable who's type needs to change"],
                 new_type: Annotated[str, "The new type for the variable"],
