@@ -2,7 +2,7 @@ import json
 
 from pydantic.v1 import BaseModel, Field, PrivateAttr
 from langchain_core.language_models import BaseChatModel
-from typing import List, Iterable
+from typing import List, Iterable, Tuple
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from pathlib import Path
@@ -12,6 +12,11 @@ import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_ref
+
+
+class CodeElement(BaseModel):
+    file_path: str = Field(description="The file that was edited.")
+    line_num: int = Field(description="The line number that was edited.")
 
 class Replication(BaseModel):
 
@@ -35,16 +40,19 @@ class Replication(BaseModel):
                     - Ask if the change can be replicated here.
                     - Invoke planning to replicate changes.
         """
-        files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
-        most_edited_file = files_to_inspect[0]
-        # TODO: find edited method names and line numbers.
-        #  Or, if fields are edited, pick out the methods using those fields.
+        # files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
+        diffs = self.project.get_unstaged_changes()
+        elements_to_inspect: List[Tuple[CodeElement, int]] = []
+        files_inspected: List[str] = []
+        for diff in diffs:
+            file_path = diff.git_diff.b_rawpath.decode('utf-8')
+            if not file_path.endswith('.java'):
+                continue
 
-        
-        # files_to_inspect += self.get_files_in_package(most_edited_file)
-        files_to_inspect += self.get_linked_files(most_edited_file)
-        files_to_inspect_sorted = sorted(files_to_inspect, key=lambda x: 'Test' in x)
-        inspected_files = []
+            for hunk in diff.hunks:
+                elements_to_inspect.append(
+                    (CodeElement(edited_file=file_path, line_num=hunk.get_first_edited_line()), 0)
+                )
 
         should_replicate_msg = self.should_replicate()
         if not should_replicate_msg:
@@ -52,32 +60,34 @@ class Replication(BaseModel):
             # the developer did not ask for it.
             return []
 
-
-        for i, file in enumerate(files_to_inspect_sorted):
-            print(f"attempting to replicate change to {file}. ({i+1}/{len(files_to_inspect_sorted)})")
-            if file in inspected_files:
-                print(f"Skipping the replication to {file} "
+        while len(elements_to_inspect) > 0:
+            # breadth-first search through the repository
+            code_element, depth = elements_to_inspect.pop(0)
+            if code_element.file_path in files_inspected:
+                print(f"Skipping the replication to {code_element.file_path} "
                       f"as it was previously done.")
                 continue
-            if not self.project.file_exists(file):
-                print("skipping because file does not exist.")
-            # compile and run graph
-            inspected_files.append(file)
-            ask_replicate = self.compile(file)
+
+            ask_replicate = self.compile(code_element.file_path)
             should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
             print(should_replicate.content)
 
-            if 'YES' in should_replicate.content: # should replicate the content
+            if 'YES' in should_replicate.content:  # should replicate the content
                 plan = planning.PlanningComponent(
                     initial_intent=self.initial_intent + should_replicate.content,
                     model=self.model,
-                    source_file_path=file,
-                    source_code=self.project.get_file_contents(file),
+                    source_file_path=code_element.file_path,
+                    source_code=self.project.get_file_contents(code_element.file_path),
                     project=self.project,
-                    detail_steps=False # don't waste extra time detailing the steps.
+                    detail_steps=False  # don't waste extra time detailing the steps.
                     # The examples are already good enough to do the job.
                 ).run()
                 yield plan
+
+            if depth == 0:
+                # increase the search space, only by one level.
+                elements_to_inspect += [(i, depth+1) for i in self.get_linked_elements(code_element)]
+            files_inspected.append(code_element.file_path)
 
 
     def get_files_in_package(self, starting_file: str) -> List[str]:
@@ -90,6 +100,13 @@ class Replication(BaseModel):
         linked_files = json.loads(self.ide_server.call_tool_get('get_linked_files'))
         unique_files = [i for i in set(linked_files) if i.endswith('.java')]
         return unique_files
+
+    def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
+        self.ide_server.open_file(Path(code_element.file_path))
+        linked_elements_json = json.loads(
+            self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+        )
+        return [CodeElement(**i) for i in linked_elements_json]
 
     def should_replicate(self) -> bool:
         executed_types = [i.refactoring_type for i in self.executed_plan.steps]
