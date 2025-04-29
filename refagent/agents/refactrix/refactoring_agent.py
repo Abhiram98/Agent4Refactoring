@@ -237,6 +237,8 @@ class Agent(BaseModel):
                             refactoring_type: sup_refs.SupportedRefactorings) -> list[BaseTool]:
         print(f"getting tools for {refactoring_type}")
 
+        GENERIC_EDITING_TOOLS = [self._tools.get('replace_method_contents'), self._tools.get('find_replace')]
+
         multi_map = {
             sup_refs.SupportedRefactorings.CHANGE_SIGNATURE:
                 [self._tools[sup_refs.SupportedRefactorings.CHANGE_SIGNATURE.value],
@@ -255,7 +257,7 @@ class Agent(BaseModel):
             return [self._tools.get('replace_file_contents')]
 
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
-            return [self._tools.get('replace_method_contents')]
+            return GENERIC_EDITING_TOOLS
         elif refactoring_type in multi_map:
             # In case there are multiple tools that can be invoked for a single refactoring type
             return multi_map[refactoring_type]
@@ -267,10 +269,10 @@ class Agent(BaseModel):
                 if self._iterations >= 2:
                     # more than one iteration on the same step. It means that tool calls are not working.
                     print("supplying generic tools, as tool calls are not working")
-                    tools += [self._tools.get('replace_method_contents')]
+                    tools += GENERIC_EDITING_TOOLS
                 return tools
             print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
-            return [self._tools.get('replace_method_contents')]
+            return GENERIC_EDITING_TOOLS
 
     def current_file_empty(self):
         return self._source_code == ''

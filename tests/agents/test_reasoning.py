@@ -10,7 +10,7 @@ import refagent.utils.project_manager as pm
 
 def test_reasoning():
     project = pm.EvalProject('flink')
-    project.checkout('21403e31f4761bdddf5e4e802e0e5eb9b4533202')
+    project.checkout('21403e31f4761bdddf5e4e802e0e5eb9b4533202', force=True)
 
     rel_file_path = Path("flink-runtime/src/test/java/org/apache/flink/"
                          "runtime/scheduler/exceptionhistory/FailureHandlingResultSnapshotTest.java")
@@ -21,17 +21,14 @@ def test_reasoning():
                             client_agent_name='ref-agent',
                             client_agent_version='0.1'
                             )
-    compiled_flow = planning.PlanningComponent(
+    refactoring_plan = planning.PlanningComponent(
         model=grazie_llm,
         initial_intent="please split up methods into reusable code fragments",
         source_code=project.get_file_contents(rel_file_path),
         source_file_path=str(rel_file_path)
-    ).compile()
+    ).run()
 
-    result = compiled_flow.invoke({
-        'messages': []
-    })
-    print(result)
+    print(refactoring_plan)
 
 def test_reasoning2():
     project = pm.EvalProject('flink')
@@ -46,17 +43,14 @@ def test_reasoning2():
                             client_agent_name='ref-agent',
                             client_agent_version='0.1'
                             )
-    compiled_flow = planning.PlanningComponent(
+    plan = planning.PlanningComponent(
         model=grazie_llm,
         initial_intent="please split up methods into reusable code fragments",
         source_code=project.get_file_contents(rel_file_path),
         source_file_path=str(rel_file_path)
-    ).compile()
+    ).run()
 
-    result = compiled_flow.invoke({
-        'messages': []
-    })
-    print(result)
+    print(plan)
 
 
 def test_reasoning_flink_2():

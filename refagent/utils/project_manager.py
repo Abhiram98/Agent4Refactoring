@@ -156,6 +156,10 @@ class EvalProject:
         diffs = self.git_repo.index.diff(None, create_patch=True)
         return [MyDiff(d) for d in diffs]
 
+    def get_staged_changes(self) -> list[MyDiff]:
+        diffs = self.git_repo.index.diff('HEAD', create_patch=True)
+        return [MyDiff(d) for d in diffs]
+
     def get_changed_files(self) -> list[str]:
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'status', '--short'], capture_output=True, text=True, check=True)
@@ -191,3 +195,10 @@ class EvalProject:
 
     def file_exists(self, file_path: str) -> bool:
         return os.path.exists(self.get_project_path().joinpath(file_path))
+
+    def reset_head(self) -> str:
+        # git reset --soft HEAD^
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'reset', '--soft', 'HEAD^'],
+            capture_output=True, text=True, check=True)
+        return result.stdout

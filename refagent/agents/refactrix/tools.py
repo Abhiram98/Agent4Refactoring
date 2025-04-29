@@ -70,6 +70,18 @@ class RefactoringToolProvider(BaseModel):
                                              new_content=new_content, line_num=line_num)
 
         @tool
+        def find_replace(
+                find_text: Annotated[str, "Text to search for"],
+                replace_text: Annotated[str, "Text to replace the found text with"]
+        ):
+            """Find and replace text within the file. This tool replaces ALL occurrences of the found text.
+            """
+            return self.ide_server.call_tool("find_replace",
+                                             find_text=find_text,
+                                             replace_text=replace_text,
+                                             replace_in_comments_only=False)
+
+        @tool
         def extract_class(
                 extraction_type: Annotated[sup_ref.ExtractionType,
                                     "Specifies the type of extraction: choose from 'interface', 'super_class', 'class', or 'enum'. "
@@ -230,7 +242,7 @@ class RefactoringToolProvider(BaseModel):
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
                                      change_method_signature, introduce_parameter_object, move_method,
                                      extract_field, type_change,
-                                     replace_file_contents, replace_method_contents]
+                                     replace_file_contents, replace_method_contents, find_replace]
 
         return {i.name: i for i in all_tools}
 

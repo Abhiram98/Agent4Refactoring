@@ -1,4 +1,5 @@
 import json
+import traceback
 
 from pydantic.v1 import BaseModel, Field, PrivateAttr
 from langchain_core.language_models import BaseChatModel
@@ -41,17 +42,19 @@ class Replication(BaseModel):
                     - Invoke planning to replicate changes.
         """
         # files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
-        diffs = self.project.get_unstaged_changes()
+        diffs = self.project.get_unstaged_changes() + self.project.get_staged_changes()
         elements_to_inspect: List[Tuple[CodeElement, int]] = []
         files_inspected: List[str] = []
         for diff in diffs:
             file_path = diff.git_diff.b_rawpath.decode('utf-8')
             if not file_path.endswith('.java'):
                 continue
+            if not self.project.file_exists(file_path):
+                continue
 
             for hunk in diff.hunks:
                 elements_to_inspect.append(
-                    (CodeElement(edited_file=file_path, line_num=hunk.get_first_edited_line()), 0)
+                    (CodeElement(file_path=file_path, line_num=hunk.get_first_edited_line()), 0)
                 )
 
         should_replicate_msg = self.should_replicate()
@@ -103,9 +106,14 @@ class Replication(BaseModel):
 
     def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
         self.ide_server.open_file(Path(code_element.file_path))
-        linked_elements_json = json.loads(
-            self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
-        )
+        try:
+            linked_elements_json = json.loads(
+                self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+            )
+        except:
+            print("Failed to get linked element")
+            traceback.print_exc()
+            return []
         return [CodeElement(**i) for i in linked_elements_json]
 
     def should_replicate(self) -> bool:
