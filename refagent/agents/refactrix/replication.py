@@ -65,6 +65,7 @@ class Replication(BaseModel):
 
         while len(elements_to_inspect) > 0:
             # breadth-first search through the repository
+            print(f"{len(elements_to_inspect)=}")
             code_element, depth = elements_to_inspect.pop(0)
             if code_element.file_path in files_inspected:
                 print(f"Skipping the replication to {code_element.file_path} "
@@ -118,7 +119,8 @@ class Replication(BaseModel):
 
     def should_replicate(self) -> bool:
         executed_types = [i.refactoring_type for i in self.executed_plan.steps]
-        if sup_ref.SupportedRefactorings.RENAME in executed_types:
+        if (sup_ref.SupportedRefactorings.RENAME in executed_types
+                or sup_ref.SupportedRefactorings.CHANGE_SIGNATURE in executed_types):
             return True # Only replicate renames for now.
         return False
 

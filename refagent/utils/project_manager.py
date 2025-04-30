@@ -54,7 +54,7 @@ class Hunk(BaseModel):
     def get_first_edited_line(self):
         edited_lines = self.content.split('\n')[1:]  # ignore the first line as it is the header
         new_lines = [i.startswith('+') for i in edited_lines if not i.startswith('-')]
-        first_new_line = new_lines.index(True)
+        first_new_line = new_lines.index(True) if True in new_lines else -1
         if first_new_line >= 0:
             return self.new_start + first_new_line
         else:

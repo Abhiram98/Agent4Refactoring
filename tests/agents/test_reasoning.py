@@ -92,13 +92,15 @@ def test_reasoning_flink_4():
                             )
     refactoring_plan = planning.PlanningComponent(
         model=grazie_llm,
-        initial_intent="Distinguish between channel and subpartition, "
-                       "by renaming appropriate elements to use the word subpartition instead of channel",
+        initial_intent="Rename the concept channel to subpartition. "
+                       "Rename variables, parameters, fields, classes",
         source_code=project.get_file_contents(rel_file_path),
         source_file_path=str(rel_file_path)
     ).run()
 
-    print(refactoring_plan)
+    print(refactoring_plan.json())
+
+
 
 
 def test_reasoning_flink_5():
