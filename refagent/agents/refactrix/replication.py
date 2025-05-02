@@ -3,7 +3,7 @@ import traceback
 
 from pydantic.v1 import BaseModel, Field, PrivateAttr
 from langchain_core.language_models import BaseChatModel
-from typing import List, Iterable, Tuple
+from typing import List, Iterable, Tuple, ClassVar
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from pathlib import Path
@@ -30,6 +30,11 @@ class Replication(BaseModel):
     executed_plan: planning.RefactoringPlan = Field(description="executed plan that needs replication")
     starting_file: str = Field(description="The first file that was edited.")
 
+    SUPPORTED_REPLICATIONS: ClassVar[List[sup_ref.SupportedRefactorings]] \
+        = [sup_ref.SupportedRefactorings.RENAME,
+                              sup_ref.SupportedRefactorings.CHANGE_SIGNATURE,
+                              sup_ref.SupportedRefactorings.TYPE_CHANGE]
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -46,7 +51,10 @@ class Replication(BaseModel):
         elements_to_inspect: List[Tuple[CodeElement, int]] = []
         files_inspected: List[str] = []
         for diff in diffs:
-            file_path = diff.git_diff.b_rawpath.decode('utf-8')
+            if diff.git_diff.a_rawpath is None:
+                # skipping, probably because file got deleted
+                continue
+            file_path = diff.git_diff.a_rawpath.decode('utf-8')
             if not file_path.endswith('.java'):
                 continue
             if not self.project.file_exists(file_path):
@@ -118,11 +126,8 @@ class Replication(BaseModel):
         return [CodeElement(**i) for i in linked_elements_json]
 
     def should_replicate(self) -> bool:
-        executed_types = [i.refactoring_type for i in self.executed_plan.steps]
-        if (sup_ref.SupportedRefactorings.RENAME in executed_types
-                or sup_ref.SupportedRefactorings.CHANGE_SIGNATURE in executed_types):
-            return True # Only replicate renames for now.
-        return False
+        contains_supported_type = [i.refactoring_type in Replication.SUPPORTED_REPLICATIONS for i in self.executed_plan.steps]
+        return any(contains_supported_type)
 
         # file_contents = self.project.get_file_contents(self.starting_file)
         #
@@ -151,7 +156,12 @@ class Replication(BaseModel):
                 file_contents = self.project.get_file_contents(file_to_inspect)
             except FileNotFoundError:
                 return {'messages': AIMessage("File not found. cannot replicate here.")}
-            examples = '\n'.join([i.execution_details for i in self.executed_plan.steps])
+
+            filtered_steps = [i for i in self.executed_plan.steps
+                              if i.refactoring_type in Replication.SUPPORTED_REPLICATIONS]
+            examples = '\n'.join([i.execution_details for i in filtered_steps])
+            example_diffs = "" # TODO: Add an exanple diff of the change I am looking for.
+            examples += example_diffs
             response = self.model.invoke(
                 state['messages'] +
                 [
@@ -159,8 +169,9 @@ class Replication(BaseModel):
                                   "refactoring needs to be replicated in a certain file, "
                                   "for the sake of consistency. "),
                     HumanMessage(f"Here are the contents of the file: {file_contents}"),
-                    HumanMessage(f"Here are some intent that need to be "
-                                 f"replicated: {self.initial_intent}"
+                    HumanMessage(
+                                # f"Here are some intent that need to be "
+                                #  f"replicated: {self.initial_intent}"
                                  f"Here are the EXACT kinds of refactorings that "
                                  f"need to be replicated. These refactorings were already performed:\n"
                                  f"{examples}"),

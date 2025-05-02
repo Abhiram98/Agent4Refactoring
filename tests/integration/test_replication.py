@@ -125,3 +125,59 @@ def test_flink_4(mocker):
     source_code = server.call_tool_get("get_source_code")
     print(source_code)
     print(agent.get_trajectory())
+
+def test_flink_3(mocker):
+    '''Renaming channel to subpartition'''
+    project = pm.EvalProject('flink')
+    project.checkout('49337819550', force=True)
+    project.reset_head()
+
+    plan = planning.RefactoringPlan(
+        steps=[
+                {
+                    "reason": "To improve the readability and maintainability of the code by reducing the number of parameters in the createKeyedStateBackend method and to provide better context for the parameters being passed.",
+                    "final_code": "    <K> CheckpointableKeyedStateBackend<K> createKeyedStateBackend(\n            KeyedStateBackendParameters<K> parameters) throws Exception;",
+                    "execution_details": "Refactor the KeyedStateBackendParameters interface to encapsulate related parameters into a single object, possibly creating a new class for configuration settings that can be passed to the createKeyedStateBackend method.",
+                    "refactoring_type": "change_method_signature",
+                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java"
+                },
+                {
+                    "reason": "To encapsulate the parameters for creating a KeyedStateBackend into a single object for better organization and to enhance readability by providing clear accessors for each parameter.",
+                    "final_code": "public class KeyedStateBackendParameters<K> {\n    private final Environment env;\n    private final JobID jobID;\n    private final String operatorIdentifier;\n    private final TypeSerializer<K> keySerializer;\n    private final int numberOfKeyGroups;\n    private final KeyGroupRange keyGroupRange;\n    private final TaskKvStateRegistry kvStateRegistry;\n    private final TtlTimeProvider ttlTimeProvider;\n    private final MetricGroup metricGroup;\n    private final Collection<KeyedStateHandle> stateHandles;\n    private final CloseableRegistry cancelStreamRegistry;\n    private final double managedMemoryFraction;\n    private final CustomInitializationMetrics customInitializationMetrics;\n\n    public KeyedStateBackendParameters(Environment env, JobID jobID, String operatorIdentifier, TypeSerializer<K> keySerializer, int numberOfKeyGroups, KeyGroupRange keyGroupRange, TaskKvStateRegistry kvStateRegistry, TtlTimeProvider ttlTimeProvider, MetricGroup metricGroup, Collection<KeyedStateHandle> stateHandles, CloseableRegistry cancelStreamRegistry, double managedMemoryFraction, CustomInitializationMetrics customInitializationMetrics) {\n        this.env = env;\n        this.jobID = jobID;\n        this.operatorIdentifier = operatorIdentifier;\n        this.keySerializer = keySerializer;\n        this.numberOfKeyGroups = numberOfKeyGroups;\n        this.keyGroupRange = keyGroupRange;\n        this.kvStateRegistry = kvStateRegistry;\n        this.ttlTimeProvider = ttlTimeProvider;\n        this.metricGroup = metricGroup;\n        this.stateHandles = stateHandles;\n        this.cancelStreamRegistry = cancelStreamRegistry;\n        this.managedMemoryFraction = managedMemoryFraction;\n        this.customInitializationMetrics = customInitializationMetrics;\n    }\n\n    // Getters for all fields\n    public Environment getEnv() { return env; }\n    public JobID getJobID() { return jobID; }\n    public String getOperatorIdentifier() { return operatorIdentifier; }\n    public TypeSerializer<K> getKeySerializer() { return keySerializer; }\n    public int getNumberOfKeyGroups() { return numberOfKeyGroups; }\n    public KeyGroupRange getKeyGroupRange() { return keyGroupRange; }\n    public TaskKvStateRegistry getKvStateRegistry() { return kvStateRegistry; }\n    public TtlTimeProvider getTtlTimeProvider() { return ttlTimeProvider; }\n    public MetricGroup getMetricGroup() { return metricGroup; }\n    public Collection<KeyedStateHandle> getStateHandles() { return stateHandles; }\n    public CloseableRegistry getCancelStreamRegistry() { return cancelStreamRegistry; }\n    public double getManagedMemoryFraction() { return managedMemoryFraction; }\n    public CustomInitializationMetrics getCustomInitializationMetrics() { return customInitializationMetrics; }\n}",
+                    "execution_details": "Create a new class named KeyedStateBackendParameters that encapsulates the parameters for creating a KeyedStateBackend. Ensure that all fields are private and provide public getter methods for each field. This enhances encapsulation and allows for easier access to the parameters when needed.",
+                    "refactoring_type": "extract_class",
+                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java"
+                },
+                {
+                    "reason": "To enhance clarity and maintainability by ensuring that the instantiation of KeyedStateBackendParameters is done in a dedicated method, which can also handle any validation or default value assignments if necessary.",
+                    "final_code": "private <K> KeyedStateBackendParameters<K> createKeyedStateBackendParameters(Environment env, JobID jobID, String operatorIdentifier, TypeSerializer<K> keySerializer, int numberOfKeyGroups, KeyGroupRange keyGroupRange, TaskKvStateRegistry kvStateRegistry, TtlTimeProvider ttlTimeProvider, MetricGroup metricGroup, Collection<KeyedStateHandle> stateHandles, CloseableRegistry cancelStreamRegistry, double managedMemoryFraction, CustomInitializationMetrics customInitializationMetrics) {\n    return new KeyedStateBackendParameters<>(env, jobID, operatorIdentifier, keySerializer, numberOfKeyGroups, keyGroupRange, kvStateRegistry, ttlTimeProvider, metricGroup, stateHandles, cancelStreamRegistry, managedMemoryFraction, customInitializationMetrics);\n}",
+                    "execution_details": "Refactor the code to create a private method named createKeyedStateBackendParameters that encapsulates the instantiation of KeyedStateBackendParameters. This method will take the necessary parameters and return a new instance of KeyedStateBackendParameters. This change will improve code readability and allow for future enhancements such as validation or logging.",
+                    "refactoring_type": "extract_method",
+                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java"
+                }
+            ]
+    )
+
+    planning_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan')
+    planning_patch.return_value = plan
+
+    execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
+    execution_patch.return_value = AIMessage("Successfullly performed the refactoring")
+
+    # create IJ server connection
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    server.open_project(project_path=project.get_project_path())
+    rel_file_path = Path("flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java")
+    server.open_file(rel_file_path)
+
+    # create agent
+    with ls.trace(name=f"refactoring agent test - test_replication:test_flink_3",
+                  tags=["test"]) as tracer:
+        agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
+        output = agent.run(initial_intent="Replace long list of parameters with an object.",
+                           starting_file=str(rel_file_path))
+    print(output)
+
+    source_code = server.call_tool_get("get_source_code")
+    print(source_code)
+    print(agent.get_trajectory())
