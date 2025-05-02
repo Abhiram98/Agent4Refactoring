@@ -24,7 +24,7 @@ class Replication(BaseModel):
     model: BaseChatModel = Field(description="Langchain Chat model")
     edited_files: List[Path] = Field(description="Files that have already been edited.")
     project: pm.EvalProject = Field(description="The project object. Used to read file contents")
-    # example_changes: str = Field(description="The kinds of changes to replicate.")
+    example_changes: str = Field(description="The kinds of changes to replicate.")
     initial_intent: str = Field(description="Intent from the developer")
     ide_server: ij.IntellijServer = Field(description="intellij server to interract with")
     executed_plan: planning.RefactoringPlan = Field(description="executed plan that needs replication")
@@ -160,8 +160,7 @@ class Replication(BaseModel):
             filtered_steps = [i for i in self.executed_plan.steps
                               if i.refactoring_type in Replication.SUPPORTED_REPLICATIONS]
             examples = '\n'.join([i.execution_details for i in filtered_steps])
-            example_diffs = "" # TODO: Add an exanple diff of the change I am looking for.
-            examples += example_diffs
+            examples += self.example_changes
             response = self.model.invoke(
                 state['messages'] +
                 [

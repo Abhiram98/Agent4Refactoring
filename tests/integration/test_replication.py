@@ -127,7 +127,7 @@ def test_flink_4(mocker):
     print(agent.get_trajectory())
 
 def test_flink_3(mocker):
-    '''Renaming channel to subpartition'''
+    '''Replace long list of params'''
     project = pm.EvalProject('flink')
     project.checkout('49337819550', force=True)
     project.reset_head()
@@ -163,6 +163,11 @@ def test_flink_3(mocker):
 
     execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
     execution_patch.return_value = AIMessage("Successfullly performed the refactoring")
+
+    important_files_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.compute_most_important')
+    important_files_patch.return_value = ["flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java",
+                                          "flink-runtime/src/main/java/org/apache/flink/runtime/state/KeyedStateBackendParameters.java"]
+
 
     # create IJ server connection
     server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)

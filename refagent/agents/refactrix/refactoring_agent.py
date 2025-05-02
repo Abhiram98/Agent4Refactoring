@@ -128,7 +128,8 @@ class Agent(BaseModel):
             initial_intent=initial_intent,
             edited_files=list(self._files_changed),
             project=self.project,
-            starting_file=starting_file
+            starting_file=starting_file,
+            example_changes=self.get_important_files_diff()
         )
         for plan in replicator.compile_and_run():
             self.execute_plan(initial_intent, model, plan)
@@ -141,6 +142,10 @@ class Agent(BaseModel):
         ).compile_and_run()
 
         return final_state["messages"][-1].content
+
+    def get_important_files_diff(self):
+        important_files = self.compute_most_important(self._files_changed)
+        return "\n".join([self.project.get_git_diff(f) for f in important_files])
 
     def generate_initial_plan(self, initial_intent, model, starting_file):
         planning_component = self.plan_component(
