@@ -1,4 +1,5 @@
 import json
+import traceback
 
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
@@ -167,7 +168,12 @@ class Agent(BaseModel):
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
             self._iterations = 0
             if step.file_path != last_file_opened:
-                self.try_open_file(step.file_path)
+                try:
+                    self.try_open_file(step.file_path)
+                except:
+                    traceback.print_tb()
+                    print("Failed to open file. Skipping this execution step")
+                    continue
                 last_file_opened = step.file_path
             graph = self.compile_graph(model=model,
                                        initial_intent=initial_intent,
