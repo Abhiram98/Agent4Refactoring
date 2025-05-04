@@ -72,14 +72,19 @@ class RefactoringToolProvider(BaseModel):
         @tool
         def find_replace(
                 find_text: Annotated[str, "Text to search for"],
-                replace_text: Annotated[str, "Text to replace the found text with"]
+                replace_text: Annotated[str, "Text to replace the found text with"],
+                line_num: Annotated[Optional[int, "The line number to replace the string at. "
+                                                  "If this argument is empty, all occurences of the "
+                                                  "`find_text` will be replaced."]]
         ):
-            """Find and replace text within the file. This tool replaces ALL occurrences of the found text.
+            """Find and replace text within the file. Optionally, provide a line number to replace the text at.
+            If no line number is provided, all occurrences will be replaced.
             """
             return self.ide_server.call_tool("find_replace",
                                              find_text=find_text,
                                              replace_text=replace_text,
-                                             replace_in_comments_only=False)
+                                             replace_in_comments_only=False,
+                                             line_num=line_num)
 
         @tool
         def extract_class(
