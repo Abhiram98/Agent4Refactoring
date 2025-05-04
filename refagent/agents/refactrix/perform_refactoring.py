@@ -22,6 +22,7 @@ class PerformRefactoring(BaseModel):
     _file_open_status: bool = PrivateAttr(default=False)
     _active_tool_call: str = PrivateAttr(default="")
     _tool_call_status: dict = PrivateAttr(default={})
+    _retry_iteration: int = PrivateAttr(default=1)
 
     def compile(self) -> CompiledGraph:
 
@@ -51,10 +52,12 @@ class PerformRefactoring(BaseModel):
         def call_llm(state: MessagesState):
             # if self.retry_count <=0:
             #     return {"messages": [AIMessage("Stopping as I was already called 3 times.")]}
+            if self._retry_iteration >= 1:
+                state['messages'][-1].content += ". Consider calling the tool differently, or trying another tool."
             model_with_tools = self.model.bind_tools(tools=self.tools)
             messages = state['messages']
             response = model_with_tools.invoke(messages)
-            self.retry_count -= 1
+            self._retry_iteration += 1
             return {"messages": [response]}
 
         def success_handler(state: MessagesState):
@@ -86,7 +89,7 @@ class PerformRefactoring(BaseModel):
             if tool_call_success:
                 return "success_handler"
 
-            if self.retry_count <= 0:
+            if self._retry_iteration > self.retry_count:
                 # retried more than threshold times
                 return "failure_handler"
 

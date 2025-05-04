@@ -215,14 +215,15 @@ class Agent(BaseModel):
                 source = code_utils.add_line_numbers(
                     "// This file is empty." if file_contents=="" else file_contents)
 
-                diff = self.project.get_git_diff(str(rel_file_path))
-                if diff!='':
-                    changes = diff if len(diff) < len(source) else source
-                else:
-                    changes = source
+                # diff = self.project.get_git_diff(str(rel_file_path))
+                # if diff!='':
+                #     changes = diff if len(diff) < len(source) else source
+                # else:
+                #     changes = source
+                current_source_code += f"{rel_file_path}: \n{source}"
             except FileNotFoundError:
                 continue
-            current_source_code += f"{rel_file_path}: \n{changes}"
+
 
         return HumanMessage(content=current_source_code)
 
@@ -254,7 +255,7 @@ class Agent(BaseModel):
             sup_refs.SupportedRefactorings.CHANGE_SIGNATURE:
                 [self._tools[sup_refs.SupportedRefactorings.CHANGE_SIGNATURE.value],
                  self._tools['introduce_parameter_object'],
-                 self._tools.get('replace_method_contents')],
+                 self._tools.get('find_replace')],
             sup_refs.SupportedRefactorings.EXTRACT_CLASS:
                 [self._tools[sup_refs.SupportedRefactorings.EXTRACT_CLASS.value],
                  self._tools['introduce_parameter_object']],
@@ -267,23 +268,27 @@ class Agent(BaseModel):
             self._directly_edited_files.add(Path(self._rel_file_path))
             return [self._tools.get('replace_file_contents')]
 
+        tools = []
+
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
             return GENERIC_EDITING_TOOLS
         elif refactoring_type in multi_map:
             # In case there are multiple tools that can be invoked for a single refactoring type
-            return multi_map[refactoring_type]
+            tools += multi_map[refactoring_type]
         else:
             special_tool = self._tools.get(refactoring_type.value)
-            tools = []
+            # tools = []
             if special_tool is not None:
                 tools += [special_tool]
-                if self._iterations >= 2:
-                    # more than one iteration on the same step. It means that tool calls are not working.
-                    print("supplying generic tools, as tool calls are not working")
-                    tools += GENERIC_EDITING_TOOLS
-                return tools
-            print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
-            return GENERIC_EDITING_TOOLS
+            else:
+                print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
+                return GENERIC_EDITING_TOOLS
+
+        if self._iterations >= 2:
+            # more than one iteration on the same step. It means that tool calls are not working.
+            print("supplying generic tools, as tool calls are not working")
+            tools += GENERIC_EDITING_TOOLS
+        return tools
 
     def current_file_empty(self):
         return self._source_code == ''
