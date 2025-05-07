@@ -32,7 +32,7 @@ def test_flink_2():
     grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
                             client_auth_type=AuthType.APPLICATION,
                             client_url=GrazieApiGatewayUrls.STAGING,
-                            profile="openai-gpt-4o-mini",
+                            profile="openai-gpt-4o",
                             client_agent_name='ref-agent',
                             client_agent_version='0.1'
                             )

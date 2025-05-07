@@ -149,7 +149,7 @@ class EvalProject:
     def get_changes(self, sha1) -> list[MyDiff]:
         commit = self.git_repo.commit(sha1)
         parent = commit.parents[0]
-        diffs = commit.diff(parent, create_patch=True)
+        diffs = parent.diff(commit, create_patch=True)
         return [MyDiff(d) for d in diffs]
 
     def get_unstaged_changes(self) -> list[MyDiff]:
