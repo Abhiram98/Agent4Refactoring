@@ -18,7 +18,7 @@ def process_benchmark() -> List[bm_load.BenchmarkItem]:
         project = pm.EvalProject(bench_point.project_name)
 
         processor = scrape.CommitProcessor(
-            id_counter=bench_point.ref_id,
+            id_counter=bench_point.ref_id-1,
             commit=project.git_repo.commit(bench_point.v2_hash),
             project=project,
             model=grazie_llm,

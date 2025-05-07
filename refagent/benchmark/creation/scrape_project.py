@@ -1,5 +1,7 @@
 import json
 
+from grazie.api.client.gateway import RequestFailedException
+
 import refagent
 import refagent.utils.project_manager as pm
 import refagent.benchmark.load as bm_load
@@ -18,6 +20,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from typing_extensions import Annotated
 
+from benchmark.creation.add_gh_comments import GithubPR
 
 
 class CommitSummary(BaseModel):
@@ -81,12 +84,16 @@ class CommitProcessor(BaseModel):
                 pull_request=self.get_pr()
             )
 
-    def get_pr(self):
+    def get_pr(self) -> Optional[GithubPR]:
         comment_importer = gh.CommentImporter(project=self.project)
-        return comment_importer.get_comments(
-            str(self.commit.parents[0].hexsha),
-            str(self.commit.hexsha)
-        )
+        try:
+            return comment_importer.get_comments(
+                str(self.commit.parents[0].hexsha),
+                str(self.commit.hexsha)
+            )
+        except:
+            print("Failed to get PR comments")
+            return
 
     def edited_files_map(self, refactorings: List[refactoring_types.RefminerOut]) -> Dict[str, int]:
         """Find the most refactored file, as the starting file.
@@ -109,14 +116,29 @@ class CommitProcessor(BaseModel):
         for c in changes:
             for h in c.hunks:
                 diff += h.content + '\n'
-
-        response = self.model.invoke(
-            [
-                SystemMessage("You look ar git diffs and provide a commit message. "
-                              f"Respond in the following format: {parser.get_format_instructions()}"),
-                HumanMessage(diff)
-            ]
-        )
+        try:
+            response = self.model.invoke(
+                [
+                    SystemMessage("You look ar git diffs and provide a commit message. "
+                                  f"Respond in the following format: {parser.get_format_instructions()}"),
+                    HumanMessage(diff)
+                ]
+            )
+        except RequestFailedException:
+            print("payload too large.")
+            top_ten_files = [f[0] for f in most_edited_files][:10]
+            diff = ""
+            for c in changes:
+                if (c.git_diff.a_path is not None and
+                        not any(x in c.git_diff.a_path for x in top_ten_files)):
+                    continue
+                for h in c.hunks:
+                    diff += h.content + '\n'
+            response = self.model.invoke([
+                    SystemMessage("You look ar git diffs and provide a commit message. "
+                                  f"Respond in the following format: {parser.get_format_instructions()}"),
+                    HumanMessage(diff)]
+            )
         commit_summary = parser.invoke(response)
 
         return commit_summary
