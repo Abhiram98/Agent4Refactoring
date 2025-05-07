@@ -244,10 +244,19 @@ class RefactoringToolProvider(BaseModel):
                 line_num=line_num
             )
 
+        @tool
+        def no_op(reason: Annotated[str, "Reason for no-op"]):
+            """This tool performs no operation.
+            Use this tool in case there are no suitable tools to call and execute refactoring.
+            Explain your reasoning in the `reason` parameter - include the name of the tool that you'd like to use.
+            """
+            return 'Failed to perform any refactoring. Reason: ' + reason
+
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
                                      change_method_signature, introduce_parameter_object, move_method,
                                      extract_field, type_change,
-                                     replace_file_contents, replace_method_contents, find_replace]
+                                     replace_file_contents, replace_method_contents, find_replace,
+                                     no_op]
 
         return {i.name: i for i in all_tools}
 

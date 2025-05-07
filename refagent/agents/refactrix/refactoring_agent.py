@@ -268,7 +268,7 @@ class Agent(BaseModel):
             self._directly_edited_files.add(Path(self._rel_file_path))
             return [self._tools.get('replace_file_contents')]
 
-        tools = []
+        tools = [self._tools.get('no_op')] # Always include the no-op tool. To allow the agent to do nothing.
 
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
             return GENERIC_EDITING_TOOLS
