@@ -141,7 +141,7 @@ class Agent:
         system_message += "ONLY USE TOOL CALLS to perform changes. "
 
         message = ""
-        for fname in bench_point.starting_files:
+        for fname in bench_point.starting_file:
             contents = project.get_file_contents(fname)
             message += f"{fname}: {contents}"
 

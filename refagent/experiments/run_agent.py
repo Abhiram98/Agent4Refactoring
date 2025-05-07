@@ -26,7 +26,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
 
     ij_server.open_project(project_path=project.get_project_path())
     ij_server.reload_project()
-    ij_server.open_file(rel_file_path=Path(bench_point.starting_files[0]))
+    ij_server.open_file(rel_file_path=Path(bench_point.starting_file))
     if plan is not None:
         plan_type = planning.get_mock_planning_component(plan)
     else:
@@ -38,7 +38,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
                      project=project,
                      plan_component=plan_type)
         final_message = agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,
-                                  starting_file=bench_point.starting_files[0])  # run the agent with commit message
+                                  starting_file=bench_point.starting_file)  # run the agent with commit message
     except Exception as e:
         print("Agent execution failed ;/")
         traceback.print_exc()

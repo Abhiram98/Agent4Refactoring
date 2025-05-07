@@ -27,8 +27,8 @@ def run_planning(bench_point: bm_load.BenchmarkItem,
     planner = planning.PlanningComponent(
         initial_intent=f"{bench_point.necessary_context}. {bench_point.hint}",
         model=model,
-        source_file_path=bench_point.starting_files[0],
-        source_code=project.get_file_contents(bench_point.starting_files[0])
+        source_file_path=bench_point.starting_file,
+        source_code=project.get_file_contents(bench_point.starting_file)
     )
     ref_plan = planner.run()
     results_saver.add(bench_point.ref_id, json.loads(ref_plan.json()))

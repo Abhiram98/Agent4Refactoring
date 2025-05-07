@@ -33,9 +33,8 @@ for bench_point in benchmark_lite:
     project.checkout_previous(bench_point.v2_hash)
 
     message = ""
-    for fname in bench_point.starting_files:
-        contents = project.get_file_contents(fname)
-        message += f"{fname} - {contents}"
+    contents = project.get_file_contents(bench_point.starting_file)
+    message += f"{bench_point.starting_file} - {contents}"
 
     system_message = "Suggest changes to improve the quality of this java code."
     if bench_point.necessary_context != '':
