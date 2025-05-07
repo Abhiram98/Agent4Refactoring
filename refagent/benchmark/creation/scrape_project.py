@@ -2,26 +2,136 @@ import json
 
 import refagent
 import refagent.utils.project_manager as pm
-import refagent.benchmark.load as benchmark
+import refagent.benchmark.load as bm_load
 import refagent.utils.refminer_utils as refminer
+import refagent.benchmark.creation.add_gh_comments as gh
+import refagent.refactoring_types.refactorings as refactoring_types
 
-import argparse
-from pydantic import BaseModel, Field
+from langchain_core.output_parsers import PydanticOutputParser
+from pydantic import BaseModel, Field, SkipValidation
 from datetime import datetime, UTC
 from git import Commit
 from pathlib import Path
+from collections import defaultdict
+from typing import Dict, List, Optional
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from typing_extensions import Annotated
+
+
+
+class CommitSummary(BaseModel):
+    commit_message: str = Field(description="A commit message for the changes")
+    summary: str = Field(description="A descriptions of the changes, including the motivation for the refactoring.")
+    hints: List[str] = Field(description="A series of hints, giving clues about how the refactoring was performed.")
+
+
+
+class CommitProcessor(BaseModel):
+    id_counter: int = Field(description="value from which to increment the ids from", default=refagent.LAST_ID+1)
+    commit: Commit = Field(description="The commit to process")
+    project: pm.EvalProject = Field(description="The project to work with")
+    model: Annotated[BaseModel, SkipValidation] = Field(description="Model to use to summarize the commit")
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def process_commit(self) -> Optional[bm_load.BenchmarkItem]:
+        print(f"Commit hash: {self.commit.hexsha}")
+        print(f"Author: {self.commit.author.name} <{self.commit.author.email}>")
+        print(f"Date: {datetime.fromtimestamp(self.commit.authored_date, UTC)}")
+        print(f"Message: {self.commit.message}")
+
+
+        # Gather additional context
+        # 1. Improve the commit message
+        # 2. PR comments, review comments on the code
+
+        # filter out unrelated hunks
+
+        # Run refactoring miner.
+        refactorings = refminer.default_runner.run(
+            project_path=self.project.get_project_path(),
+            commit_hash=str(self.commit.hexsha)
+        )
+        if len(refactorings) == 0:
+            return  # There are no refactorings detected by rminer, which is an odd case.
+
+        edited_files = self.edited_files_map(refactorings)
+        starting_file = max(edited_files.items(), key=lambda x: x[1])[0]
+        commit_summary = self.summarize_commit(edited_files)
+
+        self.id_counter += 1
+        print("-" * 50)
+
+        print(commit_summary)
+
+        return bm_load.BenchmarkItem(
+                ref_id=self.id_counter,
+                project_name=self.project.project_name,
+                v1_hash=str(self.commit.parents[0].hexsha),
+                v2_hash=str(self.commit.hexsha),
+                intent="UNKNOWN",
+                necessary_context=commit_summary.commit_message,
+                hint=str(commit_summary.hints),
+                starting_files=[starting_file],
+                changes=refactorings,
+                diffs=self.project.get_changes(self.commit.hexsha),
+                pull_request=self.get_pr()
+            )
+
+    def get_pr(self):
+        comment_importer = gh.CommentImporter(project=self.project)
+        return comment_importer.get_comments(
+            str(self.commit.parents[0].hexsha),
+            str(self.commit.hexsha)
+        )
+
+    def edited_files_map(self, refactorings: List[refactoring_types.RefminerOut]) -> Dict[str, int]:
+        """Find the most refactored file, as the starting file.
+        This is a hueristic, but it should work.
+        """
+        refactoring_count_map = defaultdict(int)
+        for r in refactorings:
+            for loc in r.leftSideLocations:
+                refactoring_count_map[loc.filePath] += 1
+        return refactoring_count_map
+        return max(refactoring_count_map.items(), key=lambda x: x[1])[0]
+
+    def summarize_commit(self, edited_files: Dict[str, int]) -> CommitSummary:
+        most_edited_files = sorted(edited_files.items(), key=lambda x: x[1], reverse=True)
+        parser = PydanticOutputParser(pydantic_object=CommitSummary)
+        most_edited_file_ = most_edited_files[0][0]
+
+        changes = self.project.get_changes(self.commit.hexsha)
+        diff = ""
+        for c in changes:
+            for h in c.hunks:
+                diff += h.content + '\n'
+
+        response = self.model.invoke(
+            [
+                SystemMessage("You look ar git diffs and provide a commit message. "
+                              f"Respond in the following format: {parser.get_format_instructions()}"),
+                HumanMessage(diff)
+            ]
+        )
+        commit_summary = parser.invoke(response)
+
+        return commit_summary
+
 
 
 class Scraper(BaseModel):
 
+    id_counter: int = Field(description="value from which to increment the ids from", default=refagent.LAST_ID + 1)
     project_name: str = Field(description="name of the project to scrape")
     cutoff_date: datetime = Field(description="cutoff date before which commits should NOT be scraped.",
                                   default=datetime(2024, 1, 1, tzinfo=UTC))
     output_path: Path = Field(description="output path to save the scraped data")
-    gather_data_points: list[benchmark.BenchmarkItem] = Field(default=[])
-    id_counter: int = Field(description="value from which to increment the ids from", default=refagent.LAST_ID+1)
+    gather_data_points: List[bm_load.BenchmarkItem] = Field(default=[])
 
-    KEYWORDS: list[str] = ['refactor', 'redesign', 'reorganize', 'restructure', 'rewrite'] # keywords present in the commit message, to identify the change as refactoring
+    KEYWORDS: List[str] = ['refactor', 'redesign', 'reorganize', 'restructure', 'rewrite'] # keywords present in the commit message, to identify the change as refactoring
     # Other keword options: clean-up, rewrite, restructure, redesign, move, extract, improve, split, reorganize, rename
 
     model_config = {'arbitrary_types_allowed': True}
@@ -43,50 +153,13 @@ class Scraper(BaseModel):
         # Append to benchmark_file
 
     def process_commit(self, commit: Commit, project: pm.EvalProject):
-        print(f"Commit hash: {commit.hexsha}")
-        print(f"Author: {commit.author.name} <{commit.author.email}>")
-        print(f"Date: {datetime.fromtimestamp(commit.authored_date, UTC)}")
-        print(f"Message: {commit.message}")
-
-
-        # Gather additional context
-        # 1. Improve the commit message
-        # 2. PR comments, review comments on the code
-
-        # filter out unrelated hunks
-
-        # Run refactoring miner.
-        refactorings = refminer.default_runner.run(
-            project_path=project.get_project_path(),
-            commit_hash=str(commit.hexsha)
-        )
-        if len(refactorings) == 0:
-            return  # There are no refactorings detected by rminer, which is an odd case.
-        left = refactorings[0].leftSideLocations
-        if len(left):
-            starting_file = left[0].filePath  # TODO: this is a faux starting path. Maybe there are other files
-        else:
-            starting_file = ''
-
-
-        self.gather_data_points.append(
-            benchmark.BenchmarkItem(
-                ref_id=self.id_counter,
-                project_name=project.project_name,
-                v1_hash=str(commit.parents[0].hexsha),
-                v2_hash=str(commit.hexsha),
-                intent="UNKNOWN",  # TODO: figure out the intent - why the refactoring took place
-                                   #  (DESIGN, COSMETIC, API_MIGRATION, ...)
-                necessary_context=commit.message,  # TODO: Improve upon the commit message.
-                hint=commit.message,  # TODO: get real hints by using code-review context.
-                starting_files=[starting_file],  # TODO: Figure out the most impacted files.
-                changes=refactorings,
-                diffs=project.get_changes(commit.hexsha),
-                pull_request=self.get_pr()
-            )
-        )
-        self.id_counter += 1
-        print("-" * 50)
+        bench_item = CommitProcessor(
+            id_counter=self.id_counter,
+            commit=commit,
+            project=project
+        ).process_commit()
+        if bench_item is not None:
+            self.gather_data_points.append(bench_item)
 
 
 if __name__ == '__main__':
