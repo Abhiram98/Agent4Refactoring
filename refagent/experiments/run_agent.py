@@ -37,7 +37,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
                      model_name='grazie:openai-gpt-4o-mini',
                      project=project,
                      plan_component=plan_type)
-        final_message = agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,
+        final_message = agent.run(initial_intent=bench_point.improved_commit_message + bench_point.change_summary,
                                   starting_file=bench_point.starting_file)  # run the agent with commit message
     except Exception as e:
         print("Agent execution failed ;/")

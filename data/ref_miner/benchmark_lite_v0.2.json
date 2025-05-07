@@ -4,14 +4,8 @@
         "project": "flink",
         "v1_hash": "21403e31f4761bdddf5e4e802e0e5eb9b4533202",
         "v2_hash": "a6412b8",
-        "intent": "API_CHANGE",
-        "necessary_context": "migrate test-framework from JUnit to Assert4J",
-        "hint": "",
-        "starting_files": [
-            "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/exceptionhistory/ExceptionHistoryEntryTest.java",
-            "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/exceptionhistory/RootExceptionHistoryEntryTest.java"
-        ],
-        "changes": [
+        "change_summary": "migrate test-framework from JUnit to Assert4J",
+        "refactoring_changes": [
             {
                 "type": "Rename Method",
                 "description": "Rename Method protected matchesSafely(actual ArchivedTaskManagerLocation, description Description) : boolean renamed to public test(actual ArchivedTaskManagerLocation) : boolean in class org.apache.flink.runtime.scheduler.exceptionhistory.ArchivedTaskManagerLocationMatcher",
@@ -1180,20 +1174,19 @@
             "updated_at": "2024-04-04T09:58:22Z",
             "created_at": "2024-01-10T09:25:17Z",
             "review_comments": []
-        }
+        },
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/exceptionhistory/ExceptionHistoryEntryTest.java"
     },
     {
         "id": 2,
         "project": "flink",
         "v1_hash": "1d15930275545f16a94d19c4a9b67043d5667498",
         "v2_hash": "ae07b878",
-        "intent": "DESIGN",
-        "necessary_context": "Improve design and extensibility",
-        "hint": "Introduce the interface and default implementation of TaskInfo",
-        "starting_files": [
-            "flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java"
-        ],
-        "changes": [
+        "change_summary": "Improve design and extensibilityIntroduce the interface and default implementation of TaskInfo",
+        "refactoring_changes": [
             {
                 "type": "Add Class Annotation",
                 "description": "Add Class Annotation @PublicEvolving in class org.apache.flink.api.common.TaskInfo",
@@ -2939,21 +2932,19 @@
                     }
                 ]
             }
-        ]
+        ],
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java"
     },
     {
         "id": 3,
         "project": "flink",
         "v1_hash": "1d45dd09045c2eb0dc406ce8216c9ab96111b581",
         "v2_hash": "40f76e16",
-        "intent": "DESIGN",
-        "necessary_context": "Improve design",
-        "hint": "Replace long list of parameters with an object.",
-        "starting_files": [
-            "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java",
-            "flink-runtime/src/main/java/org/apache/flink/runtime/state/AbstractStateBackend.java"
-        ],
-        "changes": [
+        "change_summary": "Improve designReplace long list of parameters with an object.",
+        "refactoring_changes": [
             {
                 "type": "Merge Parameter",
                 "description": "Merge Parameter [env : Environment, operatorIdentifier : String, stateHandles : Collection<OperatorStateHandle>, cancelStreamRegistry : CloseableRegistry] to parameters : OperatorStateBackendParameters in method public createOperatorStateBackend(parameters OperatorStateBackendParameters) : OperatorStateBackend from class org.apache.flink.streaming.tests.StubStateBackend",
@@ -17830,21 +17821,19 @@
             "updated_at": "2024-04-04T09:58:53Z",
             "created_at": "2024-01-03T15:09:06Z",
             "review_comments": []
-        }
+        },
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java"
     },
     {
         "id": 4,
         "project": "flink",
         "v1_hash": "cdf314d30b59994283e0bbf70f350618de02118c",
         "v2_hash": "2839d065",
-        "intent": "COSMETIC",
-        "necessary_context": "Rename the concept channel to subpartition",
-        "hint": "Rename variables, parameters, fields, classes",
-        "starting_files": [
-            "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java",
-            "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/TieredStorageSortBuffer.java"
-        ],
-        "changes": [
+        "change_summary": "Rename the concept channel to subpartitionRename variables, parameters, fields, classes",
+        "refactoring_changes": [
             {
                 "type": "Rename Class",
                 "description": "Rename Class org.apache.flink.runtime.io.network.partition.BufferWithChannel renamed to org.apache.flink.runtime.io.network.partition.BufferWithSubpartition",
@@ -25427,21 +25416,19 @@
             "updated_at": "2024-04-04T10:00:18Z",
             "created_at": "2023-12-14T07:22:44Z",
             "review_comments": []
-        }
+        },
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
     },
     {
         "id": 5,
         "project": "flink",
         "v1_hash": "c65d5f18ad5dfe91ca01bfda86d36f09ba11a78a",
         "v2_hash": "0e8b9808",
-        "intent": "DESIGN",
-        "necessary_context": "Modify subpartitionIndex to subpartitionIndexSet (start to end index)",
-        "hint": "Encapsulate int in special object which contains start and end index information",
-        "starting_files": [
-            "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java",
-            "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/consumer/SingleInputGateFactory.java"
-        ],
-        "changes": [
+        "change_summary": "Modify subpartitionIndex to subpartitionIndexSet (start to end index)Encapsulate int in special object which contains start and end index information",
+        "refactoring_changes": [
             {
                 "type": "Change Attribute Access Modifier",
                 "description": "Change Attribute Access Modifier private to protected in attribute protected startIndex : int from class org.apache.flink.runtime.executiongraph.IndexRange",
@@ -33076,24 +33063,19 @@
             "updated_at": "2024-04-04T10:00:18Z",
             "created_at": "2023-12-14T07:22:44Z",
             "review_comments": []
-        }
+        },
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java"
     },
     {
         "id": 6,
         "project": "flink",
         "v1_hash": "fd673a2f46206ff65978f05fcb96b525696aead2",
         "v2_hash": "e345ffb4",
-        "intent": "DESIGN",
-        "necessary_context": "Refactor classes related to window TVF aggregation to prepare for non-aligned windows",
-        "hint": "Ex: Extend WindowProcessor instead of SlicingWindowProcessor. ",
-        "starting_files": [
-            "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/processors/AbstractWindowAggProcessor.java",
-            "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/slicing/WindowTimerServiceImpl.java",
-            "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/processors/SliceSharedWindowAggProcessor.java",
-            "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/processors/SliceUnsharedWindowAggProcessor.java",
-            "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/window/slicing/SliceAssigner.java"
-        ],
-        "changes": [
+        "change_summary": "Refactor classes related to window TVF aggregation to prepare for non-aligned windowsEx: Extend WindowProcessor instead of SlicingWindowProcessor. ",
+        "refactoring_changes": [
             {
                 "type": "Move Class",
                 "description": "Move Class org.apache.flink.table.runtime.operators.window.AggregateWindowOperator moved to org.apache.flink.table.runtime.operators.window.groupwindow.operator.AggregateWindowOperator",
@@ -42673,20 +42655,19 @@
                     "original_commit_id": "124529b8dd8d5781b906f83d84424f33d91c026d"
                 }
             ]
-        }
+        },
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "flink-table/flink-table-runtime/src/main/java/org/apache/flink/table/runtime/operators/aggregate/window/processors/AbstractWindowAggProcessor.java"
     },
     {
         "id": 7,
         "project": "flink",
         "v1_hash": "f9f9299f6e25080c6f869b46ec0bdc5e3e19e00d",
         "v2_hash": "7336788a",
-        "intent": "DESIGN",
-        "necessary_context": "break up class to improve design",
-        "hint": "extract class SerializerConfig",
-        "starting_files": [
-            "flink-core/src/main/java/org/apache/flink/api/common/ExecutionConfig.java"
-        ],
-        "changes": [
+        "change_summary": "break up class to improve designextract class SerializerConfig",
+        "refactoring_changes": [
             {
                 "type": "Add Class Annotation",
                 "description": "Add Class Annotation @Public in class org.apache.flink.api.common.ExecutionConfig.SerializableSerializer",
@@ -43819,20 +43800,19 @@
                     }
                 ]
             }
-        ]
+        ],
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "flink-core/src/main/java/org/apache/flink/api/common/ExecutionConfig.java"
     },
     {
         "id": 8,
         "project": "flink",
         "v1_hash": "533ead6ae946cbc77525d276b6dea965d390181a",
         "v2_hash": "5c895aa6",
-        "intent": "COSMETIC",
-        "necessary_context": "Improve cosmetics of code.",
-        "hint": "Refactor the RestartStrategyType to reduce repeated magic string",
-        "starting_files": [
-            "flink-core/src/main/java/org/apache/flink/api/common/restartstrategy/RestartStrategies.java"
-        ],
-        "changes": [],
+        "change_summary": "Improve cosmetics of code.Refactor the RestartStrategyType to reduce repeated magic string",
+        "refactoring_changes": [],
         "diffs": [
             {
                 "a_filename": "docs/layouts/shortcodes/generated/restart_strategy_configuration.html",
@@ -44371,21 +44351,19 @@
             "updated_at": "2024-04-04T10:00:07Z",
             "created_at": "2023-12-17T14:51:36Z",
             "review_comments": []
-        }
+        },
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "flink-core/src/main/java/org/apache/flink/api/common/restartstrategy/RestartStrategies.java"
     },
     {
         "id": 9,
         "project": "ghidra",
         "v1_hash": "02814f64a60599c56d037b38f573f7f0fb7fc20a",
         "v2_hash": "e7458ed0",
-        "intent": "DESIGN",
-        "necessary_context": "Make Assembler more extensible",
-        "hint": "introduce additional interfaces for design purposes.",
-        "starting_files": [
-            "Ghidra/Framework/SoftwareModeling/src/main/java/ghidra/app/plugin/assembler/Assembler.java",
-            "Ghidra/Framework/SoftwareModeling/src/main/java/ghidra/app/plugin/assembler/AssemblerBuilder.java"
-        ],
-        "changes": [
+        "change_summary": "Make Assembler more extensibleintroduce additional interfaces for design purposes.",
+        "refactoring_changes": [
             {
                 "type": "Move Class",
                 "description": "Move Class ghidra.app.plugin.assembler.sleigh.SleighAssembler.ListenerForSymbolsRefresh moved to ghidra.app.plugin.assembler.sleigh.AbstractSleighAssembler.ListenerForSymbolsRefresh",
@@ -65406,20 +65384,19 @@
                     }
                 ]
             }
-        ]
+        ],
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "Ghidra/Framework/SoftwareModeling/src/main/java/ghidra/app/plugin/assembler/Assembler.java"
     },
     {
         "id": 10,
         "project": "ghidra",
         "v1_hash": "daca354c47d550f05a199985a72bf0ceaef2e234",
         "v2_hash": "856aa904",
-        "intent": "DESIGN",
-        "necessary_context": "domain object event type refactor",
-        "hint": "introduce enumerator",
-        "starting_files": [
-            "Ghidra/Framework/Project/src/main/java/ghidra/framework/model/DomainObject.java"
-        ],
-        "changes": [
+        "change_summary": "domain object event type refactorintroduce enumerator",
+        "refactoring_changes": [
             {
                 "type": "Rename Parameter",
                 "description": "Rename Parameter docrType : int to commentType : int in method private commentChanged(commentType int, space TraceAddressSpace, range TraceAddressSnapRange, oldValue String, newValue String) : void from class ghidra.trace.database.program.DBTraceProgramView.EventTranslator",
@@ -89128,20 +89105,19 @@
                     }
                 ]
             }
-        ]
+        ],
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "Ghidra/Framework/Project/src/main/java/ghidra/framework/model/DomainObject.java"
     },
     {
         "id": 11,
         "project": "ghidra",
         "v1_hash": "3cffe5c1685f9b72f6ce5114493105c5369b7b3d",
         "v2_hash": "93eed801",
-        "intent": "DESIGN",
-        "necessary_context": "Split class, capture utility functions",
-        "hint": "",
-        "starting_files": [
-            "Ghidra/Features/Base/src/main/java/ghidra/app/util/bin/format/omf/OmfRecord.java"
-        ],
-        "changes": [
+        "change_summary": "Split class, capture utility functions",
+        "refactoring_changes": [
             {
                 "type": "Move Class",
                 "description": "Move Class ghidra.app.util.bin.format.omf.OmfComdatExternalSymbol moved to ghidra.app.util.bin.format.omf.omf.OmfComdatExternalSymbol",
@@ -94857,20 +94833,19 @@
                     }
                 ]
             }
-        ]
+        ],
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "Ghidra/Features/Base/src/main/java/ghidra/app/util/bin/format/omf/OmfRecord.java"
     },
     {
         "id": 12,
         "project": "ghidra",
         "v1_hash": "21d433b26c9d68a585d3c8956cb87b1e3929aed1",
         "v2_hash": "dcc56457",
-        "intent": "COSMETIC",
-        "necessary_context": "refactor pdb symbol server 'remote' to 'untrusted' Change name of symbolserver 'remote' property to 'untrusted' to reflect its intended usage.",
-        "hint": "",
-        "starting_files": [
-            "Ghidra/Features/PDB/src/main/java/ghidra/app/plugin/core/analysis/PdbAnalyzer.java"
-        ],
-        "changes": [
+        "change_summary": "refactor pdb symbol server 'remote' to 'untrusted' Change name of symbolserver 'remote' property to 'untrusted' to reflect its intended usage.",
+        "refactoring_changes": [
             {
                 "type": "Move Class",
                 "description": "Move Class pdb.symbolserver.ui.SymbolServerPanel moved to pdb.symbolserver.ui.ConfigPdbDialog.SymbolServerPanel",
@@ -98108,21 +98083,19 @@
                     }
                 ]
             }
-        ]
+        ],
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "Ghidra/Features/PDB/src/main/java/ghidra/app/plugin/core/analysis/PdbAnalyzer.java"
     },
     {
         "id": 13,
         "project": "ghidra",
         "v1_hash": "bf791dddddf8387ecd2c4e43b127eaceb509d5f6",
         "v2_hash": "274217d7c8fafbce1681396f660ff76f49b28493",
-        "intent": "COSMETIC",
-        "necessary_context": "refactor of drag and drop interfaces",
-        "hint": "",
-        "starting_files": [
-            "Ghidra/Framework/Docking/src/main/java/docking/dnd/Draggable.java",
-            "Ghidra/Framework/Docking/src/main/java/docking/dnd/Droppable.java"
-        ],
-        "changes": [
+        "change_summary": "refactor of drag and drop interfaces",
+        "refactoring_changes": [
             {
                 "type": "Change Class Access Modifier",
                 "description": "Change Class Access Modifier protected to private in class ghidra.app.plugin.core.programtree.DragNDropTree.ProgramTreeCellEditor",
@@ -100301,20 +100274,19 @@
                     }
                 ]
             }
-        ]
+        ],
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "Ghidra/Framework/Docking/src/main/java/docking/dnd/Draggable.java"
     },
     {
         "id": 14,
         "project": "ghidra",
         "v1_hash": "434c3f315d68a5668601766738a7789b7e9e618a",
         "v2_hash": "624a3c4e",
-        "intent": "DESIGN",
-        "necessary_context": "",
-        "hint": "Refactor of FillOutStructureCmd.  Added FillOutStructureHelper and additional DecompilerUtils methods.",
-        "starting_files": [
-            "Ghidra/Features/Decompiler/src/main/java/ghidra/app/plugin/core/decompile/actions/FillOutStructureCmd.java"
-        ],
-        "changes": [
+        "change_summary": "Refactor of FillOutStructureCmd.  Added FillOutStructureHelper and additional DecompilerUtils methods.",
+        "refactoring_changes": [
             {
                 "type": "Move And Rename Class",
                 "description": "Move And Rename Class ghidra.app.plugin.core.decompile.actions.FillOutStructureCmd moved and renamed to ghidra.app.decompiler.util.FillOutStructureHelper",
@@ -109868,6 +109840,10 @@
                     }
                 ]
             }
-        ]
+        ],
+        "improved_commit_message": "",
+        "orig_commit_message": "",
+        "hints": [],
+        "starting_file": "Ghidra/Features/Decompiler/src/main/java/ghidra/app/plugin/core/decompile/actions/FillOutStructureCmd.java"
     }
 ]

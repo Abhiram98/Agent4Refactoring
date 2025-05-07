@@ -12,7 +12,7 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 
-USE_HINTS = True
+USE_SUMMARY = True
 
 benchmark_lite = bm_load.load_benchmark(refagent.benchmark_lite_json)
 print(benchmark_lite)
@@ -37,10 +37,10 @@ for bench_point in benchmark_lite:
     message += f"{bench_point.starting_file} - {contents}"
 
     system_message = "Suggest changes to improve the quality of this java code."
-    if bench_point.necessary_context != '':
-        system_message += f" Please perform the following action - {bench_point.necessary_context}"
-    if USE_HINTS and bench_point.hint!='':
-        system_message += f". {bench_point.hint}\n"
+    if bench_point.improved_commit_message != '':
+        system_message += f" Please perform the following action - {bench_point.improved_commit_message}"
+    if USE_SUMMARY and bench_point.change_summary!= '':
+        system_message += f". {bench_point.change_summary}\n"
     messages = [
         SystemMessage(system_message),
         HumanMessage(message),

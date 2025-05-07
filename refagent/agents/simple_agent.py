@@ -134,10 +134,10 @@ class Agent:
         app = workflow.compile(checkpointer=checkpointer)
 
         system_message = "Suggest changes to improve the quality of this java code. "
-        if bench_point.necessary_context != '':
-            system_message += f"Please perform the following action - {bench_point.necessary_context}"
-        if bench_point.hint != '':
-            system_message += f". {bench_point.hint}\n"
+        if bench_point.improved_commit_message != '':
+            system_message += f"Please perform the following action - {bench_point.improved_commit_message}"
+        if bench_point.change_summary != '':
+            system_message += f". {bench_point.change_summary}\n"
         system_message += "ONLY USE TOOL CALLS to perform changes. "
 
         message = ""

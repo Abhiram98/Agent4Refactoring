@@ -25,7 +25,7 @@ def run_planning(bench_point: bm_load.BenchmarkItem,
                        temperature=0.3)
 
     planner = planning.PlanningComponent(
-        initial_intent=f"{bench_point.necessary_context}. {bench_point.hint}",
+        initial_intent=f"{bench_point.improved_commit_message}. {bench_point.change_summary}",
         model=model,
         source_file_path=bench_point.starting_file,
         source_code=project.get_file_contents(bench_point.starting_file)
