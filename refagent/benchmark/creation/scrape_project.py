@@ -1,6 +1,12 @@
 import json
+import os
 
+import langsmith
+from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import RequestFailedException
+from grazie.api.client_v2 import AuthType
+from grazie_langchain_utils.language_models.grazie import ChatGrazie
+from pydantic.v1 import SecretStr
 
 import refagent
 import refagent.utils.project_manager as pm
@@ -10,7 +16,7 @@ import refagent.benchmark.creation.add_gh_comments as gh
 import refagent.refactoring_types.refactorings as refactoring_types
 
 from langchain_core.output_parsers import PydanticOutputParser
-from pydantic import BaseModel, Field, SkipValidation
+from pydantic import BaseModel, Field, SkipValidation, PrivateAttr
 from datetime import datetime, UTC
 from git import Commit
 from pathlib import Path
@@ -58,10 +64,13 @@ class CommitProcessor(BaseModel):
             commit_hash=str(self.commit.hexsha)
         )
         if len(refactorings) == 0:
-            return  # There are no refactorings detected by rminer, which is an odd case.
+            return None # There are no refactorings detected by rminer, which is an odd case.
 
         edited_files = self.edited_files_map(refactorings)
-        starting_file = max(edited_files.items(), key=lambda x: x[1])[0]
+        if len(edited_files) == 0:
+            return None # no files were refactored.
+        starting_files = max(edited_files.items(), key=lambda x: x[1])
+        starting_file = starting_files[0]
         commit_summary = self.summarize_commit(edited_files)
 
         self.id_counter += 1
@@ -153,19 +162,31 @@ class Scraper(BaseModel):
                                   default=datetime(2024, 1, 1, tzinfo=UTC))
     output_path: Path = Field(description="output path to save the scraped data")
     gather_data_points: List[bm_load.BenchmarkItem] = Field(default=[])
+    _previously_analysed_commits: List[str] = PrivateAttr(default=[])
 
     KEYWORDS: List[str] = ['refactor', 'redesign', 'reorganize', 'restructure', 'rewrite'] # keywords present in the commit message, to identify the change as refactoring
-    # Other keword options: clean-up, rewrite, restructure, redesign, move, extract, improve, split, reorganize, rename
+    # Other keyword options: clean-up, rewrite, restructure, redesign, move, extract, improve, split, reorganize, rename
 
     model_config = {'arbitrary_types_allowed': True}
 
+    def get_previously_analysed(self):
+        if os.path.exists(self.output_path):
+            with open(self.output_path) as f:
+                self.gather_data_points = bm_load.load_benchmark(
+                    json.load(f)
+                )
+        self._previously_analysed_commits = [i.v2_hash for i in self.gather_data_points]
+
+
     def run(self):
+        self.get_previously_analysed()
         project = pm.EvalProject(project_name=self.project_name)
         # Iterate git history for commits after cutoff_data
         count = 0
         for commit in project.git_repo.iter_commits(since=self.cutoff_date):
             if (datetime.fromtimestamp(commit.authored_date, UTC) >= self.cutoff_date # For some reason, even older commits are picked up.
-                    and any([k in commit.message.lower() for k in self.KEYWORDS])):
+                    and any([k in commit.message.lower() for k in self.KEYWORDS])
+                    and str(commit.hexsha) not in self._previously_analysed_commits):
                 count += 1
                 self.process_commit(commit, project)
 
@@ -176,17 +197,29 @@ class Scraper(BaseModel):
         # Append to benchmark_file
 
     def process_commit(self, commit: Commit, project: pm.EvalProject):
+        grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                                client_auth_type=AuthType.APPLICATION,
+                                client_url=GrazieApiGatewayUrls.STAGING,
+                                profile="openai-gpt-4o-mini",
+                                client_agent_name='ref-agent',
+                                client_agent_version='0.1'
+                                )
         bench_item = CommitProcessor(
             id_counter=self.id_counter,
             commit=commit,
-            project=project
+            project=project,
+            model=grazie_llm
         ).process_commit()
         if bench_item is not None:
             self.gather_data_points.append(bench_item)
+            self.id_counter += 1
 
 
 if __name__ == '__main__':
-    Scraper(project_name='kafka',
-            output_path=refagent.data_folder.joinpath('ref_miner/kafka.json'),
-            id_counter=89
-            ).run()
+    project_name = 'kafka'
+
+    with langsmith.trace(name=f"scraping data for {project_name}", tags=["scrape"]) as tracer:
+        Scraper(project_name=project_name,
+                output_path=refagent.data_folder.joinpath(f'ref_miner/{project_name}-2.json'),
+                id_counter=14
+                ).run()
