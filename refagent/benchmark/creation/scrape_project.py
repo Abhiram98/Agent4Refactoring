@@ -75,7 +75,7 @@ class CommitProcessor(BaseModel):
                 necessary_context=commit_summary.commit_message,
                 hint=str(commit_summary.hints),
                 starting_file=starting_file,
-                changes=refactorings,
+                refactoring_changes=refactorings,
                 diffs=self.project.get_changes(self.commit.hexsha),
                 pull_request=self.get_pr()
             )

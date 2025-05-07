@@ -17,7 +17,7 @@ class BenchmarkItem(BaseModel):
     # necessary_context: str
     # hint: str
     starting_file: str
-    changes: List[refactoring_types.RefminerOut]
+    refactoring_changes: List[refactoring_types.RefminerOut]
     diffs: List[pm.MyDiff]
     pull_request: Optional[gh_comment.GithubPR] = None
 
@@ -35,7 +35,7 @@ class BenchmarkItem(BaseModel):
             necessary_context=_json['necessary_context'],
             hint=_json['hint'],
             starting_file=_json['starting_file'],
-            changes=[refactoring_types.RefminerOut(**c) for c in _json['changes']],
+            refactoring_changes=[refactoring_types.RefminerOut(**c) for c in _json['refactoring_changes']],
             diffs=pm.EvalProject(_json['project']).get_changes(_json['v2_hash']),
             pull_request=gh_comment.GithubPR(**_json['pull_request']) if _json.get("pull_request") else None
         )
@@ -50,7 +50,7 @@ class BenchmarkItem(BaseModel):
             'necessary_context': self.necessary_context,
             'hint': self.hint,
             'starting_file': self.starting_file,
-            'changes': [c.model_dump(mode='json') for c in self.changes],
+            'refactoring_changes': [c.model_dump(mode='json') for c in self.refactoring_changes],
             'diffs': [d.to_json() for d in self.diffs]
         }
 

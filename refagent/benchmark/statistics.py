@@ -17,7 +17,7 @@ class Stats(BaseModel):
         refactoring_types = Counter()
 
         for i in self.data:
-            refactoring_types += Counter([ref.type for ref in i.changes])
+            refactoring_types += Counter([ref.type for ref in i.refactoring_changes])
 
         print(f"{refactoring_types=}")
         total = sum(refactoring_types.values())
