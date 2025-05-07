@@ -47,7 +47,7 @@ class BenchmarkItem(BaseModel):
             'v1_hash': self.v1_hash,
             'v2_hash': self.v2_hash,
             'orig_commit_message': self.orig_commit_message,
-            'improve_commit_message': self.improved_commit_message,
+            'improved_commit_message': self.improved_commit_message,
             'change_summary': self.change_summary,
             'hints': self.hints,
             'starting_file': self.starting_file,
