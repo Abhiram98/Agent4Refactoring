@@ -216,10 +216,10 @@ class Scraper(BaseModel):
 
 
 if __name__ == '__main__':
-    project_name = 'kafka'
+    project_name = 'ghidra'
 
     with langsmith.trace(name=f"scraping data for {project_name}", tags=["scrape"]) as tracer:
         Scraper(project_name=project_name,
                 output_path=refagent.data_folder.joinpath(f'ref_miner/{project_name}-2.json'),
-                id_counter=14
+                id_counter=139
                 ).run()
