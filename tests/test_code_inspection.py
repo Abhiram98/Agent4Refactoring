@@ -13,6 +13,9 @@ import traceback
 from langchain_openai import ChatOpenAI
 from langchain_core.language_models import BaseChatModel
 from refagent.agents.refactrix.fix_planning import FixPlanningComponent
+from refagent.agents.refactrix.perform_refactoring import PerformRefactoring
+from refagent.agents.refactrix.tools import RefactoringToolProvider
+from langchain_core.messages import SystemMessage, HumanMessage
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
@@ -120,13 +123,77 @@ def test_code_inspection_with_commit():
                     )
                     
                     # Get the fix plan
-                    fix_plan = fix_planner.run()
+                    fix_plan = fix_planner.run()                    
                     
                     # Execute each step in the fix plan
-                    for step in fix_plan.steps:
+                    last_file_opened = None
+                    for i, step in enumerate(fix_plan.steps):
+                        print(f"\nExecuting step {i + 1}/{len(fix_plan.steps)} in plan.")
                         print(f"\nExecuting fix step: {step.reason}")
                         print(f"Refactoring type: {step.refactoring_type}")
                         print(f"Execution details: {step.execution_details}")
+                        
+                        # Handle file opening
+                        if step.file_path != last_file_opened:
+                            try:
+                                intellij_server.open_file(Path(step.file_path))
+                                time.sleep(5)  # Give IDE time to open the file
+                                last_file_opened = step.file_path
+                            except Exception as e:
+                                traceback.print_tb()
+                                print(f"Failed to open file {step.file_path}. Skipping this execution step")
+                                continue
+                        
+                        # Get the appropriate tools for this refactoring type
+                        tool_provider = RefactoringToolProvider(ide_server=intellij_server)
+                        tools_dict = tool_provider.get()
+                        tools = list(tools_dict.values())  # Convert dictionary values to list
+                        
+                        # Create and execute the refactoring
+                        refactoring = PerformRefactoring(
+                            tools=tools,
+                            model=model,
+                            reason=step.reason,
+                            refactoring_type=step.refactoring_type,
+                            rel_file_path=str(file_path),
+                            ide_server=intellij_server
+                        )
+                        
+                        # Compile and run the refactoring
+                        refactoring_graph = refactoring.compile()
+                        final_state = refactoring_graph.invoke(
+                            {
+                                "messages": [
+                                    SystemMessage(f"You are an expert developer who executes refactorings to"
+                                                  f" improve the quality of the given code. "
+                                                  f"Please do the follow: {step.refactoring_type}: {step.reason}. {step.execution_details} "
+                                                  f"The final code is expected to look something like this: {step.final_code}"
+                                                  f"ONLY make TOOL CALLS to perform actions."),
+                                ]
+                            },
+                            config={"configurable": {"thread_id": 42}}
+                        )
+                        
+                        print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
+                        
+                        # Update source code after each step
+                        source_code = intellij_server.call_tool_get("get_source_code")
+                        
+                        # Save changes
+                        intellij_server.call_tool("save_all_changes")
+                        time.sleep(2)  # Give time for changes to be saved
+                
+                # Verify fixes
+                print(f"\nVerifying fixes in {file_path}...")
+                verify_response = requests.post("http://localhost:8082/run_code_inspection", json={})
+                verify_issues = verify_response.json()
+                
+                if isinstance(verify_issues, list) and len(verify_issues) > 0:
+                    print(f"Warning: Found {len(verify_issues)} remaining issues:")
+                    for issue in verify_issues:
+                        print(f"  Line {issue.get('lineNum')}: {issue.get('problem')}")
+                else:
+                    print("No remaining issues found")
                 
             except json.JSONDecodeError:
                 print(f"Failed to parse inspection results for {file_path}")
