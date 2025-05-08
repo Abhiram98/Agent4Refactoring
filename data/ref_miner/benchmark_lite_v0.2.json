@@ -5,7 +5,7 @@
         "v1_hash": "21403e31f4761bdddf5e4e802e0e5eb9b4533202",
         "v2_hash": "a6412b8497d1fdb3c0137a1651767db33836d966",
         "orig_commit_message": "[FLINK-32852][JUnit5 migration] Migrate ExceptionHistoryEntryTest and RootExceptionHistoryEntryTest to Junit5 and Assertj\n",
-        "improve_commit_message": "Refactor exception matchers to use Predicate instead of Matcher",
+        "improved_commit_message": "Refactor exception matchers to use Predicate instead of Matcher",
         "change_summary": "This commit refactors the `ArchivedTaskManagerLocationMatcher` and `ExceptionHistoryEntryMatcher` to utilize Java's `Predicate` interface instead of relying on Hamcrest's `Matcher`. This change simplifies the matching logic and removes the need for detailed descriptions during the match process, which were previously unused.",
         "hints": [
             "Replaced extends TypeSafeDiagnosingMatcher with implements Predicate in matcher classes.",
@@ -1187,7 +1187,7 @@
         "v1_hash": "1d15930275545f16a94d19c4a9b67043d5667498",
         "v2_hash": "ae07b8785860ee4af9d75810e83b03402e6b9563",
         "orig_commit_message": "[FLINK-33905][core] Introduce the interface and default implementation of JobInfo and TaskInfo\n",
-        "improve_commit_message": "Refactor JobInfo and TaskInfo interfaces and implementations",
+        "improved_commit_message": "Refactor JobInfo and TaskInfo interfaces and implementations",
         "change_summary": "This commit introduces the JobInfo and TaskInfo interfaces along with their respective implementations. The JobInfo interface provides metadata about a job, while TaskInfo encapsulates task-specific information. This refactoring aims to standardize the way job and task metadata is handled within the project.",
         "hints": [
             "Created JobInfo interface with methods to get job ID and job name.",
@@ -2977,7 +2977,7 @@
         "v1_hash": "1d45dd09045c2eb0dc406ce8216c9ab96111b581",
         "v2_hash": "40f76e1615b1e124df1a09d83f87a4a29ccdc414",
         "orig_commit_message": "[FLINK-33697][state] Add custom metrics to the StateBackend interface\n",
-        "improve_commit_message": "Refactor state backend creation to use KeyedStateBackendParameters and OperatorStateBackendParameters.",
+        "improved_commit_message": "Refactor state backend creation to use KeyedStateBackendParameters and OperatorStateBackendParameters.",
         "change_summary": "This commit refactors the way keyed and operator state backends are created by introducing KeyedStateBackendParameters and OperatorStateBackendParameters. This change simplifies the method signatures and enhances the readability and maintainability of the state backend code. The new parameters class encapsulates all necessary arguments for creating keyed and operator state backends, streamlining the backend instantiation process across various components of the system.",
         "hints": [
             "Introduced KeyedStateBackendParameters and OperatorStateBackendParameters to encapsulate backend initialization arguments.",
@@ -17763,7 +17763,7 @@
         "v1_hash": "cdf314d30b59994283e0bbf70f350618de02118c",
         "v2_hash": "2839d06559ccf2a0b63a7f61276d7bb546abca3d",
         "orig_commit_message": "[FLINK-33743][runtime] Distinguish channel and subpartition\n",
-        "improve_commit_message": "Refactor Channel-related terminology to Subpartition in Buffer Writer classes",
+        "improved_commit_message": "Refactor Channel-related terminology to Subpartition in Buffer Writer classes",
         "change_summary": "This commit updates the terminology throughout the codebase from 'channel' to 'subpartition'. This refactoring aims to improve clarity as we shift our underlying architecture to use subpartitions instead of channels for data emission and buffering.",
         "hints": [
             "Renamed variables, methods, and classes that contained the term 'channel' to 'subpartition'.",
@@ -25375,7 +25375,7 @@
         "v1_hash": "c65d5f18ad5dfe91ca01bfda86d36f09ba11a78a",
         "v2_hash": "0e8b98088396a1f2cb77590b2b75c47c0258595b",
         "orig_commit_message": "[FLINK-33743][runtime] Modify parameter subpartitionIndex to subpartitionIndexSet\n",
-        "improve_commit_message": "Refactor input channel handling and subpartition index management.",
+        "improved_commit_message": "Refactor input channel handling and subpartition index management.",
         "change_summary": "Updated several input channel classes and methods to utilize the new ResultSubpartitionIndexSet for better handling of subpartition indexes. This includes adjusting method signatures, refactoring requests for subpartition views, and ensuring compatibility across various components of the network partitioning system.",
         "hints": [
             "Replaced int subPartitionIndex with ResultSubpartitionIndexSet in relevant methods.",
@@ -33085,7 +33085,7 @@
         "v1_hash": "fd673a2f46206ff65978f05fcb96b525696aead2",
         "v2_hash": "e345ffb453ac482d0250736b687cf88b85c606b0",
         "orig_commit_message": "[FLINK-34049][table] Refactor classes related to window TVF aggregation to prepare for non-aligned windows (#24068)\n\n",
-        "improve_commit_message": "Refactored window assigners from `WindowAssigner` to `GroupWindowAssigner` for improved semantics and code organization.",
+        "improved_commit_message": "Refactored window assigners from `WindowAssigner` to `GroupWindowAssigner` for improved semantics and code organization.",
         "change_summary": "This commit focuses on transitioning all instances of `WindowAssigner` to `GroupWindowAssigner` within the windowing functionality. This change not only clarifies the distinction between group window semantics and the new time-based window TVF syntax, but also consolidates window processing logic to facilitate future changes and optimizations. Moreover, related changes in processor interfaces and test cases have been updated accordingly to support this transition.",
         "hints": [
             "Renamed classes and interfaces to switch from `WindowAssigner` to `GroupWindowAssigner` for clarity.",
@@ -42364,7 +42364,7 @@
         "v1_hash": "f9f9299f6e25080c6f869b46ec0bdc5e3e19e00d",
         "v2_hash": "7336788a9c3495745cb4b3eda7bc00d396a14b18",
         "orig_commit_message": "[FLINK-34090][core] Introduce SerializerConfig\n",
-        "improve_commit_message": "Refactor ExecutionConfig to incorporate SerializerConfig for improved serializer management",
+        "improved_commit_message": "Refactor ExecutionConfig to incorporate SerializerConfig for improved serializer management",
         "change_summary": "This change refactors the ExecutionConfig class to delegate serializer management to a newly created SerializerConfig class. This enhances code readability and maintainability by separating concerns related to serializer registration and configuration.",
         "hints": [
             "Removed direct references to serializer fields in ExecutionConfig.",
@@ -43519,7 +43519,7 @@
         "v1_hash": "02814f64a60599c56d037b38f573f7f0fb7fc20a",
         "v2_hash": "e7458ed08ba8d7b5b230c4a4bec8bfb0c39cee4c",
         "orig_commit_message": "GP-4185: Make Assembler more extensible\n",
-        "improve_commit_message": "Refactor assembly parsing and resolution logic.",
+        "improved_commit_message": "Refactor assembly parsing and resolution logic.",
         "change_summary": "This commit refactors the assembly parsing and resolution logic by introducing a more structured approach to handling substitutions, context changes, and error reporting. The changes enhance the clarity of the codebase and allow for easier modifications in the future. Specifically, it adds new structures for representing assembly resolutions, normalizes the handling of context changes, and improves error handling throughout the system.",
         "hints": [
             "Created AbstractAssemblyResolution to unify resolution handling.",
@@ -64838,7 +64838,7 @@
       "v1_hash": "daca354c47d550f05a199985a72bf0ceaef2e234",
       "v2_hash": "856aa904aa0dba1c2c6ce776e79c5e693cf7b234",
       "orig_commit_message": "GP-2076 domain object event refactor\n",
-      "improve_commit_message": "Refactored event types and records to use enums instead of integer constants in the GHIDRA project.",
+      "improved_commit_message": "Refactored event types and records to use enums instead of integer constants in the GHIDRA project.",
       "change_summary": "This commit updates the event handling system within the GHIDRA codebase, where numeric constants that represented event types are replaced by a more robust enum-based structure, enhancing type safety and readability across the project. It also includes the addition of new event types related to program changes and functions.",
       "hints": [
           "Replaced integer event constants with enums for better type safety.",
@@ -89506,7 +89506,7 @@
         "v1_hash": "3cffe5c1685f9b72f6ce5114493105c5369b7b3d",
         "v2_hash": "93eed8011cb589b7bda96ef53445efd4ccc4ac91",
         "orig_commit_message": "GP-4729: Refactor existing OMF support",
-        "improve_commit_message": "Refactor OMF record handling and improve code organization.",
+        "improved_commit_message": "Refactor OMF record handling and improve code organization.",
         "change_summary": "This commit refactors the OMF record handling code by introducing utility methods in the OmfUtils class. This refactoring reduces redundancy by consolidating the logic for reading various fields and simplifies the constructors of several OMF record classes. Additionally, the organization of imports has been improved for better clarity and maintainability.",
         "hints": [
             "Introduced OmfUtils for centralized utility methods related to OMF.",
@@ -95269,7 +95269,7 @@
         "v1_hash": "21d433b26c9d68a585d3c8956cb87b1e3929aed1",
         "v2_hash": "dcc56457ea58347cf232fc056159fa9a736aece2",
         "orig_commit_message": "GP-4735 refactor pdb symbol server 'remote' to 'untrusted'\nChange name of symbolserver 'remote' property to 'untrusted' to reflectits intended usage.Add column in config table to allow user to toggle trusted status onhttp:// symbol servers (the only type that currently supports thisconcept)\n",
-        "improve_commit_message": "Refactor symbol server configuration to use trusted/untrusted terminology.",
+        "improved_commit_message": "Refactor symbol server configuration to use trusted/untrusted terminology.",
         "change_summary": "This commit updates instances of 'remote' references in the symbol server configuration to 'untrusted' to better reflect security concerns. The changes include renaming variables, methods, and commenting to clarify this alignment. This refactoring aims to improve code clarity, enhance security awareness during server configuration, and streamline the user experience.",
         "hints": [
             "Renamed variables and methods to replace 'remote' with 'untrusted'.",
@@ -98550,7 +98550,7 @@
         "v1_hash": "bf791dddddf8387ecd2c4e43b127eaceb509d5f6",
         "v2_hash": "274217d7c8fafbce1681396f660ff76f49b28493",
         "orig_commit_message": "GP-4574 - Minor refactor of drag and drop interfaces",
-        "improve_commit_message": "Refactor drag-and-drop handling for various components and clean up unused methods.",
+        "improved_commit_message": "Refactor drag-and-drop handling for various components and clean up unused methods.",
         "change_summary": "Removed several unused drag-and-drop methods from the Draggable and Droppable interfaces, including move and dragCanceled. This cleanup enhances code readability and maintains interface consistency. Consolidated drag feedback methods to reduce redundancy across implementations. Adjusted associated classes for the changes resulting in better alignment with updated interface specifications.",
         "hints": [
             "Removed no-op methods for drag cancellation and move operations from Draggable and Droppable interfaces.",
@@ -100765,7 +100765,7 @@
         "v1_hash": "434c3f315d68a5668601766738a7789b7e9e618a",
         "v2_hash": "624a3c4e9e9e55db903296eba544fa696cc1ecaf",
         "orig_commit_message": "GP-4408 Refactor of FillOutStructureCmd.  Added FillOutStructureHelper and additional DecompilerUtils methods.\n",
-        "improve_commit_message": "Refactor FillOutStructureCmd to FillOutStructureHelper, update decompiler process methods",
+        "improved_commit_message": "Refactor FillOutStructureCmd to FillOutStructureHelper, update decompiler process methods",
         "change_summary": "Refactored the FillOutStructureCmd class to FillOutStructureHelper, allowing for better modular handling of structure filling in the decompiler. Adjusted multiple areas to simplify structure creation and function handling. Updated method signatures and improved clarity for handling variable references.",
         "hints": [
             "Separated utility functions related to variable handling into FillOutStructureHelper.",
@@ -110352,6 +110352,877 @@
                     }
                 ],
                 "patch": "@@ -16,11 +16,15 @@\n  */\n package ghidra.app.plugin.core.diff;\n \n+import java.lang.reflect.InvocationTargetException;\n+\n+import javax.swing.SwingUtilities;\n+\n+import docking.widgets.dialogs.ReadTextDialog;\n import ghidra.app.events.ProgramSelectionPluginEvent;\n import ghidra.app.plugin.core.analysis.AnalysisWorker;\n import ghidra.app.plugin.core.analysis.AutoAnalysisManager;\n import ghidra.framework.cmd.BackgroundCommand;\n-import ghidra.framework.model.DomainObject;\n import ghidra.program.model.address.AddressSetView;\n import ghidra.program.model.listing.Program;\n import ghidra.program.util.ProgramLocation;\n@@ -28,17 +32,11 @@ import ghidra.util.Msg;\n import ghidra.util.exception.CancelledException;\n import ghidra.util.task.TaskMonitor;\n \n-import java.lang.reflect.InvocationTargetException;\n-\n-import javax.swing.SwingUtilities;\n-\n-import docking.widgets.dialogs.ReadTextDialog;\n-\n /**\n  * Command to apply diffs to current program.\n  * \n  */\n-class ApplyDiffCommand extends BackgroundCommand implements AnalysisWorker {\n+class ApplyDiffCommand extends BackgroundCommand<Program> implements AnalysisWorker {\n \n \tprivate AddressSetView p1AddressSet;\n \tprivate DiffController diffControl;\n@@ -47,9 +45,6 @@ class ApplyDiffCommand extends BackgroundCommand implements AnalysisWorker {\n \tprivate boolean applied;\n \tprivate ProgramDiffPlugin plugin;\n \n-\t/**\n-\t * Constructor.\n-\t */\n \tApplyDiffCommand(ProgramDiffPlugin plugin, AddressSetView program1AddressSet,\n \t\t\tDiffController diffControl) {\n \t\tsuper(\"Apply Differences\", false, true, true);\n@@ -59,8 +54,8 @@ class ApplyDiffCommand extends BackgroundCommand implements AnalysisWorker {\n \t}\n \n \t@Override\n-\tpublic boolean analysisWorkerCallback(Program program, Object workerContext, TaskMonitor monitor)\n-\t\t\tthrows Exception, CancelledException {\n+\tpublic boolean analysisWorkerCallback(Program program, Object workerContext,\n+\t\t\tTaskMonitor monitor) throws Exception, CancelledException {\n \t\t// Diff apply done with analysis disabled\n \t\treturn diffControl.apply(p1AddressSet, monitor);\n \t}\n@@ -70,11 +65,8 @@ class ApplyDiffCommand extends BackgroundCommand implements AnalysisWorker {\n \t\treturn getName();\n \t}\n \n-\t/**\n-\t * @see ghidra.framework.cmd.BackgroundCommand#applyTo(ghidra.framework.model.DomainObject, ghidra.util.task.TaskMonitor)\n-\t */\n \t@Override\n-\tpublic boolean applyTo(DomainObject obj, TaskMonitor monitor) {\n+\tpublic boolean applyTo(Program program, TaskMonitor monitor) {\n \t\tmonitor.setMessage(\"ApplyDiffTask starting...\");\n \t\tapplied = false;\n \t\tfinal ProgramLocation origLocation = plugin.getProgramLocation();\n@@ -90,9 +82,8 @@ class ApplyDiffCommand extends BackgroundCommand implements AnalysisWorker {\n \t\t\t\t\tAutoAnalysisManager.getAnalysisManager(plugin.getFirstProgram());\n \t\t\t\tboolean merged = autoAnalysisManager.scheduleWorker(this, null, false, monitor);\n \t\t\t\tif (merged) {\n-\t\t\t\t\tstatusMsg =\n-\t\t\t\t\t\t\"Apply differences has finished.\"\n-\t\t\t\t\t\t\t+ \" If your expected change didn't occur, check your Diff Apply Settings.\";\n+\t\t\t\t\tstatusMsg = \"Apply differences has finished.\" +\n+\t\t\t\t\t\t\" If your expected change didn't occur, check your Diff Apply Settings.\";\n \t\t\t\t\ttitle = \"Program Diff: Apply differences has finished.\";\n \t\t\t\t\tapplied = true;\n \t\t\t\t}\n@@ -114,15 +105,14 @@ class ApplyDiffCommand extends BackgroundCommand implements AnalysisWorker {\n \t\t\t\t\t}\n \t\t\t\t}\n \t\t\t\tMsg.showError(this, plugin.getListingPanel(), \"Error Applying Diff\",\n-\t\t\t\t\t\"An error occurred while applying differences.\\n\"\n-\t\t\t\t\t\t+ \"Only some of the differences may have been applied.\",\n+\t\t\t\t\t\"An error occurred while applying differences.\\n\" +\n+\t\t\t\t\t\t\"Only some of the differences may have been applied.\",\n \t\t\t\t\t(t != null) ? t : e);\n \t\t\t\tapplyMsg = message + diffControl.getApplyMessage();\n \t\t\t}\n \t\t\tcatch (CancelledException e) {\n-\t\t\t\tstatusMsg =\n-\t\t\t\t\t\"User cancelled \\\"Apply Differences\\\". \"\n-\t\t\t\t\t\t+ \"Differences were only partially applied.\";\n+\t\t\t\tstatusMsg = \"User cancelled \\\"Apply Differences\\\". \" +\n+\t\t\t\t\t\"Differences were only partially applied.\";\n \t\t\t\tapplyMsg = diffControl.getApplyMessage();\n \t\t\t}\n \t\t\tfinally {\n"
+            }
+        ]
+    },
+    {
+        "id": 16,
+        "project": "flink",
+        "v1_hash": "a5d419427d75ad761d4264ad14ca4c126292e167",
+        "v2_hash": "c6c90b8a3a5fea3c345ec3666801ccec7656c653",
+        "orig_commit_message": "[hotfix][clients] Refactor PackagedProgram#getJobJarAndDependencies to reduce some redundant lines. (#26238)\n\nCo-authored-by: Rui Fan <1996fanrui@gmail.com>",
+        "improved_commit_message": "Refactor getJobJarAndDependencies method to improve readability and reduce duplication.",
+        "change_summary": "The getJobJarAndDependencies method was refactored to remove duplicate code by moving the logic into a new private static method. This change simplifies the implementation and improves code maintainability.",
+        "hints": [
+            "Created a new private static method getJobJarAndDependencies that encapsulates the previous logic inside getJobJarAndDependencies.",
+            "Reduced code duplication by reusing the new static method in the existing public method.",
+            "Adjusted the method parameters to ensure both the public and private methods function correctly with the intended inputs."
+        ],
+        "starting_file": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+        "refactoring_changes": [
+            {
+                "type": "Extract Method",
+                "description": "Extract Method private getJobJarAndDependencies(jarFile URL, extractedTempLibraries List<File>, isPython boolean) : List<URL> extracted from public getJobJarAndDependencies() : List<URL> in class org.apache.flink.client.program.PackagedProgram",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 247,
+                        "endLine": 267,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "source method declaration before extraction",
+                        "codeElement": "public getJobJarAndDependencies() : List<URL>"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 252,
+                        "endLine": 252,
+                        "startColumn": 13,
+                        "endColumn": 31,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 256,
+                        "endLine": 256,
+                        "startColumn": 17,
+                        "endColumn": 68,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 258,
+                        "endLine": 258,
+                        "startColumn": 17,
+                        "endColumn": 90,
+                        "codeElementType": "THROW_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 263,
+                        "endLine": 263,
+                        "startColumn": 13,
+                        "endColumn": 59,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 266,
+                        "endLine": 266,
+                        "startColumn": 9,
+                        "endColumn": 21,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 249,
+                        "endLine": 249,
+                        "startColumn": 9,
+                        "endColumn": 80,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 251,
+                        "endLine": 253,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 255,
+                        "endLine": 259,
+                        "startColumn": 13,
+                        "endColumn": 14,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 257,
+                        "endLine": 259,
+                        "startColumn": 15,
+                        "endColumn": 14,
+                        "codeElementType": "CATCH_CLAUSE",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 254,
+                        "endLine": 260,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "ENHANCED_FOR_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 262,
+                        "endLine": 264,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 251,
+                        "endLine": 253,
+                        "startColumn": 30,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 254,
+                        "endLine": 260,
+                        "startColumn": 52,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 262,
+                        "endLine": 264,
+                        "startColumn": 23,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 252,
+                        "endLine": 270,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "extracted method declaration",
+                        "codeElement": "private getJobJarAndDependencies(jarFile URL, extractedTempLibraries List<File>, isPython boolean) : List<URL>"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 257,
+                        "endLine": 257,
+                        "startColumn": 13,
+                        "endColumn": 31,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 261,
+                        "endLine": 261,
+                        "startColumn": 17,
+                        "endColumn": 68,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 263,
+                        "endLine": 263,
+                        "startColumn": 17,
+                        "endColumn": 90,
+                        "codeElementType": "THROW_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 267,
+                        "endLine": 267,
+                        "startColumn": 13,
+                        "endColumn": 59,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 269,
+                        "endLine": 269,
+                        "startColumn": 9,
+                        "endColumn": 21,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 254,
+                        "endLine": 254,
+                        "startColumn": 9,
+                        "endColumn": 77,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 256,
+                        "endLine": 258,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 260,
+                        "endLine": 264,
+                        "startColumn": 13,
+                        "endColumn": 14,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 262,
+                        "endLine": 264,
+                        "startColumn": 15,
+                        "endColumn": 14,
+                        "codeElementType": "CATCH_CLAUSE",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 259,
+                        "endLine": 265,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "ENHANCED_FOR_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 266,
+                        "endLine": 268,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 256,
+                        "endLine": 258,
+                        "startColumn": 30,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 259,
+                        "endLine": 265,
+                        "startColumn": 52,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 266,
+                        "endLine": 268,
+                        "startColumn": 23,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 247,
+                        "endLine": 250,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "source method declaration after extraction",
+                        "codeElement": "public getJobJarAndDependencies() : List<URL>"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 249,
+                        "endLine": 249,
+                        "startColumn": 16,
+                        "endColumn": 83,
+                        "codeElementType": "METHOD_INVOCATION",
+                        "description": "extracted method invocation",
+                        "codeElement": "getJobJarAndDependencies(jarFile,extractedTempLibraries,isPython)"
+                    }
+                ]
+            },
+            {
+                "type": "Extract Method",
+                "description": "Extract Method private getJobJarAndDependencies(jarFile URL, extractedTempLibraries List<File>, isPython boolean) : List<URL> extracted from public getJobJarAndDependencies(jarFile File, entryPointClassName String) : List<URL> in class org.apache.flink.client.program.PackagedProgram",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 269,
+                        "endLine": 297,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "source method declaration before extraction",
+                        "codeElement": "public getJobJarAndDependencies(jarFile File, entryPointClassName String) : List<URL>"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 282,
+                        "endLine": 282,
+                        "startColumn": 13,
+                        "endColumn": 34,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 286,
+                        "endLine": 286,
+                        "startColumn": 17,
+                        "endColumn": 68,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 288,
+                        "endLine": 288,
+                        "startColumn": 17,
+                        "endColumn": 90,
+                        "codeElementType": "THROW_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 293,
+                        "endLine": 293,
+                        "startColumn": 13,
+                        "endColumn": 59,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 296,
+                        "endLine": 296,
+                        "startColumn": 9,
+                        "endColumn": 21,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 279,
+                        "endLine": 279,
+                        "startColumn": 9,
+                        "endColumn": 80,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 281,
+                        "endLine": 283,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 285,
+                        "endLine": 289,
+                        "startColumn": 13,
+                        "endColumn": 14,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 287,
+                        "endLine": 289,
+                        "startColumn": 15,
+                        "endColumn": 14,
+                        "codeElementType": "CATCH_CLAUSE",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 284,
+                        "endLine": 290,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "ENHANCED_FOR_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 292,
+                        "endLine": 294,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 281,
+                        "endLine": 283,
+                        "startColumn": 33,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 284,
+                        "endLine": 290,
+                        "startColumn": 52,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 292,
+                        "endLine": 294,
+                        "startColumn": 44,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code from source method declaration",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 252,
+                        "endLine": 270,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "extracted method declaration",
+                        "codeElement": "private getJobJarAndDependencies(jarFile URL, extractedTempLibraries List<File>, isPython boolean) : List<URL>"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 257,
+                        "endLine": 257,
+                        "startColumn": 13,
+                        "endColumn": 31,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 261,
+                        "endLine": 261,
+                        "startColumn": 17,
+                        "endColumn": 68,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 263,
+                        "endLine": 263,
+                        "startColumn": 17,
+                        "endColumn": 90,
+                        "codeElementType": "THROW_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 267,
+                        "endLine": 267,
+                        "startColumn": 13,
+                        "endColumn": 59,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 269,
+                        "endLine": 269,
+                        "startColumn": 9,
+                        "endColumn": 21,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 254,
+                        "endLine": 254,
+                        "startColumn": 9,
+                        "endColumn": 77,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 256,
+                        "endLine": 258,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 260,
+                        "endLine": 264,
+                        "startColumn": 13,
+                        "endColumn": 14,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 262,
+                        "endLine": 264,
+                        "startColumn": 15,
+                        "endColumn": 14,
+                        "codeElementType": "CATCH_CLAUSE",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 259,
+                        "endLine": 265,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "ENHANCED_FOR_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 266,
+                        "endLine": 268,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 256,
+                        "endLine": 258,
+                        "startColumn": 30,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 259,
+                        "endLine": 265,
+                        "startColumn": 52,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 266,
+                        "endLine": 268,
+                        "startColumn": 23,
+                        "endColumn": 10,
+                        "codeElementType": "BLOCK",
+                        "description": "extracted code to extracted method declaration",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 272,
+                        "endLine": 284,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "source method declaration after extraction",
+                        "codeElement": "public getJobJarAndDependencies(jarFile File, entryPointClassName String) : List<URL>"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 282,
+                        "endLine": 283,
+                        "startColumn": 16,
+                        "endColumn": 83,
+                        "codeElementType": "METHOD_INVOCATION",
+                        "description": "extracted method invocation",
+                        "codeElement": "getJobJarAndDependencies(jarFileUrl,extractedTempLibraries,isPython(entryPointClassName))"
+                    }
+                ]
+            },
+            {
+                "type": "Replace Generic With Diamond",
+                "description": "Replace Generic With Diamond ArrayList<URL> with ArrayList<> in method private getJobJarAndDependencies(jarFile URL, extractedTempLibraries List<File>, isPython boolean) : List<URL> from class org.apache.flink.client.program.PackagedProgram",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 249,
+                        "endLine": 249,
+                        "startColumn": 26,
+                        "endColumn": 79,
+                        "codeElementType": "CLASS_INSTANCE_CREATION",
+                        "description": "original creation",
+                        "codeElement": "new ArrayList<URL>(arg0)"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 247,
+                        "endLine": 267,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public getJobJarAndDependencies() : List<URL>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 254,
+                        "endLine": 254,
+                        "startColumn": 26,
+                        "endColumn": 76,
+                        "codeElementType": "CLASS_INSTANCE_CREATION",
+                        "description": "creation with diamond operator",
+                        "codeElement": "new ArrayList<>(arg0)"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 252,
+                        "endLine": 270,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "method declaration with diamond operator",
+                        "codeElement": "private getJobJarAndDependencies(jarFile URL, extractedTempLibraries List<File>, isPython boolean) : List<URL>"
+                    }
+                ]
+            },
+            {
+                "type": "Replace Generic With Diamond",
+                "description": "Replace Generic With Diamond ArrayList<URL> with ArrayList<> in method private getJobJarAndDependencies(jarFile URL, extractedTempLibraries List<File>, isPython boolean) : List<URL> from class org.apache.flink.client.program.PackagedProgram",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 279,
+                        "endLine": 279,
+                        "startColumn": 26,
+                        "endColumn": 79,
+                        "codeElementType": "CLASS_INSTANCE_CREATION",
+                        "description": "original creation",
+                        "codeElement": "new ArrayList<URL>(arg0)"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 269,
+                        "endLine": 297,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public getJobJarAndDependencies(jarFile File, entryPointClassName String) : List<URL>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 254,
+                        "endLine": 254,
+                        "startColumn": 26,
+                        "endColumn": 76,
+                        "codeElementType": "CLASS_INSTANCE_CREATION",
+                        "description": "creation with diamond operator",
+                        "codeElement": "new ArrayList<>(arg0)"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 252,
+                        "endLine": 270,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "method declaration with diamond operator",
+                        "codeElement": "private getJobJarAndDependencies(jarFile URL, extractedTempLibraries List<File>, isPython boolean) : List<URL>"
+                    }
+                ]
+            },
+            {
+                "type": "Parameterize Variable",
+                "description": "Parameterize Variable jarFileUrl : URL to jarFile : URL in method private getJobJarAndDependencies(jarFile URL, extractedTempLibraries List<File>, isPython boolean) : List<URL> from class org.apache.flink.client.program.PackagedProgram",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 272,
+                        "endLine": 272,
+                        "startColumn": 13,
+                        "endColumn": 46,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "jarFileUrl : URL"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 282,
+                        "endLine": 282,
+                        "startColumn": 13,
+                        "endColumn": 34,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 281,
+                        "endLine": 283,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 253,
+                        "endLine": 253,
+                        "startColumn": 13,
+                        "endColumn": 24,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "jarFile : URL"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 257,
+                        "endLine": 257,
+                        "startColumn": 13,
+                        "endColumn": 31,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                        "startLine": 256,
+                        "endLine": 258,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": [
+            {
+                "a_filename": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                "b_filename": "flink-clients/src/main/java/org/apache/flink/client/program/PackagedProgram.java",
+                "renamed": false,
+                "copied": false,
+                "deleted": false,
+                "change_type": null,
+                "hunks": [
+                    {
+                        "old_start": 246,
+                        "old_lines": 7,
+                        "new_start": 246,
+                        "new_lines": 12,
+                        "content": "@@ -246,7 +246,12 @@ public class PackagedProgram implements AutoCloseable {\n \n     /** Returns all provided libraries needed to run the program. */\n     public List<URL> getJobJarAndDependencies() {\n-        List<URL> libs = new ArrayList<URL>(extractedTempLibraries.size() + 1);\n+        return getJobJarAndDependencies(jarFile, extractedTempLibraries, isPython);\n+    }\n+\n+    private static List<URL> getJobJarAndDependencies(\n+            URL jarFile, List<File> extractedTempLibraries, boolean isPython) {\n+        List<URL> libs = new ArrayList<>(extractedTempLibraries.size() + 2);\n \n         if (jarFile != null) {\n             libs.add(jarFile);"
+                    },
+                    {
+                        "old_start": 258,
+                        "old_lines": 11,
+                        "new_start": 263,
+                        "new_lines": 9,
+                        "content": "@@ -258,11 +263,9 @@ public class PackagedProgram implements AutoCloseable {\n                 throw new RuntimeException(\"URL is invalid. This should not happen.\", e);\n             }\n         }\n-\n         if (isPython) {\n             libs.add(PackagedProgramUtils.getPythonJar());\n         }\n-\n         return libs;\n     }\n "
+                    },
+                    {
+                        "old_start": 276,
+                        "old_lines": 24,
+                        "new_start": 279,
+                        "new_lines": 8,
+                        "content": "@@ -276,24 +279,8 @@ public class PackagedProgram implements AutoCloseable {\n                         ? Collections.emptyList()\n                         : extractContainedLibraries(jarFileUrl);\n \n-        List<URL> libs = new ArrayList<URL>(extractedTempLibraries.size() + 1);\n-\n-        if (jarFileUrl != null) {\n-            libs.add(jarFileUrl);\n-        }\n-        for (File tmpLib : extractedTempLibraries) {\n-            try {\n-                libs.add(tmpLib.getAbsoluteFile().toURI().toURL());\n-            } catch (MalformedURLException e) {\n-                throw new RuntimeException(\"URL is invalid. This should not happen.\", e);\n-            }\n-        }\n-\n-        if (isPython(entryPointClassName)) {\n-            libs.add(PackagedProgramUtils.getPythonJar());\n-        }\n-\n-        return libs;\n+        return getJobJarAndDependencies(\n+                jarFileUrl, extractedTempLibraries, isPython(entryPointClassName));\n     }\n \n     /** Deletes all temporary files created for contained packaged libraries. */"
+                    }
+                ],
+                "patch": "@@ -246,7 +246,12 @@ public class PackagedProgram implements AutoCloseable {\n \n     /** Returns all provided libraries needed to run the program. */\n     public List<URL> getJobJarAndDependencies() {\n-        List<URL> libs = new ArrayList<URL>(extractedTempLibraries.size() + 1);\n+        return getJobJarAndDependencies(jarFile, extractedTempLibraries, isPython);\n+    }\n+\n+    private static List<URL> getJobJarAndDependencies(\n+            URL jarFile, List<File> extractedTempLibraries, boolean isPython) {\n+        List<URL> libs = new ArrayList<>(extractedTempLibraries.size() + 2);\n \n         if (jarFile != null) {\n             libs.add(jarFile);\n@@ -258,11 +263,9 @@ public class PackagedProgram implements AutoCloseable {\n                 throw new RuntimeException(\"URL is invalid. This should not happen.\", e);\n             }\n         }\n-\n         if (isPython) {\n             libs.add(PackagedProgramUtils.getPythonJar());\n         }\n-\n         return libs;\n     }\n \n@@ -276,24 +279,8 @@ public class PackagedProgram implements AutoCloseable {\n                         ? Collections.emptyList()\n                         : extractContainedLibraries(jarFileUrl);\n \n-        List<URL> libs = new ArrayList<URL>(extractedTempLibraries.size() + 1);\n-\n-        if (jarFileUrl != null) {\n-            libs.add(jarFileUrl);\n-        }\n-        for (File tmpLib : extractedTempLibraries) {\n-            try {\n-                libs.add(tmpLib.getAbsoluteFile().toURI().toURL());\n-            } catch (MalformedURLException e) {\n-                throw new RuntimeException(\"URL is invalid. This should not happen.\", e);\n-            }\n-        }\n-\n-        if (isPython(entryPointClassName)) {\n-            libs.add(PackagedProgramUtils.getPythonJar());\n-        }\n-\n-        return libs;\n+        return getJobJarAndDependencies(\n+                jarFileUrl, extractedTempLibraries, isPython(entryPointClassName));\n     }\n \n     /** Deletes all temporary files created for contained packaged libraries. */\n"
             }
         ]
     }

@@ -24,7 +24,34 @@ class RefactoringToolProvider(BaseModel):
             """Extracts a method from the specified range of lines in a source code file and creates a new method
             with the given name. This is intended to refactor a block of code within a file, taking the
             lines from `start_line` to `end_line`, inclusive, and moving them into a new method named
-            `new_method_name`. The original block of code is replaced with a call to the newly created method."""
+            `new_method_name`. The original block of code is replaced with a call to the newly created method.
+
+            Here is an example:
+            280. public void connect(Figure figure) {
+            281.     if (fObservedFigure != null)
+            282.         fObservedFigure.removeFigureChangeListener(this);
+            283.
+            284.     fObservedFigure = figure;
+            285.     fLocator = new OffsetLocator(figure.connectedTextLocator(this));
+            286.     fObservedFigure.addFigureChangeListener(this);
+            287.     if (fLocator != null) {
+            288.         Point p = fLocator.locate(fObservedFigure);
+            289.         p.x -= size().width/2 + fOriginX;
+            290.         p.y -= size().height/2 + fOriginY;
+            291.
+            292.         if (p.x != 0 || p.y != 0) {
+            293.             willChange();
+            294.             basicMoveBy(p.x, p.y);
+            295.             changed();
+            296.         }
+            297.     }
+            298. }
+
+            To extract the block of code from line 288 to 296 into a new method called `updateLocator`,
+            make the following call to this tool:
+            `extract_method(start_line=288, end_line=296, new_method_name="updateLocator")`
+
+            """
 
             return self.ide_server.call_tool('extract_method',
                                       start_line=start_line, end_line=end_line, new_method_name=new_method_name)

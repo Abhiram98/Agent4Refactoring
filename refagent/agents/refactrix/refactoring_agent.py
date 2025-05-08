@@ -107,7 +107,8 @@ class Agent(BaseModel):
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
-        self._source_code = starting_file  # TODO: Read the starting file
+        self._source_code = self.project.get_file_contents(starting_file)
+
         self._iterations = 0
         self._files_changed.add(Path(starting_file))
         self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
@@ -368,6 +369,20 @@ class Agent(BaseModel):
 
             return {"messages": messages}
 
+        def fix_compile_errors(state: MessagesState):
+            """Fix compilation errors"""
+            errors = self.ide_server.call_tool("run_code_inspection")
+            if errors == '':
+                return
+
+
+            # TODO: call compile error fixing module.
+            # intent: str
+            # return : True/False. True -> fix-compile issues, False -> failed.
+
+            # TODO: revert changes if compile errors cannot be fixed.
+
+
         def finished_refactoring(state: MessagesState):
 
             if self._iterations >= 5:
@@ -384,8 +399,8 @@ class Agent(BaseModel):
                                        f'Please reflect whether the task is complete, '
                                        f'by answering the following questions: '
                                        '1. Has the original ask been met? '
-                                       f'2. Are there other locations within the file {self._rel_file_path} '
-                                       f'where the same change can be applied? '
+                                       f'2. Have all appropriate locations within the file {self._rel_file_path} '
+                                       f'been updated? '
                                        'Finally say whether the task is complete '
                                        'using the word DONE/INCOMPLETE appropriately.')])
             return {'messages': [response]}
@@ -400,6 +415,7 @@ class Agent(BaseModel):
         workflow.add_node("select_refactoring", select_refactoring)
         workflow.add_node("perform_refactoring", perform_selected_refactoring)
         workflow.add_node("finished_refactoring", finished_refactoring)
+        workflow.add_node("fix_compile_errors", fix_compile_errors)
 
         # Add edges to connect nodes
         workflow.add_edge(START, "finished_refactoring")
@@ -411,7 +427,8 @@ class Agent(BaseModel):
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
         )
-        workflow.add_edge("perform_refactoring", "finished_refactoring")
+        workflow.add_edge("perform_refactoring", "fix_compile_errors")
+        workflow.add_edge("fix_compile_errors", "finished_refactoring")
 
 
         # Compile
