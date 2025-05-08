@@ -251,12 +251,19 @@ class RefactoringToolProvider(BaseModel):
             Explain your reasoning in the `reason` parameter - include the name of the tool that you'd like to use.
             """
             return 'Failed to perform any refactoring. Reason: ' + reason
+        
+        @tool
+        def run_code_inspection():
+            """Run code inspection on the current file to check for any issues or potential problems.
+            This tool will analyze the code for common issues, style violations, and potential bugs.
+            It's recommended to run this after making significant changes to the code."""
+            return self.ide_server.call_tool('run_code_inspection')
 
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
                                      change_method_signature, introduce_parameter_object, move_method,
                                      extract_field, type_change,
                                      replace_file_contents, replace_method_contents, find_replace,
-                                     no_op]
+                                     no_op, run_code_inspection]
 
         return {i.name: i for i in all_tools}
 

@@ -139,7 +139,8 @@ class Agent(BaseModel):
         # Run error-fixing component
         error_fixing.ErrorFixing(
             model=model,
-            ide_server=self.ide_server
+            ide_server=self.ide_server,
+            files_changed=self._files_changed
         ).compile_and_run()
 
         return final_state["messages"][-1].content
