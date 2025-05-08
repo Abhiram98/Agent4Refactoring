@@ -10,30 +10,34 @@ import refagent.utils.intellij_server as ij
 import refagent.benchmark.load as bm_load
 import refagent
 import traceback
+from langchain_openai import ChatOpenAI
+from langchain_core.language_models import BaseChatModel
+from refagent.agents.refactrix.fix_planning import FixPlanningComponent
+from grazie_langchain_utils.language_models.grazie import ChatGrazie
+from grazie.api.client.endpoints import GrazieApiGatewayUrls
+from grazie.api.client.gateway import AuthType
+from pydantic.v1 import SecretStr
+
+from dotenv import load_dotenv
+load_dotenv()
+
+def create_model() -> BaseChatModel:
+    return ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                      client_auth_type=AuthType.APPLICATION,
+                      client_url=GrazieApiGatewayUrls.STAGING,
+                      profile="gpt-4o",
+                      client_agent_name='fix-agent',
+                      client_agent_version='0.1',
+                      temperature=0.3)
 
 def get_commit_hash_from_results(results_file_path):
     """Extract a commit hash from the results.json file for id 3."""
     with open(results_file_path, 'r') as file:
         results = json.load(file)
-        # Handle the case when results is a list
-        if isinstance(results, list):
-            for item in results:
-                if isinstance(item, dict) and item.get('id') == 3 and item.get('response') and item['response'].get('commit_hash'):
-                    return item['response']['commit_hash']
-        # Handle the case when results is a dictionary
-        elif isinstance(results, dict):
-            if results.get('id') == 3 and results.get('response') and results['response'].get('commit_hash'):
-                return results['response']['commit_hash']
+        for item in results:
+            if isinstance(item, dict) and item.get('id') == 3 and item.get('response') and item['response'].get('commit_hash'):
+                return item['response']['commit_hash']
     raise ValueError("No commit hash found for id 3 in results file")
-
-def wait_for_checkout(project, expected_commit, timeout=300, check_interval=5):
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        current_commit = project.git_repo.head.commit.hexsha
-        if current_commit.startswith(expected_commit):
-            return True
-        time.sleep(check_interval)
-    raise TimeoutError(f"Checkout did not complete within {timeout} seconds")
 
 def test_code_inspection_with_commit():
     # Get the results file and commit hash
@@ -51,11 +55,15 @@ def test_code_inspection_with_commit():
         if not target_entry or 'response' not in target_entry or 'changes' not in target_entry['response']:
             raise ValueError("Could not find changes for id 3 in results file")
         
-        # Get all unique a_filename entries
-        files_to_inspect = set()
+        # Get all unique a_filename entries while maintaining order
+        files_to_inspect = []
+        seen_files = set()
         for change in target_entry['response']['changes']:
-            if 'a_filename' in change and change['a_filename']:
-                files_to_inspect.add(change['a_filename'])
+            if 'a_filename' in change and change['a_filename'] and change['a_filename'] not in seen_files:
+                files_to_inspect.append(change['a_filename'])
+                seen_files.add(change['a_filename'])
+        
+        # print(f"Files to inspect: {files_to_inspect}")
     
     intellij_server = ij.IntellijServer(server_url="http://localhost:8082")
     project = pm.EvalProject('flink')
@@ -70,24 +78,63 @@ def test_code_inspection_with_commit():
         time.sleep(20)
         print(f"Reloaded project")
         
-        # Run code inspection on each file
+        # Create the language model
+        model = create_model()
+        
+        # Process each file
         for file_path in files_to_inspect:
-            print(f"\nRunning code inspection on: {file_path}")
+            print(f"\nProcessing file: {file_path}")
             intellij_server.open_file(Path(file_path))
             time.sleep(5)  # Give IDE time to open the file
             
+            # Run code inspection
             response = requests.post("http://localhost:8082/run_code_inspection", json={})
             assert response.status_code == 200, f"API call failed with status code {response.status_code} for file {file_path}"
             
             try:
-                inspection_results = response.json()
-                print(f"Parsed inspection results for {file_path}:")
-                print(f"Type: {type(inspection_results)}")
-                print(f"Results: {json.dumps(inspection_results, indent=2)}")
-                assert isinstance(inspection_results, (dict, list))
+                issues = response.json()
+                if not isinstance(issues, list):
+                    issues = [issues]
+                
+                if not issues:
+                    print(f"No issues found in {file_path}")
+                    continue
+                
+                # Get the current source code (opened file in IDE)
+                source_code = intellij_server.call_tool_get("get_source_code")
+                
+                # Process each issue
+                for issue in issues:
+                    print(f"\nFixing issue in {file_path}:")
+                    print(f"Line {issue.get('lineNum')}: {issue.get('problem')}")
+                    
+                    # Create a detailed issue description
+                    issue_description = issue.get('problem')
+                    
+                    # Create and run the fix planning component
+                    fix_planner = FixPlanningComponent(
+                        issue_description=issue_description,
+                        model=model,
+                        source_file_path=str(file_path),
+                        source_code=source_code
+                    )
+                    
+                    # Get the fix plan
+                    fix_plan = fix_planner.run()
+                    
+                    # Execute each step in the fix plan
+                    for step in fix_plan.steps:
+                        print(f"\nExecuting fix step: {step.reason}")
+                        print(f"Refactoring type: {step.refactoring_type}")
+                        print(f"Execution details: {step.execution_details}")
+                
             except json.JSONDecodeError:
-                assert response.text
-                print(f"Code inspection raw response for {file_path}: {response.text}")
+                print(f"Failed to parse inspection results for {file_path}")
+                continue
+            except Exception as e:
+                print(f"Error processing {file_path}: {str(e)}")
+                traceback.print_exc()
+                continue
             
     except Exception as e:
         print(f"Test failed with exception: {str(e)}")
