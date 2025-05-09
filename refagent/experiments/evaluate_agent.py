@@ -34,7 +34,7 @@ def main():
 
     overall_recall = 0
     total_oracle = 0
-    benchmark = bm_load.load_benchmark(refagent.benchmark_lite_json)
+    benchmark = bm_load.load_benchmark(refagent.benchmark_full_json)
     for result in agent_results:
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
         assert len(bench_points) == 1
