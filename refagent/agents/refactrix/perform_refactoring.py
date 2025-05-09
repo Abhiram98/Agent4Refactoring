@@ -53,7 +53,7 @@ class PerformRefactoring(BaseModel):
             # if self.retry_count <=0:
             #     return {"messages": [AIMessage("Stopping as I was already called 3 times.")]}
             if self._retry_iteration >= 1:
-                state['messages'][-1].content += ". Consider calling the tool differently, or trying another tool."
+                state['messages'][-1].content += ". DO NOT MAKE THE SAME TOOL CALL AGAIN."
             model_with_tools = self.model.bind_tools(tools=self.tools)
             messages = state['messages']
             response = model_with_tools.invoke(messages)
@@ -76,9 +76,14 @@ class PerformRefactoring(BaseModel):
 
         def failure_handler(state: MessagesState):
             print("Failed to perform the refactoring.")
+            tool_call = self._active_tool_call[0]
+            name = tool_call['name']
+            args = ", ".join([f"{k}={v}"for k,v in tool_call['args'].items()])
+            tool_call_str = f"{name}({args})"
             return {"messages": [HumanMessage("Cannot perform this refactoring. "
-                                              f"{self._active_tool_call}"
-                                              f"Reason: {state['messages'][-1].content}")]}
+                                              f"{tool_call_str} failed. "
+                                              f"Reason: {state['messages'][-1].content}"
+                                              f"CALL the TOOL differently, next time.")]}
 
         def retry_condition(state: MessagesState) -> str:
             last_message = state['messages'][-1].content
