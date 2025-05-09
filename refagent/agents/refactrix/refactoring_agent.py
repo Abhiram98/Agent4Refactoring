@@ -232,7 +232,7 @@ class Agent(BaseModel):
         changed_files = set(self.project.get_changed_files())
         self._files_changed = self._files_changed.union(changed_files)
 
-    def commit_changes(self, commit_message):
+    def commit_changes(self, commit_message: str):
         self.project.safe_add(self._files_changed)
         new_hash = self.project.git_repo.index.commit(commit_message)
         self._internal_commits.append(new_hash)
@@ -382,7 +382,7 @@ class Agent(BaseModel):
                       for i in json.loads(self.ide_server.call_tool("run_code_inspection"))]
             if len(errors) == 0:
                 print("No compilation errors found.")
-                self.project.commit_all(initial_intent)
+                self.commit_changes(plan_step.reason)
                 return
 
             print("Compilation errors found. Fixing them.")
@@ -392,14 +392,14 @@ class Agent(BaseModel):
                 ide_server=self.ide_server,
                 errors=errors,
                 tools=[],
-                refactoring_intent=initial_intent
+                refactoring_intent=plan_step.reason
             ).compile_and_run()
 
             if not status:
                 print("Failed to fix compilation errors. Reverting changes.")
                 self.project.restore_changes()
-                return
-            self.project.commit_all(initial_intent)
+                return [{'messages': HumanMessage("There were compilation errors. I have reverted the changes.")}]
+            self.commit_changes(plan_step.reason)
 
         def finished_refactoring(state: MessagesState):
 

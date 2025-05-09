@@ -212,6 +212,12 @@ class EvalProject:
 
     def restore_changes(self):
         result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'reset'],
+            ['git', '-C', self.get_project_path(), 'restore', '--staged', '.'],
+            capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'restore', '.'],
+            capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'clean', '-fd'],
             capture_output=True, text=True, check=True)
         return result.stdout

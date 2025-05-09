@@ -33,17 +33,16 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     else:
         plan_type = planning.PlanningComponent
 
-    try:
-        agent = ra.Agent(ide_server=ij_server,
+    agent = ra.Agent(ide_server=ij_server,
                      model_name='grazie:openai-gpt-4o-mini',
                      project=project,
                      plan_component=plan_type)
+    try:
         final_message = agent.run(initial_intent=bench_point.improved_commit_message + bench_point.change_summary,
                                   starting_file=bench_point.starting_file)  # run the agent with commit message
     except Exception as e:
         print("Agent execution failed ;/")
         traceback.print_exc()
-        return
 
     internal_commits = agent.internal_commits()
     previous_commits = "\n".join([i.commit.message for i in internal_commits])
