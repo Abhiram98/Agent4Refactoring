@@ -24,6 +24,13 @@ class PerformRefactoring(BaseModel):
     _tool_call_status: dict = PrivateAttr(default={})
     _retry_iteration: int = PrivateAttr(default=1)
 
+    def get_tool_call_str(self):
+        tool_call = self._active_tool_call[0]
+        name = tool_call['name']
+        args = ", ".join([f"{k}={v}" for k, v in tool_call['args'].items()])
+        tool_call_str = f"{name}({args})"
+        return tool_call_str
+
     def compile(self) -> CompiledGraph:
 
         def open_file(state: MessagesState):
@@ -52,8 +59,9 @@ class PerformRefactoring(BaseModel):
         def call_llm(state: MessagesState):
             # if self.retry_count <=0:
             #     return {"messages": [AIMessage("Stopping as I was already called 3 times.")]}
-            if self._retry_iteration >= 1:
-                state['messages'][-1].content += ". DO NOT MAKE THE SAME TOOL CALL AGAIN."
+            if self._retry_iteration > 1:
+                state['messages'][-1].content += (f"The tool call {self.get_tool_call_str()} is failing. "
+                                                  f"DO NOT MAKE THE SAME TOOL CALL AGAIN.")
             model_with_tools = self.model.bind_tools(tools=self.tools)
             messages = state['messages']
             response = model_with_tools.invoke(messages)
@@ -76,10 +84,7 @@ class PerformRefactoring(BaseModel):
 
         def failure_handler(state: MessagesState):
             print("Failed to perform the refactoring.")
-            tool_call = self._active_tool_call[0]
-            name = tool_call['name']
-            args = ", ".join([f"{k}={v}"for k,v in tool_call['args'].items()])
-            tool_call_str = f"{name}({args})"
+            tool_call_str = self.get_tool_call_str()
             return {"messages": [HumanMessage("Cannot perform this refactoring. "
                                               f"{tool_call_str} failed. "
                                               f"Reason: {state['messages'][-1].content}"
