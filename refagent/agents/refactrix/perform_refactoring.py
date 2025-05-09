@@ -20,8 +20,7 @@ class PerformRefactoring(BaseModel):
     rel_file_path: str = Field(description="relative file path from repo root. file to be edited.")
     ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
     _file_open_status: bool = PrivateAttr(default=False)
-    _active_tool_call: str = PrivateAttr(default="")
-    _tool_call_status: dict = PrivateAttr(default={})
+    _active_tool_call: List = PrivateAttr(default="")
     _retry_iteration: int = PrivateAttr(default=1)
 
     def get_tool_call_str(self):
@@ -94,7 +93,6 @@ class PerformRefactoring(BaseModel):
             last_message = state['messages'][-1].content
             # False -> retry
             tool_call_success = 'success' in last_message.lower()  # retry in case tool call fails.
-            self._tool_call_status[self._active_tool_call] = tool_call_success
 
             if tool_call_success:
                 return "success_handler"
@@ -115,9 +113,9 @@ class PerformRefactoring(BaseModel):
         def has_tool_call(state: MessagesState) -> bool:
             if len(state['messages'][-1].tool_calls) > 0:
                 if 'repalce_file_contents' in str(state['messages'][-1].tool_calls[0]):
-                    self._active_tool_call = f"Replaced file contents of {self.rel_file_path}."
+                    self._active_tool_call = [f"Replaced file contents of {self.rel_file_path}."]
                 else:
-                    self._active_tool_call = str(state['messages'][-1].tool_calls)
+                    self._active_tool_call = state['messages'][-1].tool_calls
                 return True
             return False
 

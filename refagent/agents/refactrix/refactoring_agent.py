@@ -178,7 +178,8 @@ class Agent(BaseModel):
                 last_file_opened = step.file_path
             graph = self.compile_graph(model=model,
                                        initial_intent=initial_intent,
-                                       plan_step=step)
+                                       plan_step=step,
+                                       step_count=i)
             final_state = graph.invoke(
                 {
                     "messages": [
@@ -296,7 +297,9 @@ class Agent(BaseModel):
 
     def compile_graph(self, model: BaseChatModel,
                       initial_intent: str,
-                      plan_step: planning.PlanningStep) -> CompiledStateGraph:
+                      plan_step: planning.PlanningStep,
+                      step_count: int
+                      ) -> CompiledStateGraph:
         """Compile the graph with the given model and the given planning step"""
 
         def curate_tests(state: MessagesState):
@@ -384,6 +387,9 @@ class Agent(BaseModel):
 
 
         def finished_refactoring(state: MessagesState):
+
+            if step_count == 0:
+                return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
             if self._iterations >= 5:
                 # Stopping because limit has been reached.
