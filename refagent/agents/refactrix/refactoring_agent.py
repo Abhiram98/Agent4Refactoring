@@ -1,6 +1,7 @@
 import json
 import traceback
 
+from github.Commit import Commit
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
 from langchain_core.tools import tool, BaseTool
@@ -18,8 +19,7 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie.api.client.chat.response import Credit
 
-from typing import Annotated, Optional, Type
-
+from typing import Annotated, Optional, Type, List
 
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
@@ -54,6 +54,8 @@ class Agent(BaseModel):
     _iterations: int = PrivateAttr(default=0)
     _trajectory: list[BaseMessage] = PrivateAttr(default=[])
     _selected_refactoring: Optional[SelectedRefactoring] = PrivateAttr(default=None)
+    _internal_commits: List[Commit] = PrivateAttr(default=[])
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -91,6 +93,9 @@ class Agent(BaseModel):
 
     def files_changed(self) -> list[Path]:
         return list(self._files_changed)
+
+    def internal_commits(self) -> list[Commit]:
+        return self._internal_commits
 
     def try_open_file(self, rel_file_path: str):
         response = self.ide_server.try_open_file(Path(rel_file_path))
@@ -134,14 +139,8 @@ class Agent(BaseModel):
             example_changes=self.get_important_files_diff()
         )
         for plan in replicator.compile_and_run():
-            self.execute_plan(initial_intent, model, plan)
+            self.execute_plan(initial_intent, model, plan, reopen_file=True)
             self.update_changed_files()
-
-        # Run error-fixing component
-        error_fixing.ErrorFixing(
-            model=model,
-            ide_server=self.ide_server
-        ).compile_and_run()
 
         return final_state["messages"][-1].content
 
@@ -163,12 +162,12 @@ class Agent(BaseModel):
         final_state = self.execute_plan(initial_intent, model, ref_plan)
         return final_state
 
-    def execute_plan(self, initial_intent, model, ref_plan):
+    def execute_plan(self, initial_intent, model, ref_plan, reopen_file=False):
         last_file_opened = None
         for i, step in enumerate(ref_plan.steps):
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
             self._iterations = 0
-            if step.file_path != last_file_opened:
+            if reopen_file and step.file_path != last_file_opened:
                 try:
                     self.try_open_file(step.file_path)
                 except:
@@ -232,6 +231,11 @@ class Agent(BaseModel):
     def update_changed_files(self):
         changed_files = set(self.project.get_changed_files())
         self._files_changed = self._files_changed.union(changed_files)
+
+    def commit_changes(self, commit_message):
+        self.project.safe_add(self._files_changed)
+        new_hash = self.project.git_repo.index.commit(commit_message)
+        self._internal_commits.append(new_hash)
 
     def update_source_code(self) -> bool:
         """Call the environment to fetch the current version
@@ -374,21 +378,32 @@ class Agent(BaseModel):
 
         def fix_compile_errors(state: MessagesState):
             """Fix compilation errors"""
-            errors = self.ide_server.call_tool("run_code_inspection")
-            if errors == '':
+            errors = [error_fixing.ErrorMessage(**i)
+                      for i in json.loads(self.ide_server.call_tool("run_code_inspection"))]
+            if len(errors) == 0:
+                print("No compilation errors found.")
+                self.project.commit_all(initial_intent)
                 return
 
+            print("Compilation errors found. Fixing them.")
+            # Run error-fixing component
+            status = error_fixing.ErrorFixing(
+                model=model,
+                ide_server=self.ide_server,
+                errors=errors,
+                tools=[],
+                refactoring_intent=initial_intent
+            ).compile_and_run()
 
-            # TODO: call compile error fixing module.
-            # intent: str
-            # return : True/False. True -> fix-compile issues, False -> failed.
-
-            # TODO: revert changes if compile errors cannot be fixed.
-
+            if not status:
+                print("Failed to fix compilation errors. Reverting changes.")
+                self.project.restore_changes()
+                return
+            self.project.commit_all(initial_intent)
 
         def finished_refactoring(state: MessagesState):
 
-            if step_count == 0:
+            if step_count == 0 and self._iterations == 0:
                 return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
             if self._iterations >= 5:

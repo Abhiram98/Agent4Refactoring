@@ -199,9 +199,19 @@ class EvalProject:
     def file_exists(self, file_path: str) -> bool:
         return os.path.exists(self.get_project_path().joinpath(file_path))
 
-    def reset_head(self) -> str:
+    def reset_head(self, count=0) -> str:
         # git reset --soft HEAD^
+        if count==0:
+            head_str = 'HEAD^'
+        else:
+            head_str = f'HEAD~{count}'
         result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'reset', '--soft', 'HEAD^'],
+            ['git', '-C', self.get_project_path(), 'reset', '--soft', head_str],
+            capture_output=True, text=True, check=True)
+        return result.stdout
+
+    def restore_changes(self):
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'reset'],
             capture_output=True, text=True, check=True)
         return result.stdout

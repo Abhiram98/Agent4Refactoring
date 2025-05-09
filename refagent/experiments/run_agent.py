@@ -1,4 +1,5 @@
 import argparse
+from idlelib.configdialog import changes
 from pathlib import Path
 import json
 from typing import Optional
@@ -42,9 +43,14 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     except Exception as e:
         print("Agent execution failed ;/")
         traceback.print_exc()
+        return
 
+    internal_commits = agent.internal_commits()
+    previous_commits = "\n".join([i.commit.message for i in internal_commits])
+
+    project.reset_head(len(internal_commits))
     project.safe_add(agent.files_changed())
-    new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id}")
+    new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id} \n\n {previous_commits}")
 
     results_saver.add(
         bench_point.ref_id,
@@ -81,7 +87,10 @@ if __name__ == '__main__':
             planning_results = {i['id']: planning.RefactoringPlan(**i['response']) for i in json.load(f)}
 
     use_previous = False
-    benchmark = bm_load.load_benchmark(refagent.benchmark_lite_json)
+
+    with open(refagent.benchmark_full_file) as f:
+        benchmark_json = json.load(f)
+    benchmark = bm_load.load_benchmark(benchmark_json)
     results_saver = rm.ResultsManager(run_identifier=args.run_identifier)
 
     for bench_point in benchmark:
