@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv() # load environment variables from .env file.
 
 data_folder = pathlib.Path(__file__).parent.parent.joinpath('data')
-benchmark_lite_file = pathlib.Path(__file__).parent.parent.joinpath('data/ref_miner/benchmark_lite_v0.1.json')
+benchmark_lite_file = pathlib.Path(__file__).parent.parent.joinpath('data/ref_miner/flink.json')
 with open(benchmark_lite_file) as f:
     benchmark_lite_json = json.load(f)
 

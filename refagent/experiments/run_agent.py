@@ -34,10 +34,10 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
 
     try:
         agent = ra.Agent(ide_server=ij_server,
-                     model_name='grazie:openai-gpt-4o-mini',
+                     model_name='openai:gpt-4o-mini',
                      project=project,
                      plan_component=plan_type)
-        final_message = agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,
+        agent.run(initial_intent=bench_point.necessary_context + bench_point.hint,
                                   starting_file=bench_point.starting_files[0])  # run the agent with commit message
     except Exception as e:
         print("Agent execution failed ;/")
@@ -92,9 +92,9 @@ if __name__ == '__main__':
                   f"Selected: {selected_ref_ids}")
             continue
 
-        if results_saver.exists(bench_point.ref_id):
-            print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
-            continue
+        # if results_saver.exists(bench_point.ref_id):
+        #     print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
+        #     continue
 
         with ls.trace(name=f"refactoring agent - {args.run_identifier}",
                       tags=[args.run_identifier]) as tracer:
