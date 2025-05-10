@@ -16,6 +16,7 @@ from refagent.agents.refactrix.quality_check import QualityCheck, IntentAlignmen
 
 from dotenv import load_dotenv
 load_dotenv()
+target_id = 1
 
 
 def create_model() -> BaseChatModel:
@@ -69,14 +70,14 @@ def test_quality_check():
     """
     Test if the quality check correctly analyzes refactoring intent compliance.
     """
-    with ls.trace(name="test_quality_check", tags=["test"], project_name="code-intent") as tracer:
+    with ls.trace(name=f"test_quality_check_v2_target_id_{target_id}", tags=["test"], project_name="code-intent") as tracer:
         # Set up paths and IDs
         project_root = Path(__file__).parent.parent
         results_file_path = project_root / "data/results/baseline-2025-04-28/results.json"
         benchmark_file_path = project_root / "data/ref_miner/benchmark_lite_v0.2.json"
         
         # Use ID 3 by default or allow specifying via environment variable
-        target_id = 3
+        # target_id = 3
         project_name = "flink"
         
         # Get both commit hashes
@@ -101,6 +102,8 @@ def test_quality_check():
         intellij_server.open_file(Path(starting_file))
         time.sleep(5)  # Wait for file to open
         source_code_before_refactoring = intellij_server.call_tool_get("get_source_code")
+        print(f"Source code before refactoring type: {type(source_code_before_refactoring)}")
+        
         
         # Get refactored code by checking out the results commit hash
         intellij_server.reset_project_reload_counters()
@@ -111,8 +114,9 @@ def test_quality_check():
         intellij_server.open_file(Path(starting_file))
         time.sleep(5)  # Wait for file to open
         source_code_after_refactoring = intellij_server.call_tool_get("get_source_code")
+        print(f"Source code after refactoring type: {type(source_code_after_refactoring)}")
         
-        # Create language model
+        # # Create language model
         model = create_model()
         
         # Create quality check component with source code
@@ -120,13 +124,9 @@ def test_quality_check():
             model=model,
             ide_server=intellij_server,
             intent=improved_commit_message,
-            _original_code=source_code_before_refactoring,
-            _refactored_code=source_code_after_refactoring
-        )
-        
-        # Run quality check
-        quality_check_result = quality_checker.compile_and_run()
-        print(f"Pass? {quality_check_result}")
+            original_code=source_code_before_refactoring,
+            refactored_code=source_code_after_refactoring
+        ).compile_and_run()
 
 
 if __name__ == "__main__":
