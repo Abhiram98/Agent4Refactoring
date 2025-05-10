@@ -48,7 +48,7 @@ class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
     project: pm.EvalProject = Field(description="the evaluation project to run the agent on.")
-    analysis_component: Type[planning.AnalysisComponent] = Field(description="the kind of analysis component to use.",
+    analysis_component: Type[analysis.AnalysisComponent] = Field(description="the kind of analysis component to use.",
                                                              default=analysis.AnalysisComponent)
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
@@ -122,7 +122,7 @@ class Agent(BaseModel):
         # tool_calling_model = self.create_model(model_name_="grazie:openai-gpt-4o-mini")
 
         analysis_report = self.analyze_developer_intent(initial_intent, model, starting_file)
-        ref_plan = self.generate_initial_plan(initial_intent, analysis_report, model, starting_file)
+        ref_plan = self.generate_initial_plan(analysis_report, model, starting_file)
         self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
         final_state = self.execute_initial_plan(initial_intent, model, ref_plan)
@@ -165,12 +165,13 @@ class Agent(BaseModel):
             model=model
         )
         analysis_report = analysis_component.run()
+        analysis_report = analysis_report.augmented_intent
         return analysis_report
 
-    def generate_initial_plan(self, initial_intent, analysis_report, model, starting_file):
+    def generate_initial_plan(self, analysis_report, model, starting_file):
         planning_component = self.plan_component(
-            initial_intent=initial_intent,
-            augmented_intent=analysis_report,
+            initial_intent=analysis_report,
+            # augmented_intent=analysis_report,
             model=model,
             source_code=self._source_code,
             source_file_path=starting_file
