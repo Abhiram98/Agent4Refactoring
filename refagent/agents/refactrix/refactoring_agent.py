@@ -30,6 +30,7 @@ import refagent.agents.refactrix.planning as planning
 import refagent.utils.project_manager as pm
 import refagent.agents.refactrix.replication as replication
 import refagent.agents.refactrix.error_fixing as error_fixing
+import refagent.agents.refactrix.quality_check as quality_check
 
 class SelectedRefactoring(BaseModel):
     """
@@ -138,9 +139,17 @@ class Agent(BaseModel):
             self.update_changed_files()
 
         # Run error-fixing component
-        error_fixing.ErrorFixing(
+        # error_fixing.ErrorFixing(
+        #     model=model,
+        #     ide_server=self.ide_server
+        # ).compile_and_run()
+
+        quality_check.QualityCheck(
             model=model,
-            ide_server=self.ide_server
+            ide_server=self.ide_server,
+            _original_code=self._source_code, # TODO: change to the original code
+            _refactored_code=self._source_code, # TODO: change to the refactored code
+            intent=initial_intent # TODO: change to the refactoring intent
         ).compile_and_run()
 
         return final_state["messages"][-1].content
