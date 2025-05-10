@@ -4,6 +4,8 @@ from typing import Dict
 from pathlib import Path
 import re
 from itertools import groupby
+
+from git import Commit
 from pydantic import BaseModel, Field, root_validator
 import os
 import subprocess
@@ -188,7 +190,11 @@ class EvalProject:
                         os.path.exists(self.get_project_path().joinpath(file))]
         self.git_repo.git.add(actual_files)
 
-    def get_git_diff(self, file_path: str) -> str:
+    def get_git_diff(self, file_path: str, head_count: int=None) -> str:
+        if head_count is not None:
+            result = subprocess.run(
+                ['git', '-C', self.get_project_path(), 'diff', f'HEAD~{head_count}', file_path], capture_output=True, text=True, check=True)
+            return result.stdout
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'diff', file_path], capture_output=True, text=True, check=True)
         if result.stdout == '':
@@ -221,3 +227,13 @@ class EvalProject:
             ['git', '-C', self.get_project_path(), 'clean', '-fd'],
             capture_output=True, text=True, check=True)
         return result.stdout
+
+    def squash_changes(self, commit_message: str, count: int) -> Commit:
+        self.reset_head(count)
+        new_hash = self.git_repo.index.commit(commit_message)
+        return new_hash
+
+    def get_file_content_by_sha(self, sha1: str, file_path: str) -> str:
+        commit = self.git_repo.commit(sha1)
+        file_contents = commit.tree[file_path].data_stream.read().decode('utf-8')
+        return file_contents

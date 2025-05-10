@@ -45,7 +45,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
         traceback.print_exc()
 
     internal_commits = agent.internal_commits()
-    previous_commits = "\n".join([i.commit.message for i in internal_commits])
+    previous_commits = "\n".join([i.message for i in internal_commits])
 
     project.reset_head(len(internal_commits))
     project.safe_add(agent.files_changed())
@@ -104,6 +104,6 @@ if __name__ == '__main__':
             print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
             continue
 
-        with ls.trace(name=f"refactoring agent - {args.run_identifier}",
+        with ls.trace(name=f"refactoring agent - {args.run_identifier}. bench point {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:
             setup_and_run(bench_point, ij_server, results_saver, plan=planning_results.get(bench_point.ref_id))

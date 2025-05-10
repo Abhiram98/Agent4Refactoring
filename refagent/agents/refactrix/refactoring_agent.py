@@ -127,6 +127,9 @@ class Agent(BaseModel):
         final_state = self.execute_initial_plan(initial_intent, model, ref_plan)
         self.update_changed_files()
 
+        self._internal_commits = \
+            [self.project.squash_changes(initial_intent, len(self._internal_commits))]
+
         # Run replication component
         replicator = replication.Replication(
             model=model,
@@ -146,7 +149,7 @@ class Agent(BaseModel):
 
     def get_important_files_diff(self):
         important_files = self.compute_most_important(self._files_changed)
-        return "\n".join([self.project.get_git_diff(f) for f in important_files])
+        return "\n".join([self.project.get_git_diff(f, head_count=len(self._internal_commits)) for f in important_files])
 
     def generate_initial_plan(self, initial_intent, model, starting_file):
         planning_component = self.plan_component(
