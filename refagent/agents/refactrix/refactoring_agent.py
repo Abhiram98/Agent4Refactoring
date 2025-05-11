@@ -47,15 +47,19 @@ class Agent(BaseModel):
     project: pm.EvalProject = Field(description="the evaluation project to run the agent on.")
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
+
+    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=2)
     _files_changed: set[Path] = PrivateAttr(default=set())
     _directly_edited_files: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
+    _original_source_code: str = PrivateAttr(default="")
     _rel_file_path: str = PrivateAttr(default="")
     _tools: dict[str, BaseTool] = PrivateAttr(default=[])
     _iterations: int = PrivateAttr(default=0)
     _trajectory: list[BaseMessage] = PrivateAttr(default=[])
     _selected_refactoring: Optional[SelectedRefactoring] = PrivateAttr(default=None)
     _internal_commits: List[Commit] = PrivateAttr(default=[])
+
 
     class Config:
         arbitrary_types_allowed = True
@@ -113,48 +117,57 @@ class Agent(BaseModel):
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
-        self._source_code = self.project.get_file_contents(starting_file)
+        current_intent = initial_intent # update the intent after each loop
 
-        self._iterations = 0
-        self._files_changed.add(Path(starting_file))
-        self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
+        for _ in range(self.max_iterations):
+            self._source_code = self.project.get_file_contents(starting_file)
+            self._original_source_code = self._source_code
 
-        model = self.create_model()
-        # tool_calling_model = self.create_model(model_name_="grazie:openai-gpt-4o-mini")
+            self._iterations = 0
+            self._files_changed.add(Path(starting_file))
+            self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
 
-        ref_plan = self.generate_initial_plan(initial_intent, model, starting_file)
-        self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
+            model = self.create_model()
+            # tool_calling_model = self.create_model(model_name_="grazie:openai-gpt-4o-mini")
 
-        final_state = self.execute_initial_plan(initial_intent, model, ref_plan)
-        self.update_changed_files()
+            ref_plan = self.generate_initial_plan(current_intent, model, starting_file)
+            self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
-        self._internal_commits = \
-            [self.project.squash_changes(initial_intent, len(self._internal_commits))]
-
-        # Run replication component
-        replicator = replication.Replication(
-            model=model,
-            executed_plan=ref_plan,
-            ide_server=self.ide_server,
-            initial_intent=initial_intent,
-            edited_files=list(self._files_changed),
-            project=self.project,
-            starting_file=starting_file,
-            example_changes=self.get_important_files_diff()
-        )
-        for plan in replicator.compile_and_run():
-            self.execute_plan(initial_intent, model, plan, reopen_file=True)
+            final_state = self.execute_initial_plan(current_intent, model, ref_plan)
             self.update_changed_files()
 
-        quality_check.QualityCheck(
-            model=model,
-            ide_server=self.ide_server,
-            _original_code=self._source_code, # TODO: change to the original code
-            _refactored_code=self._source_code, # TODO: change to the refactored code
-            intent=initial_intent # TODO: change to the refactoring intent
-        ).compile_and_run()
+            self._internal_commits = \
+                [self.project.squash_changes(current_intent, len(self._internal_commits))]
 
-        return final_state["messages"][-1].content
+            # Run replication component
+            replicator = replication.Replication(
+                model=model,
+                executed_plan=ref_plan,
+                ide_server=self.ide_server,
+                initial_intent=current_intent,
+                edited_files=list(self._files_changed),
+                project=self.project,
+                starting_file=starting_file,
+                example_changes=self.get_important_files_diff()
+            )
+            for plan in replicator.compile_and_run():
+                self.execute_plan(current_intent, model, plan, reopen_file=True)
+                self.update_changed_files()
+
+            quality_result = quality_check.QualityCheck(
+                model=model,
+                ide_server=self.ide_server,
+                original_code=self._original_source_code,
+                refactored_code=self._source_code,
+                intent=current_intent
+            ).compile_and_run()
+
+            if quality_result.overall_assessment == quality_check.OverallAssessment.PASS:
+                return final_state["messages"][-1].content
+            else:
+                # quality check failed, update intent
+                current_intent = quality_result.refined_intent
+        return None
 
     def get_important_files_diff(self):
         important_files = self.compute_most_important(self._files_changed)
