@@ -401,7 +401,7 @@ class Agent(BaseModel):
             if not status:
                 print("Failed to fix compilation errors. Reverting changes.")
                 self.project.restore_changes()
-                return [{'messages': HumanMessage("There were compilation errors. I have reverted the changes.")}]
+                return {'messages': [HumanMessage("There were compilation errors. I have reverted the changes.")]}
             self.commit_changes(plan_step.reason)
 
         def finished_refactoring(state: MessagesState):
