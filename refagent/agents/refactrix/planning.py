@@ -44,6 +44,7 @@ class Planner(BaseModel):
 
 class PlanningComponent(Planner):
     initial_intent: str = Field(description="initial intent from the user")
+    # augmented_intent: str = Field(description="the augmented intent from the user")
     # developer_callback: Callable = Field(description="the function to call to get further"
     #                                                  " clarifications from the developer.")
     model: BaseChatModel = Field(description="model to use to generate the plan")

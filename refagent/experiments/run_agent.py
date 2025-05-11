@@ -100,9 +100,9 @@ if __name__ == '__main__':
                   f"Selected: {selected_ref_ids}")
             continue
 
-        if results_saver.exists(bench_point.ref_id):
-            print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
-            continue
+        # if results_saver.exists(bench_point.ref_id):
+        #     print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
+        #     continue
 
         with ls.trace(name=f"refactoring agent - {args.run_identifier}. bench point {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:

@@ -3,7 +3,10 @@ import refagent
 
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
-from grazie_langchain_utils.language_models.grazie import ChatGrazie
+try:
+    from grazie_langchain_utils.language_models.grazie import ChatGrazie
+except ImportError:
+    print("ChatGrazie not available. Please install `grazie-langchain-utils`.")
 from grazie_langchain_utils.callbacks import GrazieInfoCallbackHandler
 from pydantic.v1 import SecretStr
 from langchain_core.messages import SystemMessage, AIMessage, ToolMessage, HumanMessage
