@@ -1,5 +1,7 @@
 import json
+import traceback
 
+from github.Commit import Commit
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
 from langchain_core.tools import tool, BaseTool
@@ -21,8 +23,7 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie.api.client.chat.response import Credit
 
-from typing import Annotated, Optional, Type
-
+from typing import Annotated, Optional, Type, List
 
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
@@ -34,6 +35,7 @@ import refagent.agents.refactrix.analysis as analysis
 import refagent.utils.project_manager as pm
 import refagent.agents.refactrix.replication as replication
 import refagent.agents.refactrix.error_fixing as error_fixing
+import refagent.agents.refactrix.quality_check as quality_check
 
 class SelectedRefactoring(BaseModel):
     """
@@ -52,14 +54,20 @@ class Agent(BaseModel):
                                                              default=analysis.AnalysisComponent)
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
+
+    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=2)
     _files_changed: set[Path] = PrivateAttr(default=set())
     _directly_edited_files: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
+    _original_source_code: str = PrivateAttr(default="")
     _rel_file_path: str = PrivateAttr(default="")
     _tools: dict[str, BaseTool] = PrivateAttr(default=[])
     _iterations: int = PrivateAttr(default=0)
     _trajectory: list[BaseMessage] = PrivateAttr(default=[])
     _selected_refactoring: Optional[SelectedRefactoring] = PrivateAttr(default=None)
+    _internal_commits: List[Commit] = PrivateAttr(default=[])
+
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -98,6 +106,9 @@ class Agent(BaseModel):
     def files_changed(self) -> list[Path]:
         return list(self._files_changed)
 
+    def internal_commits(self) -> list[Commit]:
+        return self._internal_commits
+
     def try_open_file(self, rel_file_path: str):
         response = self.ide_server.try_open_file(Path(rel_file_path))
         if response.startswith('tool call failed '):
@@ -113,47 +124,61 @@ class Agent(BaseModel):
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
-        self._source_code = starting_file  # TODO: Read the starting file
-        self._iterations = 0
-        self._files_changed.add(Path(starting_file))
-        self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
+        current_intent = initial_intent # update the intent after each loop
 
-        model = self.create_model()
-        # tool_calling_model = self.create_model(model_name_="grazie:openai-gpt-4o-mini")
+        for _ in range(self.max_iterations):
+            self._source_code = self.project.get_file_contents(starting_file)
+            self._original_source_code = self._source_code
 
-        analysis_report = self.analyze_developer_intent(initial_intent, model, starting_file)
-        ref_plan = self.generate_initial_plan(analysis_report, model, starting_file)
-        self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
+            model = self.create_model()
 
-        final_state = self.execute_initial_plan(initial_intent, model, ref_plan)
-        self.update_changed_files()
+            self._iterations = 0
+            self._files_changed.add(Path(starting_file))
+            self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
 
-        # Run replication component
-        replicator = replication.Replication(
-            model=model,
-            executed_plan=ref_plan,
-            ide_server=self.ide_server,
-            initial_intent=initial_intent,
-            edited_files=list(self._files_changed),
-            project=self.project,
-            starting_file=starting_file,
-            example_changes=self.get_important_files_diff()
-        )
-        for plan in replicator.compile_and_run():
-            self.execute_plan(initial_intent, model, plan)
+            analysis_report = self.analyze_developer_intent(current_intent, model, starting_file)
+            ref_plan = self.generate_initial_plan(analysis_report, model, starting_file)
+            self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
+
+            final_state = self.execute_initial_plan(current_intent, model, ref_plan)
             self.update_changed_files()
 
-        # Run error-fixing component
-        error_fixing.ErrorFixing(
-            model=model,
-            ide_server=self.ide_server
-        ).compile_and_run()
+            self._internal_commits = \
+                [self.project.squash_changes(current_intent, len(self._internal_commits))]
 
-        return final_state["messages"][-1].content
+            # Run replication component
+            replicator = replication.Replication(
+                model=model,
+                executed_plan=ref_plan,
+                ide_server=self.ide_server,
+                initial_intent=current_intent,
+                edited_files=list(self._files_changed),
+                project=self.project,
+                starting_file=starting_file,
+                example_changes=self.get_important_files_diff()
+            )
+            for plan in replicator.compile_and_run():
+                self.execute_plan(current_intent, model, plan, reopen_file=True)
+                self.update_changed_files()
+
+            quality_result = quality_check.QualityCheck(
+                model=model,
+                ide_server=self.ide_server,
+                original_code=self._original_source_code,
+                refactored_code=self._source_code,
+                intent=current_intent
+            ).compile_and_run()
+
+            if quality_result.overall_assessment == quality_check.OverallAssessment.PASS:
+                return final_state["messages"][-1].content
+            else:
+                # quality check failed, update intent
+                current_intent = quality_result.refined_intent
+        return None
 
     def get_important_files_diff(self):
         important_files = self.compute_most_important(self._files_changed)
-        return "\n".join([self.project.get_git_diff(f) for f in important_files])
+        return "\n".join([self.project.get_git_diff(f, head_count=len(self._internal_commits)) for f in important_files])
 
     def analyze_developer_intent(self, initial_intent, model, starting_file):
         """Analyze the developer intent and return the refactoring type and reason."""
@@ -183,17 +208,23 @@ class Agent(BaseModel):
         final_state = self.execute_plan(initial_intent, model, ref_plan)
         return final_state
 
-    def execute_plan(self, initial_intent, model, ref_plan):
+    def execute_plan(self, initial_intent, model, ref_plan, reopen_file=False):
         last_file_opened = None
         for i, step in enumerate(ref_plan.steps):
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
             self._iterations = 0
-            if step.file_path != last_file_opened:
-                self.try_open_file(step.file_path)
+            if reopen_file and step.file_path != last_file_opened:
+                try:
+                    self.try_open_file(step.file_path)
+                except:
+                    traceback.print_tb()
+                    print("Failed to open file. Skipping this execution step")
+                    continue
                 last_file_opened = step.file_path
             graph = self.compile_graph(model=model,
                                        initial_intent=initial_intent,
-                                       plan_step=step)
+                                       plan_step=step,
+                                       step_count=i)
             final_state = graph.invoke(
                 {
                     "messages": [
@@ -231,20 +262,26 @@ class Agent(BaseModel):
                 source = code_utils.add_line_numbers(
                     "// This file is empty." if file_contents=="" else file_contents)
 
-                diff = self.project.get_git_diff(str(rel_file_path))
-                if diff!='':
-                    changes = diff if len(diff) < len(source) else source
-                else:
-                    changes = source
+                # diff = self.project.get_git_diff(str(rel_file_path))
+                # if diff!='':
+                #     changes = diff if len(diff) < len(source) else source
+                # else:
+                #     changes = source
+                current_source_code += f"{rel_file_path}: \n{source}"
             except FileNotFoundError:
                 continue
-            current_source_code += f"{rel_file_path}: \n{changes}"
+
 
         return HumanMessage(content=current_source_code)
 
     def update_changed_files(self):
         changed_files = set(self.project.get_changed_files())
         self._files_changed = self._files_changed.union(changed_files)
+
+    def commit_changes(self, commit_message: str):
+        self.project.safe_add(self._files_changed)
+        new_hash = self.project.git_repo.index.commit(commit_message)
+        self._internal_commits.append(new_hash)
 
     def update_source_code(self) -> bool:
         """Call the environment to fetch the current version
@@ -270,7 +307,7 @@ class Agent(BaseModel):
             sup_refs.SupportedRefactorings.CHANGE_SIGNATURE:
                 [self._tools[sup_refs.SupportedRefactorings.CHANGE_SIGNATURE.value],
                  self._tools['introduce_parameter_object'],
-                 self._tools.get('replace_method_contents')],
+                 self._tools.get('find_replace')],
             sup_refs.SupportedRefactorings.EXTRACT_CLASS:
                 [self._tools[sup_refs.SupportedRefactorings.EXTRACT_CLASS.value],
                  self._tools['introduce_parameter_object']],
@@ -283,30 +320,36 @@ class Agent(BaseModel):
             self._directly_edited_files.add(Path(self._rel_file_path))
             return [self._tools.get('replace_file_contents')]
 
+        tools = [self._tools.get('no_op')] # Always include the no-op tool. To allow the agent to do nothing.
+
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
             return GENERIC_EDITING_TOOLS
         elif refactoring_type in multi_map:
             # In case there are multiple tools that can be invoked for a single refactoring type
-            return multi_map[refactoring_type]
+            tools += multi_map[refactoring_type]
         else:
             special_tool = self._tools.get(refactoring_type.value)
-            tools = []
+            # tools = []
             if special_tool is not None:
                 tools += [special_tool]
-                if self._iterations >= 2:
-                    # more than one iteration on the same step. It means that tool calls are not working.
-                    print("supplying generic tools, as tool calls are not working")
-                    tools += GENERIC_EDITING_TOOLS
-                return tools
-            print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
-            return GENERIC_EDITING_TOOLS
+            else:
+                print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
+                return GENERIC_EDITING_TOOLS
+
+        if self._iterations >= 2:
+            # more than one iteration on the same step. It means that tool calls are not working.
+            print("supplying generic tools, as tool calls are not working")
+            tools += GENERIC_EDITING_TOOLS
+        return tools
 
     def current_file_empty(self):
         return self._source_code == ''
 
     def compile_graph(self, model: BaseChatModel,
                       initial_intent: str,
-                      plan_step: planning.PlanningStep) -> CompiledStateGraph:
+                      plan_step: planning.PlanningStep,
+                      step_count: int
+                      ) -> CompiledStateGraph:
         """Compile the graph with the given model and the given planning step"""
 
         def curate_tests(state: MessagesState):
@@ -379,7 +422,35 @@ class Agent(BaseModel):
 
             return {"messages": messages}
 
+        def fix_compile_errors(state: MessagesState):
+            """Fix compilation errors"""
+            errors = [error_fixing.ErrorMessage(**i)
+                      for i in json.loads(self.ide_server.call_tool("run_code_inspection"))]
+            if len(errors) == 0:
+                print("No compilation errors found.")
+                self.commit_changes(plan_step.reason)
+                return
+
+            print("Compilation errors found. Fixing them.")
+            # Run error-fixing component
+            status = error_fixing.ErrorFixing(
+                model=model,
+                ide_server=self.ide_server,
+                errors=errors,
+                tools=[],
+                refactoring_intent=plan_step.reason
+            ).compile_and_run()
+
+            if not status:
+                print("Failed to fix compilation errors. Reverting changes.")
+                self.project.restore_changes()
+                return {'messages': [HumanMessage("There were compilation errors. I have reverted the changes.")]}
+            self.commit_changes(plan_step.reason)
+
         def finished_refactoring(state: MessagesState):
+
+            if step_count == 0 and self._iterations == 0:
+                return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
             if self._iterations >= 5:
                 # Stopping because limit has been reached.
@@ -395,8 +466,8 @@ class Agent(BaseModel):
                                        f'Please reflect whether the task is complete, '
                                        f'by answering the following questions: '
                                        '1. Has the original ask been met? '
-                                       f'2. Are there other locations within the file {self._rel_file_path} '
-                                       f'where the same change can be applied? '
+                                       f'2. Have all appropriate locations within the file {self._rel_file_path} '
+                                       f'been updated? '
                                        'Finally say whether the task is complete '
                                        'using the word DONE/INCOMPLETE appropriately.')])
             return {'messages': [response]}
@@ -411,6 +482,7 @@ class Agent(BaseModel):
         workflow.add_node("select_refactoring", select_refactoring)
         workflow.add_node("perform_refactoring", perform_selected_refactoring)
         workflow.add_node("finished_refactoring", finished_refactoring)
+        workflow.add_node("fix_compile_errors", fix_compile_errors)
 
         # Add edges to connect nodes
         workflow.add_edge(START, "finished_refactoring")
@@ -422,7 +494,8 @@ class Agent(BaseModel):
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
         )
-        workflow.add_edge("perform_refactoring", "finished_refactoring")
+        workflow.add_edge("perform_refactoring", "fix_compile_errors")
+        workflow.add_edge("fix_compile_errors", "finished_refactoring")
 
 
         # Compile

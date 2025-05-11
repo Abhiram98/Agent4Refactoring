@@ -24,7 +24,34 @@ class RefactoringToolProvider(BaseModel):
             """Extracts a method from the specified range of lines in a source code file and creates a new method
             with the given name. This is intended to refactor a block of code within a file, taking the
             lines from `start_line` to `end_line`, inclusive, and moving them into a new method named
-            `new_method_name`. The original block of code is replaced with a call to the newly created method."""
+            `new_method_name`. The original block of code is replaced with a call to the newly created method.
+
+            Here is an example:
+            280. public void connect(Figure figure) {
+            281.     if (fObservedFigure != null)
+            282.         fObservedFigure.removeFigureChangeListener(this);
+            283.
+            284.     fObservedFigure = figure;
+            285.     fLocator = new OffsetLocator(figure.connectedTextLocator(this));
+            286.     fObservedFigure.addFigureChangeListener(this);
+            287.     if (fLocator != null) {
+            288.         Point p = fLocator.locate(fObservedFigure);
+            289.         p.x -= size().width/2 + fOriginX;
+            290.         p.y -= size().height/2 + fOriginY;
+            291.
+            292.         if (p.x != 0 || p.y != 0) {
+            293.             willChange();
+            294.             basicMoveBy(p.x, p.y);
+            295.             changed();
+            296.         }
+            297.     }
+            298. }
+
+            To extract the block of code from line 288 to 296 into a new method called `updateLocator`,
+            make the following call to this tool:
+            `extract_method(start_line=288, end_line=296, new_method_name="updateLocator")`
+
+            """
 
             return self.ide_server.call_tool('extract_method',
                                       start_line=start_line, end_line=end_line, new_method_name=new_method_name)
@@ -72,14 +99,19 @@ class RefactoringToolProvider(BaseModel):
         @tool
         def find_replace(
                 find_text: Annotated[str, "Text to search for"],
-                replace_text: Annotated[str, "Text to replace the found text with"]
+                replace_text: Annotated[str, "Text to replace the found text with"],
+                line_num: Annotated[Optional[int], "The line number to replace the string at. "
+                                                  "If this argument is empty, all occurences of the "
+                                                  "`find_text` will be replaced."]
         ):
-            """Find and replace text within the file. This tool replaces ALL occurrences of the found text.
+            """Find and replace text within the file. Optionally, provide a line number to replace the text at.
+            If no line number is provided, all occurrences will be replaced.
             """
             return self.ide_server.call_tool("find_replace",
                                              find_text=find_text,
                                              replace_text=replace_text,
-                                             replace_in_comments_only=False)
+                                             replace_in_comments_only=False,
+                                             line_num=line_num)
 
         @tool
         def extract_class(
@@ -239,10 +271,19 @@ class RefactoringToolProvider(BaseModel):
                 line_num=line_num
             )
 
+        @tool
+        def no_op(reason: Annotated[str, "Reason for no-op"]):
+            """This tool performs no operation.
+            Use this tool in case there are no suitable tools to call and execute refactoring.
+            Explain your reasoning in the `reason` parameter - include the name of the tool that you'd like to use.
+            """
+            return 'Failed to perform any refactoring. Reason: ' + reason
+
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
                                      change_method_signature, introduce_parameter_object, move_method,
                                      extract_field, type_change,
-                                     replace_file_contents, replace_method_contents, find_replace]
+                                     replace_file_contents, replace_method_contents, find_replace,
+                                     no_op]
 
         return {i.name: i for i in all_tools}
 
