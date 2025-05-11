@@ -20,9 +20,15 @@ class PerformRefactoring(BaseModel):
     rel_file_path: str = Field(description="relative file path from repo root. file to be edited.")
     ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
     _file_open_status: bool = PrivateAttr(default=False)
-    _active_tool_call: str = PrivateAttr(default="")
-    _tool_call_status: dict = PrivateAttr(default={})
+    _active_tool_call: List = PrivateAttr(default="")
     _retry_iteration: int = PrivateAttr(default=1)
+
+    def get_tool_call_str(self):
+        tool_call = self._active_tool_call[0]
+        name = tool_call['name']
+        args = ", ".join([f"{k}={v}" for k, v in tool_call['args'].items()])
+        tool_call_str = f"{name}({args})"
+        return tool_call_str
 
     def compile(self) -> CompiledGraph:
 
@@ -52,8 +58,9 @@ class PerformRefactoring(BaseModel):
         def call_llm(state: MessagesState):
             # if self.retry_count <=0:
             #     return {"messages": [AIMessage("Stopping as I was already called 3 times.")]}
-            if self._retry_iteration >= 1:
-                state['messages'][-1].content += ". Consider calling the tool differently, or trying another tool."
+            if self._retry_iteration > 1:
+                state['messages'][-1].content += (f"The tool call {self.get_tool_call_str()} is failing. "
+                                                  f"DO NOT MAKE THE SAME TOOL CALL AGAIN.")
             model_with_tools = self.model.bind_tools(tools=self.tools)
             messages = state['messages']
             response = model_with_tools.invoke(messages)
@@ -76,15 +83,16 @@ class PerformRefactoring(BaseModel):
 
         def failure_handler(state: MessagesState):
             print("Failed to perform the refactoring.")
+            tool_call_str = self.get_tool_call_str()
             return {"messages": [HumanMessage("Cannot perform this refactoring. "
-                                              f"{self._active_tool_call}"
-                                              f"Reason: {state['messages'][-1].content}")]}
+                                              f"{tool_call_str} failed. "
+                                              f"Reason: {state['messages'][-1].content}"
+                                              f"CALL the TOOL differently, next time.")]}
 
         def retry_condition(state: MessagesState) -> str:
             last_message = state['messages'][-1].content
             # False -> retry
             tool_call_success = 'success' in last_message.lower()  # retry in case tool call fails.
-            self._tool_call_status[self._active_tool_call] = tool_call_success
 
             if tool_call_success:
                 return "success_handler"
@@ -105,9 +113,9 @@ class PerformRefactoring(BaseModel):
         def has_tool_call(state: MessagesState) -> bool:
             if len(state['messages'][-1].tool_calls) > 0:
                 if 'repalce_file_contents' in str(state['messages'][-1].tool_calls[0]):
-                    self._active_tool_call = f"Replaced file contents of {self.rel_file_path}."
+                    self._active_tool_call = [f"Replaced file contents of {self.rel_file_path}."]
                 else:
-                    self._active_tool_call = str(state['messages'][-1].tool_calls)
+                    self._active_tool_call = state['messages'][-1].tool_calls
                 return True
             return False
 
