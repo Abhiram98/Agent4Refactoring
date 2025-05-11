@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
-from grazie_langchain_utils.language_models.grazie import ChatGrazie
+try:
+    from grazie_langchain_utils.language_models.grazie import ChatGrazie
+except ImportError:
+    print("ChatGrazie not available. Please install `grazie-langchain-utils`.")
 from pydantic.v1 import SecretStr
 from grazie.api.client.gateway import GrazieApiGatewayUrls, AuthType
 

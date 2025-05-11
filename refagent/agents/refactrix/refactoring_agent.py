@@ -14,7 +14,11 @@ from langgraph.graph import MessagesState
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage, BaseMessage
 from langchain_core.language_models import BaseChatModel
-from grazie_langchain_utils.language_models.grazie import ChatGrazie
+
+try:
+    from grazie_langchain_utils.language_models.grazie import ChatGrazie
+except ImportError:
+    print("Warning: Could not import ChatGrazie. Ensure grazie_langchain_utils is installed.")
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie.api.client.chat.response import Credit
@@ -27,6 +31,7 @@ import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.perform_refactoring as perform_ref
 import refagent.agents.refactrix.tools as ref_tools
 import refagent.agents.refactrix.planning as planning
+import refagent.agents.refactrix.analysis as analysis
 import refagent.utils.project_manager as pm
 import refagent.agents.refactrix.replication as replication
 import refagent.agents.refactrix.error_fixing as error_fixing
@@ -45,6 +50,8 @@ class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
     project: pm.EvalProject = Field(description="the evaluation project to run the agent on.")
+    analysis_component: Type[analysis.AnalysisComponent] = Field(description="the kind of analysis component to use.",
+                                                             default=analysis.AnalysisComponent)
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
 
@@ -92,8 +99,8 @@ class Agent(BaseModel):
                               client_agent_name='ref-agent',
                               client_agent_version='0.1',
                               temperature=0.3)
-        elif vendor == 'openai':
-            return ChatOpenAI(model_name)
+        if vendor == 'openai':
+            return ChatOpenAI(model=model_name)
         raise Exception(f"Unknown AI vendor {vendor}")
 
     def files_changed(self) -> list[Path]:
@@ -123,14 +130,14 @@ class Agent(BaseModel):
             self._source_code = self.project.get_file_contents(starting_file)
             self._original_source_code = self._source_code
 
+            model = self.create_model()
+
             self._iterations = 0
             self._files_changed.add(Path(starting_file))
             self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
 
-            model = self.create_model()
-            # tool_calling_model = self.create_model(model_name_="grazie:openai-gpt-4o-mini")
-
-            ref_plan = self.generate_initial_plan(current_intent, model, starting_file)
+            analysis_report = self.analyze_developer_intent(current_intent, model, starting_file)
+            ref_plan = self.generate_initial_plan(analysis_report, model, starting_file)
             self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
             final_state = self.execute_initial_plan(current_intent, model, ref_plan)
@@ -173,9 +180,23 @@ class Agent(BaseModel):
         important_files = self.compute_most_important(self._files_changed)
         return "\n".join([self.project.get_git_diff(f, head_count=len(self._internal_commits)) for f in important_files])
 
-    def generate_initial_plan(self, initial_intent, model, starting_file):
-        planning_component = self.plan_component(
+    def analyze_developer_intent(self, initial_intent, model, starting_file):
+        """Analyze the developer intent and return the refactoring type and reason."""
+        analysis_component = self.analysis_component(
             initial_intent=initial_intent,
+            context_information="",
+            source_code=self._source_code,
+            source_file_path=starting_file,
+            model=model
+        )
+        analysis_report = analysis_component.run()
+        analysis_report = analysis_report.augmented_intent
+        return analysis_report
+
+    def generate_initial_plan(self, analysis_report, model, starting_file):
+        planning_component = self.plan_component(
+            initial_intent=analysis_report,
+            # augmented_intent=analysis_report,
             model=model,
             source_code=self._source_code,
             source_file_path=starting_file

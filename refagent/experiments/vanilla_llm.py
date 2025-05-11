@@ -10,7 +10,10 @@ import refagent.utils.project_manager as pm
 import refagent.experiments.results_manager as results_manager
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
-from grazie_langchain_utils.language_models.grazie import ChatGrazie
+try:
+    from grazie_langchain_utils.language_models.grazie import ChatGrazie
+except ImportError:
+    print("ChatGrazie not available. Please install `grazie-langchain-utils`.")
 
 USE_SUMMARY = True
 
@@ -18,11 +21,11 @@ benchmark_lite = bm_load.load_benchmark(refagent.benchmark_lite_json)
 print(benchmark_lite)
 
 # os.environ["OPENAI_API_KEY"] = refagent.OPENAI_KEY
-# model = ChatOpenAI(model="gpt-4o-mini")
-model = ChatGrazie(grazie_jwt_token=os.getenv("GRAZIE_JWT_TOKEN"),
-                   client_auth_type=AuthType.APPLICATION,
-                   client_url=GrazieApiGatewayUrls.STAGING,
-                   profile="anthropic-claude-3-sonnet")
+model = ChatOpenAI(model="gpt-4o-mini")
+# model = ChatGrazie(grazie_jwt_token=os.getenv("GRAZIE_JWT_TOKEN"),
+#                    client_auth_type=AuthType.APPLICATION,
+#                    client_url=GrazieApiGatewayUrls.STAGING,
+#                    profile="anthropic-claude-3-sonnet")
 
 rm = results_manager.ResultsManager()
 
