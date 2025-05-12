@@ -164,7 +164,9 @@ class Scraper(BaseModel):
     gather_data_points: List[bm_load.BenchmarkItem] = Field(default=[])
     _previously_analysed_commits: List[str] = PrivateAttr(default=[])
 
-    KEYWORDS: List[str] = ['refactor', 'redesign', 'reorganize', 'restructure', 'rewrite'] # keywords present in the commit message, to identify the change as refactoring
+    KEYWORDS: List[str] = ['refactor', 'redesign', 'reorganize', 'restructure', 'rewrite',
+                           'move', 'extract', 'improve', 'split', 'rename', 'introduce', 'encapsulate',
+                           'rework'] # keywords present in the commit message, to identify the change as refactoring
     # Other keyword options: clean-up, rewrite, restructure, redesign, move, extract, improve, split, reorganize, rename
 
     model_config = {'arbitrary_types_allowed': True}
