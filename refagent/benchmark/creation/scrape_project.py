@@ -110,10 +110,16 @@ class CommitProcessor(BaseModel):
         """
         refactoring_count_map = defaultdict(int)
         for r in refactorings:
+            refactored_files = set()
             for loc in r.leftSideLocations:
-                refactoring_count_map[loc.filePath] += 1
+                refactored_files.add(loc.filePath)
+            
+            # Count each file only once.
+            for f in refactored_files:
+                refactoring_count_map[f] += 1
+                
         return refactoring_count_map
-        return max(refactoring_count_map.items(), key=lambda x: x[1])[0]
+        # return max(refactoring_count_map.items(), key=lambda x: x[1])[0]
 
     def summarize_commit(self, edited_files: Dict[str, int]) -> CommitSummary:
         most_edited_files = sorted(edited_files.items(), key=lambda x: x[1], reverse=True)
@@ -162,7 +168,12 @@ class Scraper(BaseModel):
                                   default=datetime(2024, 1, 1, tzinfo=UTC))
     output_path: Path = Field(description="output path to save the scraped data")
     gather_data_points: List[bm_load.BenchmarkItem] = Field(default=[])
+    _full_benchmark: List[bm_load.BenchmarkItem] = PrivateAttr(default=[])
+    limit_commits: int = Field(description="limit the number of commits to scrape", default=20)
+
     _previously_analysed_commits: List[str] = PrivateAttr(default=[])
+    _counter: int = PrivateAttr(default=0)
+
 
     KEYWORDS: List[str] = ['refactor', 'redesign', 'reorganize', 'restructure', 'rewrite',
                            'move', 'extract', 'improve', 'split', 'rename', 'introduce', 'encapsulate',
@@ -177,24 +188,32 @@ class Scraper(BaseModel):
                 self.gather_data_points = bm_load.load_benchmark(
                     json.load(f)
                 )
-        self._previously_analysed_commits = [i.v2_hash for i in self.gather_data_points]
+        if os.path.exists(refagent.benchmark_full_file):
+            with open(refagent.benchmark_full_file) as f:
+                self._full_benchmark = bm_load.load_benchmark(
+                    json.load(f)
+                )
+        self._previously_analysed_commits = ([i.v2_hash for i in self.gather_data_points] +
+                                             [i.v2_hash for i in self._full_benchmark])
 
 
     def run(self):
         self.get_previously_analysed()
         project = pm.EvalProject(project_name=self.project_name)
         # Iterate git history for commits after cutoff_data
-        count = 0
         for commit in project.git_repo.iter_commits(since=self.cutoff_date):
             if (datetime.fromtimestamp(commit.authored_date, UTC) >= self.cutoff_date # For some reason, even older commits are picked up.
-                    and any([k in commit.message.lower() for k in self.KEYWORDS])
-                    and str(commit.hexsha) not in self._previously_analysed_commits):
-                count += 1
+                    and str(commit.hexsha) not in self._previously_analysed_commits
+                    and self.should_analyse(commit)
+            ):
                 self.process_commit(commit, project)
 
                 with open(self.output_path, "w") as f:
                     json.dump([i.to_json() for i in self.gather_data_points], f, indent=4)
-        print(f"successfully scraped {count} data points.")
+
+                if self._counter >= self.limit_commits:
+                    break
+        print(f"successfully scraped {self._counter} data points.")
 
         # Append to benchmark_file
 
@@ -215,13 +234,85 @@ class Scraper(BaseModel):
         if bench_item is not None:
             self.gather_data_points.append(bench_item)
             self.id_counter += 1
+            self._counter += 1
+        
+    def should_analyse(self, commit: Commit):
+        raise Exception("Should not be called.")
 
+
+
+class KeywordScraper(Scraper):
+    
+    KEYWORDS: List[str] = ['refactor', 'redesign', 'reorganize', 'restructure', 'rewrite',
+                           'move', 'extract', 'improve', 'split', 'rename', 'introduce', 'encapsulate',
+                           'rework'] 
+    
+    def should_analyse(self, commit: Commit):
+        return any([k in commit.message.lower() for k in self.KEYWORDS])
+
+
+class RenameScraper(Scraper):
+    
+    def contains_important_refactoring(self, refactorings: List[refactoring_types.RefminerOut]) -> bool:
+        if len(refactorings) == 0:
+            return False
+
+        refactoring_count = defaultdict(int)
+        for r in refactorings:
+            # if r.type in ['Extract Class', 'Extract Interface', 'Extract Superclass', 'Extract Subclass']:
+            #     return True
+            parent_type = r.type.split(' ')[0]
+            refactoring_count[parent_type] += 1
+        rename_pct = refactoring_count['Rename'] / len(refactorings)
+        return rename_pct > 0.6
+    
+    def should_analyse(self, commit: Commit):
+        project = pm.EvalProject(project_name=self.project_name)
+        refactorings = refminer.default_runner.run(
+            project_path=project.get_project_path(),
+            commit_hash=str(commit.hexsha)
+        )
+        return self.contains_important_refactoring(refactorings)
+        
+    
+class ExtractMethodScraper(RenameScraper):
+    
+    def contains_important_refactoring(self, refactorings: List[refactoring_types.RefminerOut]) -> bool:
+        if len(refactorings) == 0:
+            return False
+
+        refactoring_count = defaultdict(int)
+        for r in refactorings:
+            refactoring_count[r.type] += 1
+        rename_pct = refactoring_count['Extract Method'] / len(refactorings)
+        return rename_pct > 0.5
 
 if __name__ == '__main__':
-    project_name = 'ghidra'
+    import argparse
 
-    with langsmith.trace(name=f"scraping data for {project_name}", tags=["scrape"]) as tracer:
-        Scraper(project_name=project_name,
-                output_path=refagent.data_folder.joinpath(f'ref_miner/{project_name}-2.json'),
-                id_counter=139
-                ).run()
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description='Run different types of refactoring scrapers')
+    parser.add_argument('scraper_type', choices=['keyword', 'rename', 'extract_method'],
+                        help='Type of scraper to run')
+    parser.add_argument('--project', default='flink', help='Project name to analyze')
+    parser.add_argument('--id_counter', type=int, default=139, help='Starting ID counter')
+
+    args = parser.parse_args()
+
+    # Map scraper types to classes
+    scraper_map = {
+        'keyword': KeywordScraper,
+        'rename': RenameScraper,
+        'extract_method': ExtractMethodScraper
+    }
+
+    # Get the appropriate scraper class
+    scraper_class = scraper_map[args.scraper_type]
+
+    with langsmith.trace(name=f"scraping data for {args.project} "
+                              f"using {args.scraper_type}", tags=["scrape"]) as tracer:
+        scraper_class(
+            project_name=args.project,
+            output_path=refagent.data_folder.joinpath(f'ref_miner/{args.project}-2.json'),
+            id_counter=args.id_counter
+        ).run()
