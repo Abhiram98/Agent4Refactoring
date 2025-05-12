@@ -1,6 +1,7 @@
 import json
 import traceback
 
+from git import Commit
 from pydantic.v1 import BaseModel, Field, PrivateAttr
 from langchain_core.language_models import BaseChatModel
 from typing import List, Iterable, Tuple, ClassVar
@@ -29,6 +30,7 @@ class Replication(BaseModel):
     ide_server: ij.IntellijServer = Field(description="intellij server to interract with")
     executed_plan: planning.RefactoringPlan = Field(description="executed plan that needs replication")
     starting_file: str = Field(description="The first file that was edited.")
+    refactoring_commit: Commit = Field(description="The commit that was edited.")
 
     SUPPORTED_REPLICATIONS: ClassVar[List[sup_ref.SupportedRefactorings]] \
         = [sup_ref.SupportedRefactorings.RENAME,
@@ -47,7 +49,7 @@ class Replication(BaseModel):
                     - Invoke planning to replicate changes.
         """
         # files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
-        diffs = self.project.get_unstaged_changes() + self.project.get_staged_changes()
+        diffs = self.project.get_changes(self.refactoring_commit.hexsha)
         elements_to_inspect: List[Tuple[CodeElement, int]] = []
         files_inspected: List[str] = []
         for diff in diffs:
@@ -100,7 +102,7 @@ class Replication(BaseModel):
                 # increase the search space, only by one level.
                 elements_to_inspect += [(i, depth+1) for i in self.get_linked_elements(code_element)]
             files_inspected.append(code_element.file_path)
-
+        return None
 
     def get_files_in_package(self, starting_file: str) -> List[str]:
         package_dir = Path(starting_file).parent

@@ -1,7 +1,7 @@
 import json
 import traceback
 
-from github.Commit import Commit
+from git import Commit
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
 from langchain_core.tools import tool, BaseTool
@@ -155,7 +155,8 @@ class Agent(BaseModel):
                 edited_files=list(self._files_changed),
                 project=self.project,
                 starting_file=starting_file,
-                example_changes=self.get_important_files_diff()
+                example_changes=self.get_important_files_diff(),
+                refactoring_commit=self._internal_commits[0]
             )
             for plan in replicator.compile_and_run():
                 self.execute_plan(current_intent, model, plan, reopen_file=True)
