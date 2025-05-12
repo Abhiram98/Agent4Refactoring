@@ -10,6 +10,7 @@ from pathlib import Path
 import json
 import time
 from enum import Enum
+from typing import Optional
 
 
 class IntentAlignment(str, Enum):
@@ -145,7 +146,7 @@ class QualityCheck(BaseModel):
                     return item['response']['commit_hash']
         raise ValueError(f"No commit hash found for id {target_id} in results file")
     
-    def compile_and_run(self) -> QualityCheckResult:
+    def compile_and_run(self) -> Optional[QualityCheckResult]:
         """
         Run quality check to determine if the refactoring intent was met using commit hashes.
         

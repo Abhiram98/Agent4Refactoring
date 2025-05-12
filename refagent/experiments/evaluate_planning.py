@@ -50,7 +50,7 @@ if __name__ == '__main__':
     args.run_identifier = f"planning-{args.run_identifier}"
 
     use_previous = False
-    benchmark = bm_load.load_benchmark(refagent.benchmark_lite_json)
+    benchmark = bm_load.load_benchmark(refagent.benchmark_full_json)
     results_saver = rm.ResultsManager(run_identifier=args.run_identifier)
 
     for bench_point in benchmark:

@@ -284,8 +284,13 @@ class ExtractMethodScraper(RenameScraper):
         refactoring_count = defaultdict(int)
         for r in refactorings:
             refactoring_count[r.type] += 1
-        rename_pct = refactoring_count['Extract Method'] / len(refactorings)
-        return rename_pct > 0.5
+
+        em_count = (refactoring_count['Extract Method'] +
+                    refactoring_count['Parametrize Variable'] +
+                    refactoring_count['Add Parameter'] +
+                    refactoring_count['Merge Parameter'])
+        extract_method_pct = em_count / len(refactorings)
+        return extract_method_pct > 0.5
 
 if __name__ == '__main__':
     import argparse
