@@ -255,8 +255,7 @@ class Agent(BaseModel):
                 # newly created file
                 self._directly_edited_files.add(Path(change.git_diff.b_path))
             if (change.git_diff.a_path is not None and change.git_diff.b_path is not None
-                    and change.git_diff.b_path != change.git_diff.a_path and
-                    change.git_diff.a_path in self._directly_edited_files):
+                    and change.git_diff.b_path != change.git_diff.a_path):
                 # file renamed.
                 self._directly_edited_files.add(Path(change.git_diff.b_path))
         return list(self._directly_edited_files)
@@ -460,6 +459,7 @@ class Agent(BaseModel):
             if not status:
                 print("Failed to fix compilation errors. Reverting changes.")
                 self.project.restore_changes()
+                self.ide_server.call_tool_get("reload_from_vfs")
                 return {'messages': [HumanMessage("There were compilation errors. I have reverted the changes.")]}
             self.commit_changes(plan_step.reason)
 
