@@ -170,7 +170,8 @@ class Agent(BaseModel):
                 intent=current_intent
             ).compile_and_run()
 
-            if quality_result.overall_assessment == quality_check.OverallAssessment.PASS:
+            if (quality_result is None
+                    or quality_result.overall_assessment == quality_check.OverallAssessment.PASS):
                 return final_state["messages"][-1].content
             else:
                 # quality check failed, update intent
@@ -179,7 +180,8 @@ class Agent(BaseModel):
 
     def get_important_files_diff(self):
         important_files = self.compute_most_important(self._files_changed)
-        return "\n".join([self.project.get_git_diff(f, head_count=len(self._internal_commits)) for f in important_files])
+        return "\n".join([self.project.get_git_diff(str(f), head_count=len(self._internal_commits)) for f in important_files
+                          if self.project.file_exists(str(f))])
 
     def analyze_developer_intent(self, initial_intent, model, starting_file):
         """Analyze the developer intent and return the refactoring type and reason."""
@@ -244,6 +246,19 @@ class Agent(BaseModel):
 
     def compute_most_important(self, file_changed):
         # Compute the relevant files that were changed.
+        changes = []
+        if len(self._internal_commits) > 0:
+            changes += self.project.get_changes(str(self._internal_commits[-1]))
+        changes += self.project.get_unstaged_changes() + self.project.get_staged_changes()
+        for change in changes:
+            if change.git_diff.a_path is None and change.git_diff.b_path is not None:
+                # newly created file
+                self._directly_edited_files.add(Path(change.git_diff.b_path))
+            if (change.git_diff.a_path is not None and change.git_diff.b_path is not None
+                    and change.git_diff.b_path != change.git_diff.a_path and
+                    change.git_diff.a_path in self._directly_edited_files):
+                # file renamed.
+                self._directly_edited_files.add(Path(change.git_diff.b_path))
         return list(self._directly_edited_files)
 
     def get_changed_file_contents(self) -> HumanMessage:

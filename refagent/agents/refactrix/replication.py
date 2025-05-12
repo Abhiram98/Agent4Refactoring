@@ -53,10 +53,10 @@ class Replication(BaseModel):
         elements_to_inspect: List[Tuple[CodeElement, int]] = []
         files_inspected: List[str] = []
         for diff in diffs:
-            if diff.git_diff.a_rawpath is None:
+            if diff.git_diff.b_path is None:
                 # skipping, probably because file got deleted
                 continue
-            file_path = diff.git_diff.a_rawpath.decode('utf-8')
+            file_path = diff.git_diff.b_path
             if not file_path.endswith('.java'):
                 continue
             if not self.project.file_exists(file_path):

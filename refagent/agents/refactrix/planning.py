@@ -135,7 +135,6 @@ class PlanningComponent(Planner):
                 try:
                     new_step = parser.invoke(response)
                 except:
-                    print("Failed to parse the object :/.")
                     new_step = self.try_parsing(response)
 
                 if new_step!=None:
