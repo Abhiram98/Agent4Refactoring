@@ -186,3 +186,78 @@ def test_flink_3(mocker):
     source_code = server.call_tool_get("get_source_code")
     print(source_code)
     print(agent.get_trajectory())
+
+
+def test_flink_35(mocker):
+    '''Renaming channel to subpartition'''
+    project = pm.EvalProject('flink')
+    project.checkout('d13c6b7c6118346fd178579a5e69259162cb60f1', force=True)
+    project.reset_head()
+
+    plan = planning.RefactoringPlan(
+        steps=[
+                {
+                    "reason": "To standardize naming conventions in the slot management system.",
+                    "final_code": "class DefaultFreeSlotTrackerTest { ... }",
+                    "execution_details": "Rename the class 'DefaultFreeSlotInfoTrackerTest' to 'DefaultFreeSlotTrackerTest'. This involves replacing all occurrences of 'DefaultFreeSlotInfoTrackerTest' with 'DefaultFreeSlotTrackerTest' in the file 'flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java'. Ensure that the class name is updated in the file header, as well as in any references to this class within the same file or related files.",
+                    "refactoring_type": "rename",
+                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
+                },
+                {
+                    "reason": "To standardize naming conventions in the slot management system.",
+                    "final_code": "final FreeSlotTracker freeSlotTracker = FreeSlotTrackerTestUtils.createDefaultFreeSlotTracker(slots);",
+                    "execution_details": "Rename the variable 'freeSlotInfoTracker' to 'freeSlotTracker' within the method 'testReserveSlot' and 'testCreatedFreeSlotInfoTrackerWithoutBlockedSlots'. This involves replacing all occurrences of 'freeSlotInfoTracker' with 'freeSlotTracker' in the scope of the class 'DefaultFreeSlotTrackerTest'. Ensure that the variable name is updated in the method signatures and any references to this variable within the same file.",
+                    "refactoring_type": "rename",
+                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
+                },
+                {
+                    "reason": "To standardize naming conventions in the slot management system.",
+                    "final_code": "final FreeSlotTracker freeSlotTrackerWithoutBlockedSlots = freeSlotTracker.createNewFreeSlotTrackerWithoutBlockedSlots(...);",
+                    "execution_details": "Rename the variable 'freeSlotInfoTrackerWithoutBlockedSlots' to 'freeSlotTrackerWithoutBlockedSlots' within the method 'testCreatedFreeSlotInfoTrackerWithoutBlockedSlots'. This involves replacing all occurrences of 'freeSlotInfoTrackerWithoutBlockedSlots' with 'freeSlotTrackerWithoutBlockedSlots' in the scope of the class 'DefaultFreeSlotTrackerTest'. Ensure that the variable name is updated in the method signature and any references to this variable within the same file.",
+                    "refactoring_type": "rename",
+                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
+                },
+                {
+                    "reason": "To standardize naming conventions in the slot management system.",
+                    "final_code": "SlotInfo selectedSlot = freeSlotTracker.getSlotInfo(candidate);",
+                    "execution_details": "Rename the variable 'selectSlot' to 'selectedSlot' within the method 'testReserveSlot'. This involves replacing all occurrences of 'selectSlot' with 'selectedSlot' in the scope of the class 'DefaultFreeSlotTrackerTest'. Ensure that the variable name is updated in the method signature and any references to this variable within the same file.",
+                    "refactoring_type": "rename",
+                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
+                },
+                {
+                    "reason": "To standardize naming conventions in the slot management system.",
+                    "final_code": "assertThat(freeSlotTracker.getAvailableSlots()).hasSize(1).containsAnyOf(slotInfo1.getAllocationId(), slotInfo2.getAllocationId());",
+                    "execution_details": "Rename the variable 'freeSlotInfoTracker' to 'freeSlotTracker' in the assertion statement within the method 'testReserveSlot'. This involves replacing all occurrences of 'freeSlotInfoTracker' with 'freeSlotTracker' in the assertion statement on line 30 of the file 'DefaultFreeSlotInfoTrackerTest.java'.",
+                    "refactoring_type": "rename",
+                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
+                }
+            ]
+    )
+
+    planning_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan')
+    planning_patch.return_value = plan
+
+    execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
+    execution_patch.return_value = AIMessage("Successfullly performed the refactoring")
+
+    # create IJ server connection
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    server.open_project(project_path=project.get_project_path())
+    rel_file_path = Path("flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotTrackerTest.java")
+    server.open_file(rel_file_path)
+
+    # create agent
+    with ls.trace(name=f"refactoring agent test - test_replication:test_flink_35",
+                  tags=["test"]) as tracer:
+        agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
+        output = agent.run(initial_intent="Refactor FreeSlotInfoTracker to FreeSlotTracker for consistent naming and updated implementations. "
+                                          "This commit refactors the interface from FreeSlotInfoTracker to FreeSlotTracker across various classes "
+                                          "to standardize naming conventions in the slot management system. The changes include method renaming and "
+                                          "adjustment in the implementations accordingly. The motivation behind this is to align with "
+                                          "new slot representation and ensure clarity in code.",
+                           starting_file=str(rel_file_path))
+    print(output)
+
+    source_code = server.call_tool_get("get_source_code")
+    print(source_code)
+    print(agent.get_trajectory())

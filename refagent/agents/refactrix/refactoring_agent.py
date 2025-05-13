@@ -180,8 +180,16 @@ class Agent(BaseModel):
 
     def get_important_files_diff(self):
         important_files = self.compute_most_important(self._files_changed)
-        return "\n".join([self.project.get_git_diff(str(f), head_count=len(self._internal_commits)) for f in important_files
-                          if self.project.file_exists(str(f))])
+
+        diff = ""
+        for commit in self._internal_commits:
+            changes = self.project.get_changes(str(commit))
+            for c in changes:
+                if c.git_diff.b_path in important_files or c.git_diff.a_path in important_files:
+                    diff += '\n'.join([h.content for h in c.hunks])
+                    diff += '\n'
+
+        return diff
 
     def analyze_developer_intent(self, initial_intent, model, starting_file):
         """Analyze the developer intent and return the refactoring type and reason."""
@@ -256,7 +264,7 @@ class Agent(BaseModel):
                 self._directly_edited_files.add(Path(change.git_diff.b_path))
             if (change.git_diff.a_path is not None and change.git_diff.b_path is not None
                     and change.git_diff.b_path != change.git_diff.a_path):
-                # file renamed.
+                # file renamed. Hueristic - files renamed are often important files to look at
                 self._directly_edited_files.add(Path(change.git_diff.b_path))
         return list(self._directly_edited_files)
 
