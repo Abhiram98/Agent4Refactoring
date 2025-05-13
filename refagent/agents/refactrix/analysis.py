@@ -5,6 +5,9 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END, MessagesState
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.output_parsers import PydanticOutputParser
+from refagent.experiments.run_codescene import run_codescene
+import pathlib
+import os
 
 class AugmentedIntent(BaseModel):
     original_intent: str = Field(description="The original intent provided by the user.")
@@ -13,9 +16,9 @@ class AugmentedIntent(BaseModel):
 class AnalysisComponent(BaseModel):
     """An agent that takes an initial intent and augments it with additional details."""
     initial_intent: str = Field(description="The initial intent provided by the user.")
-    context_information: Optional[str] = Field(
+    codescene_context: Optional[bool] = Field(
         default=None,
-        description="Optional context to help augment the intent."
+        description="Optional context from CodeScene to help augment the intent."
     )
     source_code: str = Field(description="Source code to work with")
     source_file_path: str = Field(description="Path to the source file.")
@@ -49,10 +52,31 @@ class AnalysisComponent(BaseModel):
                 SystemMessage(content=system_msg),
                 HumanMessage(content=f"Initial intent: {self.initial_intent}")
             ]
-            if self.context_information:
-                llm_messages.append(
-                    HumanMessage(content=f"Context: {self.context_information}")
-                )
+            
+            if self.codescene_context:
+                projects_base_path = pathlib.Path(os.environ.get('PROJECTS_BASE_PATH'))
+
+                codescene_result = run_codescene(self.source_file_path)
+                # print("CodeScene context:", codescene_result.score)
+                
+                # # Only add CodeScene context if we have meaningful output
+                if codescene_result and (codescene_result.score is not None or codescene_result.review):
+                    # Add CodeScene-specific instructions to the system message
+                    system_msg = (
+                        f"{self.generation_system_message}\n\n"
+                        "Consider the CodeScene analysis in your response:\n"
+                        "- Factor in the code quality score if available\n"
+                        "- Consider any identified code smells or review points when augmenting the intent\n\n"
+                        f"Return ONLY the JSON—no markdown or commentary.\n"
+                        f"{fmt}"
+                    )
+                    # Update the first message with new system message
+                    llm_messages[0] = SystemMessage(content=system_msg)
+                    # Add CodeScene context
+                    llm_messages.append(
+                        HumanMessage(content=f"CodeScene Analysis:\n{codescene_result}")
+                    )
+
             llm_messages.append(
                 HumanMessage(content=f"Source code:\n{self.source_code}")
             )

@@ -34,7 +34,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
         plan_type = planning.PlanningComponent
 
     agent = ra.Agent(ide_server=ij_server,
-                     model_name='grazie:openai-gpt-4o-mini',
+                     model_name='openai:gpt-4o-mini',
                      project=project,
                      plan_component=plan_type)
     try:

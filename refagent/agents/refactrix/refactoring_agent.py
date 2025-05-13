@@ -14,7 +14,6 @@ from langgraph.graph import MessagesState
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage, BaseMessage
 from langchain_core.language_models import BaseChatModel
-
 try:
     from grazie_langchain_utils.language_models.grazie import ChatGrazie
 except ImportError:
@@ -184,9 +183,9 @@ class Agent(BaseModel):
         """Analyze the developer intent and return the refactoring type and reason."""
         analysis_component = self.analysis_component(
             initial_intent=initial_intent,
-            context_information="",
+            codescene_context=True,
             source_code=self._source_code,
-            source_file_path=starting_file,
+            source_file_path=os.path.join(self.project.get_project_path(),starting_file),
             model=model
         )
         analysis_report = analysis_component.run()
@@ -196,7 +195,6 @@ class Agent(BaseModel):
     def generate_initial_plan(self, analysis_report, model, starting_file):
         planning_component = self.plan_component(
             initial_intent=analysis_report,
-            # augmented_intent=analysis_report,
             model=model,
             source_code=self._source_code,
             source_file_path=starting_file
