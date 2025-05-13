@@ -77,6 +77,11 @@ class Replication(BaseModel):
             # breadth-first search through the repository
             print(f"{len(elements_to_inspect)=}")
             code_element, depth = elements_to_inspect.pop(0)
+
+            if depth == 0:
+                # increase the search space, only by one level.
+                elements_to_inspect += [(i, depth+1) for i in self.get_linked_elements(code_element)]
+
             if code_element.file_path in files_inspected:
                 print(f"Skipping the replication to {code_element.file_path} "
                       f"as it was previously done.")
@@ -98,9 +103,6 @@ class Replication(BaseModel):
                 ).run()
                 yield plan
 
-            if depth == 0:
-                # increase the search space, only by one level.
-                elements_to_inspect += [(i, depth+1) for i in self.get_linked_elements(code_element)]
             files_inspected.append(code_element.file_path)
         return None
 
