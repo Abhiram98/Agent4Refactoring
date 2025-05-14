@@ -1,3 +1,5 @@
+import json
+
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, BaseMessage
 from langchain_core.language_models import LanguageModelInput
 from langchain.chat_models.fake import FakeMessagesListChatModel
@@ -481,3 +483,24 @@ def test_flink_4(mocker):
     )
 
 
+def test_code_inspection():
+    project = pm.EvalProject('flink')
+    project.checkout('1d15930275545f16a94d19c4a9b67043d5667498', force=True)
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+
+    server.open_project(project_path=project.get_project_path())
+    response = server.open_file(Path("flink-core/src/main/java/org/apache/flink/api/common/TaskInfo.java"))
+    print(response)
+    # requests.post('http://localhost:8082/extract-class',
+    #               json={'extraction_type': 'enum', 'new_class_name': 'MyEnum', 'members': ['serialVersionUID'],
+    #                     "sub_class_name": "NotImportant"})
+    extract_class_response = server.call_tool("extract-class",
+                     extraction_type='interface',
+                     new_class_name='TaskInfo',
+                     members=['taskName', 'getTaskName'],
+                     sub_class_name='TaskInfoImpl'
+                     )
+    print(extract_class_response)
+    inspection_results = server.call_tool('run_code_inspection')
+    print(inspection_results)
+    print(json.loads(inspection_results))
