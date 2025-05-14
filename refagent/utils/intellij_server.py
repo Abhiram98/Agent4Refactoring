@@ -49,3 +49,13 @@ class IntellijServer(BaseModel):
             return response.text
         else:
             return f"tool call failed - {response.status_code}: {response.text}"
+
+    def run_code_inspection(self, retry=2):
+        for i in range(retry):
+            response = requests.post(f'{self.server_url}/run_code_inspection')
+            if response.status_code == 500:
+                print(f"code inspection failed - {response.status_code}: {response.text}")
+                print("retrying...")
+            else:
+                return response.text
+        return "[]" # code inspection failed.

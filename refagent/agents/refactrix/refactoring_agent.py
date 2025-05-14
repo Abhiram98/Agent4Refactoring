@@ -448,7 +448,7 @@ class Agent(BaseModel):
         def fix_compile_errors(state: MessagesState):
             """Fix compilation errors"""
             errors = [error_fixing.ErrorMessage(**i)
-                      for i in json.loads(self.ide_server.call_tool("run_code_inspection"))]
+                      for i in json.loads(self.ide_server.run_code_inspection())]
             if len(errors) == 0:
                 print("No compilation errors found.")
                 self.commit_changes(plan_step.reason)
