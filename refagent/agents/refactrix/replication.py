@@ -34,7 +34,7 @@ class Replication(BaseModel):
 
     SUPPORTED_REPLICATIONS: ClassVar[List[sup_ref.SupportedRefactorings]] \
         = [sup_ref.SupportedRefactorings.RENAME,
-                              sup_ref.SupportedRefactorings.CHANGE_SIGNATURE,
+                              # sup_ref.SupportedRefactorings.CHANGE_SIGNATURE,
                               sup_ref.SupportedRefactorings.TYPE_CHANGE]
 
     class Config:

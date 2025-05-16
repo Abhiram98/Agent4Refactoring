@@ -95,6 +95,14 @@ class PushDownAttribute(RefminerOut):
 
 
 class Rename(RefminerOut):
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement
+
     def __eq__(self, other: RefminerOut):
         if not self.base_eq(other):  # Call the parent class equality check
             return False
