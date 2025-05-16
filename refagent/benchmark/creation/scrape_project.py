@@ -41,6 +41,8 @@ class CommitProcessor(BaseModel):
     commit: Commit = Field(description="The commit to process")
     project: pm.EvalProject = Field(description="The project to work with")
     model: Annotated[BaseModel, SkipValidation] = Field(description="Model to use to summarize the commit")
+    _refactorings: List[refactoring_types.RefminerOut] = PrivateAttr(default=[])
+    _filtered_refactorings: List[refactoring_types.RefminerOut] = PrivateAttr(default=[])
 
     class Config:
         arbitrary_types_allowed = True
@@ -59,14 +61,17 @@ class CommitProcessor(BaseModel):
         # filter out unrelated hunks
 
         # Run refactoring miner.
-        refactorings = refminer.default_runner.run(
+        self._refactorings = refminer.default_runner.run(
             project_path=self.project.get_project_path(),
             commit_hash=str(self.commit.hexsha)
         )
-        if len(refactorings) == 0:
+        if len(self._refactorings) == 0:
             return None # There are no refactorings detected by rminer, which is an odd case.
+        if not self.should_analyse():
+            return None
 
-        edited_files = self.edited_files_map(refactorings)
+        self.compute_filtered_refactorings() # sets the value of self._filtered_refactorings
+        edited_files = self.edited_files_map(self._filtered_refactorings)
         if len(edited_files) == 0:
             return None # no files were refactored.
         starting_files = max(edited_files.items(), key=lambda x: x[1])
@@ -88,7 +93,7 @@ class CommitProcessor(BaseModel):
                 change_summary=commit_summary.summary,
                 hints=commit_summary.hints,
                 starting_file=starting_file,
-                refactoring_changes=refactorings,
+                refactoring_changes=self._refactorings,
                 diffs=self.project.get_changes(self.commit.hexsha),
                 pull_request=self.get_pr()
             )
@@ -134,7 +139,8 @@ class CommitProcessor(BaseModel):
         try:
             response = self.model.invoke(
                 [
-                    SystemMessage("You look ar git diffs and provide a commit message. "
+                    SystemMessage("You look at git diffs and provide a commit message. "
+                                  f"{self.get_additional_instructions()}"
                                   f"Respond in the following format: {parser.get_format_instructions()}"),
                     HumanMessage(diff)
                 ]
@@ -150,7 +156,8 @@ class CommitProcessor(BaseModel):
                 for h in c.hunks:
                     diff += h.content + '\n'
             response = self.model.invoke([
-                    SystemMessage("You look ar git diffs and provide a commit message. "
+                    SystemMessage("You look at git diffs and provide a commit message. "
+                                  f"{self.get_additional_instructions()}"
                                   f"Respond in the following format: {parser.get_format_instructions()}"),
                     HumanMessage(diff)]
             )
@@ -158,6 +165,15 @@ class CommitProcessor(BaseModel):
 
         return commit_summary
 
+    def should_analyse(self):
+        return len(self._refactorings) > 0
+
+    def compute_filtered_refactorings(self) -> List[refactoring_types.RefminerOut]:
+        self._filtered_refactorings = self._filtered_refactorings
+        return self._filtered_refactorings
+
+    def get_additional_instructions(self) -> str:
+        return ""
 
 
 class Scraper(BaseModel):
@@ -168,6 +184,8 @@ class Scraper(BaseModel):
                                   default=datetime(2024, 1, 1, tzinfo=UTC))
     output_path: Path = Field(description="output path to save the scraped data")
     gather_data_points: List[bm_load.BenchmarkItem] = Field(default=[])
+    commit_processor: CommitProcessor = Field(default=CommitProcessor)
+
     _full_benchmark: List[bm_load.BenchmarkItem] = PrivateAttr(default=[])
     limit_commits: int = Field(description="limit the number of commits to scrape", default=20)
 
@@ -204,7 +222,6 @@ class Scraper(BaseModel):
         for commit in project.git_repo.iter_commits(since=self.cutoff_date):
             if (datetime.fromtimestamp(commit.authored_date, UTC) >= self.cutoff_date # For some reason, even older commits are picked up.
                     and str(commit.hexsha) not in self._previously_analysed_commits
-                    and self.should_analyse(commit)
             ):
                 self.process_commit(commit, project)
 
@@ -225,7 +242,7 @@ class Scraper(BaseModel):
                                 client_agent_name='ref-agent',
                                 client_agent_version='0.1'
                                 )
-        bench_item = CommitProcessor(
+        bench_item = self.commit_processor(
             id_counter=self.id_counter,
             commit=commit,
             project=project,
@@ -235,45 +252,57 @@ class Scraper(BaseModel):
             self.gather_data_points.append(bench_item)
             self.id_counter += 1
             self._counter += 1
-        
-    def should_analyse(self, commit: Commit):
-        raise Exception("Should not be called.")
 
 
 
-class KeywordScraper(Scraper):
+class KeywordScraper(CommitProcessor):
     
     KEYWORDS: List[str] = ['refactor', 'redesign', 'reorganize', 'restructure', 'rewrite',
                            'move', 'extract', 'improve', 'split', 'rename', 'introduce', 'encapsulate',
                            'rework'] 
-    
-    def should_analyse(self, commit: Commit):
-        return any([k in commit.message.lower() for k in self.KEYWORDS])
+
+    def should_analyse(self):
+        return any([k in self.commit.message.lower() for k in self.KEYWORDS])
 
 
-class RenameScraper(Scraper):
+
+class RenameScraper(CommitProcessor):
     
     def contains_important_refactoring(self, refactorings: List[refactoring_types.RefminerOut]) -> bool:
         if len(refactorings) == 0:
             return False
 
         refactoring_count = defaultdict(int)
+        unique_files = set()
         for r in refactorings:
             # if r.type in ['Extract Class', 'Extract Interface', 'Extract Superclass', 'Extract Subclass']:
             #     return True
             parent_type = r.type.split(' ')[0]
             refactoring_count[parent_type] += 1
+            for loc in r.leftSideLocations:
+                unique_files.add(loc.filePath)
         rename_pct = refactoring_count['Rename'] / len(refactorings)
-        return rename_pct > 0.6
+        lots_of_renames = refactoring_count['Rename'] > 10 and len(unique_files) > 1
+        high_pct_renames = rename_pct > 0.6 and refactoring_count['Rename'] > 2
+
+        return lots_of_renames or high_pct_renames
     
-    def should_analyse(self, commit: Commit):
-        project = pm.EvalProject(project_name=self.project_name)
-        refactorings = refminer.default_runner.run(
-            project_path=project.get_project_path(),
-            commit_hash=str(commit.hexsha)
-        )
-        return self.contains_important_refactoring(refactorings)
-        
+    def should_analyse(self):
+        return self.contains_important_refactoring(self._refactorings)
+
+    def compute_filtered_refactorings(self) -> List[refactoring_types.RefminerOut]:
+        self._filtered_refactorings = [i for i in self._refactorings
+                                       if i.type.split()[0] == 'Rename']
+        return self._filtered_refactorings
+
+    def get_additional_instructions(self) -> str:
+
+        all_renames_str = ""
+
+        for refactoring in self._filtered_refactorings:
+            all_renames_str += refactoring.description + "\n"
+
+        return f"Please summarize the following rename refactorings: \n{all_renames_str}\n"
     
 class ExtractMethodScraper(RenameScraper):
     
@@ -286,11 +315,25 @@ class ExtractMethodScraper(RenameScraper):
             refactoring_count[r.type] += 1
 
         em_count = (refactoring_count['Extract Method'] +
-                    refactoring_count['Parametrize Variable'] +
-                    refactoring_count['Add Parameter'] +
-                    refactoring_count['Merge Parameter'])
+                    refactoring_count['Parametrize Variable'] )
+                    # refactoring_count['Add Parameter'] +
+                    # refactoring_count['Merge Parameter']
         extract_method_pct = em_count / len(refactorings)
-        return extract_method_pct > 0.5
+        return extract_method_pct > 0.6 and em_count > 2
+
+class CodeSmellBasedScraper(Scraper):
+    def should_analyse(self, commit: Commit):
+        project = pm.EvalProject(project_name=self.project_name)
+        refactorings = refminer.default_runner.run(
+            project_path=project.get_project_path(),
+            commit_hash=str(commit.hexsha)
+        )
+        return len(refactorings) > 0
+
+
+# TODO: limit number of refactorings, types of refactorings, # of files changes. restrict to method scope
+
+# "refactor the method <> by applying one of these refactorings <EM, MM, Rename, Inline, ...>"
 
 if __name__ == '__main__':
     import argparse
@@ -316,8 +359,10 @@ if __name__ == '__main__':
 
     with langsmith.trace(name=f"scraping data for {args.project} "
                               f"using {args.scraper_type}", tags=["scrape"]) as tracer:
-        scraper_class(
+        os.makedirs(refagent.data_folder.joinpath(f'ref_miner/{args.scraper_type}'), exist_ok=True)
+        Scraper(
             project_name=args.project,
-            output_path=refagent.data_folder.joinpath(f'ref_miner/{args.project}-2.json'),
-            id_counter=args.id_counter
+            output_path=refagent.data_folder.joinpath(f'ref_miner/{args.scraper_type}/{args.project}.json'),
+            id_counter=args.id_counter,
+            commit_processor=scraper_class
         ).run()
