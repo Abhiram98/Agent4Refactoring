@@ -2,7 +2,7 @@ import argparse
 from idlelib.configdialog import changes
 from pathlib import Path
 import json
-from typing import Optional
+from typing import Optional, List
 import traceback
 # import refagent.agents.simple_agent as simple_agent
 import refagent.benchmark.load as bm_load
@@ -61,6 +61,13 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     )
     results_saver.save()
 
+
+def load_benchmark(filepath) -> List[bm_load.BenchmarkItem]:
+    with open(filepath) as f:
+        benchmark_json = json.load(f)
+    benchmark = bm_load.load_benchmark(benchmark_json)
+    return benchmark
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Run the agent on the entire benchmark.')
@@ -74,6 +81,7 @@ if __name__ == '__main__':
                         default="default")
     parser.add_argument('-planning_results_file', type=str, help='Use results from previous planning '
                                                                  'run to avoid double work.', default=None)
+    parser.add_argument('--benchmark_file', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
     args = parser.parse_args()
 
     selected_ref_ids = [int(i) for i in args.ref_ids.split(',')] if args.ref_ids is not None else None
@@ -87,9 +95,7 @@ if __name__ == '__main__':
 
     use_previous = False
 
-    with open(refagent.benchmark_full_file) as f:
-        benchmark_json = json.load(f)
-    benchmark = bm_load.load_benchmark(benchmark_json)
+    benchmark = load_benchmark(args.benchmark_file)
     results_saver = rm.ResultsManager(run_identifier=args.run_identifier)
 
     for bench_point in benchmark:
@@ -100,9 +106,9 @@ if __name__ == '__main__':
                   f"Selected: {selected_ref_ids}")
             continue
 
-        # if results_saver.exists(bench_point.ref_id):
-        #     print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
-        #     continue
+        if results_saver.exists(bench_point.ref_id):
+            print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
+            continue
 
         with ls.trace(name=f"refactoring agent - {args.run_identifier}. bench point {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:
