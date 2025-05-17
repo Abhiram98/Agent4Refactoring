@@ -17,11 +17,11 @@ import refagent.refactoring_types.refactorings as refactoring_types
 
 from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field, SkipValidation, PrivateAttr
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timezone
 from git import Commit
 from pathlib import Path
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Type, Iterator, Iterable
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from typing_extensions import Annotated
@@ -131,39 +131,47 @@ class CommitProcessor(BaseModel):
         parser = PydanticOutputParser(pydantic_object=CommitSummary)
         most_edited_file_ = most_edited_files[0][0]
 
-        changes = self.project.get_changes(self.commit.hexsha)
-        diff = ""
-        for c in changes:
-            for h in c.hunks:
-                diff += h.content + '\n'
+
+        system_message = SystemMessage("You look at git diffs and provide a commit message. "
+                                  f"{self.get_additional_instructions()}"
+                                  f"Respond in the following format: {parser.get_format_instructions()}")
+        changes, diff = self.get_diff()
         try:
             response = self.model.invoke(
                 [
-                    SystemMessage("You look at git diffs and provide a commit message. "
-                                  f"{self.get_additional_instructions()}"
-                                  f"Respond in the following format: {parser.get_format_instructions()}"),
+                    system_message,
                     HumanMessage(diff)
                 ]
             )
         except RequestFailedException:
             print("payload too large.")
-            top_ten_files = [f[0] for f in most_edited_files][:10]
-            diff = ""
-            for c in changes:
-                if (c.git_diff.a_path is not None and
-                        not any(x in c.git_diff.a_path for x in top_ten_files)):
-                    continue
-                for h in c.hunks:
-                    diff += h.content + '\n'
+            diff = self.get_top10_diff(changes, most_edited_files)
             response = self.model.invoke([
-                    SystemMessage("You look at git diffs and provide a commit message. "
-                                  f"{self.get_additional_instructions()}"
-                                  f"Respond in the following format: {parser.get_format_instructions()}"),
+                    system_message,
                     HumanMessage(diff)]
             )
         commit_summary = parser.invoke(response)
 
         return commit_summary
+
+    def get_top10_diff(self, changes, most_edited_files):
+        top_ten_files = [f[0] for f in most_edited_files][:10]
+        diff = ""
+        for c in changes:
+            if (c.git_diff.a_path is not None and
+                    not any(x in c.git_diff.a_path for x in top_ten_files)):
+                continue
+            for h in c.hunks:
+                diff += h.content + '\n'
+        return diff
+
+    def get_diff(self):
+        changes = self.project.get_changes(self.commit.hexsha)
+        diff = ""
+        for c in changes:
+            for h in c.hunks:
+                diff += h.content + '\n'
+        return changes, diff
 
     def should_analyse(self):
         return len(self._refactorings) > 0
@@ -184,10 +192,11 @@ class Scraper(BaseModel):
                                   default=datetime(2024, 1, 1, tzinfo=UTC))
     output_path: Path = Field(description="output path to save the scraped data")
     gather_data_points: List[bm_load.BenchmarkItem] = Field(default=[])
-    commit_processor: CommitProcessor = Field(default=CommitProcessor)
+    commit_processor: Type[CommitProcessor] = Field(description="Commit processor to use to process commits")
+    commits: List[str] = Field(default=[])
 
     _full_benchmark: List[bm_load.BenchmarkItem] = PrivateAttr(default=[])
-    limit_commits: int = Field(description="limit the number of commits to scrape", default=20)
+    limit_commits: int = Field(description="limit the number of commits to scrape", default=50)
 
     _previously_analysed_commits: List[str] = PrivateAttr(default=[])
     _counter: int = PrivateAttr(default=0)
@@ -219,9 +228,14 @@ class Scraper(BaseModel):
         self.get_previously_analysed()
         project = pm.EvalProject(project_name=self.project_name)
         # Iterate git history for commits after cutoff_data
-        for commit in project.git_repo.iter_commits(since=self.cutoff_date):
-            if (datetime.fromtimestamp(commit.authored_date, UTC) >= self.cutoff_date # For some reason, even older commits are picked up.
-                    and str(commit.hexsha) not in self._previously_analysed_commits
+        for commit in self.iter_commits(project):
+            if (
+                    datetime.fromtimestamp(commit.authored_date, UTC) >= self.cutoff_date # For some reason, even older commits are picked up.
+                    and
+                    (
+                            str(commit.hexsha) not in self._previously_analysed_commits
+                            or str(commit) in self.commits
+                    )
             ):
                 self.process_commit(commit, project)
 
@@ -233,6 +247,12 @@ class Scraper(BaseModel):
         print(f"successfully scraped {self._counter} data points.")
 
         # Append to benchmark_file
+
+    def iter_commits(self, project) -> Iterable:
+        if len(self.commits) > 0:
+            return [project.git_repo.commit(commit_str) for commit_str in self.commits]
+        else:
+            return project.git_repo.iter_commits(since=self.cutoff_date)
 
     def process_commit(self, commit: Commit, project: pm.EvalProject):
         grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
@@ -255,7 +275,7 @@ class Scraper(BaseModel):
 
 
 
-class KeywordScraper(CommitProcessor):
+class KeywordProcessor(CommitProcessor):
     
     KEYWORDS: List[str] = ['refactor', 'redesign', 'reorganize', 'restructure', 'rewrite',
                            'move', 'extract', 'improve', 'split', 'rename', 'introduce', 'encapsulate',
@@ -266,7 +286,7 @@ class KeywordScraper(CommitProcessor):
 
 
 
-class RenameScraper(CommitProcessor):
+class RenameProcessor(CommitProcessor):
     
     def contains_important_refactoring(self, refactorings: List[refactoring_types.RefminerOut]) -> bool:
         if len(refactorings) == 0:
@@ -303,8 +323,21 @@ class RenameScraper(CommitProcessor):
             all_renames_str += refactoring.description + "\n"
 
         return f"Please summarize the following rename refactorings: \n{all_renames_str}\n"
+
+    def get_diff(self):
+
+        changes = self.project.get_changes(self.commit.hexsha)
+        renamed_files = [i.leftSideLocations[0].filePath for i in self._filtered_refactorings]
+
+        diff = ""
+        for c in changes:
+            if c.git_diff.b_path not in renamed_files:
+                continue
+            for h in c.hunks:
+                diff += h.content + '\n'
+        return changes, diff
     
-class ExtractMethodScraper(RenameScraper):
+class ExtractMethodProcessor(RenameProcessor):
     
     def contains_important_refactoring(self, refactorings: List[refactoring_types.RefminerOut]) -> bool:
         if len(refactorings) == 0:
@@ -321,14 +354,14 @@ class ExtractMethodScraper(RenameScraper):
         extract_method_pct = em_count / len(refactorings)
         return extract_method_pct > 0.6 and em_count > 2
 
-class CodeSmellBasedScraper(Scraper):
-    def should_analyse(self, commit: Commit):
-        project = pm.EvalProject(project_name=self.project_name)
-        refactorings = refminer.default_runner.run(
-            project_path=project.get_project_path(),
-            commit_hash=str(commit.hexsha)
-        )
-        return len(refactorings) > 0
+# class CodeSmellBasedScraper(Scraper):
+#     def should_analyse(self, commit: Commit):
+#         project = pm.EvalProject(project_name=self.project_name)
+#         refactorings = refminer.default_runner.run(
+#             project_path=project.get_project_path(),
+#             commit_hash=str(commit.hexsha)
+#         )
+#         return len(refactorings) > 0
 
 
 # TODO: limit number of refactorings, types of refactorings, # of files changes. restrict to method scope
@@ -344,18 +377,22 @@ if __name__ == '__main__':
                         help='Type of scraper to run')
     parser.add_argument('--project', default='flink', help='Project name to analyze')
     parser.add_argument('--id_counter', type=int, default=139, help='Starting ID counter')
+    parser.add_argument('--commits', type=str, default='[]', help='List of commits to scrape')
+    parser.add_argument('--cutoff_date', type=str, default='2024-01-01', help='Cutoff date for commits to scrape')
+
 
     args = parser.parse_args()
 
     # Map scraper types to classes
     scraper_map = {
-        'keyword': KeywordScraper,
-        'rename': RenameScraper,
-        'extract_method': ExtractMethodScraper
+        'keyword': KeywordProcessor,
+        'rename': RenameProcessor,
+        'extract_method': ExtractMethodProcessor
     }
 
     # Get the appropriate scraper class
     scraper_class = scraper_map[args.scraper_type]
+    commits = args.commits.split(',')
 
     with langsmith.trace(name=f"scraping data for {args.project} "
                               f"using {args.scraper_type}", tags=["scrape"]) as tracer:
@@ -364,5 +401,7 @@ if __name__ == '__main__':
             project_name=args.project,
             output_path=refagent.data_folder.joinpath(f'ref_miner/{args.scraper_type}/{args.project}.json'),
             id_counter=args.id_counter,
-            commit_processor=scraper_class
+            commit_processor=scraper_class,
+            commits=commits,
+            cutoff_date=datetime.fromisoformat(args.cutoff_date).replace(tzinfo=UTC)
         ).run()
