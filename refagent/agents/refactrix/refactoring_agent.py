@@ -470,6 +470,7 @@ class Agent(BaseModel):
 
             if not status:
                 print("Failed to fix compilation errors. Reverting changes.")
+                self._failing_tool_call_count += 1
                 self.project.restore_changes()
                 self.ide_server.call_tool_get("reload_from_vfs")
                 return {'messages': [HumanMessage("There were compilation errors. I have reverted the changes.")]}
@@ -480,9 +481,12 @@ class Agent(BaseModel):
             if step_count == 0 and self._iterations == 0:
                 return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
-            if self._iterations >= 5:
+            if self._iterations >= 10:
                 # Stopping because limit has been reached.
                 return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
+
+            if self._failing_tool_call_count >=2:
+                return {'messages': [AIMessage('finished because tool calls failed more than once. DONE')]}
 
             if self.ide_server.call_tool_get("get_source_code") == '':
                 return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
