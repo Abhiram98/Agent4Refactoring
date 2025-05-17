@@ -51,7 +51,7 @@ class Planner(BaseModel):
         documentation_str = "\n".join([f"{k.value}: {v}" for k,v in sup_ref.documentation.items()])
 
         return SystemMessage( "You are an expert developer using a powerful IDE IntelliJ IDEA, "
-                              "capable of performing refactorng."
+                              "capable of performing refactoring."
                               "Please generate a step by step plan of IDE refactoring actions to "
                               f"perform the following: {self.initial_intent}. "
                               f"Please provide a plan ONLY to perform refactorings. "
