@@ -31,7 +31,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     if plan is not None:
         plan_type = planning.get_mock_planning_component(plan)
     else:
-        plan_type = planning.PlanningComponent
+        plan_type = planning.NaivePlanningComponent
 
     agent = ra.Agent(ide_server=ij_server,
                      model_name='grazie:openai-gpt-4o-mini',
