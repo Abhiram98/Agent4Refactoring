@@ -261,3 +261,63 @@ def test_flink_35(mocker):
     source_code = server.call_tool_get("get_source_code")
     print(source_code)
     print(agent.get_trajectory())
+
+
+def test_ratpack_205(mocker):
+    project = pm.EvalProject('ratpack')
+    project.checkout('0e2bdfd6a77759b7072f2de98745917938e450de', force=True)
+    project.reset_head()
+
+    plan = planning.RefactoringPlan(
+        steps=[
+            {
+              "reason": "To enhance clarity and better express the requirement for client SSL authentication.",
+              "final_code": "private boolean requireClientSslAuth;",
+              "execution_details": "Rename variable 'sslClientAuth' to 'requireClientSslAuth'.",
+              "refactoring_type": "rename",
+              "file_path": "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java"
+            },
+            {
+              "reason": "To enhance clarity and better express the requirement for client SSL authentication.",
+              "final_code": "public boolean isRequireClientSslAuth() { return requireClientSslAuth; }",
+              "execution_details": "Rename method 'isSslClientAuth' to 'isRequireClientSslAuth'.",
+              "refactoring_type": "rename",
+              "file_path": "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java"
+            },
+            {
+              "reason": "To enhance clarity and better express the requirement for client SSL authentication.",
+              "final_code": "public void setRequireClientSslAuth(boolean requireClientSslAuth) { this.requireClientSslAuth = requireClientSslAuth; }",
+              "execution_details": "Rename method 'setSslClientAuth' to 'setRequireClientSslAuth'.",
+              "refactoring_type": "rename",
+              "file_path": "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java"
+            }
+          ]
+    )
+
+    planning_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan')
+    planning_patch.return_value = plan
+
+    execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
+    execution_patch.return_value = AIMessage("Successfullly performed the refactoring")
+
+    # create IJ server connection
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    server.open_project(project_path=project.get_project_path())
+    rel_file_path = Path("ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java")
+    server.open_file(rel_file_path)
+
+    # create agent
+    with ls.trace(name=f"refactoring agent test - test_replication:test_ratpack_205",
+                  tags=["test"]) as tracer:
+        agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
+        output = agent.run(initial_intent="Refactor FreeSlotInfoTracker to FreeSlotTracker for consistent naming and updated implementations. "
+                                          "This commit refactors the interface from FreeSlotInfoTracker to FreeSlotTracker across various classes "
+                                          "to standardize naming conventions in the slot management system. The changes include method renaming and "
+                                          "adjustment in the implementations accordingly. The motivation behind this is to align with "
+                                          "new slot representation and ensure clarity in code.",
+                           starting_file=str(rel_file_path))
+    print(output)
+
+    source_code = server.call_tool_get("get_source_code")
+    print(source_code)
+    print(agent.get_trajectory())

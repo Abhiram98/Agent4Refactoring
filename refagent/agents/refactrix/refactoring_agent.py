@@ -126,10 +126,10 @@ class Agent(BaseModel):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
         current_intent = initial_intent # update the intent after each loop
+        self._original_source_code = self.project.get_file_contents(starting_file)
 
         for _ in range(self.max_iterations):
             self._source_code = self.project.get_file_contents(starting_file)
-            self._original_source_code = self._source_code
 
             model = self.create_model()
 
@@ -180,7 +180,9 @@ class Agent(BaseModel):
         return None
 
     def get_important_files_diff(self):
-        important_files = self.compute_most_important(self._files_changed)
+        important_files = [str(i) for i in
+                           self.compute_most_important(self._files_changed)
+                           ]
 
         diff = ""
         for commit in self._internal_commits:
@@ -254,18 +256,23 @@ class Agent(BaseModel):
             print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
         return final_state
 
-    def compute_most_important(self, file_changed):
+    def compute_most_important(self, file_changed) -> list[Path]:
         # Compute the relevant files that were changed.
         changes = []
         if len(self._internal_commits) > 0:
             changes += self.project.get_changes(str(self._internal_commits[-1]))
         changes += self.project.get_unstaged_changes() + self.project.get_staged_changes()
         for change in changes:
-            if change.git_diff.a_path is None and change.git_diff.b_path is not None:
+            if (change.git_diff.a_path is None
+                    and change.git_diff.b_path is not None
+                    and change.git_diff.b_path.endswith('.java')
+            ):
                 # newly created file
                 self._directly_edited_files.add(Path(change.git_diff.b_path))
             if (change.git_diff.a_path is not None and change.git_diff.b_path is not None
-                    and change.git_diff.b_path != change.git_diff.a_path):
+                    and change.git_diff.b_path != change.git_diff.a_path
+                    and change.git_diff.b_path.endswith('.java')
+            ):
                 # file renamed. Hueristic - files renamed are often important files to look at
                 self._directly_edited_files.add(Path(change.git_diff.b_path))
         return list(self._directly_edited_files)
@@ -394,7 +401,8 @@ class Agent(BaseModel):
                 # return the pre-selected refactoring type.
                 self._selected_refactoring = SelectedRefactoring(
                     reason=plan_step.reason,
-                    refactoring_type=plan_step.refactoring_type)
+                    refactoring_type=plan_step.refactoring_type.value
+                )
                 self._iterations += 1
                 return {'messages': [AIMessage(f"{plan_step.reason}. {plan_step.refactoring_type.value}")]}
             parser = PydanticOutputParser(pydantic_object=SelectedRefactoring)
