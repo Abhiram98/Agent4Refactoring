@@ -66,6 +66,7 @@ class Agent(BaseModel):
     _trajectory: list[BaseMessage] = PrivateAttr(default=[])
     _selected_refactoring: Optional[SelectedRefactoring] = PrivateAttr(default=None)
     _internal_commits: List[Commit] = PrivateAttr(default=[])
+    _failing_tool_call_count: int = PrivateAttr(default=0)
 
 
     class Config:
@@ -224,11 +225,12 @@ class Agent(BaseModel):
         for i, step in enumerate(ref_plan.steps):
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
             self._iterations = 0
+            self._failing_tool_call_count = 0
             if reopen_file and step.file_path != last_file_opened:
                 try:
                     self.try_open_file(step.file_path)
                 except:
-                    traceback.print_tb()
+                    traceback.print_exc()
                     print("Failed to open file. Skipping this execution step")
                     continue
                 last_file_opened = step.file_path
@@ -359,8 +361,8 @@ class Agent(BaseModel):
                 print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
                 return GENERIC_EDITING_TOOLS
 
-        if self._iterations >= 2:
-            # more than one iteration on the same step. It means that tool calls are not working.
+        if self._failing_tool_call_count >= 1:
+            # more than one failing tool call, so supply generic tools.
             print("supplying generic tools, as tool calls are not working")
             tools += GENERIC_EDITING_TOOLS
         return tools
@@ -426,14 +428,16 @@ class Agent(BaseModel):
             self._files_changed.add(Path(rel_file_path))
 
             tools = self.get_available_tools(refactoring_type)
-            perform_refactoring_graph = perform_ref.PerformRefactoring(
+            executor = perform_ref.PerformRefactoring(
                 tools=tools,
                 model=model,
                 reason=reason,
                 refactoring_type=refactoring_type,
                 rel_file_path=rel_file_path,
                 ide_server=self.ide_server
-            ).compile()
+            )
+            self._failing_tool_call_count += not executor.refactoring_success # increment the count if tool calls failed.
+            perform_refactoring_graph = executor.compile()
             messages = state['messages'] + [
                 AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}."),
                 self.get_changed_file_contents()

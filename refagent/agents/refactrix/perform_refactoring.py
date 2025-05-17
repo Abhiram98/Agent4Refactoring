@@ -19,6 +19,7 @@ class PerformRefactoring(BaseModel):
     refactoring_type: sup_ref.SupportedRefactorings = Field(description="The type of refactoring to be performed.")
     rel_file_path: str = Field(description="relative file path from repo root. file to be edited.")
     ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
+    refactoring_success: bool = Field(description="whether the refactoring was successful or not.", default=False)
     _file_open_status: bool = PrivateAttr(default=False)
     _active_tool_call: List = PrivateAttr(default="")
     _retry_iteration: int = PrivateAttr(default=1)
@@ -70,6 +71,7 @@ class PerformRefactoring(BaseModel):
         def success_handler(state: MessagesState):
             print("Successfully performed the following refactoring -> "
                   f"{self._active_tool_call}")
+            self.refactoring_success = True
             success_msg = state['messages'][-1].content
 
             tool_call_status = str(self._active_tool_call)
