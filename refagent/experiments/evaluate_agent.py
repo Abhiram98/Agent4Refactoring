@@ -26,6 +26,7 @@ def compute_recall(bench_point: bm_load.BenchmarkItem, diffs: list[pm.MyDiff]):
 def main():
     parser = argparse.ArgumentParser(description='Evaluate the performance of an agent, given it\'s output file.')
     parser.add_argument('agent_outfile_path', type=str, help='Path to Agent\'s output file')
+    parser.add_argument('--benchmark_file_path', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
     args = parser.parse_args()
 
     print(f'File Path: {args.agent_outfile_path}')
@@ -34,7 +35,11 @@ def main():
 
     overall_recall = 0
     total_oracle = 0
-    benchmark = bm_load.load_benchmark(refagent.benchmark_full_json)
+
+    with open(args.benchmark_file_path) as f:
+        benchmark_json = json.load(f)
+    benchmark = bm_load.load_benchmark(benchmark_json)
+
     for result in agent_results:
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
         assert len(bench_points) == 1

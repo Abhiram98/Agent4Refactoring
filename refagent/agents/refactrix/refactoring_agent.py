@@ -401,7 +401,7 @@ class Agent(BaseModel):
                 # return the pre-selected refactoring type.
                 self._selected_refactoring = SelectedRefactoring(
                     reason=plan_step.reason,
-                    refactoring_type=plan_step.refactoring_type.value
+                    refactoring_type=plan_step.refactoring_type
                 )
                 self._iterations += 1
                 return {'messages': [AIMessage(f"{plan_step.reason}. {plan_step.refactoring_type.value}")]}
@@ -444,13 +444,13 @@ class Agent(BaseModel):
                 rel_file_path=rel_file_path,
                 ide_server=self.ide_server
             )
-            self._failing_tool_call_count += not executor.refactoring_success # increment the count if tool calls failed.
             perform_refactoring_graph = executor.compile()
             messages = state['messages'] + [
                 AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}."),
                 self.get_changed_file_contents()
             ]
             observation = perform_refactoring_graph.invoke({"messages": messages})
+            self._failing_tool_call_count += not executor.refactoring_success  # increment the count if tool calls failed.
             last_message = observation['messages'][-1]
             messages = state["messages"]
             messages += [last_message]
