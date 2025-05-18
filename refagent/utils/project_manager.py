@@ -148,7 +148,7 @@ class EvalProject:
     def previous_sha(self, sha1):
         return self.git_repo.commit(sha1).parents[0]
 
-    def get_changes(self, sha1) -> list[MyDiff]:
+    def get_changes(self, sha1: str) -> list[MyDiff]:
         commit = self.git_repo.commit(sha1)
         parent = commit.parents[0]
         diffs = parent.diff(commit, create_patch=True)

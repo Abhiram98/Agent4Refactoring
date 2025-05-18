@@ -11,7 +11,7 @@ from langchain_core.tools import BaseTool
 
 import refagent.agents.refactrix.tools as tools
 import refagent.utils.tool_documentation as td
-from agents.refactrix import supported_refactorings as sup_ref
+import refagent.agents.refactrix.supported_refactorings as sup_ref
 
 
 class PlanningStep(BaseModel):
