@@ -246,7 +246,7 @@ class Agent(BaseModel):
                                           f"ONLY make TOOL CALLS to perform actions."),
                         ]
                     },
-                    config={"configurable": {"thread_id": 42}}
+                    config={"configurable": {"thread_id": 42}, "recursion_limit": 50}
                 )
                 self._trajectory += final_state['messages']
                 print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
