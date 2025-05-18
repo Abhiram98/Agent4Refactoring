@@ -67,6 +67,7 @@ class Agent(BaseModel):
     _selected_refactoring: Optional[SelectedRefactoring] = PrivateAttr(default=None)
     _internal_commits: List[Commit] = PrivateAttr(default=[])
     _failing_tool_call_count: int = PrivateAttr(default=0)
+    _compilation_status: List[error_fixing.ErrorMessage] = PrivateAttr(default=[])
 
 
     class Config:
@@ -462,6 +463,7 @@ class Agent(BaseModel):
             """Fix compilation errors"""
             errors = [error_fixing.ErrorMessage(**i)
                       for i in json.loads(self.ide_server.run_code_inspection())]
+            errors = [i for i in errors if i not in self._compilation_status] # filter out the pre-existing errors.
             if len(errors) == 0:
                 print("No compilation errors found.")
                 self.commit_changes(plan_step.reason)
@@ -486,7 +488,6 @@ class Agent(BaseModel):
             self.commit_changes(plan_step.reason)
 
         def finished_refactoring(state: MessagesState):
-
             if step_count == 0 and self._iterations == 0:
                 return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
@@ -514,8 +515,12 @@ class Agent(BaseModel):
             return {'messages': [response]}
 
         def has_finished_refactoring(state: MessagesState) -> bool:
-            return (state['messages'][-1].content.endswith('DONE') or
+            finished = (state['messages'][-1].content.endswith('DONE') or
                     'INCOMPLETE' not in state['messages'][-1].content)
+            if not finished:
+                self._compilation_status = [error_fixing.ErrorMessage(**i)
+                      for i in json.loads(self.ide_server.run_code_inspection())]
+            return finished
 
         workflow = StateGraph(MessagesState)
         # Add nodes
