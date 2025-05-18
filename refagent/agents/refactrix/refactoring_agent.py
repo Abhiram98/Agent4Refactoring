@@ -228,32 +228,33 @@ class Agent(BaseModel):
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
             self._iterations = 0
             self._failing_tool_call_count = 0
-            if reopen_file and step.file_path != last_file_opened:
-                try:
+            try:
+                if reopen_file and step.file_path != last_file_opened:
                     self.try_open_file(step.file_path)
-                except:
-                    traceback.print_exc()
-                    print("Failed to open file. Skipping this execution step")
-                    continue
-                last_file_opened = step.file_path
-            graph = self.compile_graph(model=model,
-                                       initial_intent=initial_intent,
-                                       plan_step=step,
-                                       step_count=i)
-            final_state = graph.invoke(
-                {
-                    "messages": [
-                        SystemMessage(f"You are an expert developer who executes refactorings to"
-                                      f" improve the quality of the given code. "
-                                      f"Please do the follow: {step.refactoring_type}: {step.reason}. {step.execution_details} "
-                                      f"The final could is expected to look something like this: {step.final_code}"
-                                      f"ONLY make TOOL CALLS to perform actions."),
-                    ]
-                },
-                config={"configurable": {"thread_id": 42}}
-            )
-            self._trajectory += final_state['messages']
-            print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
+                    last_file_opened = step.file_path
+                graph = self.compile_graph(model=model,
+                                           initial_intent=initial_intent,
+                                           plan_step=step,
+                                           step_count=i)
+                final_state = graph.invoke(
+                    {
+                        "messages": [
+                            SystemMessage(f"You are an expert developer who executes refactorings to"
+                                          f" improve the quality of the given code. "
+                                          f"Please do the follow: {step.refactoring_type}: {step.reason}. {step.execution_details} "
+                                          f"The final could is expected to look something like this: {step.final_code}"
+                                          f"ONLY make TOOL CALLS to perform actions."),
+                        ]
+                    },
+                    config={"configurable": {"thread_id": 42}}
+                )
+                self._trajectory += final_state['messages']
+                print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
+            except:
+                print(f"Execution of step {i+1} failed.")
+                traceback.print_exc()
+                final_state = {'messages': [HumanMessage(f"Execution of step {i+1} failed.")]}
+
         return final_state
 
     def compute_most_important(self, file_changed) -> list[Path]:
