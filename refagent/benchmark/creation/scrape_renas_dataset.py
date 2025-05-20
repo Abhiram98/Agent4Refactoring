@@ -38,7 +38,7 @@ def curate_dataset():
         commit = project.git_repo.commit(v2_hash)
 
         co_rename_df = co_rename[1]
-        co_rename_id = co_rename[0]
+        co_rename_id = co_rename[0][1]
 
 
         old_names = co_rename_df['oldName'].tolist()
@@ -59,7 +59,7 @@ def curate_dataset():
         print(f"{len(old_names)=}")
         print(f"matched refactorings? {len(filtered_refactorings) >= len(old_names)}")
 
-        item = bm_load.BenchmarkItem(
+        item = bm_load.RenameItem(
             project_name="ratpack",
             ref_id=starting_id + i,
             v1_hash=project.git_repo.commit(v2_hash).parents[0].hexsha,
@@ -73,7 +73,8 @@ def curate_dataset():
             starting_file=starting_file,
             refactoring_changes=filtered_refactorings,
             diffs=project.get_changes(v2_hash),
-            pull_request=None
+            pull_request=None,
+            corename_id=co_rename_id
         )
         processed_dataset.append(item.to_json())
 
