@@ -92,13 +92,13 @@ class Replication(BaseModel):
             print(should_replicate.content)
 
             if 'YES' in should_replicate.content:  # should replicate the content
-                plan = planning.PlanningComponent(
+                plan = planning.NaivePlanningComponent(
                     initial_intent=self.initial_intent + should_replicate.content,
                     model=self.model,
                     source_file_path=code_element.file_path,
                     source_code=self.project.get_file_contents(code_element.file_path),
-                    project=self.project,
-                    detail_steps=False  # don't waste extra time detailing the steps.
+                    # project=self.project,
+                    # detail_steps=False  # don't waste extra time detailing the steps.
                     # The examples are already good enough to do the job.
                 ).run()
                 yield plan
