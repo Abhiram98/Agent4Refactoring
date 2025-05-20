@@ -35,6 +35,7 @@ def main():
 
     overall_recall = 0
     total_oracle = 0
+    overall_precision = 0
 
     with open(args.benchmark_file_path) as f:
         benchmark_json = json.load(f)
@@ -50,24 +51,38 @@ def main():
         commit = result['response']['commit_hash']
         project = pm.EvalProject(bench_point.project_name)
         refactorings = rminer.default_runner.run(project.get_project_path(), commit)
-        oracle_refactorings = rminer.default_runner.run(project.get_project_path(), bench_point.v2_hash)
+        refactorings = [i for i in refactorings if i.type.split()[0] == 'Rename']
+        # oracle_refactorings = rminer.default_runner.run(project.get_project_path(), bench_point.v2_hash)
+        # oracle_refactorings = [i for i in oracle_refactorings if i.type.split()[0] == 'Rename']
+        oracle_refactorings = bench_point.refactoring_changes
         recall = 0
         total_oracle += 1
+        mapped_refactorings = []
         for oracle in oracle_refactorings:
-            # if oracle.type in ['Extract Variable', 'Inline Variable']:
+            # if not oracle.type.split()[0] == 'Raname':
             #     continue
             for i in refactorings:
                 if oracle == i:
+                    mapped_refactorings.append(i)
                     recall += 1
                     break
+
         print(f"captured {recall}/{len(oracle_refactorings)} in bench point {bench_point.ref_id}")
         if len(oracle_refactorings) > 0:
             overall_recall += recall/len(oracle_refactorings)
         # total_oracle += len(oracle_refactorings)
+        precision = len(mapped_refactorings) / len(refactorings)
+        overall_precision += precision
 
-        print(f"recall = {overall_recall / total_oracle}")
+        print(f"avg recall = {overall_recall / total_oracle}")
+        print(f"avg precision = {overall_precision / total_oracle}")
+        print(f"{precision=}")
+        print(f"{len(oracle_refactorings)=}")
+        print(f"{len(refactorings)=}")
         print(f"{overall_recall=}")
         print(f"{total_oracle=}")
+        print("-----------")
+        print()
 
 
 

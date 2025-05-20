@@ -161,7 +161,7 @@ class Agent(BaseModel):
                 refactoring_commit=self._internal_commits[0]
             )
             for plan in replicator.compile_and_run():
-                self.execute_plan(current_intent, model, plan, reopen_file=True)
+                self.execute_plan(current_intent, model, plan, reopen_file=True, ask_finished_first_iteration=True)
                 self.update_changed_files()
 
             quality_result = quality_check.QualityCheck(
@@ -223,7 +223,8 @@ class Agent(BaseModel):
         final_state = self.execute_plan(initial_intent, model, ref_plan)
         return final_state
 
-    def execute_plan(self, initial_intent, model, ref_plan, reopen_file=False):
+    def execute_plan(self, initial_intent, model, ref_plan,
+                     reopen_file=False, ask_finished_first_iteration=False):
         last_file_opened = None
         for i, step in enumerate(ref_plan.steps):
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
@@ -236,7 +237,8 @@ class Agent(BaseModel):
                 graph = self.compile_graph(model=model,
                                            initial_intent=initial_intent,
                                            plan_step=step,
-                                           step_count=i)
+                                           step_count=i,
+                                           ask_finished_first_iteration=ask_finished_first_iteration)
                 final_state = graph.invoke(
                     {
                         "messages": [
@@ -382,7 +384,8 @@ class Agent(BaseModel):
     def compile_graph(self, model: BaseChatModel,
                       initial_intent: str,
                       plan_step: planning.PlanningStep,
-                      step_count: int
+                      step_count: int,
+                      ask_finished_first_iteration: bool
                       ) -> CompiledStateGraph:
         """Compile the graph with the given model and the given planning step"""
 
@@ -399,30 +402,11 @@ class Agent(BaseModel):
         def select_refactoring(state: MessagesState):
             """First LLM call to generate refactoring ideas"""
             self.update_source_code()
-            if self._iterations == 0:
-                # return the pre-selected refactoring type.
-                self._selected_refactoring = SelectedRefactoring(
-                    reason=plan_step.reason,
-                    refactoring_type=plan_step.refactoring_type
-                )
-                self._iterations += 1
-                return {'messages': [AIMessage(f"{plan_step.reason}. {plan_step.refactoring_type.value}")]}
-            parser = PydanticOutputParser(pydantic_object=SelectedRefactoring)
-            new_messages = state['messages'] + [
-                self.get_changed_file_contents(),
-                HumanMessage("Please choose a refactoring type, along with reason. "
-                             "If nothing needs to be done, OR if there is no appropriate refactoring type,"
-                             "please provide reasoning."
-                             f"{parser.get_format_instructions()}")
-            ]
-            # try:
-            response = model.invoke(
-                new_messages
+            self._selected_refactoring = SelectedRefactoring(
+                reason=plan_step.reason,
+                refactoring_type=plan_step.refactoring_type
             )
-            self._selected_refactoring = parser.invoke(response)
             self._iterations += 1
-            # new_messages.append(response)
-            return {"messages": [response]}
 
         def perform_selected_refactoring(state: MessagesState):
             """Perform refactoring in retry loop"""
@@ -488,7 +472,7 @@ class Agent(BaseModel):
             self.commit_changes(plan_step.reason)
 
         def finished_refactoring(state: MessagesState):
-            if step_count == 0 and self._iterations == 0:
+            if not ask_finished_first_iteration and step_count == 0 and self._iterations == 0:
                 return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
             if self._iterations >= 10:
