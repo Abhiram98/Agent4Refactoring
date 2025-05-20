@@ -38,7 +38,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
                      project=project,
                      plan_component=plan_type)
     try:
-        final_message = agent.run(initial_intent=bench_point.improved_commit_message + bench_point.change_summary,
+        final_message = agent.run(initial_intent=bench_point.change_summary,
                                   starting_file=bench_point.starting_file)  # run the agent with commit message
     except Exception as e:
         print("Agent execution failed ;/")
@@ -62,10 +62,14 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     results_saver.save()
 
 
-def load_benchmark(filepath) -> List[bm_load.BenchmarkItem]:
+def load_benchmark(filepath, bench_type) -> List[bm_load.BenchmarkItem]:
+    item_type = bm_load.BenchmarkItem
+    if bench_type == 'rename':
+        item_type = bm_load.RenameItem
+
     with open(filepath) as f:
         benchmark_json = json.load(f)
-    benchmark = bm_load.load_benchmark(benchmark_json)
+    benchmark = bm_load.load_benchmark(benchmark_json, bench_type=item_type)
     return benchmark
 
 if __name__ == '__main__':
@@ -82,6 +86,8 @@ if __name__ == '__main__':
     parser.add_argument('-planning_results_file', type=str, help='Use results from previous planning '
                                                                  'run to avoid double work.', default=None)
     parser.add_argument('--benchmark_file', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
+    parser.add_argument('--benchmark_type', type=str, help='default/rename',
+                        default='default')
     args = parser.parse_args()
 
     selected_ref_ids = [int(i) for i in args.ref_ids.split(',')] if args.ref_ids is not None else None
@@ -95,7 +101,7 @@ if __name__ == '__main__':
 
     use_previous = False
 
-    benchmark = load_benchmark(args.benchmark_file)
+    benchmark = load_benchmark(args.benchmark_file, args.benchmark_type)
     results_saver = rm.ResultsManager(run_identifier=args.run_identifier)
 
     for bench_point in benchmark:

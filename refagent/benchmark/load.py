@@ -3,7 +3,7 @@ import refagent.utils.project_manager as pm
 import refagent.refactoring_types.refactorings as refactoring_types
 import refagent.benchmark.creation.add_gh_comments as gh_comment
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Type
 
 
 class BenchmarkItem(BaseModel):
@@ -55,6 +55,14 @@ class BenchmarkItem(BaseModel):
             'diffs': [d.to_json() for d in self.diffs]
         }
 
+class RenameItem(BenchmarkItem):
+    def to_json(self):
+        json_ = super().to_json()
+        json_['corename_id'] = self.corename_id
+        return json_
 
-def load_benchmark(json_benchmark) -> list[BenchmarkItem]:
-    return [BenchmarkItem.load(i) for i in json_benchmark]
+    corename_id: int
+
+
+def load_benchmark(json_benchmark, bench_type: Type[BenchmarkItem] = BenchmarkItem) -> list[BenchmarkItem]:
+    return [bench_type.load(i) for i in json_benchmark]
