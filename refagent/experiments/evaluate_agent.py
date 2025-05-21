@@ -68,10 +68,11 @@ def main():
                     break
 
         print(f"captured {recall}/{len(oracle_refactorings)} in bench point {bench_point.ref_id}")
+        print(f"recall={recall/len(oracle_refactorings)}")
         if len(oracle_refactorings) > 0:
             overall_recall += recall/len(oracle_refactorings)
         # total_oracle += len(oracle_refactorings)
-        precision = len(mapped_refactorings) / len(refactorings)
+        precision = len(mapped_refactorings) / len(refactorings) if len(refactorings) > 0 else 0
         overall_precision += precision
 
         print(f"avg recall = {overall_recall / total_oracle}")
