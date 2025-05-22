@@ -246,8 +246,8 @@ class Agent(BaseModel):
                         "messages": [
                             SystemMessage(f"You are an expert developer who executes refactorings to"
                                           f" improve the quality of the given code. "
-                                          f"Please do the follow: {step.refactoring_type}: {step.reason}. {step.execution_details} "
-                                          f"The final could is expected to look something like this: {step.final_code}"
+                                          f"Please do the following: {step.refactoring_type.value}: {step.reason} {step.execution_details} "
+                                          f"The final code is expected to look like this: {step.final_code}"
                                           f"ONLY make TOOL CALLS to perform actions."),
                         ]
                     },
@@ -468,9 +468,9 @@ class Agent(BaseModel):
                                        f'{self.get_changed_file_contents().content}'
                                        f'Please reflect whether the task is complete, '
                                        f'by answering the following questions: '
-                                       '1. Has the original ask been met? '
-                                       f'2. Have all appropriate locations within the file {self._rel_file_path} '
-                                       f'been updated? '
+                                       'Has the original ask been met? '
+                                       # f'2. Have all appropriate locations within the file {self._rel_file_path} '
+                                       # f'been updated? '
                                        'Finally say whether the task is complete '
                                        'using the word DONE/INCOMPLETE appropriately.')])
             return {'messages': [response]}
