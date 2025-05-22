@@ -81,3 +81,44 @@ def test_rename_class_flink():
                                        new_name='FsStateBackend2')
     print(result)
 
+def test_inspections_ratpack():
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_file(
+        rel_file_path=Path("ratpack-groovy/src/main/java/ratpack/groovy/Groovy.java"))
+    result = intellij_server.run_code_inspection(1)
+    print(result)
+
+
+def test_ide_alerting_rename():
+    project = pm.EvalProject('ratpack')
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    project.checkout('72bddd865fc1c39377ff00124451c243ef8b62ba', force=True)
+    intellij_server.open_project(project_path=project.get_project_path())
+
+    intellij_server.open_file(
+        rel_file_path=Path("ratpack-session/src/main/java/ratpack/session/store/SessionStoreAdapter.java"))
+
+    # intellij_server.call_tool('rename', old_name='SessionStoreAdapter', new_name='SessionStore')
+
+def test_rename_compile_ele():
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_file(
+        rel_file_path=Path("ratpack-groovy/src/main/java/ratpack/groovy/Groovy.java"))
+    result = intellij_server.call_tool('rename', old_name='String', new_name='Ele')
+    result2 = intellij_server.call_tool('rename', old_name='Path', new_name='Ele')
+    print(result)
+    print(result2)
+
+def test_rename_invalid_identifiers():
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_file(
+        rel_file_path=Path("ratpack-groovy/src/main/java/ratpack/groovy/Groovy.java"))
+    result = intellij_server.call_tool('rename', old_name='my String', new_name='Ele')
+    result2 = intellij_server.call_tool('rename', old_name='Path', new_name='Ele 12')
+    result3 = intellij_server.call_tool('rename', old_name='Path', new_name='Ele')
+    print(result)
+    print(result2)
+    print(result3)
