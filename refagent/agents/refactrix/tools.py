@@ -65,8 +65,9 @@ class RefactoringToolProvider(BaseModel):
                                                        "a line number, if there are multiple variables with "
                                                        "the same name"] = None):
             """Renames occurrences of an entity (variable, field, class) within the scope of a method/class.
+            Please provide a line number to identify the entity at. If no line number is provided, all occurrences will be renamed.
 
-            This will refactor the code by replacing all occurrences of the variable named `old_name`
+            This tool will refactor the code by replacing all occurrences of the variable named `old_name`
             with the new variable name `new_name` within the scope of the class or method where it is called."""
             return self.ide_server.call_tool("rename", old_name=old_name, new_name=new_name, line_num=line_num)
 
