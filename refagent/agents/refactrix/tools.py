@@ -273,7 +273,7 @@ class RefactoringToolProvider(BaseModel):
             )
 
         @tool
-        def no_op(reason: Annotated[str, "Reason for no-op"]):
+        def no_op(reason: Annotated[str, "Reason for no operation"]):
             """This tool performs no operation.
             Use this tool in case there are no suitable tools to call and execute refactoring.
             Explain your reasoning in the `reason` parameter - include the name of the tool that you'd like to use.

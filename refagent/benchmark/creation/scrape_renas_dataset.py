@@ -42,8 +42,9 @@ def curate_dataset():
 
 
         old_names = co_rename_df['oldName'].tolist()
-        old_names_lower = [i.lower() for i in old_names]
+        # old_names_lower = [i.lower() for i in old_names]
         new_names = co_rename_df['newName'].tolist()
+        name_map = dict(zip(old_names, new_names))
         validated_renames = [f"{old} -> {new}" for old, new in zip(old_names, new_names)]
 
         concept = sorted(co_rename_df[['oldName', 'newName', 'type', 'file']].to_dict(orient='records'), key=name_sort_key)
@@ -54,10 +55,17 @@ def curate_dataset():
 
         refactoring_changes = rminer.default_runner.run(project.get_project_path(), v2_hash)
         filtered_refactorings: List[refactoring_types.Rename] = [i for i in refactoring_changes if isinstance(i, refactoring_types.Rename)]
-        filtered_refactorings = [i for i in filtered_refactorings if any([old_name in i.old_name.lower() for old_name in old_names_lower])]
+        move_and_renames = [i for i in refactoring_changes if i.type=='Move and Rename Class'
+                            and any(old_name in i.description and new_name in i.description for old_name, new_name in name_map.items())]
+        filtered_refactorings = ([i for i in filtered_refactorings if
+                                  any([old_name in i.old_name and new_name in i.new_name for old_name, new_name in name_map.items()])]
+                                 + move_and_renames)
         print(f"{len(filtered_refactorings)=}")
         print(f"{len(old_names)=}")
         print(f"matched refactorings? {len(filtered_refactorings) >= len(old_names)}")
+        if len(filtered_refactorings) != len(old_names):
+            print("something wrong. each one from the old names should be a refactoring change")
+
 
         item = bm_load.RenameItem(
             project_name="ratpack",
@@ -78,7 +86,7 @@ def curate_dataset():
         )
         processed_dataset.append(item.to_json())
 
-        with open(refagent.data_folder.joinpath('renas/ratpack.json'), "w") as f:
+        with open(refagent.data_folder.joinpath('renas/ratpack2.json'), "w") as f:
             json.dump(processed_dataset, f, indent=4)
 
 
