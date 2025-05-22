@@ -64,6 +64,7 @@ class Planner(BaseModel):
 
 class PlanningComponent(Planner):
     model: BaseChatModel = Field(description="model to use to generate the plan")
+    critique_model: BaseChatModel = Field(description="model to use to critique the plan", default=None)
     _ref_plan: Optional[RefactoringPlan] = PrivateAttr(default=None)
     _generation_count: int = PrivateAttr(default=0)
     _tools: dict[str, BaseTool] = PrivateAttr(default=tools.RefactoringToolProvider(ide_server=None).get())
@@ -83,9 +84,9 @@ class PlanningComponent(Planner):
             return {'messages': [response]}
 
         def critique_plan(messages: MessagesState):
-
+            critique_model = self.critique_model or self.model
             rules_msg = ""
-            response = self.model.with_config(temperature=0.3).invoke(
+            response = critique_model.invoke(
                 [
                     SystemMessage("You are an expert developer who critiques refactoring plans. "
                                   "You are aware of refactoring actions available in powerful IDEs "
