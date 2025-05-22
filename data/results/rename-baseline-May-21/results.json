@@ -12,18 +12,11 @@
                     "change_type": null,
                     "hunks": [
                         {
-                            "old_start": 634,
-                            "old_lines": 15,
-                            "new_start": 634,
-                            "new_lines": 15,
-                            "content": "@@ -634,15 +634,15 @@ public interface Promise<T> {\n    * }\n    * }</pre>\n    *\n-   * @param function a function that returns an operation that acts on the promised value\n+   * @param rightFunction a function that returns an operation that acts on the promised value\n    * @return a promise for the original value\n    * @see #next(Action)\n    * @since 1.1\n    */\n-  default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {\n+  default Promise<T> nextOp(Function<? super T, ? extends Operation> rightFunction) {\n     return transform(up -> down -> up.connect(\n       down.<T>onSuccess(value ->\n-        function.apply(value)\n+        rightFunction.apply(value)\n           .onError(down::error)\n           .then(() ->\n             down.success(value)"
-                        },
-                        {
-                            "old_start": 761,
-                            "old_lines": 14,
-                            "new_start": 761,
-                            "new_lines": 14,
-                            "content": "@@ -761,14 +761,14 @@ public interface Promise<T> {\n    * The function is called with the promised value.\n    * The existing promised value will become the {@code left}.\n    *\n-   * @param leftFunction a function that produces the right value from the promised value\n-   * @param <O> the type of the left value\n+   * @param rightFunction a function that produces the right value from the promised value\n+   * @param <O> the type of the right value\n    * @return a promise\n    * @since 1.4\n    */\n-  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> function) {\n+  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {\n     return map(left -> Pair.of(\n-      left, function.apply(left)\n+      left, rightFunction.apply(left)\n     ));\n   }\n "
+                            "old_start": 766,
+                            "old_lines": 9,
+                            "new_start": 766,
+                            "new_lines": 9,
+                            "content": "@@ -766,9 +766,9 @@ public interface Promise<T> {\n    * @return a promise\n    * @since 1.4\n    */\n-  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> function) {\n+  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {\n     return map(left -> Pair.of(\n-      left, function.apply(left)\n+      left, rightFunction.apply(left)\n     ));\n   }\n "
                         },
                         {
                             "old_start": 783,
@@ -31,47 +24,163 @@
                             "new_start": 783,
                             "new_lines": 9,
                             "content": "@@ -783,9 +783,9 @@ public interface Promise<T> {\n    * @return a promise\n    * @since 1.4\n    */\n-  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> function) {\n+  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {\n     return flatMap(left ->\n-      function.apply(left)\n+      rightFunction.apply(left)\n         .map(right ->\n           Pair.of(left, right)\n         )"
-                        },
-                        {
-                            "old_start": 870,
-                            "old_lines": 17,
-                            "new_start": 870,
-                            "new_lines": 17,
-                            "content": "@@ -870,17 +870,17 @@ public interface Promise<T> {\n    * This method is similar to {@link #mapError(Function)}, except that it will only apply if the error is of the given type.\n    * If the error is not of the given type, it will not be transformed and will propagate as normal.\n    *\n-   * @param function the transformation to apply to the promise failure\n+   * @param rightFunction the transformation to apply to the promise failure\n    * @return a promise\n    * @since 1.3\n    */\n-  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super Throwable, ? extends T> function) {\n+  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super Throwable, ? extends T> rightFunction) {\n     return transform(up -> down ->\n       up.connect(down.onError(throwable -> {\n         if (type.isInstance(throwable)) {\n           T transformed;\n           try {\n-            transformed = function.apply(throwable);\n+            transformed = rightFunction.apply(throwable);\n           } catch (Throwable t) {\n             down.error(t);\n             return;"
-                        },
-                        {
-                            "old_start": 898,
-                            "old_lines": 16,
-                            "new_start": 898,
-                            "new_lines": 16,
-                            "content": "@@ -898,16 +898,16 @@ public interface Promise<T> {\n    * <p>\n    * This method is similar to {@link #mapError(Function)}, except that it allows async transformation.\n    *\n-   * @param function the transformation to apply to the promise failure\n+   * @param rightFunction the transformation to apply to the promise failure\n    * @return a promise\n    * @since 1.3\n    */\n-  default Promise<T> flatMapError(Function<? super Throwable, ? extends Promise<T>> function) {\n+  default Promise<T> flatMapError(Function<? super Throwable, ? extends Promise<T>> rightFunction) {\n     return transform(up -> down ->\n       up.connect(down.onError(throwable -> {\n         Promise<T> transformed;\n         try {\n-          transformed = function.apply(throwable);\n+          transformed = rightFunction.apply(throwable);\n         } catch (Throwable t) {\n           down.error(t);\n           return;"
-                        },
-                        {
-                            "old_start": 922,
-                            "old_lines": 17,
-                            "new_start": 922,
-                            "new_lines": 17,
-                            "content": "@@ -922,17 +922,17 @@ public interface Promise<T> {\n    * <p>\n    * This method is similar to {@link #mapError(Class, Function)}, except that it allows async transformation.\n    *\n-   * @param function the transformation to apply to the promise failure\n+   * @param rightFunction the transformation to apply to the promise failure\n    * @return a promise\n    * @since 1.3\n    */\n-  default <E extends Throwable> Promise<T> flatMapError(Class<E> type, Function<? super E, ? extends Promise<T>> function) {\n+  default <E extends Throwable> Promise<T> flatMapError(Class<E> type, Function<? super E, ? extends Promise<T>> rightFunction) {\n     return transform(up -> down ->\n       up.connect(down.onError(throwable -> {\n         if (type.isInstance(throwable)) {\n           Promise<T> transformed;\n           try {\n-            transformed = function.apply(type.cast(throwable));\n+            transformed = rightFunction.apply(type.cast(throwable));\n           } catch (Throwable t) {\n             down.error(t);\n             return;"
-                        },
-                        {
-                            "old_start": 1024,
-                            "old_lines": 12,
-                            "new_start": 1024,
-                            "new_lines": 12,
-                            "content": "@@ -1024,12 +1024,12 @@ public interface Promise<T> {\n    * }</pre>\n    *\n    * @param <O> the type of promised object after the operation\n-   * @param function the operation implementation\n+   * @param rightFunction the operation implementation\n    * @return the transformed promise\n    */\n-  default <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> function) {\n+  default <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> rightFunction) {\n     try {\n-      return function.apply(this);\n+      return rightFunction.apply(this);\n     } catch (Throwable e) {\n       return Promise.error(e);\n     }"
-                        },
-                        {
-                            "old_start": 1072,
-                            "old_lines": 13,
-                            "new_start": 1072,
-                            "new_lines": 13,
-                            "content": "@@ -1072,13 +1072,13 @@ public interface Promise<T> {\n    * This method should only be used when converting a promise to another type.\n    * See {@link #apply(Function)} for applying custom promise operators.\n    *\n-   * @param function the promise conversion function\n+   * @param rightFunction the promise conversion function\n    * @param <O> the type the promise will be converted to\n    * @return the output of the given function\n    * @throws Exception any thrown by the given function\n    */\n-  default <O> O to(Function<? super Promise<T>, ? extends O> function) throws Exception {\n-    return function.apply(this);\n+  default <O> O to(Function<? super Promise<T>, ? extends O> rightFunction) throws Exception {\n+    return rightFunction.apply(this);\n   }\n \n   /**"
                         }
                     ],
-                    "patch": "@@ -634,15 +634,15 @@ public interface Promise<T> {\n    * }\n    * }</pre>\n    *\n-   * @param function a function that returns an operation that acts on the promised value\n+   * @param rightFunction a function that returns an operation that acts on the promised value\n    * @return a promise for the original value\n    * @see #next(Action)\n    * @since 1.1\n    */\n-  default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {\n+  default Promise<T> nextOp(Function<? super T, ? extends Operation> rightFunction) {\n     return transform(up -> down -> up.connect(\n       down.<T>onSuccess(value ->\n-        function.apply(value)\n+        rightFunction.apply(value)\n           .onError(down::error)\n           .then(() ->\n             down.success(value)\n@@ -761,14 +761,14 @@ public interface Promise<T> {\n    * The function is called with the promised value.\n    * The existing promised value will become the {@code left}.\n    *\n-   * @param leftFunction a function that produces the right value from the promised value\n-   * @param <O> the type of the left value\n+   * @param rightFunction a function that produces the right value from the promised value\n+   * @param <O> the type of the right value\n    * @return a promise\n    * @since 1.4\n    */\n-  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> function) {\n+  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {\n     return map(left -> Pair.of(\n-      left, function.apply(left)\n+      left, rightFunction.apply(left)\n     ));\n   }\n \n@@ -783,9 +783,9 @@ public interface Promise<T> {\n    * @return a promise\n    * @since 1.4\n    */\n-  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> function) {\n+  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {\n     return flatMap(left ->\n-      function.apply(left)\n+      rightFunction.apply(left)\n         .map(right ->\n           Pair.of(left, right)\n         )\n@@ -870,17 +870,17 @@ public interface Promise<T> {\n    * This method is similar to {@link #mapError(Function)}, except that it will only apply if the error is of the given type.\n    * If the error is not of the given type, it will not be transformed and will propagate as normal.\n    *\n-   * @param function the transformation to apply to the promise failure\n+   * @param rightFunction the transformation to apply to the promise failure\n    * @return a promise\n    * @since 1.3\n    */\n-  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super Throwable, ? extends T> function) {\n+  default <E extends Throwable> Promise<T> mapError(Class<E> type, Function<? super Throwable, ? extends T> rightFunction) {\n     return transform(up -> down ->\n       up.connect(down.onError(throwable -> {\n         if (type.isInstance(throwable)) {\n           T transformed;\n           try {\n-            transformed = function.apply(throwable);\n+            transformed = rightFunction.apply(throwable);\n           } catch (Throwable t) {\n             down.error(t);\n             return;\n@@ -898,16 +898,16 @@ public interface Promise<T> {\n    * <p>\n    * This method is similar to {@link #mapError(Function)}, except that it allows async transformation.\n    *\n-   * @param function the transformation to apply to the promise failure\n+   * @param rightFunction the transformation to apply to the promise failure\n    * @return a promise\n    * @since 1.3\n    */\n-  default Promise<T> flatMapError(Function<? super Throwable, ? extends Promise<T>> function) {\n+  default Promise<T> flatMapError(Function<? super Throwable, ? extends Promise<T>> rightFunction) {\n     return transform(up -> down ->\n       up.connect(down.onError(throwable -> {\n         Promise<T> transformed;\n         try {\n-          transformed = function.apply(throwable);\n+          transformed = rightFunction.apply(throwable);\n         } catch (Throwable t) {\n           down.error(t);\n           return;\n@@ -922,17 +922,17 @@ public interface Promise<T> {\n    * <p>\n    * This method is similar to {@link #mapError(Class, Function)}, except that it allows async transformation.\n    *\n-   * @param function the transformation to apply to the promise failure\n+   * @param rightFunction the transformation to apply to the promise failure\n    * @return a promise\n    * @since 1.3\n    */\n-  default <E extends Throwable> Promise<T> flatMapError(Class<E> type, Function<? super E, ? extends Promise<T>> function) {\n+  default <E extends Throwable> Promise<T> flatMapError(Class<E> type, Function<? super E, ? extends Promise<T>> rightFunction) {\n     return transform(up -> down ->\n       up.connect(down.onError(throwable -> {\n         if (type.isInstance(throwable)) {\n           Promise<T> transformed;\n           try {\n-            transformed = function.apply(type.cast(throwable));\n+            transformed = rightFunction.apply(type.cast(throwable));\n           } catch (Throwable t) {\n             down.error(t);\n             return;\n@@ -1024,12 +1024,12 @@ public interface Promise<T> {\n    * }</pre>\n    *\n    * @param <O> the type of promised object after the operation\n-   * @param function the operation implementation\n+   * @param rightFunction the operation implementation\n    * @return the transformed promise\n    */\n-  default <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> function) {\n+  default <O> Promise<O> apply(Function<? super Promise<T>, ? extends Promise<O>> rightFunction) {\n     try {\n-      return function.apply(this);\n+      return rightFunction.apply(this);\n     } catch (Throwable e) {\n       return Promise.error(e);\n     }\n@@ -1072,13 +1072,13 @@ public interface Promise<T> {\n    * This method should only be used when converting a promise to another type.\n    * See {@link #apply(Function)} for applying custom promise operators.\n    *\n-   * @param function the promise conversion function\n+   * @param rightFunction the promise conversion function\n    * @param <O> the type the promise will be converted to\n    * @return the output of the given function\n    * @throws Exception any thrown by the given function\n    */\n-  default <O> O to(Function<? super Promise<T>, ? extends O> function) throws Exception {\n-    return function.apply(this);\n+  default <O> O to(Function<? super Promise<T>, ? extends O> rightFunction) throws Exception {\n+    return rightFunction.apply(this);\n   }\n \n   /**\n"
+                    "patch": "@@ -766,9 +766,9 @@ public interface Promise<T> {\n    * @return a promise\n    * @since 1.4\n    */\n-  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> function) {\n+  default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {\n     return map(left -> Pair.of(\n-      left, function.apply(left)\n+      left, rightFunction.apply(left)\n     ));\n   }\n \n@@ -783,9 +783,9 @@ public interface Promise<T> {\n    * @return a promise\n    * @since 1.4\n    */\n-  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> function) {\n+  default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {\n     return flatMap(left ->\n-      function.apply(left)\n+      rightFunction.apply(left)\n         .map(right ->\n           Pair.of(left, right)\n         )\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/batch/Batch.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/util/Batch.java",
+                    "renamed": true,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 14,
+                            "old_lines": 7,
+                            "new_start": 14,
+                            "new_lines": 7,
+                            "content": "@@ -14,7 +14,7 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch;\n+package ratpack.exec.util;\n \n import org.reactivestreams.Publisher;\n import ratpack.exec.ExecResult;"
+                        }
+                    ],
+                    "patch": "@@ -14,7 +14,7 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch;\n+package ratpack.exec.util;\n \n import org.reactivestreams.Publisher;\n import ratpack.exec.ExecResult;\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/batch/ParallelBatch.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/util/ParallelBatch.java",
+                    "renamed": true,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 14,
+                            "old_lines": 13,
+                            "new_start": 14,
+                            "new_lines": 13,
+                            "content": "@@ -14,13 +14,13 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch;\n+package ratpack.exec.util;\n \n import ratpack.exec.ExecResult;\n import ratpack.exec.Execution;\n import ratpack.exec.Operation;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.internal.DefaultParallelBatch;\n+import ratpack.exec.util.internal.DefaultParallelBatch;\n import ratpack.func.Action;\n import ratpack.func.BiAction;\n import ratpack.stream.TransformablePublisher;"
+                        }
+                    ],
+                    "patch": "@@ -14,13 +14,13 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch;\n+package ratpack.exec.util;\n \n import ratpack.exec.ExecResult;\n import ratpack.exec.Execution;\n import ratpack.exec.Operation;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.internal.DefaultParallelBatch;\n+import ratpack.exec.util.internal.DefaultParallelBatch;\n import ratpack.func.Action;\n import ratpack.func.BiAction;\n import ratpack.stream.TransformablePublisher;\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/batch/SerialBatch.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/util/SerialBatch.java",
+                    "renamed": true,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 14,
+                            "old_lines": 12,
+                            "new_start": 14,
+                            "new_lines": 12,
+                            "content": "@@ -14,12 +14,12 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch;\n+package ratpack.exec.util;\n \n import ratpack.exec.ExecResult;\n import ratpack.exec.Operation;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.internal.DefaultSerialBatch;\n+import ratpack.exec.util.internal.DefaultSerialBatch;\n import ratpack.func.BiAction;\n import ratpack.stream.TransformablePublisher;\n "
+                        }
+                    ],
+                    "patch": "@@ -14,12 +14,12 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch;\n+package ratpack.exec.util;\n \n import ratpack.exec.ExecResult;\n import ratpack.exec.Operation;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.internal.DefaultSerialBatch;\n+import ratpack.exec.util.internal.DefaultSerialBatch;\n import ratpack.func.BiAction;\n import ratpack.stream.TransformablePublisher;\n \n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/batch/internal/DefaultParallelBatch.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/util/internal/DefaultParallelBatch.java",
+                    "renamed": true,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 14,
+                            "old_lines": 7,
+                            "new_start": 14,
+                            "new_lines": 7,
+                            "content": "@@ -14,7 +14,7 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch.internal;\n+package ratpack.exec.util.internal;\n \n import com.google.common.collect.Lists;\n import org.reactivestreams.Subscription;"
+                        },
+                        {
+                            "old_start": 22,
+                            "old_lines": 7,
+                            "new_start": 22,
+                            "new_lines": 7,
+                            "content": "@@ -22,7 +22,7 @@ import ratpack.exec.ExecResult;\n import ratpack.exec.Execution;\n import ratpack.exec.Operation;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.ParallelBatch;\n+import ratpack.exec.util.ParallelBatch;\n import ratpack.func.Action;\n import ratpack.func.BiAction;\n import ratpack.stream.TransformablePublisher;"
+                        }
+                    ],
+                    "patch": "@@ -14,7 +14,7 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch.internal;\n+package ratpack.exec.util.internal;\n \n import com.google.common.collect.Lists;\n import org.reactivestreams.Subscription;\n@@ -22,7 +22,7 @@ import ratpack.exec.ExecResult;\n import ratpack.exec.Execution;\n import ratpack.exec.Operation;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.ParallelBatch;\n+import ratpack.exec.util.ParallelBatch;\n import ratpack.func.Action;\n import ratpack.func.BiAction;\n import ratpack.stream.TransformablePublisher;\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/batch/internal/DefaultSerialBatch.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/util/internal/DefaultSerialBatch.java",
+                    "renamed": true,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 14,
+                            "old_lines": 13,
+                            "new_start": 14,
+                            "new_lines": 13,
+                            "content": "@@ -14,13 +14,13 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch.internal;\n+package ratpack.exec.util.internal;\n \n import com.google.common.collect.Lists;\n import ratpack.exec.ExecResult;\n import ratpack.exec.Operation;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.SerialBatch;\n+import ratpack.exec.util.SerialBatch;\n import ratpack.func.BiAction;\n import ratpack.func.BiFunction;\n import ratpack.stream.Streams;"
+                        }
+                    ],
+                    "patch": "@@ -14,13 +14,13 @@\n  * limitations under the License.\n  */\n \n-package ratpack.exec.batch.internal;\n+package ratpack.exec.util.internal;\n \n import com.google.common.collect.Lists;\n import ratpack.exec.ExecResult;\n import ratpack.exec.Operation;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.SerialBatch;\n+import ratpack.exec.util.SerialBatch;\n import ratpack.func.BiAction;\n import ratpack.func.BiFunction;\n import ratpack.stream.Streams;\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/test/groovy/ratpack/exec/PromiseCachingSpec.groovy",
+                    "b_filename": "ratpack-core/src/test/groovy/ratpack/exec/PromiseCachingSpec.groovy",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 16,
+                            "old_lines": 8,
+                            "new_start": 16,
+                            "new_lines": 8,
+                            "content": "@@ -16,8 +16,8 @@\n \n package ratpack.exec\n \n-import ratpack.exec.batch.ParallelBatch\n-import ratpack.exec.batch.SerialBatch\n+import ratpack.exec.util.ParallelBatch\n+import ratpack.exec.util.SerialBatch\n import ratpack.func.Action\n import ratpack.test.exec.ExecHarness\n import spock.lang.AutoCleanup"
+                        }
+                    ],
+                    "patch": "@@ -16,8 +16,8 @@\n \n package ratpack.exec\n \n-import ratpack.exec.batch.ParallelBatch\n-import ratpack.exec.batch.SerialBatch\n+import ratpack.exec.util.ParallelBatch\n+import ratpack.exec.util.SerialBatch\n import ratpack.func.Action\n import ratpack.test.exec.ExecHarness\n import spock.lang.AutoCleanup\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/test/groovy/ratpack/exec/batch/BatchSpec.groovy",
+                    "b_filename": "ratpack-core/src/test/groovy/ratpack/exec/batch/BatchSpec.groovy",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 19,
+                            "old_lines": 6,
+                            "new_start": 19,
+                            "new_lines": 8,
+                            "content": "@@ -19,6 +19,8 @@ package ratpack.exec.batch\n import ratpack.exec.Blocking\n import ratpack.exec.Execution\n import ratpack.exec.Promise\n+import ratpack.exec.util.ParallelBatch\n+import ratpack.exec.util.SerialBatch\n import ratpack.test.exec.ExecHarness\n import spock.lang.AutoCleanup\n import spock.lang.Specification"
+                        }
+                    ],
+                    "patch": "@@ -19,6 +19,8 @@ package ratpack.exec.batch\n import ratpack.exec.Blocking\n import ratpack.exec.Execution\n import ratpack.exec.Promise\n+import ratpack.exec.util.ParallelBatch\n+import ratpack.exec.util.SerialBatch\n import ratpack.test.exec.ExecHarness\n import spock.lang.AutoCleanup\n import spock.lang.Specification\n"
+                },
+                {
+                    "a_filename": "ratpack-site/src/main/groovy/ratpack/site/github/RatpackVersions.java",
+                    "b_filename": "ratpack-site/src/main/groovy/ratpack/site/github/RatpackVersions.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 19,
+                            "old_lines": 7,
+                            "new_start": 19,
+                            "new_lines": 7,
+                            "content": "@@ -19,7 +19,7 @@ package ratpack.site.github;\n import com.google.common.collect.ImmutableList;\n import com.google.common.collect.Iterables;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.ParallelBatch;\n+import ratpack.exec.util.ParallelBatch;\n \n import javax.inject.Inject;\n import javax.inject.Singleton;"
+                        }
+                    ],
+                    "patch": "@@ -19,7 +19,7 @@ package ratpack.site.github;\n import com.google.common.collect.ImmutableList;\n import com.google.common.collect.Iterables;\n import ratpack.exec.Promise;\n-import ratpack.exec.batch.ParallelBatch;\n+import ratpack.exec.util.ParallelBatch;\n \n import javax.inject.Inject;\n import javax.inject.Singleton;\n"
                 }
             ],
-            "commit_hash": "b4c5cc5bfdb7e7c124235b43388a5e080b940553",
+            "commit_hash": "4b0f237c3a29a97bc29fd31306a223c923d4575c",
             "trajectory": [
                 {
                     "lc": 1,
@@ -83,7 +192,7 @@
                         "AIMessage"
                     ],
                     "kwargs": {
-                        "content": "[PlanningStep(reason='Clarify that the parameter computes the right side of the Pair in the `right(Function)` method.', final_code='/**\\n * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code right}.\\n * <p>\\n * The function is called with the promised value.\\n * The existing promised value will become the {@code left}.\\n *\\n * @param rightFunction a function that produces the right value from the promised value\\n * @param <O> the type of the right value\\n * @return a promise\\n * @since 1.4\\n */\\ndefault <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {\\n  return map(left -> Pair.of(\\n    left, rightFunction.apply(left)\\n  ));\\n}', execution_details='In the default method `right(Function<? super T,? extends O> function)`, rename the parameter `function` to `rightFunction`. Update its usages inside the method body and adjust the Javadoc `@param` tag accordingly.', refactoring_type=<SupportedRefactorings.RENAME: 'rename'>, file_path='ratpack-core/src/main/java/ratpack/exec/Promise.java'), PlanningStep(reason='Clarify that the parameter computes the right side of the Pair in the `flatRight(Function)` method.', final_code='/**\\n * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code right}.\\n * <p>\\n * The function is called with the promised value.\\n * The existing promised value will become the {@code left}.\\n *\\n * @param rightFunction a function that produces a promise for the right value from the promised value\\n * @param <O> the type of the right value\\n * @return a promise\\n * @since 1.4\\n */\\ndefault <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {\\n  return flatMap(left ->\\n    rightFunction.apply(left)\\n      .map(right ->\\n        Pair.of(left, right)\\n      )\\n  );\\n}', execution_details='In the default method `flatRight(Function<? super T,? extends Promise<O>> function)`, rename the parameter `function` to `rightFunction`. Update its usages inside the method body and adjust the Javadoc `@param` tag accordingly.', refactoring_type=<SupportedRefactorings.RENAME: 'rename'>, file_path='ratpack-core/src/main/java/ratpack/exec/Promise.java')]",
+                        "content": "[PlanningStep(reason=\"Rename generic parameter name for clarity: in Promise.right(Function), rename 'function' to 'rightFunction' to indicate it produces the right side of the Pair.\", final_code='/**\\n * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code right}.\\n * <p>\\n * The function is called with the promised value.\\n * The existing promised value will become the {@code left}.\\n *\\n * @param rightFunction a function that produces the right value from the promised value\\n * @param <O> the type of the right value\\n * @return a promise\\n * @since 1.4\\n */\\ndefault <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {\\n  return map(left -> Pair.of(\\n    left, rightFunction.apply(left)\\n  ));\\n}', execution_details=\"In the method signature for default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> function), rename the parameter 'function' to 'rightFunction'. Update all internal references from 'function.apply(...)' to 'rightFunction.apply(...)'. Update the Javadoc @param tag and description to refer to 'rightFunction'.\", refactoring_type=<SupportedRefactorings.RENAME: 'rename'>, file_path='ratpack-core/src/main/java/ratpack/exec/Promise.java'), PlanningStep(reason=\"Rename generic parameter name for clarity: in Promise.flatRight(Function), rename 'function' to 'rightFunction' to indicate it produces the right side of the Pair.\", final_code='/**\\n * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code right}.\\n * <p>\\n * The function is called with the promised value.\\n * The existing promised value will become the {@code left}.\\n *\\n * @param rightFunction a function that produces a promise for the right value from the promised value\\n * @param <O> the type of the right value\\n * @return a promise\\n * @since 1.4\\n */\\ndefault <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {\\n  return flatMap(left ->\\n    rightFunction.apply(left)\\n      .map(right ->\\n        Pair.of(left, right)\\n      )\\n  );\\n}', execution_details=\"In the method signature for default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> function), rename the parameter 'function' to 'rightFunction'. Update all internal references from 'function.apply(...)' to 'rightFunction.apply(...)'. Update the Javadoc @param tag and description to refer to 'rightFunction'.\", refactoring_type=<SupportedRefactorings.RENAME: 'rename'>, file_path='ratpack-core/src/main/java/ratpack/exec/Promise.java')]",
                         "type": "ai",
                         "tool_calls": [],
                         "invalid_tool_calls": []
@@ -99,9 +208,9 @@
                         "SystemMessage"
                     ],
                     "kwargs": {
-                        "content": "You are an expert developer who executes refactorings to improve the quality of the given code. Please do the follow: SupportedRefactorings.RENAME: Clarify that the parameter computes the right side of the Pair in the `right(Function)` method.. In the default method `right(Function<? super T,? extends O> function)`, rename the parameter `function` to `rightFunction`. Update its usages inside the method body and adjust the Javadoc `@param` tag accordingly. The final could is expected to look something like this: /**\n * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code right}.\n * <p>\n * The function is called with the promised value.\n * The existing promised value will become the {@code left}.\n *\n * @param rightFunction a function that produces the right value from the promised value\n * @param <O> the type of the right value\n * @return a promise\n * @since 1.4\n */\ndefault <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {\n  return map(left -> Pair.of(\n    left, rightFunction.apply(left)\n  ));\n}ONLY make TOOL CALLS to perform actions.",
+                        "content": "You are an expert developer who executes refactorings to improve the quality of the given code. Please do the following: rename: Rename generic parameter name for clarity: in Promise.right(Function), rename 'function' to 'rightFunction' to indicate it produces the right side of the Pair. In the method signature for default <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> function), rename the parameter 'function' to 'rightFunction'. Update all internal references from 'function.apply(...)' to 'rightFunction.apply(...)'. Update the Javadoc @param tag and description to refer to 'rightFunction'. The final code is expected to look like this: /**\n * Transforms the promised value to a {@link Pair}, with the result of the given function as the {@code right}.\n * <p>\n * The function is called with the promised value.\n * The existing promised value will become the {@code left}.\n *\n * @param rightFunction a function that produces the right value from the promised value\n * @param <O> the type of the right value\n * @return a promise\n * @since 1.4\n */\ndefault <O> Promise<Pair<T, O>> right(Function<? super T, ? extends O> rightFunction) {\n  return map(left -> Pair.of(\n    left, rightFunction.apply(left)\n  ));\n}ONLY make TOOL CALLS to perform actions.",
                         "type": "system",
-                        "id": "f9153638-43e4-4d4b-bb44-67e6a41d4a99"
+                        "id": "c20bb2cc-e262-43d8-976d-9f9c865bc5da"
                     }
                 },
                 {
@@ -116,7 +225,7 @@
                     "kwargs": {
                         "content": "Incomplete because no changes have been made so far. INCOMPLETE",
                         "type": "ai",
-                        "id": "7cd81a4d-ebc9-4c2d-aa13-3bd837f25958",
+                        "id": "2c66e51d-d76c-4414-b9b1-097cf55678db",
                         "tool_calls": [],
                         "invalid_tool_calls": []
                     }
@@ -131,9 +240,9 @@
                         "HumanMessage"
                     ],
                     "kwargs": {
-                        "content": "Successfully performed the refactoring. [{'name': 'rename', 'args': {'old_name': 'function', 'new_name': 'rightFunction'}, 'id': 'call_rename_9dce89b3-942d-456a-8dda-665f25aae216-temp', 'type': 'tool_call'}]",
+                        "content": "Successfully performed the refactoring. [{'name': 'rename', 'args': {'old_name': 'function', 'new_name': 'rightFunction', 'line_num': 769}, 'id': 'call_rename_8e307061-2eef-4ca3-b68a-f9da2c74354d-temp', 'type': 'tool_call'}]",
                         "type": "human",
-                        "id": "b4b594b1-62eb-482b-b093-cbfb33a1ef63"
+                        "id": "a135adfd-9fd1-4dbd-b370-00339e7fbbea"
                     }
                 },
                 {
@@ -146,12 +255,12 @@
                         "AIMessage"
                     ],
                     "kwargs": {
-                        "content": "1. No. The method parameter was renamed to `rightFunction`, but the Javadoc still refers to `@param leftFunction` and describes `<O>` as \u201cthe type of the left value\u201d instead of the right.  \n2. No. The Javadoc for that `right(Function\u2026)` overload in Promise.java needs its `@param` tag and `<O>` description corrected.  \n\nINCOMPLETE",
+                        "content": "The rename of the Java parameter from `function` to `rightFunction` at the method signature has been applied, and the code reference `function.apply(...)` should now be `rightFunction.apply(...)`. However, the Javadoc was not updated: the `@param` tag still refers to `leftFunction` (or previously to `function`) instead of `rightFunction`, and the description wasn\u2019t adjusted accordingly.\n\nSince the documentation still doesn\u2019t match the new parameter name, the original request is not fully satisfied. \n\nINCOMPLETE",
                         "additional_kwargs": {
-                            "spent": "3312.1"
+                            "spent": "2734.16"
                         },
                         "type": "ai",
-                        "id": "run-f67e91ec-28a1-4bc3-b6b1-402a5fbe0ba9-0",
+                        "id": "run-f218c0c2-9d34-4c61-939d-a22604b6b8dd-0",
                         "tool_calls": [],
                         "invalid_tool_calls": []
                     }
@@ -166,184 +275,9 @@
                         "HumanMessage"
                     ],
                     "kwargs": {
-                        "content": "Cannot perform this refactoring. no_op(reason=The parameter 'function' has already been renamed to 'rightFunction', and the renaming update to the Javadoc is now required.) failed. Reason: Failed to perform any refactoring. Reason: The parameter 'function' has already been renamed to 'rightFunction', and the renaming update to the Javadoc is now required.CALL the TOOL differently, next time.",
+                        "content": "Cannot perform this refactoring. rename(old_name=function, new_name=rightFunction, line_num=719) failed. Reason: tool call failed - 400: The rename has already been performed. Variable rightFunction exists in this file. Variable function does not exist.CALL the TOOL differently, next time.",
                         "type": "human",
-                        "id": "f6bfb612-9936-409f-b4d6-2e488bfbb061"
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "AIMessage"
-                    ],
-                    "kwargs": {
-                        "content": "1. No. The parameter has been renamed to `rightFunction`, but the Javadoc still uses `@param leftFunction` and describes `<O>` as \u201cthe type of the left value\u201d instead of the right.  \n2. No. The Javadoc for `default <O> Promise<Pair<T, O>> right(...)` in Promise.java needs its `@param` tag and `<O>` description corrected.  \n\nINCOMPLETE",
-                        "additional_kwargs": {
-                            "spent": "2714.8"
-                        },
-                        "type": "ai",
-                        "id": "run-469c1e0f-9993-4510-8d2e-ad40906afc48-0",
-                        "tool_calls": [],
-                        "invalid_tool_calls": []
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "HumanMessage"
-                    ],
-                    "kwargs": {
-                        "content": "Successfully performed the refactoring. [{'name': 'find_replace', 'args': {'find_text': '@param leftFunction a function that produces the right value from the promised value', 'replace_text': '@param rightFunction a function that produces the right value from the promised value', 'line_num': 764}, 'id': 'call_find_replace_92a09bd9-7c7b-4299-acdd-78a67acbfbde-temp', 'type': 'tool_call'}]",
-                        "type": "human",
-                        "id": "56048abb-3c8f-45fa-b8fe-fdb1f9f9157c"
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "AIMessage"
-                    ],
-                    "kwargs": {
-                        "content": "1. No. While the method parameter and its `@param` tag were renamed to `rightFunction`, the Javadoc type parameter line still reads \u201cthe type of the left value\u201d instead of \u201cthe type of the right value\u201d as in the example.  \n2. No. The `<O>` description in the Javadoc for `right(Function\u2026)` also needs updating.\n\nINCOMPLETE",
-                        "additional_kwargs": {
-                            "spent": "3240.05"
-                        },
-                        "type": "ai",
-                        "id": "run-95c7b4a6-5474-4708-b84a-43be5290a13d-0",
-                        "tool_calls": [],
-                        "invalid_tool_calls": []
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "HumanMessage"
-                    ],
-                    "kwargs": {
-                        "content": "Successfully performed the refactoring. [{'name': 'find_replace', 'args': {'find_text': '@param <O> the type of the left value', 'replace_text': '@param <O> the type of the right value', 'line_num': 765}, 'id': 'call_find_replace_a47d9629-38ba-463e-bd5c-0634b3cc6afc-temp', 'type': 'tool_call'}]",
-                        "type": "human",
-                        "id": "3ecef2a4-81a9-4572-9467-e31a3918065a"
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "AIMessage"
-                    ],
-                    "kwargs": {
-                        "content": "1. Yes. The parameter was renamed to `rightFunction`, its usage in the method body was updated, and the Javadoc `@param` and `<O>` description now correctly reference the \u201cright\u201d value.  \n2. Yes. All occurrences in the `right(Function\u2026)` default method in Promise.java have been updated appropriately.  \n\nDONE",
-                        "additional_kwargs": {
-                            "spent": "2580.27"
-                        },
-                        "type": "ai",
-                        "id": "run-5f6d00b8-c2cb-4b2e-b194-85cdf6ab80c3-0",
-                        "tool_calls": [],
-                        "invalid_tool_calls": []
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "SystemMessage"
-                    ],
-                    "kwargs": {
-                        "content": "You are an expert developer who executes refactorings to improve the quality of the given code. Please do the follow: SupportedRefactorings.RENAME: Clarify that the parameter computes the right side of the Pair in the `flatRight(Function)` method.. In the default method `flatRight(Function<? super T,? extends Promise<O>> function)`, rename the parameter `function` to `rightFunction`. Update its usages inside the method body and adjust the Javadoc `@param` tag accordingly. The final could is expected to look something like this: /**\n * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code right}.\n * <p>\n * The function is called with the promised value.\n * The existing promised value will become the {@code left}.\n *\n * @param rightFunction a function that produces a promise for the right value from the promised value\n * @param <O> the type of the right value\n * @return a promise\n * @since 1.4\n */\ndefault <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {\n  return flatMap(left ->\n    rightFunction.apply(left)\n      .map(right ->\n        Pair.of(left, right)\n      )\n  );\n}ONLY make TOOL CALLS to perform actions.",
-                        "type": "system",
-                        "id": "c7db90bd-7851-443f-b3e4-c35fbd6054bd"
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "AIMessage"
-                    ],
-                    "kwargs": {
-                        "content": "1. No. The Javadoc for flatRight still refers to \u201cleftFunction\u201d and \u201cthe type of the left value\u201d rather than updating the @param tag to use rightFunction and describing the right value.  \n2. No. The only place updated was the method signature (which already used rightFunction); the Javadoc immediately above flatRight was not corrected.\n\nINCOMPLETE",
-                        "additional_kwargs": {
-                            "spent": "3273.82"
-                        },
-                        "type": "ai",
-                        "id": "run-287b9b0c-9a3a-4acd-8937-82f5285e5e16-0",
-                        "tool_calls": [],
-                        "invalid_tool_calls": []
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "HumanMessage"
-                    ],
-                    "kwargs": {
-                        "content": "Cannot perform this refactoring. rename(old_name=rightFunction, new_name=rightFunction, line_num=764) failed. Reason: No rename was performed. The old and new name in the request are the same.CALL the TOOL differently, next time.",
-                        "type": "human",
-                        "id": "2b833ec6-528e-487e-9aa2-84153c0038a2"
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "AIMessage"
-                    ],
-                    "kwargs": {
-                        "content": "1. No. The Javadoc `@param` for `flatRight` still refers to `leftFunction` and describes the left value rather than updating to `rightFunction` and the right value.  \n2. No. The Javadoc above the `flatRight(Function<? super T, ? extends Promise<O>> rightFunction)` method has not been updated.  \n\nINCOMPLETE",
-                        "additional_kwargs": {
-                            "spent": "2585.22"
-                        },
-                        "type": "ai",
-                        "id": "run-cf13a5a9-4a79-43e5-9dad-2e0d046632d2-0",
-                        "tool_calls": [],
-                        "invalid_tool_calls": []
-                    }
-                },
-                {
-                    "lc": 1,
-                    "type": "constructor",
-                    "id": [
-                        "langchain",
-                        "schema",
-                        "messages",
-                        "HumanMessage"
-                    ],
-                    "kwargs": {
-                        "content": "Cannot perform this refactoring. rename(old_name=function, new_name=rightFunction, line_num=786) failed. Reason: tool call failed - 400: The rename has already been performed. Variable rightFunction exists in this file. Variable function does not exist.CALL the TOOL differently, next time.",
-                        "type": "human",
-                        "id": "672de429-4b31-4a25-8de9-8580d4f736d5"
+                        "id": "d5d714e7-37cc-4447-a64a-8bc12f411f10"
                     }
                 },
                 {
@@ -358,7 +292,109 @@
                     "kwargs": {
                         "content": "finished because tool calls failed more than once. DONE",
                         "type": "ai",
-                        "id": "c15e80fd-6d78-4036-8ce1-4b3958d7858a",
+                        "id": "904666a9-2d19-4957-b48f-c4ce52a75f54",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "SystemMessage"
+                    ],
+                    "kwargs": {
+                        "content": "You are an expert developer who executes refactorings to improve the quality of the given code. Please do the following: rename: Rename generic parameter name for clarity: in Promise.flatRight(Function), rename 'function' to 'rightFunction' to indicate it produces the right side of the Pair. In the method signature for default <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> function), rename the parameter 'function' to 'rightFunction'. Update all internal references from 'function.apply(...)' to 'rightFunction.apply(...)'. Update the Javadoc @param tag and description to refer to 'rightFunction'. The final code is expected to look like this: /**\n * Transforms the promised value to a {@link Pair}, with the value of the result of the given function as the {@code right}.\n * <p>\n * The function is called with the promised value.\n * The existing promised value will become the {@code left}.\n *\n * @param rightFunction a function that produces a promise for the right value from the promised value\n * @param <O> the type of the right value\n * @return a promise\n * @since 1.4\n */\ndefault <O> Promise<Pair<T, O>> flatRight(Function<? super T, ? extends Promise<O>> rightFunction) {\n  return flatMap(left ->\n    rightFunction.apply(left)\n      .map(right ->\n        Pair.of(left, right)\n      )\n  );\n}ONLY make TOOL CALLS to perform actions.",
+                        "type": "system",
+                        "id": "6fa3b712-8613-4ae9-b0e2-a13ac8b5cdab"
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "The requested refactoring has not been applied. The `flatRight` method still uses the parameter name `function` (and its Javadoc still refers to `leftFunction`), rather than renaming it to `rightFunction` and updating all references. INCOMPLETE",
+                        "additional_kwargs": {
+                            "spent": "2730.2"
+                        },
+                        "type": "ai",
+                        "id": "run-7344b21a-bcbd-49df-8d07-ebef0987f23e-0",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "HumanMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Successfully performed the refactoring. [{'name': 'rename', 'args': {'old_name': 'function', 'new_name': 'rightFunction', 'line_num': 786}, 'id': 'call_rename_a82fb984-35cc-4f48-9a71-00f746d2e6eb-temp', 'type': 'tool_call'}]",
+                        "type": "human",
+                        "id": "b3d0ed55-a618-47ec-b106-0ccbd74c87d3"
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "The refactoring is not complete. While the method parameter and internal uses were renamed to `rightFunction`, the Javadoc still refers to `leftFunction` in the `@param` tag (and its description). That needs updating to `rightFunction`. \n\nHas the original ask been met? No.  \nINCOMPLETE",
+                        "additional_kwargs": {
+                            "spent": "2525.6"
+                        },
+                        "type": "ai",
+                        "id": "run-a322d71a-a7f6-4ae4-99b9-1be6d4effcf7-0",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "HumanMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Cannot perform this refactoring. rename(old_name=rightFunction, new_name=rightFunction, line_num=786) failed. Reason: No rename was performed. The old and new name in the request are the same.CALL the TOOL differently, next time.",
+                        "type": "human",
+                        "id": "66ec5e41-866a-4fb4-b08f-bb5aad194ac2"
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "finished because tool calls failed more than once. DONE",
+                        "type": "ai",
+                        "id": "52befee2-14b2-4596-946f-97c32c1939d1",
                         "tool_calls": [],
                         "invalid_tool_calls": []
                     }

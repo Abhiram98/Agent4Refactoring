@@ -53,23 +53,7 @@ class Replication(BaseModel):
         """
         # files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
         diffs = self.project.get_changes(self.refactoring_commit.hexsha)
-        elements_to_inspect: List[Tuple[CodeElement, int]] = []
-        for diff in diffs:
-            if diff.git_diff.b_path is None:
-                # skipping, probably because file got deleted
-                continue
-            file_path = diff.git_diff.b_path
-            if not file_path.endswith('.java'):
-                continue
-            if not self.project.file_exists(file_path):
-                continue
-
-            for hunk in diff.hunks:
-                this_element = CodeElement(file_path=file_path, line_num=hunk.get_first_edited_line())
-                elements_to_inspect.append(
-                    (this_element, 0)
-                )
-                elements_to_inspect += [(i, 1) for i in self.get_linked_elements(this_element)]
+        elements_to_inspect = self.get_elements_to_inspect(diffs)
 
         should_replicate_msg = self.should_replicate()
         if not should_replicate_msg:
@@ -95,7 +79,7 @@ class Replication(BaseModel):
             return None
 
 
-        with ThreadPoolExecutor(max_workers=8) as executor:
+        with ThreadPoolExecutor(max_workers=4) as executor:
             futures = {executor.submit(handle_file, file_path): file_path for file_path in files_to_inspect}
             for i, future in enumerate(as_completed(futures)):
                 print(f"completed planning for: {i + 1}/{len(futures)}")
@@ -104,6 +88,26 @@ class Replication(BaseModel):
                     yield result
 
         return None
+
+    def get_elements_to_inspect(self, diffs):
+        elements_to_inspect: List[Tuple[CodeElement, int]] = []
+        for diff in diffs:
+            if diff.git_diff.b_path is None:
+                # skipping, probably because file got deleted
+                continue
+            file_path = diff.git_diff.b_path
+            if not file_path.endswith('.java'):
+                continue
+            if not self.project.file_exists(file_path):
+                continue
+
+            for hunk in diff.hunks:
+                this_element = CodeElement(file_path=file_path, line_num=hunk.get_first_edited_line())
+                elements_to_inspect.append(
+                    (this_element, 0)
+                )
+                elements_to_inspect += [(i, 1) for i in self.get_linked_elements(this_element)]
+        return elements_to_inspect
 
     def get_files_in_package(self, starting_file: str) -> List[str]:
         package_dir = Path(starting_file).parent
