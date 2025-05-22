@@ -51,7 +51,7 @@ class Planner(BaseModel):
         documentation_str = "\n".join([f"{k.value}: {v}" for k,v in sup_ref.documentation.items()])
 
         return SystemMessage( "You are an expert developer using a powerful IDE IntelliJ IDEA, "
-                              "capable of performing refactoring."
+                              "capable of performing refactoring. "
                               "Please generate a step by step plan of IDE refactoring actions to "
                               f"perform the following: {self.initial_intent}. "
                               f"Please provide a plan ONLY to perform refactorings. "
@@ -73,9 +73,11 @@ class PlanningComponent(Planner):
             parser = PydanticOutputParser(pydantic_object=RefactoringPlan)
             self._generation_count += 1
             # Set up a parser + inject instructions into the prompt template.
-
+            new_messages = messages['messages']
+            if self._generation_count > 1:
+                new_messages += [HumanMessage("FOLLOW THE CRITICAL ADVICE, and MODIFY your plan accordingly!")]
             response = self.model.invoke(
-                messages['messages']
+                new_messages
             )
             self._ref_plan = parser.invoke(response)
             return {'messages': [response]}
@@ -83,21 +85,21 @@ class PlanningComponent(Planner):
         def critique_plan(messages: MessagesState):
 
             rules_msg = ""
-            response = self.model.with_config(temperature=0.7).invoke(
+            response = self.model.with_config(temperature=0.3).invoke(
                 [
                     SystemMessage("You are an expert developer who critiques refactoring plans. "
                                   "You are aware of refactoring actions available in powerful IDEs "
                                   f"like IntelliJ IDEA. {rules_msg}"
                                   "Critique the quality of the given plans. "
+                                  f"Here is the refactoring intent: {self.initial_intent}. \n"
                                   "Keep a look out for the following: \n"
                                   "1. Renames that deviate from the original intent \n"
-                                  "2. Unecessary and large amount of steps (>10 step plans) \n"
+                                  "2. Redundant refactoring suggestions \n"
+                                  "3. Unecessary and large amount of steps (>10 step plans) \n"
                                   "At the end of your critique, "
-                                  "use the word ACCEPT/REJECT to indicate whether you accept the plan."),
-                    HumanMessage(f"Here is the refactoring intent: {self.initial_intent}"),
-                    HumanMessage(self.source_code),
-                    HumanMessage(f"Please critique the following plan: {self._ref_plan.json()}")
-                ]
+                                  "use the word ACCEPT/REJECT to indicate whether you accept the plan.")
+
+                ] + messages['messages'][1:]  #everything after the system message.
             )
 
             return {'messages': [response]}
@@ -113,7 +115,7 @@ class PlanningComponent(Planner):
         workflow.add_edge(START, "generate_plan")
         # On the first generation, add more details to the plan.
         workflow.add_conditional_edges("generate_plan",
-                                       lambda messages: self._generation_count < 2, #critique only once, not indefinitely.
+                                       lambda messages: self._generation_count < 3, #critique only once, not indefinitely.
                                        {True: "critique_plan", False: END})
         workflow.add_conditional_edges("critique_plan",
                                        should_regenerate_plan, {True: "generate_plan", False: END})
