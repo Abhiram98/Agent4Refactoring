@@ -49,6 +49,7 @@ class SelectedRefactoring(BaseModel):
 class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
+    reasoning_model_name: str = Field(description="model name for reasoning", default=None)
     project: pm.EvalProject = Field(description="the evaluation project to run the agent on.")
     analysis_component: Type[analysis.AnalysisComponent] = Field(description="the kind of analysis component to use.",
                                                              default=analysis.AnalysisComponent)
@@ -68,6 +69,7 @@ class Agent(BaseModel):
     _internal_commits: List[Commit] = PrivateAttr(default=[])
     _failing_tool_call_count: int = PrivateAttr(default=0)
     _compilation_status: List[error_fixing.ErrorMessage] = PrivateAttr(default=[])
+    _reasoning_model: BaseChatModel = PrivateAttr(default=None)
 
 
     class Config:
@@ -87,10 +89,10 @@ class Agent(BaseModel):
 
         return self._trajectory
 
-    def create_model(self) -> BaseChatModel:
+    def create_model(self, model_name) -> BaseChatModel:
         # Assumes that self.model_name looks like
         # 'openai:gpt-4o', or 'grazie:openai-gpt-4o', or 'anthropic:claude-sonnet'
-        vendor, model_name = self.model_name.split(':')
+        vendor, model_name = model_name.split(':')
 
         if vendor == 'grazie':
             # create grazie model
@@ -99,8 +101,7 @@ class Agent(BaseModel):
                               client_url=GrazieApiGatewayUrls.STAGING,
                               profile=model_name,
                               client_agent_name='ref-agent',
-                              client_agent_version='0.1',
-                              temperature=0.3)
+                              client_agent_version='0.1')
         if vendor == 'openai':
             return ChatOpenAI(model=model_name)
         raise Exception(f"Unknown AI vendor {vendor}")
@@ -128,8 +129,11 @@ class Agent(BaseModel):
         print("Starting refactoring-agent")
         # update the intent after each loop
         self._original_source_code = self.project.get_file_contents(starting_file)
-        model = self.create_model()
-        augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
+        model = self.create_model(self.model_name)
+        self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
+        # augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
+        augmented_intent = initial_intent
+        current_intent = augmented_intent
 
         for _ in range(self.max_iterations):
             self._source_code = self.project.get_file_contents(starting_file)
@@ -139,10 +143,10 @@ class Agent(BaseModel):
             self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
 
 
-            ref_plan = self.generate_initial_plan(augmented_intent, model, starting_file)
+            ref_plan = self.generate_initial_plan(current_intent, starting_file)
             self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
-            final_state = self.execute_initial_plan(augmented_intent, model, ref_plan)
+            final_state = self.execute_initial_plan(current_intent, model, ref_plan)
             self.update_changed_files()
 
             quality_result = quality_check.QualityCheck(
@@ -160,23 +164,23 @@ class Agent(BaseModel):
                 # quality check failed, update intent
                 current_intent = quality_result.refined_intent
 
-            self._internal_commits = \
-                [self.project.squash_changes(current_intent, len(self._internal_commits))]
-            # Run replication component
-            replicator = replication.Replication(
-                model=model,
-                executed_plan=ref_plan,
-                ide_server=self.ide_server,
-                initial_intent=current_intent,
-                edited_files=list(self._files_changed),
-                project=self.project,
-                starting_file=starting_file,
-                example_changes=self.get_important_files_diff(),
-                refactoring_commit=self._internal_commits[0]
-            )
-            for plan in replicator.compile_and_run():
-                self.execute_plan(current_intent, model, plan, reopen_file=True, ask_finished_first_iteration=True)
-                self.update_changed_files()
+        self._internal_commits = \
+            [self.project.squash_changes(current_intent, len(self._internal_commits))]
+        # Run replication component
+        replicator = replication.Replication(
+            model=self._reasoning_model,
+            executed_plan=ref_plan,
+            ide_server=self.ide_server,
+            initial_intent=current_intent,
+            edited_files=list(self._files_changed),
+            project=self.project,
+            starting_file=starting_file,
+            example_changes=self.get_important_files_diff(),
+            refactoring_commit=self._internal_commits[0]
+        )
+        for plan in replicator.compile_and_run():
+            self.execute_plan(current_intent, model, plan, reopen_file=True, ask_finished_first_iteration=True)
+            self.update_changed_files()
         return None
 
     def get_important_files_diff(self):
@@ -207,11 +211,10 @@ class Agent(BaseModel):
         analysis_report = analysis_report.augmented_intent
         return analysis_report
 
-    def generate_initial_plan(self, analysis_report, model, starting_file):
+    def generate_initial_plan(self, analysis_report, starting_file):
         planning_component = self.plan_component(
             initial_intent=analysis_report,
-            # augmented_intent=analysis_report,
-            model=model,
+            model=self._reasoning_model,
             source_code=self._source_code,
             source_file_path=starting_file
         )
@@ -445,34 +448,6 @@ class Agent(BaseModel):
 
             return {"messages": messages}
 
-        def fix_compile_errors(state: MessagesState):
-            """Fix compilation errors"""
-            errors = [error_fixing.ErrorMessage(**i)
-                      for i in json.loads(self.ide_server.run_code_inspection())]
-            errors = [i for i in errors if i not in self._compilation_status] # filter out the pre-existing errors.
-            if len(errors) == 0:
-                print("No compilation errors found.")
-                self.commit_changes(plan_step.reason)
-                return
-
-            print("Compilation errors found. Fixing them.")
-            # Run error-fixing component
-            status = error_fixing.ErrorFixing(
-                model=model,
-                ide_server=self.ide_server,
-                errors=errors,
-                tools=[],
-                refactoring_intent=plan_step.reason
-            ).compile_and_run()
-
-            if not status:
-                print("Failed to fix compilation errors. Reverting changes.")
-                self._failing_tool_call_count += 1
-                self.project.restore_changes()
-                self.ide_server.call_tool_get("reload_from_vfs")
-                return {'messages': [HumanMessage("There were compilation errors. I have reverted the changes.")]}
-            self.commit_changes(plan_step.reason)
-
         def finished_refactoring(state: MessagesState):
             if not ask_finished_first_iteration and step_count == 0 and self._iterations == 0:
                 return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
@@ -487,7 +462,7 @@ class Agent(BaseModel):
             if self.ide_server.call_tool_get("get_source_code") == '':
                 return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
 
-            response = model.invoke(state['messages'] +
+            response = self._reasoning_model.invoke(state['messages'] +
                          [HumanMessage('Please reflect whether the original ask has been completed successfully'
                                        f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
                                        f'{self.get_changed_file_contents().content}'
@@ -514,8 +489,6 @@ class Agent(BaseModel):
         workflow.add_node("select_refactoring", select_refactoring)
         workflow.add_node("perform_refactoring", perform_selected_refactoring)
         workflow.add_node("finished_refactoring", finished_refactoring)
-        workflow.add_node("fix_compile_errors", fix_compile_errors)
-
         # Add edges to connect nodes
         workflow.add_edge(START, "finished_refactoring")
         def has_tool_call(state: MessagesState) -> bool:
@@ -526,8 +499,7 @@ class Agent(BaseModel):
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
         )
-        workflow.add_edge("perform_refactoring", "fix_compile_errors")
-        workflow.add_edge("fix_compile_errors", "finished_refactoring")
+        workflow.add_edge("perform_refactoring", "finished_refactoring")
 
 
         # Compile
