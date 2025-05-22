@@ -237,3 +237,8 @@ class EvalProject:
         commit = self.git_repo.commit(sha1)
         file_contents = commit.tree[file_path].data_stream.read().decode('utf-8')
         return file_contents
+
+    def get_unified_file_diff_between_commits(self, sha1: str, sha2: str, file_path: str) -> str:
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'diff', '-U100', sha1, sha2, '--', file_path], capture_output=True, text=True, check=True)
+        return result.stdout
