@@ -337,7 +337,10 @@ class Agent(BaseModel):
                             refactoring_type: sup_refs.SupportedRefactorings) -> list[BaseTool]:
         print(f"getting tools for {refactoring_type}")
 
-        GENERIC_EDITING_TOOLS = [self._tools.get('replace_method_contents'), self._tools.get('find_replace')]
+        if refactoring_type != sup_refs.SupportedRefactorings.RENAME:
+            raise Exception("Only renaming is supported for now.")
+
+        GENERIC_EDITING_TOOLS = [self._tools.get('find_replace')]
 
         multi_map = {
             sup_refs.SupportedRefactorings.CHANGE_SIGNATURE:
