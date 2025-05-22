@@ -1,5 +1,6 @@
 import json
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from git import Commit
 from pydantic.v1 import BaseModel, Field, PrivateAttr
@@ -8,6 +9,7 @@ from typing import List, Iterable, Tuple, ClassVar
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from pathlib import Path
+from typing import Optional
 import os
 
 import refagent.utils.project_manager as pm
@@ -77,9 +79,7 @@ class Replication(BaseModel):
 
         files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect) if i!=self.starting_file]
 
-        for i, file_path in enumerate(files_to_inspect):
-            print(f"completed: {i}/{len(files_to_inspect)=}")
-
+        def handle_file(file_path) -> Optional[planning.RefactoringPlan] :
             ask_replicate = self.compile(file_path)
             should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
             print(should_replicate.content)
@@ -91,7 +91,17 @@ class Replication(BaseModel):
                     source_file_path=file_path,
                     source_code=self.project.get_file_contents(file_path),
                 ).run()
-                yield plan
+                return plan
+            return None
+
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            futures = {executor.submit(handle_file, file_path): file_path for file_path in files_to_inspect}
+            for i, future in enumerate(as_completed(futures)):
+                print(f"completed planning for: {i + 1}/{len(futures)}")
+                result = future.result()
+                if result is not None:
+                    yield result
 
         return None
 
