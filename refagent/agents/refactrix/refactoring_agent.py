@@ -68,7 +68,6 @@ class Agent(BaseModel):
     _selected_refactoring: Optional[SelectedRefactoring] = PrivateAttr(default=None)
     _internal_commits: List[Commit] = PrivateAttr(default=[])
     _failing_tool_call_count: int = PrivateAttr(default=0)
-    _compilation_status: List[error_fixing.ErrorMessage] = PrivateAttr(default=[])
     _reasoning_model: BaseChatModel = PrivateAttr(default=None)
 
 
@@ -478,9 +477,6 @@ class Agent(BaseModel):
         def has_finished_refactoring(state: MessagesState) -> bool:
             finished = (state['messages'][-1].content.endswith('DONE') or
                     'INCOMPLETE' not in state['messages'][-1].content)
-            if not finished:
-                self._compilation_status = [error_fixing.ErrorMessage(**i)
-                      for i in json.loads(self.ide_server.run_code_inspection())]
             return finished
 
         workflow = StateGraph(MessagesState)
