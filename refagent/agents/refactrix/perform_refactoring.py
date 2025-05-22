@@ -114,7 +114,7 @@ class PerformRefactoring(BaseModel):
 
         def has_tool_call(state: MessagesState) -> bool:
             if len(state['messages'][-1].tool_calls) > 0:
-                if 'repalce_file_contents' in str(state['messages'][-1].tool_calls[0]):
+                if 'replace_file_contents' in str(state['messages'][-1].tool_calls[0]):
                     self._active_tool_call = [f"Replaced file contents of {self.rel_file_path}."]
                 else:
                     self._active_tool_call = state['messages'][-1].tool_calls
