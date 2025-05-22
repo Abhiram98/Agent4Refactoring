@@ -1,6 +1,7 @@
 import json
 import traceback
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed
+from langsmith.utils import ContextThreadPoolExecutor
 
 from git import Commit
 from pydantic.v1 import BaseModel, Field, PrivateAttr
@@ -79,7 +80,7 @@ class Replication(BaseModel):
             return None
 
 
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ContextThreadPoolExecutor(max_workers=4) as executor:
             futures = {executor.submit(handle_file, file_path): file_path for file_path in files_to_inspect}
             for i, future in enumerate(as_completed(futures)):
                 print(f"completed planning for: {i + 1}/{len(futures)}")
