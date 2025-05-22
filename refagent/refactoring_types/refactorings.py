@@ -30,6 +30,8 @@ class RefminerOut(BaseModel):
     @classmethod
     def load(cls, raw_json) -> List["RefminerOut"]:
         """Loads refactorings and creates instances of the appropriate subclass."""
+        if len(raw_json['commits'])==0:
+            return []
         instances = []
         for refactoring in raw_json['commits'][0]['refactorings']:
             ref_type = refactoring.get("type")
