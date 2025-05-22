@@ -126,28 +126,42 @@ class Agent(BaseModel):
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
-        current_intent = initial_intent # update the intent after each loop
+        # update the intent after each loop
         self._original_source_code = self.project.get_file_contents(starting_file)
+        model = self.create_model()
+        augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
 
         for _ in range(self.max_iterations):
             self._source_code = self.project.get_file_contents(starting_file)
-
-            model = self.create_model()
 
             self._iterations = 0
             self._files_changed.add(Path(starting_file))
             self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
 
-            analysis_report = self.analyze_developer_intent(current_intent, model, starting_file)
-            ref_plan = self.generate_initial_plan(analysis_report, model, starting_file)
+
+            ref_plan = self.generate_initial_plan(augmented_intent, model, starting_file)
             self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
-            final_state = self.execute_initial_plan(current_intent, model, ref_plan)
+            final_state = self.execute_initial_plan(augmented_intent, model, ref_plan)
             self.update_changed_files()
+
+            quality_result = quality_check.QualityCheck(
+                model=model,
+                ide_server=self.ide_server,
+                original_code=self._original_source_code,
+                refactored_code=self._source_code,
+                intent=augmented_intent
+            ).compile_and_run()
+
+            if (quality_result is None
+                    or quality_result.overall_assessment == quality_check.OverallAssessment.PASS):
+                break
+            else:
+                # quality check failed, update intent
+                current_intent = quality_result.refined_intent
 
             self._internal_commits = \
                 [self.project.squash_changes(current_intent, len(self._internal_commits))]
-
             # Run replication component
             replicator = replication.Replication(
                 model=model,
@@ -163,21 +177,6 @@ class Agent(BaseModel):
             for plan in replicator.compile_and_run():
                 self.execute_plan(current_intent, model, plan, reopen_file=True, ask_finished_first_iteration=True)
                 self.update_changed_files()
-
-            quality_result = quality_check.QualityCheck(
-                model=model,
-                ide_server=self.ide_server,
-                original_code=self._original_source_code,
-                refactored_code=self._source_code,
-                intent=current_intent
-            ).compile_and_run()
-
-            if (quality_result is None
-                    or quality_result.overall_assessment == quality_check.OverallAssessment.PASS):
-                return final_state["messages"][-1].content
-            else:
-                # quality check failed, update intent
-                current_intent = quality_result.refined_intent
         return None
 
     def get_important_files_diff(self):
