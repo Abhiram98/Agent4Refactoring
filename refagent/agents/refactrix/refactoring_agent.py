@@ -452,11 +452,11 @@ class Agent(BaseModel):
             if not ask_finished_first_iteration and step_count == 0 and self._iterations == 0:
                 return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
-            if self._iterations >= 10:
+            if self._iterations >= 5:
                 # Stopping because limit has been reached.
                 return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
 
-            if self._failing_tool_call_count >=2:
+            if self._failing_tool_call_count >=1:
                 return {'messages': [AIMessage('finished because tool calls failed more than once. DONE')]}
 
             if self.ide_server.call_tool_get("get_source_code") == '':
