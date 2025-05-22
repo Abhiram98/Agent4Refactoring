@@ -122,3 +122,14 @@ def test_rename_invalid_identifiers():
     print(result)
     print(result2)
     print(result3)
+
+
+def test_rename_line_number():
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    project.checkout('2e1847acf764b317a2f41353b6dad4e47e818d8b', force=True)
+    response = intellij_server.open_file(
+        rel_file_path=Path("ratpack-core/src/main/java/ratpack/exec/Promise.java"))
+    response = intellij_server.call_tool('rename', old_name='function', new_name='rightFunction', line_num=769)
+    print(response)

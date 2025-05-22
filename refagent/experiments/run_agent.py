@@ -35,6 +35,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
 
     agent = ra.Agent(ide_server=ij_server,
                      model_name='grazie:openai-gpt-4o-mini',
+                     reasoning_model_name='grazie:openai-o4-mini',
                      project=project,
                      plan_component=plan_type)
     try:
@@ -48,6 +49,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     previous_commits = "\n".join([i.message for i in internal_commits])
 
     project.reset_head(len(internal_commits))
+    agent.update_changed_files()
     project.safe_add(agent.files_changed())
     new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id} \n\n {previous_commits}")
 

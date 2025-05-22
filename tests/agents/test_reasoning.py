@@ -130,3 +130,56 @@ def test_reasoning_flink_5():
     ).run()
 
     print(refactoring_plan)
+
+
+def test_reasoning_ratpack_520():
+    project = pm.EvalProject('ratpack')
+    file_path = Path('ratpack-core/src/main/java/ratpack/exec/Promise.java')
+    file_content = project.get_file_content_by_sha('2e1847acf764b317a2f41353b6dad4e47e818d8b',
+                                    str(file_path))
+    v2_commit = project.git_repo.commit('0b0c2074e6359b44a4bcbbee712c7d7c9d02a31e')
+    v1_commit = project.git_repo.commit('2e1847acf764b317a2f41353b6dad4e47e818d8b')
+    diff = project.get_unified_file_diff_between_commits(str(v1_commit), str(v2_commit), str(file_path))
+    print(diff)
+    intent = """Rename Function Parameters for Clarity
+
+When you find a method that uses a generic parameter name like function to produce one side of a Pair, rename it to be more descriptive based on what it computes:
+
+    Use leftFunction if it computes the left value of the Pair.
+
+    Use rightFunction if it computes the right value.
+
+Also remember to:
+
+    Update all internal references to the parameter.
+
+    Update Javadoc/comments accordingly.
+
+This improves clarity, ensures consistency with existing code (like left() and flatLeft()), and makes the API easier to understand."""
+
+    grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                            client_auth_type=AuthType.APPLICATION,
+                            client_url=GrazieApiGatewayUrls.STAGING,
+                            profile="openai-gpt-4o-mini",
+                            client_agent_name='ref-agent',
+                            client_agent_version='0.1',
+                            temperature=0.3
+                            )
+    critique_model = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                            client_auth_type=AuthType.APPLICATION,
+                            client_url=GrazieApiGatewayUrls.STAGING,
+                            profile="openai-o4-mini",
+                            client_agent_name='ref-agent',
+                            client_agent_version='0.1'
+                            # temperature=0.3
+                            )
+    refactoring_plan = planning.PlanningComponent(
+        model=critique_model,
+        initial_intent=intent,
+        source_code=file_content,
+        source_file_path=str(file_path),
+        critique_model=critique_model
+    ).run()
+
+    print(refactoring_plan)
+
