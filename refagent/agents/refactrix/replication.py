@@ -35,7 +35,8 @@ class Replication(BaseModel):
     SUPPORTED_REPLICATIONS: ClassVar[List[sup_ref.SupportedRefactorings]] \
         = [sup_ref.SupportedRefactorings.RENAME,
                               # sup_ref.SupportedRefactorings.CHANGE_SIGNATURE,
-                              sup_ref.SupportedRefactorings.TYPE_CHANGE]
+                              # sup_ref.SupportedRefactorings.TYPE_CHANGE
+           ]
 
     class Config:
         arbitrary_types_allowed = True
@@ -51,7 +52,6 @@ class Replication(BaseModel):
         # files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
         diffs = self.project.get_changes(self.refactoring_commit.hexsha)
         elements_to_inspect: List[Tuple[CodeElement, int]] = []
-        files_inspected: List[str] = []
         for diff in diffs:
             if diff.git_diff.b_path is None:
                 # skipping, probably because file got deleted
@@ -63,9 +63,11 @@ class Replication(BaseModel):
                 continue
 
             for hunk in diff.hunks:
+                this_element = CodeElement(file_path=file_path, line_num=hunk.get_first_edited_line())
                 elements_to_inspect.append(
-                    (CodeElement(file_path=file_path, line_num=hunk.get_first_edited_line()), 0)
+                    (this_element, 0)
                 )
+                elements_to_inspect += [(i, 1) for i in self.get_linked_elements(this_element)]
 
         should_replicate_msg = self.should_replicate()
         if not should_replicate_msg:
@@ -73,21 +75,12 @@ class Replication(BaseModel):
             # the developer did not ask for it.
             return []
 
-        while len(elements_to_inspect) > 0:
-            # breadth-first search through the repository
-            print(f"{len(elements_to_inspect)=}")
-            code_element, depth = elements_to_inspect.pop(0)
+        files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect) if i!=self.starting_file]
 
-            if depth == 0:
-                # increase the search space, only by one level.
-                elements_to_inspect += [(i, depth+1) for i in self.get_linked_elements(code_element)]
+        for i, file_path in enumerate(files_to_inspect):
+            print(f"completed: {i}/{len(files_to_inspect)=}")
 
-            if code_element.file_path in files_inspected:
-                print(f"Skipping the replication to {code_element.file_path} "
-                      f"as it was previously done.")
-                continue
-
-            ask_replicate = self.compile(code_element.file_path)
+            ask_replicate = self.compile(file_path)
             should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
             print(should_replicate.content)
 
@@ -95,15 +88,11 @@ class Replication(BaseModel):
                 plan = planning.PlanningComponent(
                     initial_intent=self.initial_intent + should_replicate.content,
                     model=self.model,
-                    source_file_path=code_element.file_path,
-                    source_code=self.project.get_file_contents(code_element.file_path),
-                    # project=self.project,
-                    # detail_steps=False  # don't waste extra time detailing the steps.
-                    # The examples are already good enough to do the job.
+                    source_file_path=file_path,
+                    source_code=self.project.get_file_contents(file_path),
                 ).run()
                 yield plan
 
-            files_inspected.append(code_element.file_path)
         return None
 
     def get_files_in_package(self, starting_file: str) -> List[str]:
