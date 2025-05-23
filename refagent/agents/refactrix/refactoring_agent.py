@@ -69,6 +69,7 @@ class Agent(BaseModel):
     _internal_commits: List[Commit] = PrivateAttr(default=[])
     _failing_tool_call_count: int = PrivateAttr(default=0)
     _reasoning_model: BaseChatModel = PrivateAttr(default=None)
+    _starting_file: str = PrivateAttr(default="")
 
 
     class Config:
@@ -127,6 +128,7 @@ class Agent(BaseModel):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
         # update the intent after each loop
+        self._starting_file = starting_file
         self._original_source_code = self.project.get_file_contents(starting_file)
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
@@ -135,15 +137,15 @@ class Agent(BaseModel):
         current_intent = augmented_intent
 
         for _ in range(self.max_iterations):
-            starting_file = self.find_starting_file(starting_file)
-            self._source_code = self.project.get_file_contents(starting_file)
+            self.update_starting_file(starting_file)
+            self._source_code = self.project.get_file_contents(self._starting_file)
 
             self._iterations = 0
-            self._files_changed.add(Path(starting_file))
-            self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
+            self._files_changed.add(Path(self._starting_file))
+            self._directly_edited_files.add(Path(self._starting_file)) # assuming the file will be changed.
 
 
-            ref_plan = self.generate_initial_plan(current_intent, starting_file)
+            ref_plan = self.generate_initial_plan(current_intent)
             self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
             final_state = self.execute_initial_plan(current_intent, model, ref_plan)
@@ -174,7 +176,7 @@ class Agent(BaseModel):
             initial_intent=current_intent,
             edited_files=list(self._files_changed),
             project=self.project,
-            starting_file=starting_file,
+            starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
             refactoring_commit=self._internal_commits[0]
         )
@@ -211,12 +213,12 @@ class Agent(BaseModel):
         analysis_report = analysis_report.augmented_intent
         return analysis_report
 
-    def generate_initial_plan(self, analysis_report, starting_file):
+    def generate_initial_plan(self, analysis_report):
         planning_component = self.plan_component(
             initial_intent=analysis_report,
             model=self._reasoning_model,
             source_code=self._source_code,
-            source_file_path=starting_file
+            source_file_path=self._starting_file
         )
         ref_plan = planning_component.run()
         return ref_plan
@@ -504,13 +506,14 @@ class Agent(BaseModel):
         graph = workflow.compile()
         return graph
 
-    def find_starting_file(self, starting_file) -> str:
+    def update_starting_file(self, starting_file) -> str:
         if len(self._internal_commits) == 0:
             return starting_file
         else:
             changes = self.project.get_changes(str(self._internal_commits[-1]))
             for c in changes:
                 if c.git_diff.a_path == starting_file:
+                    self._starting_file = c.git_diff.b_path
                     return c.git_diff.b_path
             return starting_file
 
