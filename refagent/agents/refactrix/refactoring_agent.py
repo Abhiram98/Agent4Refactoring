@@ -352,7 +352,7 @@ class Agent(BaseModel):
                 [self._tools[sup_refs.SupportedRefactorings.EXTRACT_CLASS.value],
                  self._tools['introduce_parameter_object']],
             sup_refs.SupportedRefactorings.MOVE: [self._tools['move_method']],
-            sup_refs.SupportedRefactorings.RENAME: [self._tools['rename_method'], self._tools['update_comment']],
+            sup_refs.SupportedRefactorings.RENAME: [self._tools['rename'], self._tools['update_comment']],
         }
 
         if self.current_file_empty():

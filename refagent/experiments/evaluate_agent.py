@@ -45,6 +45,8 @@ def main():
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
         assert len(bench_points) == 1
         bench_point = bench_points[0]
+        if bench_point.ref_id<555:
+            continue
 
         id = result['id']
         assert id == bench_point.ref_id
@@ -55,6 +57,8 @@ def main():
         # oracle_refactorings = rminer.default_runner.run(project.get_project_path(), bench_point.v2_hash)
         # oracle_refactorings = [i for i in oracle_refactorings if i.type.split()[0] == 'Rename']
         oracle_refactorings = bench_point.refactoring_changes
+        if len(oracle_refactorings) == 0:
+            continue
         recall = 0
         total_oracle += 1
         mapped_refactorings = []

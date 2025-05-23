@@ -297,7 +297,7 @@ class RefactoringToolProvider(BaseModel):
                                      change_method_signature, introduce_parameter_object, move_method,
                                      extract_field, type_change,
                                      replace_file_contents, replace_method_contents, find_replace,
-                                     no_op]
+                                     no_op, update_comment]
 
         return {i.name: i for i in all_tools}
 
