@@ -280,6 +280,19 @@ class RefactoringToolProvider(BaseModel):
             """
             return 'Failed to perform any refactoring. Reason: ' + reason
 
+        @tool
+        def update_comment(
+                find_text: Annotated[str, "Text to search for"],
+                replace_text: Annotated[str, "Text to replace the found text with"],
+                line_num: Annotated[int, "The line number to find the comment at. "]
+        ):
+            """This tool updates the comment in the given line number. Use this tool ONLY to update comments.
+            Do not use this tool to create a new comment."""
+            return self.ide_server.call_tool("update_comment",
+                                             find_text=find_text,
+                                             replace_text=replace_text,
+                                             line_num=line_num)
+
         all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
                                      change_method_signature, introduce_parameter_object, move_method,
                                      extract_field, type_change,
