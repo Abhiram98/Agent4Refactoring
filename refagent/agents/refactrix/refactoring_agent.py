@@ -289,28 +289,21 @@ class Agent(BaseModel):
         self.ide_server.call_tool('save_all_changes')
         self.update_changed_files()
 
-        current_source_code = "Here is the current state of files in the repository: \n"
+        current_source_code = "Here is the source code to modify: \n"
 
-        file_in_same_root = [i for i in self._files_changed if
-                             str(Path(self._rel_file_path).parent) in str(i)]
+        # file_in_same_root = [i for i in self._files_changed if
+        #                      str(Path(self._rel_file_path).parent) in str(i)]
         self.project.safe_add(self._files_changed)
 
-        important_files = self.compute_most_important(self._files_changed)
-        for rel_file_path in important_files:
-            try:
-                file_contents = self.project.get_file_contents(rel_file_path)
-                source = code_utils.add_line_numbers(
-                    "// This file is empty." if file_contents=="" else file_contents)
-
-                # diff = self.project.get_git_diff(str(rel_file_path))
-                # if diff!='':
-                #     changes = diff if len(diff) < len(source) else source
-                # else:
-                #     changes = source
-                current_source_code += f"{rel_file_path}: \n{source}"
-            except FileNotFoundError:
-                continue
-
+        # important_files = self.compute_most_important(self._files_changed)
+        # for rel_file_path in important_files:
+        try:
+            file_contents = self.project.get_file_contents(self._starting_file)
+            source = code_utils.add_line_numbers(
+                "// This file is empty." if file_contents=="" else file_contents)
+            current_source_code += f"{self._starting_file}: \n{source}"
+        except FileNotFoundError:
+            raise Exception(f"File {self._starting_file} not found.")
 
         return HumanMessage(content=current_source_code)
 
