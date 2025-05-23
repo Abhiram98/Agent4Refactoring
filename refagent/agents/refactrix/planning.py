@@ -116,7 +116,7 @@ class PlanningComponent(Planner):
         workflow.add_edge(START, "generate_plan")
         # On the first generation, add more details to the plan.
         workflow.add_conditional_edges("generate_plan",
-                                       lambda messages: self._generation_count < 3, #critique only once, not indefinitely.
+                                       lambda messages: self._generation_count < 2, #critique only once, not indefinitely.
                                        {True: "critique_plan", False: END})
         workflow.add_conditional_edges("critique_plan",
                                        should_regenerate_plan, {True: "generate_plan", False: END})

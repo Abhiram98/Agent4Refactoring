@@ -65,20 +65,24 @@ class Replication(BaseModel):
         files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect) if i!=self.starting_file]
 
         def handle_file(file_path) -> Optional[planning.RefactoringPlan] :
-            ask_replicate = self.compile(file_path)
-            should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
-            print(should_replicate.content)
+            try:
+                ask_replicate = self.compile(file_path)
+                should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
+                print(should_replicate.content)
 
-            if 'YES' in should_replicate.content:  # should replicate the content
-                plan = planning.PlanningComponent(
-                    initial_intent=self.initial_intent + should_replicate.content,
-                    model=self.model,
-                    source_file_path=file_path,
-                    source_code=self.project.get_file_contents(file_path),
-                ).run()
-                for step in plan.steps:
-                    step.file_path = file_path # hard code the file path, so that the correct file is opened.
-                return plan
+                if 'YES' in should_replicate.content:  # should replicate the content
+                    plan = planning.PlanningComponent(
+                        initial_intent=self.initial_intent + should_replicate.content,
+                        model=self.model,
+                        source_file_path=file_path,
+                        source_code=self.project.get_file_contents(file_path),
+                    ).run()
+                    for step in plan.steps:
+                        step.file_path = file_path # hard code the file path, so that the correct file is opened.
+                    return plan
+            except Exception as e:
+                print(f"Error compiling and running replication for file {file_path}: {e}")
+                traceback.print_exc()
             return None
 
 
