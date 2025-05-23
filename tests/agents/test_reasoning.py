@@ -6,9 +6,11 @@ except ImportError:
     print("ChatGrazie not available. Please install `grazie-langchain-utils`.")
 from pydantic.v1 import SecretStr
 from grazie.api.client.gateway import GrazieApiGatewayUrls, AuthType
-
 import refagent.agents.refactrix.planning as planning
 import refagent.utils.project_manager as pm
+from langchain_openai import ChatOpenAI
+import refagent.utils.code_utils as code_utils
+import refagent.agents.refactrix.analysis as analysis
 
 
 def test_reasoning():
@@ -222,5 +224,39 @@ def test_reasoning_ratpack_520():
     print(refactoring_plan)
 
 
+def test_analysis_component_ratpack_500():
+    project = pm.EvalProject('ratpack')
+    project.checkout('1e485baf0b60c1456b3a8c53b9bd5f55e941d810')
 
+    file_path = Path('ratpack-core/src/main/java/ratpack/handling/internal/DefaultContext.java')
+    file_contents = code_utils.add_line_numbers(project.get_file_contents(file_path))
+
+    augmented_intent = analysis.AnalysisComponent(
+        source_code=file_contents,
+        source_file_path=str(file_path),
+        model=ChatOpenAI(model='o4-mini', temperature=1),
+        initial_intent="Rename the method getPathTokens -> getPathBinding on line 290.",
+        old_name="getPathTokens",
+        new_name="getPathBindings"
+    ).run()
+
+    print(augmented_intent)
+
+def test_analysis_component_ratpack_520():
+    project = pm.EvalProject('ratpack')
+    project.checkout('2e1847acf764b317a2f41353b6dad4e47e818d8b')
+
+    file_path = Path('ratpack-core/src/main/java/ratpack/exec/Promise.java')
+    file_contents = code_utils.add_line_numbers(project.get_file_contents(file_path))
+
+    augmented_intent = analysis.AnalysisComponent(
+        source_code=file_contents,
+        source_file_path=str(file_path),
+        model=ChatOpenAI(model='o4-mini', temperature=1),
+        initial_intent="Rename the parameter function -> rightFunction on line 769.",
+        old_name="function",
+        new_name="rightFunction"
+    ).run()
+
+    print(augmented_intent)
 
