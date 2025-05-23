@@ -70,6 +70,7 @@ class Agent(BaseModel):
     _failing_tool_call_count: int = PrivateAttr(default=0)
     _reasoning_model: BaseChatModel = PrivateAttr(default=None)
     _starting_file: str = PrivateAttr(default="")
+    _original_starting_file: str = PrivateAttr(default="")
 
 
     class Config:
@@ -129,6 +130,7 @@ class Agent(BaseModel):
         print("Starting refactoring-agent")
         # update the intent after each loop
         self._starting_file = starting_file
+        self._original_starting_file = starting_file
         self._original_source_code = self.project.get_file_contents(starting_file)
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
@@ -290,6 +292,7 @@ class Agent(BaseModel):
     def get_changed_file_contents(self) -> HumanMessage:
         self.ide_server.call_tool('save_all_changes')
         self.update_changed_files()
+        self.update_starting_file(self._original_starting_file)
 
         current_source_code = "Here is the source code to modify: \n"
 
@@ -311,6 +314,7 @@ class Agent(BaseModel):
 
     def update_changed_files(self):
         changed_files = set(self.project.get_changed_files())
+        self.project.add_files(list(changed_files))
         self._files_changed = self._files_changed.union(changed_files)
 
     def commit_changes(self, commit_message: str):
@@ -502,13 +506,18 @@ class Agent(BaseModel):
         return graph
 
     def update_starting_file(self, starting_file) -> str:
-        if len(self._internal_commits) == 0:
-            return starting_file
-        else:
-            changes = self.project.get_changes(str(self._internal_commits[-1]))
-            for c in changes:
-                if c.git_diff.a_path == starting_file:
-                    self._starting_file = c.git_diff.b_path
-                    return c.git_diff.b_path
-            return starting_file
+        # if len(self._internal_commits) == 0:
+        #     return starting_file
+        # else:
+        self.update_changed_files()
+        changes = []
+        if len(self._internal_commits) > 0:
+            changes += self.project.get_changes(str(self._internal_commits[-1]))
+        changes += (self.project.get_unstaged_changes() +
+                    self.project.get_staged_changes())
+        for c in changes:
+            if c.git_diff.a_path == starting_file:
+                self._starting_file = c.git_diff.b_path
+                return c.git_diff.b_path
+        return starting_file
 

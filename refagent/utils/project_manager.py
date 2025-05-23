@@ -159,7 +159,7 @@ class EvalProject:
         return [MyDiff(d) for d in diffs]
 
     def get_staged_changes(self) -> list[MyDiff]:
-        diffs = self.git_repo.index.diff('HEAD', create_patch=True)
+        diffs = self.git_repo.head.commit.diff(create_patch=True)
         return [MyDiff(d) for d in diffs]
 
     def get_changed_files(self) -> list[str]:
@@ -183,7 +183,8 @@ class EvalProject:
         return self.git_repo.index.commit(commit_msg)
 
     def add_files(self, files_changed):
-        self.git_repo.git.add(files_changed)
+        if len(files_changed) > 0:
+            self.git_repo.git.add(files_changed)
 
     def safe_add(self, files_changed):
         actual_files = [file for file in files_changed if

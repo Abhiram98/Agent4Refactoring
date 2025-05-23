@@ -85,6 +85,7 @@ class PlanningComponent(Planner):
                 )
                 try:
                     self._ref_plan = parser.invoke(response)
+                    break # stop if parsing was successful
                 except OutputParserException:
                     if self._ref_plan is None:
                         print("Failed to parse the plan. Retrying...")
