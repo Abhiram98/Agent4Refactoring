@@ -135,6 +135,7 @@ class Agent(BaseModel):
         current_intent = augmented_intent
 
         for _ in range(self.max_iterations):
+            starting_file = self.find_starting_file(starting_file)
             self._source_code = self.project.get_file_contents(starting_file)
 
             self._iterations = 0
@@ -155,6 +156,8 @@ class Agent(BaseModel):
                 refactored_code=self._source_code,
                 intent=augmented_intent
             ).compile_and_run()
+            self._internal_commits = \
+                [self.project.squash_changes(current_intent, len(self._internal_commits))]
 
             if (quality_result is None
                     or quality_result.overall_assessment == quality_check.OverallAssessment.PASS):
@@ -163,8 +166,6 @@ class Agent(BaseModel):
                 # quality check failed, update intent
                 current_intent = quality_result.refined_intent
 
-        self._internal_commits = \
-            [self.project.squash_changes(current_intent, len(self._internal_commits))]
         # Run replication component
         replicator = replication.Replication(
             model=self._reasoning_model,
@@ -502,3 +503,14 @@ class Agent(BaseModel):
         # Compile
         graph = workflow.compile()
         return graph
+
+    def find_starting_file(self, starting_file) -> str:
+        if len(self._internal_commits) == 0:
+            return starting_file
+        else:
+            changes = self.project.get_changes(str(self._internal_commits[-1]))
+            for c in changes:
+                if c.git_diff.a_path == starting_file:
+                    return c.git_diff.b_path
+            return starting_file
+
