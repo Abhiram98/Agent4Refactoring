@@ -18,7 +18,7 @@ def name_sort_key(element):
         return 3000
 
 def curate_dataset():
-    df = pd.read_csv(refagent.data_folder.joinpath('renas/argouml_manualValidation.csv'))
+    df = pd.read_csv(refagent.data_folder.joinpath('renas/ratpack_manualValidation.csv'))
     df_filtered = df[(df['coRename'] != -1) & (df['conceptRename?'] == 'TRUE')]
     groups = list(df_filtered.groupby(['commit', 'coRename']))
     co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE']) >= 2]
@@ -86,11 +86,39 @@ def curate_dataset():
         )
         processed_dataset.append(item.to_json())
 
-        with open(refagent.data_folder.joinpath('renas/ratpack2.json'), "w") as f:
+        with open(refagent.data_folder.joinpath('renas/ratpack.json'), "w") as f:
             json.dump(processed_dataset, f, indent=4)
 
 
+def update_intent():
+    df = pd.read_csv(refagent.data_folder.joinpath('renas/ratpack_manualValidation.csv'))
+    df_filtered = df[(df['coRename'] != -1) & (df['conceptRename?'] == 'TRUE')]
+    groups = list(df_filtered.groupby(['commit', 'coRename']))
+    co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE']) >= 2]
+
+    with open(refagent.data_folder.joinpath('renas/ratpack.json')) as f:
+        ratpack_data = json.load(f)
+
+    for i, co_rename in enumerate(co_renames):
+        commit = co_rename[0][0]
+        co_rename_id = co_rename[0][1]
+
+        matching_entry = [i for i in ratpack_data if i['v2_hash'] == commit and i['corename_id'] == co_rename_id]
+        assert len(matching_entry) == 1
+        matching_entry = matching_entry[0]
+
+        co_rename_df = co_rename[1]
+        concept = sorted(co_rename_df[['oldName', 'newName', 'type', 'file', 'line']].to_dict(orient='records'),
+                         key=name_sort_key)
+
+        matching_entry['improved_commit_message'] = f"Rename entity {concept[0]['oldName']} -> {concept[0]['newName']} on line {concept[0]['line']}."
+
+    with open(refagent.data_folder.joinpath('renas/ratpack.json'), "w") as f:
+        json.dump(ratpack_data, f, indent=4)
+
+
+
 if __name__ == '__main__':
-    curate_dataset()
+    update_intent()
 
 
