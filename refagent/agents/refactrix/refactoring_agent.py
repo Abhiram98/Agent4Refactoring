@@ -178,7 +178,7 @@ class Agent(BaseModel):
             refactoring_commit=self._internal_commits[0]
         )
         for plan in replicator.compile_and_run():
-            self.execute_plan(current_intent, model, plan, reopen_file=True, ask_finished_first_iteration=True)
+            self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True)
             self.update_changed_files()
         return None
 
@@ -224,17 +224,17 @@ class Agent(BaseModel):
         final_state = self.execute_plan(initial_intent, model, ref_plan)
         return final_state
 
-    def execute_plan(self, initial_intent, model, ref_plan,
-                     reopen_file=False, ask_finished_first_iteration=False):
+    def execute_plan(self, initial_intent, model, ref_plan, ask_finished_first_iteration=False):
         last_file_opened = None
+
+        if len(ref_plan.steps) > 0:
+            self.try_open_file(ref_plan.steps[0].file_path) # open the file. The edits should happen in only one file.
+
         for i, step in enumerate(ref_plan.steps):
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
             self._iterations = 0
             self._failing_tool_call_count = 0
             try:
-                if reopen_file and step.file_path != last_file_opened:
-                    self.try_open_file(step.file_path)
-                    last_file_opened = step.file_path
                 graph = self.compile_graph(model=model,
                                            initial_intent=initial_intent,
                                            plan_step=step,
