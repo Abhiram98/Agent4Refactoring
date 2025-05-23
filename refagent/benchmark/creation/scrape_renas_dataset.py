@@ -18,7 +18,7 @@ def name_sort_key(element):
         return 3000
 
 def curate_dataset():
-    df = pd.read_csv(refagent.data_folder.joinpath('renas/ratpack_manualValidation.csv'))
+    df = pd.read_csv(refagent.data_folder.joinpath('renas/argouml_manualValidation.csv'))
     df_filtered = df[(df['coRename'] != -1) & (df['conceptRename?'] == 'TRUE')]
     groups = list(df_filtered.groupby(['commit', 'coRename']))
     co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE']) >= 2]

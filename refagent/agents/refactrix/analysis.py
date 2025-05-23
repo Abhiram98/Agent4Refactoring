@@ -62,10 +62,12 @@ class AnalysisComponent(BaseModel):
             llm_messages.append(
                 HumanMessage(content=f"Given the example rename, come up with a reason for why the rename was applied. "
                                      f"In order to do so, answer the following questions: \n"
-                                     f"1. Why was the variable renamed? \n"
-                                     f"2. In what other situations would a developer perform a similar rename? \n"
+                                     f"1. Why was the variable {self.old_name} renamed to {self.new_name}? \n"
+                                     f"2. In what other situations would a developer perform a similar rename? Where would they rename an element that looks similar to {self.old_name}? \n"
                                      f"3. In what other situations would a developer choose to not "
-                                     f"perform a rename where the same element {self.old_name} was present? \n"
+                                     f"perform a rename where an element {self.old_name} was present? "
+                                     f"Consider the context of this rename ({self.old_name} -> {self.new_name}) when answering these questions. "
+                                     f"Your answers should be specific to this kind of scenario (renaming {self.old_name} -> {self.new_name})\n"
                              )
             )
 
@@ -86,7 +88,12 @@ class AnalysisComponent(BaseModel):
             )
             messages = state['messages']
             messages[0] = system_msg # update the system message to have formatting instructions
-            response = self.model.invoke(messages + [HumanMessage("Please summarise the augmented intent in the required format.")])
+            response = self.model.invoke(messages +
+                 [HumanMessage(
+                     "Now imagine that a second developer would need to perform similar changes in another location. "
+                     "Provide them the concept/idea of what needs to change. "
+                     "Please summarise in the required format."
+                 )])
             augmented_obj = parser.parse(response.content)
             self._augmented_intent = augmented_obj
 
