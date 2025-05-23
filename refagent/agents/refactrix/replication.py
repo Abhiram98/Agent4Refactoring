@@ -76,6 +76,8 @@ class Replication(BaseModel):
                     source_file_path=file_path,
                     source_code=self.project.get_file_contents(file_path),
                 ).run()
+                for step in plan.steps:
+                    step.file_path = file_path # hard code the file path, so that the correct file is opened.
                 return plan
             return None
 
