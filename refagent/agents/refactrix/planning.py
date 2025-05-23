@@ -131,6 +131,8 @@ class PlanningComponent(Planner):
             self.generation_system_message,
             HumanMessage(f"{self.source_file_path}: \n{self.source_code}")
         ]})
+        for step in self._ref_plan.steps:
+            step.file_path = self.source_file_path
         return self._ref_plan
 
 
