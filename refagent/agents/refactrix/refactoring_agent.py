@@ -173,7 +173,8 @@ class Agent(BaseModel):
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=current_intent,
+            initial_intent=augmented_intent, # pass the augmented intent,
+                                             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,
             starting_file=self._starting_file,
@@ -186,9 +187,10 @@ class Agent(BaseModel):
         return None
 
     def get_important_files_diff(self):
-        important_files = [str(i) for i in
-                           self.compute_most_important(self._files_changed)
-                           ]
+        # important_files = [str(i) for i in
+        #                    self.compute_most_important(self._files_changed)
+        #                    ]
+        important_files = [self._starting_file]
 
         diff = ""
         for commit in self._internal_commits:
