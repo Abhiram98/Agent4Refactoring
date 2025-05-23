@@ -130,7 +130,7 @@ class Agent(BaseModel):
         self._original_source_code = self.project.get_file_contents(starting_file)
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
-        # augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
+        augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
         augmented_intent = initial_intent
         current_intent = augmented_intent
 
@@ -204,7 +204,7 @@ class Agent(BaseModel):
             context_information="",
             source_code=self._source_code,
             source_file_path=starting_file,
-            model=model
+            model=self._reasoning_model
         )
         analysis_report = analysis_component.run()
         analysis_report = analysis_report.augmented_intent
@@ -351,7 +351,8 @@ class Agent(BaseModel):
             sup_refs.SupportedRefactorings.EXTRACT_CLASS:
                 [self._tools[sup_refs.SupportedRefactorings.EXTRACT_CLASS.value],
                  self._tools['introduce_parameter_object']],
-            sup_refs.SupportedRefactorings.MOVE: [self._tools['move_method']]
+            sup_refs.SupportedRefactorings.MOVE: [self._tools['move_method']],
+            sup_refs.SupportedRefactorings.RENAME: [self._tools['rename_method'], self._tools['update_comment']],
         }
 
         if self.current_file_empty():
