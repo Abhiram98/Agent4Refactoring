@@ -8,6 +8,7 @@ from langchain_core.language_models import BaseChatModel
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
 from langchain_core.tools import BaseTool
+from langchain_core.exceptions import OutputParserException
 
 import refagent.agents.refactrix.tools as tools
 import refagent.utils.tool_documentation as td
@@ -77,10 +78,18 @@ class PlanningComponent(Planner):
             new_messages = messages['messages']
             if self._generation_count > 1:
                 new_messages += [HumanMessage("FOLLOW THE CRITICAL ADVICE, and MODIFY your plan accordingly!")]
-            response = self.model.invoke(
-                new_messages
-            )
-            self._ref_plan = parser.invoke(response)
+
+            for i in range(2):
+                response = self.model.invoke(
+                    new_messages
+                )
+                try:
+                    self._ref_plan = parser.invoke(response)
+                except OutputParserException:
+                    if self._ref_plan is None:
+                        print("Failed to parse the plan. Retrying...")
+                    else:
+                        break
             return {'messages': [response]}
 
         def critique_plan(messages: MessagesState):
@@ -131,6 +140,8 @@ class PlanningComponent(Planner):
             self.generation_system_message,
             HumanMessage(f"{self.source_file_path}: \n{self.source_code}")
         ]})
+        if self._ref_plan is None:
+            raise ValueError("Refactoring plan was not generated or found in the component.")
         for step in self._ref_plan.steps:
             step.file_path = self.source_file_path
         return self._ref_plan

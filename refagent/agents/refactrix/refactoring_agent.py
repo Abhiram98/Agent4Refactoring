@@ -56,7 +56,7 @@ class Agent(BaseModel):
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
 
-    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=2)
+    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
     _files_changed: set[Path] = PrivateAttr(default=set())
     _directly_edited_files: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
