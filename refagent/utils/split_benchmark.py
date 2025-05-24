@@ -43,10 +43,10 @@ if __name__ == "__main__":
     print(f"Project root directory: {project_root}")
     
     input_file = os.path.join(project_root, "data", "renas", "ratpack.json")
-    output_file = os.path.join(project_root, "data", "renas", "ratpack-600-650-temp.json")
+    output_file = os.path.join(project_root, "data", "renas", "ratpack-700-730.json")
     
     print(f"Input file: {input_file}")
     print(f"Output file: {output_file}")
     
-    success = filter_data_by_id_range(input_file, output_file, 600, 650)
+    success = filter_data_by_id_range(input_file, output_file, 701, 730)
     sys.exit(0 if success else 1)
