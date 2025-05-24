@@ -7,6 +7,8 @@ import refagent.utils.project_manager as pm
 import refagent.utils.refminer_utils as rminer
 import refagent.refactoring_types.refactorings as refactoring_types
 
+from pathlib import Path
+
 
 def find_similar(change, diffs):
     pass
@@ -33,6 +35,9 @@ def main():
     with open(args.agent_outfile_path) as f:
         agent_results = json.load(f)
 
+    report_file_path = Path(args.agent_outfile_path).parent.joinpath("report.json")
+    report = []
+
     overall_recall = 0
     total_oracle = 0
     overall_precision = 0
@@ -45,8 +50,6 @@ def main():
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
         assert len(bench_points) == 1
         bench_point = bench_points[0]
-        if bench_point.ref_id<555:
-            continue
 
         id = result['id']
         assert id == bench_point.ref_id
@@ -54,29 +57,37 @@ def main():
         project = pm.EvalProject(bench_point.project_name)
         refactorings = rminer.default_runner.run(project.get_project_path(), commit)
         refactorings = [i for i in refactorings if i.type.split()[0] == 'Rename']
-        # oracle_refactorings = rminer.default_runner.run(project.get_project_path(), bench_point.v2_hash)
-        # oracle_refactorings = [i for i in oracle_refactorings if i.type.split()[0] == 'Rename']
         oracle_refactorings = bench_point.refactoring_changes
         if len(oracle_refactorings) == 0:
             continue
         recall = 0
         total_oracle += 1
-        mapped_refactorings = []
+        true_positives = []
+        false_negatives = []
         for oracle in oracle_refactorings:
-            # if not oracle.type.split()[0] == 'Raname':
-            #     continue
+            status = "false negative"
             for i in refactorings:
+                # if i in true_positives:
+                #     continue
+
                 if oracle == i:
-                    mapped_refactorings.append(i)
-                    recall += 1
-                    break
+                    true_positives.append(i)
+                    if status == "false negative":
+                        recall += 1
+                    status = "true positive"
+            if status == "false negative":
+                false_negatives.append(oracle)
+
+
 
         print(f"captured {recall}/{len(oracle_refactorings)} in bench point {bench_point.ref_id}")
         print(f"recall={recall/len(oracle_refactorings)}")
         if len(oracle_refactorings) > 0:
             overall_recall += recall/len(oracle_refactorings)
-        # total_oracle += len(oracle_refactorings)
-        precision = len(mapped_refactorings) / len(refactorings) if len(refactorings) > 0 else 0
+
+        false_positives = [i for i in refactorings if i not in true_positives]
+
+        precision = len(true_positives) / len(refactorings) if len(refactorings) > 0 else 0
         overall_precision += precision
 
         print(f"avg recall = {overall_recall / total_oracle}")
@@ -88,6 +99,25 @@ def main():
         print(f"{total_oracle=}")
         print("-----------")
         print()
+
+        assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
+        assert len(refactorings) == len(true_positives) + len(false_positives)
+
+        report.append(
+            {
+                "id": id,
+                "oracle": [i.model_dump() for i in oracle_refactorings],
+                "agent_refactorings": [i.model_dump() for i in refactorings],
+                "recall": recall/len(oracle_refactorings),
+                "precision": precision,
+                "false_negatives": [i.model_dump() for i in false_negatives],
+                "false_positives": [i.model_dump() for i in false_positives],
+                "true_positives": [i.model_dump() for i in true_positives],
+            }
+        )
+
+    with open(report_file_path, 'w') as f:
+        json.dump(sorted(report, key=lambda x: x['id']), f, indent=4)
 
 
 

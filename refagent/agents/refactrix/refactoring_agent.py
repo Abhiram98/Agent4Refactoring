@@ -14,6 +14,7 @@ from langgraph.graph import MessagesState
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage, BaseMessage
 from langchain_core.language_models import BaseChatModel
+from collections import defaultdict
 
 try:
     from grazie_langchain_utils.language_models.grazie import ChatGrazie
@@ -23,7 +24,7 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie.api.client.chat.response import Credit
 
-from typing import Annotated, Optional, Type, List
+from typing import Annotated, Optional, Type, List, Dict
 
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
@@ -56,7 +57,7 @@ class Agent(BaseModel):
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
 
-    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
+    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=2)
     _files_changed: set[Path] = PrivateAttr(default=set())
     _directly_edited_files: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
@@ -69,6 +70,9 @@ class Agent(BaseModel):
     _internal_commits: List[Commit] = PrivateAttr(default=[])
     _failing_tool_call_count: int = PrivateAttr(default=0)
     _reasoning_model: BaseChatModel = PrivateAttr(default=None)
+    _starting_file: str = PrivateAttr(default="")
+    _original_starting_file: str = PrivateAttr(default="")
+    _performed_refactorings: Dict = PrivateAttr(default=defaultdict(list))
 
 
     class Config:
@@ -88,6 +92,9 @@ class Agent(BaseModel):
 
         return self._trajectory
 
+    def get_performed_refactorings(self):
+        return self._performed_refactorings
+
     def create_model(self, model_name) -> BaseChatModel:
         # Assumes that self.model_name looks like
         # 'openai:gpt-4o', or 'grazie:openai-gpt-4o', or 'anthropic:claude-sonnet'
@@ -102,6 +109,8 @@ class Agent(BaseModel):
                               client_agent_name='ref-agent',
                               client_agent_version='0.1')
         if vendor == 'openai':
+            if model_name.startswith('o4'):
+                return ChatOpenAI(model=model_name, temperature=1)
             return ChatOpenAI(model=model_name)
         raise Exception(f"Unknown AI vendor {vendor}")
 
@@ -127,23 +136,25 @@ class Agent(BaseModel):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
         # update the intent after each loop
+        self._starting_file = starting_file
+        self._original_starting_file = starting_file
         self._original_source_code = self.project.get_file_contents(starting_file)
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
-        # augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
-        augmented_intent = initial_intent
+        augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
+        # augmented_intent = initial_intent
         current_intent = augmented_intent
 
         for _ in range(self.max_iterations):
-            starting_file = self.find_starting_file(starting_file)
-            self._source_code = self.project.get_file_contents(starting_file)
+            self.update_starting_file(starting_file)
+            self._source_code = self.project.get_file_contents(self._starting_file)
 
             self._iterations = 0
-            self._files_changed.add(Path(starting_file))
-            self._directly_edited_files.add(Path(starting_file)) # assuming the file will be changed.
+            self._files_changed.add(Path(self._starting_file))
+            self._directly_edited_files.add(Path(self._starting_file)) # assuming the file will be changed.
 
 
-            ref_plan = self.generate_initial_plan(current_intent, starting_file)
+            ref_plan = self.generate_initial_plan(current_intent)
             self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
 
             final_state = self.execute_initial_plan(current_intent, model, ref_plan)
@@ -171,10 +182,11 @@ class Agent(BaseModel):
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=current_intent,
+            initial_intent=augmented_intent, # pass the augmented intent,
+                                             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,
-            starting_file=starting_file,
+            starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
             refactoring_commit=self._internal_commits[0]
         )
@@ -184,9 +196,10 @@ class Agent(BaseModel):
         return None
 
     def get_important_files_diff(self):
-        important_files = [str(i) for i in
-                           self.compute_most_important(self._files_changed)
-                           ]
+        # important_files = [str(i) for i in
+        #                    self.compute_most_important(self._files_changed)
+        #                    ]
+        important_files = [self._starting_file]
 
         diff = ""
         for commit in self._internal_commits:
@@ -200,23 +213,29 @@ class Agent(BaseModel):
 
     def analyze_developer_intent(self, initial_intent, model, starting_file):
         """Analyze the developer intent and return the refactoring type and reason."""
+
+        old_name = initial_intent.split(" -> ")[0].split(" ")[-1]
+        new_name = initial_intent.split(" -> ")[1].split(" ")[0]
+
         analysis_component = self.analysis_component(
             initial_intent=initial_intent,
             context_information="",
             source_code=self._source_code,
             source_file_path=starting_file,
-            model=self._reasoning_model
+            model=self._reasoning_model,
+            old_name=old_name,
+            new_name=new_name
         )
         analysis_report = analysis_component.run()
         analysis_report = analysis_report.augmented_intent
         return analysis_report
 
-    def generate_initial_plan(self, analysis_report, starting_file):
+    def generate_initial_plan(self, analysis_report):
         planning_component = self.plan_component(
             initial_intent=analysis_report,
             model=self._reasoning_model,
             source_code=self._source_code,
-            source_file_path=starting_file
+            source_file_path=self._starting_file
         )
         ref_plan = planning_component.run()
         return ref_plan
@@ -286,34 +305,32 @@ class Agent(BaseModel):
     def get_changed_file_contents(self) -> HumanMessage:
         self.ide_server.call_tool('save_all_changes')
         self.update_changed_files()
+        self.update_starting_file(self._original_starting_file)
 
-        current_source_code = "Here is the current state of files in the repository: \n"
+        current_source_code = "Here is the source code to modify: \n"
 
-        file_in_same_root = [i for i in self._files_changed if
-                             str(Path(self._rel_file_path).parent) in str(i)]
+        # file_in_same_root = [i for i in self._files_changed if
+        #                      str(Path(self._rel_file_path).parent) in str(i)]
         self.project.safe_add(self._files_changed)
 
-        important_files = self.compute_most_important(self._files_changed)
-        for rel_file_path in important_files:
-            try:
-                file_contents = self.project.get_file_contents(rel_file_path)
-                source = code_utils.add_line_numbers(
-                    "// This file is empty." if file_contents=="" else file_contents)
-
-                # diff = self.project.get_git_diff(str(rel_file_path))
-                # if diff!='':
-                #     changes = diff if len(diff) < len(source) else source
-                # else:
-                #     changes = source
-                current_source_code += f"{rel_file_path}: \n{source}"
-            except FileNotFoundError:
-                continue
-
+        # important_files = self.compute_most_important(self._files_changed)
+        # for rel_file_path in important_files:
+        try:
+            file_contents = self.project.get_file_contents(self._starting_file)
+            source = code_utils.add_line_numbers(
+                "// This file is empty." if file_contents=="" else file_contents)
+            current_source_code += f"{self._starting_file}: \n{source}"
+        except FileNotFoundError:
+            raise Exception(f"File {self._starting_file} not found.")
 
         return HumanMessage(content=current_source_code)
 
     def update_changed_files(self):
         changed_files = set(self.project.get_changed_files())
+        try:
+            self.project.add_files(list(changed_files))
+        except:
+            self.project.safe_add(changed_files)
         self._files_changed = self._files_changed.union(changed_files)
 
     def commit_changes(self, commit_message: str):
@@ -441,8 +458,11 @@ class Agent(BaseModel):
                 AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}."),
                 self.get_changed_file_contents()
             ]
-            observation = perform_refactoring_graph.invoke({"messages": messages})
+            state = MessagesState(messages=messages)
+            observation = perform_refactoring_graph.invoke(state)
             self._failing_tool_call_count += not executor.refactoring_success  # increment the count if tool calls failed.
+            self._performed_refactorings[rel_file_path] += executor.get_performed_refactorings(state)
+
             last_message = observation['messages'][-1]
             messages = state["messages"]
             messages += [last_message]
@@ -504,13 +524,19 @@ class Agent(BaseModel):
         graph = workflow.compile()
         return graph
 
-    def find_starting_file(self, starting_file) -> str:
-        if len(self._internal_commits) == 0:
-            return starting_file
-        else:
-            changes = self.project.get_changes(str(self._internal_commits[-1]))
-            for c in changes:
-                if c.git_diff.a_path == starting_file:
-                    return c.git_diff.b_path
-            return starting_file
+    def update_starting_file(self, starting_file) -> str:
+        # if len(self._internal_commits) == 0:
+        #     return starting_file
+        # else:
+        self.update_changed_files()
+        changes = []
+        if len(self._internal_commits) > 0:
+            changes += self.project.get_changes(str(self._internal_commits[-1]))
+        changes += (self.project.get_unstaged_changes() +
+                    self.project.get_staged_changes())
+        for c in changes:
+            if c.git_diff.a_path == starting_file:
+                self._starting_file = c.git_diff.b_path
+                return c.git_diff.b_path
+        return starting_file
 

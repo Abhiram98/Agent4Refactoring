@@ -183,8 +183,8 @@ class Replication(BaseModel):
                                   "for the sake of consistency. "),
                     HumanMessage(f"Here are the contents of the file: {file_contents}"),
                     HumanMessage(
-                                # f"Here are some intent that need to be "
-                                #  f"replicated: {self.initial_intent}"
+                                f"Here is the intent of the developer: "
+                                 f"{self.initial_intent}"
                                  f"Here are the EXACT kinds of refactorings that "
                                  f"need to be replicated. These refactorings were already performed:\n"
                                  f"{examples}"),

@@ -39,6 +39,15 @@ class RefminerOut(BaseModel):
             instances.append(subclass(**refactoring))
         return instances
 
+    @classmethod
+    def load_from_json(cls, json_element) -> List["RefminerOut"]:
+        instances = []
+        for refactoring in json_element:
+            ref_type = refactoring.get("type")
+            subclass = cls.subclass_registry.get(ref_type, cls)  # Default to RefminerOut if unknown
+            instances.append(subclass(**refactoring))
+        return instances
+
     def base_eq(self, other):
         if not isinstance(other, RefminerOut):
             return False
@@ -122,6 +131,13 @@ class RenameVariable(Rename):
 
 class RenameParameter(Rename):
     TYPE: ClassVar[str] = 'Rename Parameter'
+
+    @property
+    def parent_method_signature(self):
+        return self.description.split('in method ')[-1].split(' from class')[0]
+
+    def __eq__(self, other):
+        return super().__eq__(other) and self.parent_method_signature == other.parent_method_signature
 
 
 class RenameClass(Rename):

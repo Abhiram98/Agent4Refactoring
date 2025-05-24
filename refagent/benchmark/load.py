@@ -35,7 +35,7 @@ class BenchmarkItem(BaseModel):
             change_summary=_json['change_summary'],
             hints=_json['hints'],
             starting_file=_json['starting_file'],
-            refactoring_changes=[refactoring_types.RefminerOut(**c) for c in _json['refactoring_changes']],
+            refactoring_changes=refactoring_types.RefminerOut.load_from_json(_json['refactoring_changes']),
             diffs=pm.EvalProject(_json['project']).get_changes(_json['v2_hash']),
             pull_request=gh_comment.GithubPR(**_json['pull_request']) if _json.get("pull_request") else None
         )
