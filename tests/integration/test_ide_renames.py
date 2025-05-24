@@ -184,3 +184,27 @@ def test_rename_overriden_method():
     response = intellij_server.call_tool('rename', old_name='then', new_name='async2', line_num=37)
     assert response == 'success'
 
+
+def test_rename_return_type():
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    project.checkout('890017f342d5ac93c7875a4e2be87a9304ff9f73', force=True)
+    response = intellij_server.open_file(
+        rel_file_path=Path("ratpack-guice/src/main/java/ratpack/guice/internal/DefaultRatpackModule.java"))
+    response = intellij_server.call_tool('rename', old_name='Background', new_name='ExecController', line_num=49)
+    assert response == 'success'
+
+
+def test_rename_called_method():
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    project.checkout('890017f342d5ac93c7875a4e2be87a9304ff9f73', force=True)
+    response = intellij_server.open_file(
+        rel_file_path=Path("ratpack-guice/src/main/java/ratpack/guice/internal/DefaultRatpackModule.java"))
+    response = intellij_server.call_tool('rename', old_name='getBackground', new_name='getExecController', line_num=50)
+    assert response == 'success'
+
