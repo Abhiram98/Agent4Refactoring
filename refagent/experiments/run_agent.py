@@ -20,7 +20,8 @@ import langsmith as ls
 def setup_and_run(bench_point: bm_load.BenchmarkItem,
                   ij_server: ij.IntellijServer,
                   results_saver: rm.ResultsManager,
-                  plan: Optional[planning.RefactoringPlan]):
+                  plan: Optional[planning.RefactoringPlan],
+                  augmented_intent: Optional[str]):
     project = pm.EvalProject(bench_point.project_name)
     ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
     project.checkout(bench_point.v1_hash, force=True)
@@ -39,7 +40,8 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
                      model_name='openai:gpt-4o-mini',
                      reasoning_model_name='openai:o4-mini',
                      project=project,
-                     plan_component=plan_type)
+                     plan_component=plan_type,
+                     augmented_intent=augmented_intent)
     try:
         final_message = agent.run(initial_intent=bench_point.improved_commit_message,
                                   starting_file=bench_point.starting_file)  # run the agent with commit message
@@ -103,7 +105,9 @@ if __name__ == '__main__':
     planning_results = {}
     if args.planning_results_file is not None:
         with open(refagent.data_folder.joinpath(args.planning_results_file)) as f:
-            planning_results = {i['id']: planning.RefactoringPlan(**i['response']) for i in json.load(f)}
+            json_ = json.load(f)
+            planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) for i in json_}
+            augmented_intents = {i['id']: i['response']['augmented_intent'] for i in json_}
 
     use_previous = False
 
@@ -124,4 +128,6 @@ if __name__ == '__main__':
 
         with ls.trace(name=f"refactoring agent - {args.run_identifier}. bench point {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:
-            setup_and_run(bench_point, ij_server, results_saver, plan=planning_results.get(bench_point.ref_id))
+            setup_and_run(bench_point, ij_server, results_saver,
+                          plan=planning_results.get(bench_point.ref_id),
+                          augmented_intent=augmented_intents.get(bench_point.ref_id))
