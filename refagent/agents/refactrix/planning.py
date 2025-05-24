@@ -143,9 +143,15 @@ class PlanningComponent(Planner):
         ]})
         if self._ref_plan is None:
             raise ValueError("Refactoring plan was not generated or found in the component.")
+        self.fix_plan()
+        return self._ref_plan
+
+    def fix_plan(self):
         for step in self._ref_plan.steps:
             step.file_path = self.source_file_path
-        return self._ref_plan
+            if step.refactoring_type in [sup_ref.SupportedRefactorings.TYPE_CHANGE,
+                                         sup_ref.SupportedRefactorings.CHANGE_SIGNATURE]:
+                step.refactoring_type = sup_ref.SupportedRefactorings.RENAME
 
 
 class NaivePlanningComponent(Planner):
