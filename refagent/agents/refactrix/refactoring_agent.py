@@ -56,7 +56,7 @@ class Agent(BaseModel):
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
 
-    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
+    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=2)
     _files_changed: set[Path] = PrivateAttr(default=set())
     _directly_edited_files: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
@@ -104,6 +104,8 @@ class Agent(BaseModel):
                               client_agent_name='ref-agent',
                               client_agent_version='0.1')
         if vendor == 'openai':
+            if model_name.startswith('o4'):
+                return ChatOpenAI(model=model_name, temperature=1)
             return ChatOpenAI(model=model_name)
         raise Exception(f"Unknown AI vendor {vendor}")
 
@@ -206,12 +208,18 @@ class Agent(BaseModel):
 
     def analyze_developer_intent(self, initial_intent, model, starting_file):
         """Analyze the developer intent and return the refactoring type and reason."""
+
+        old_name = initial_intent.split(" -> ")[0].split(" ")[-1]
+        new_name = initial_intent.split(" -> ")[1].split(" ")[0]
+
         analysis_component = self.analysis_component(
             initial_intent=initial_intent,
             context_information="",
             source_code=self._source_code,
             source_file_path=starting_file,
-            model=self._reasoning_model
+            model=self._reasoning_model,
+            old_name=old_name,
+            new_name=new_name
         )
         analysis_report = analysis_component.run()
         analysis_report = analysis_report.augmented_intent
@@ -314,7 +322,10 @@ class Agent(BaseModel):
 
     def update_changed_files(self):
         changed_files = set(self.project.get_changed_files())
-        self.project.add_files(list(changed_files))
+        try:
+            self.project.add_files(list(changed_files))
+        except:
+            self.project.safe_add(changed_files)
         self._files_changed = self._files_changed.union(changed_files)
 
     def commit_changes(self, commit_message: str):
