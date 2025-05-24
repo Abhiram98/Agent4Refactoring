@@ -1,10 +1,12 @@
+from collections import defaultdict
+
 from pydantic.v1 import BaseModel, Field, PrivateAttr
-from typing import List, Callable
+from typing import List, Callable, Dict
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, BaseMessage
 from pathlib import Path
 
 import refagent.agents.refactrix.supported_refactorings as sup_ref
@@ -24,6 +26,7 @@ class PerformRefactoring(BaseModel):
     _active_tool_call: List = PrivateAttr(default="")
     _retry_iteration: int = PrivateAttr(default=1)
     _performed_refactorings: List = PrivateAttr(default=[])
+    _tool_call_map: Dict = PrivateAttr(default=defaultdict(dict))
 
     def get_tool_call_str(self):
         tool_call = self._active_tool_call[0]
@@ -93,9 +96,17 @@ class PerformRefactoring(BaseModel):
                                               f"CALL the TOOL differently, next time.")]}
 
         def retry_condition(state: MessagesState) -> str:
-            last_message = state['messages'][-1].content
+            responded_tool_calls: List[ToolMessage] = []
+            for message in state['messages']:
+                if (isinstance(message, ToolMessage) and
+                        self._tool_call_map[message.tool_call_id].get('response') is None):
+                    responded_tool_calls.append(message)
+                    self.update_tool_call_map(message)
+
+            # last_message = state['messages'][-1].content
             # False -> retry
-            tool_call_success = 'success' in last_message.lower()  # retry in case tool call fails.
+            tool_call_success = any('success' in tool_response.content.lower()
+                                    for tool_response in responded_tool_calls)  # retry in case any of the tool calls succeeded.
 
             if tool_call_success:
                 return "success_handler"
@@ -115,6 +126,7 @@ class PerformRefactoring(BaseModel):
 
         def has_tool_call(state: MessagesState) -> bool:
             if len(state['messages'][-1].tool_calls) > 0:
+                self.update_tool_call_map(state['messages'][-1])
                 if 'replace_file_contents' in str(state['messages'][-1].tool_calls[0]):
                     self._active_tool_call = [f"Replaced file contents of {self.rel_file_path}."]
                 else:
@@ -146,15 +158,14 @@ class PerformRefactoring(BaseModel):
         return compiled_flow
 
     def get_performed_refactorings(self, messages: MessagesState):
-        tool_call_map = {}
-        for message in messages['messages']:
-            if hasattr(message, 'tool_calls') and message.tool_calls:
-                for tool_call in message.tool_calls:
-                    tool_call_map[tool_call['id']] = {"tool_call": tool_call}
-        for message in messages['messages']:
-            if isinstance(message, ToolMessage):
-                tool_call_map[message.tool_call_id] = message.content
-
-        self._performed_refactorings = list(tool_call_map.values())
+        self._performed_refactorings = list(self._tool_call_map.values())
         return self._performed_refactorings
+
+    def update_tool_call_map(self, message: BaseMessage):
+        if hasattr(message, 'tool_calls') and message.tool_calls:
+            for tool_call in message.tool_calls:
+                self._tool_call_map[tool_call['id']]["tool_call"] = tool_call
+
+        if isinstance(message, ToolMessage):
+            self._tool_call_map[message.tool_call_id]['response'] = message.content
 
