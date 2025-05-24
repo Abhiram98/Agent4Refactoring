@@ -60,7 +60,8 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
         {
             "changes": [c.to_json() for c in project.get_changes(new_hash)],
             "commit_hash": str(new_hash),
-            "trajectory": [i.to_json() for i in agent.get_trajectory()]
+            "trajectory": [i.to_json() for i in agent.get_trajectory()],
+            "performed_refactorings": agent.get_performed_refactorings()
         }
     )
     results_saver.save()

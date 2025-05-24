@@ -4,7 +4,7 @@ from langchain_core.language_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from pathlib import Path
 
 import refagent.agents.refactrix.supported_refactorings as sup_ref
@@ -23,6 +23,7 @@ class PerformRefactoring(BaseModel):
     _file_open_status: bool = PrivateAttr(default=False)
     _active_tool_call: List = PrivateAttr(default="")
     _retry_iteration: int = PrivateAttr(default=1)
+    _performed_refactorings: List = PrivateAttr(default=[])
 
     def get_tool_call_str(self):
         tool_call = self._active_tool_call[0]
@@ -143,4 +144,17 @@ class PerformRefactoring(BaseModel):
         compiled_flow = workflow.compile()
 
         return compiled_flow
+
+    def get_performed_refactorings(self, messages: MessagesState):
+        tool_call_map = {}
+        for message in messages['messages']:
+            if message.tool_calls:
+                for tool_call in message.tool_calls:
+                    tool_call_map[tool_call['id']] = {"tool_call": tool_call}
+        for message in messages['messages']:
+            if isinstance(message, ToolMessage):
+                tool_call_map[message.tool_call_id] = message.content
+
+        self._performed_refactorings = list(tool_call_map.values())
+        return self._performed_refactorings
 
