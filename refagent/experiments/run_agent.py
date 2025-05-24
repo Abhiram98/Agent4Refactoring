@@ -24,6 +24,8 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     project = pm.EvalProject(bench_point.project_name)
     ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
     project.checkout(bench_point.v1_hash, force=True)
+    # drop any unstaged changes
+    project.restore_changes()
 
     ij_server.open_project(project_path=project.get_project_path())
     ij_server.reload_project()
@@ -34,12 +36,12 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
         plan_type = planning.PlanningComponent
 
     agent = ra.Agent(ide_server=ij_server,
-                     model_name='grazie:openai-gpt-4o-mini',
-                     reasoning_model_name='grazie:openai-o4-mini',
+                     model_name='openai:gpt-4o-mini',
+                     reasoning_model_name='openai:o4-mini',
                      project=project,
                      plan_component=plan_type)
     try:
-        final_message = agent.run(initial_intent=bench_point.change_summary,
+        final_message = agent.run(initial_intent=bench_point.improved_commit_message,
                                   starting_file=bench_point.starting_file)  # run the agent with commit message
     except Exception as e:
         print("Agent execution failed ;/")
