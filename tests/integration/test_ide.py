@@ -149,3 +149,38 @@ def test_update_comment_2():
     intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
     intellij_server.call_tool('update_comment', find_text='updated', replace_text='modified', line_num=457)
 
+
+def test_rename_class():
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    project.checkout('2e1847acf764b317a2f41353b6dad4e47e818d8b', force=True)
+    response = intellij_server.open_file(
+        rel_file_path=Path("ratpack-core/src/main/java/ratpack/exec/Promise.java"))
+    response = intellij_server.call_tool('rename', old_name='Promise', new_name='MyPromise', line_num=57)
+    assert response == 'success'
+
+def test_rename_method():
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    project.checkout('2e1847acf764b317a2f41353b6dad4e47e818d8b', force=True)
+    response = intellij_server.open_file(
+        rel_file_path=Path("ratpack-core/src/main/java/ratpack/exec/Promise.java"))
+    response = intellij_server.call_tool('rename', old_name='async', new_name='async2', line_num=95)
+    assert response == 'success'
+
+
+def test_rename_overriden_method():
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    project.checkout('2e1847acf764b317a2f41353b6dad4e47e818d8b', force=True)
+    response = intellij_server.open_file(
+        rel_file_path=Path("ratpack-core/src/main/java/ratpack/exec/internal/DefaultPromise.java"))
+    response = intellij_server.call_tool('rename', old_name='then', new_name='async2', line_num=37)
+    assert response == 'success'
+
