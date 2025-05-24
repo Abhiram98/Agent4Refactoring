@@ -50,7 +50,8 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     internal_commits = agent.internal_commits()
     previous_commits = "\n".join([i.message for i in internal_commits])
 
-    project.reset_head(len(internal_commits))
+    if len(internal_commits) > 0:
+        project.reset_head(len(internal_commits))
     agent.update_changed_files()
     project.safe_add(agent.files_changed())
     new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id} \n\n {previous_commits}")
