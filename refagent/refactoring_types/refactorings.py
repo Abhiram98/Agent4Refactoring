@@ -137,7 +137,11 @@ class RenameParameter(Rename):
         return self.description.split('in method ')[-1].split(' from class')[0]
 
     def __eq__(self, other):
-        return super().__eq__(other) and self.parent_method_signature == other.parent_method_signature
+        return (super().__eq__(other) and
+                (self.parent_method_signature == other.parent_method_signature
+                 or self.description == other.description
+                 )
+                )
 
 
 class RenameClass(Rename):

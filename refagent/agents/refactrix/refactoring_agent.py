@@ -57,7 +57,7 @@ class Agent(BaseModel):
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
 
-    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=2)
+    max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
     augmented_intent: Optional[str] = Field(description="the intent to be refactored", default=None)
     do_replication: bool = Field(description="whether to run replication", default=True)
     _files_changed: set[Path] = PrivateAttr(default=set())
@@ -150,14 +150,21 @@ class Agent(BaseModel):
             augmented_intent = self.augmented_intent
         current_intent = augmented_intent
 
+        current_intent, ref_plan = self.run_agentic_loop(augmented_intent, current_intent, model, starting_file)
+
+        # Run replication component
+        if self.do_replication:
+            self.perform_replication(augmented_intent, current_intent, model, ref_plan)
+        return None
+
+    def run_agentic_loop(self, augmented_intent, current_intent, model, starting_file):
         for _ in range(self.max_iterations):
             self.update_starting_file(starting_file)
             self._source_code = self.project.get_file_contents(self._starting_file)
 
             self._iterations = 0
             self._files_changed.add(Path(self._starting_file))
-            self._directly_edited_files.add(Path(self._starting_file)) # assuming the file will be changed.
-
+            self._directly_edited_files.add(Path(self._starting_file))  # assuming the file will be changed.
 
             ref_plan = self.generate_initial_plan(current_intent)
             self._trajectory.append(AIMessage(content=str(ref_plan.steps)))
@@ -181,11 +188,7 @@ class Agent(BaseModel):
             else:
                 # quality check failed, update intent
                 current_intent = quality_result.refined_intent
-
-        # Run replication component
-        if self.do_replication:
-            self.perform_replication(augmented_intent, current_intent, model, ref_plan)
-        return None
+        return current_intent, ref_plan
 
     def perform_replication(self, augmented_intent, current_intent, model, ref_plan):
         replicator = replication.Replication(
@@ -384,6 +387,7 @@ class Agent(BaseModel):
 
         if self.current_file_empty():
             # Supply file rewrite when it is empty
+            raise Exception("Editing an empty file is not supported yet.")
             print("supplying file replace tool")
             self._directly_edited_files.add(Path(self._rel_file_path))
             return [self._tools.get('replace_file_contents')]

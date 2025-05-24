@@ -35,7 +35,8 @@ def main():
     with open(args.agent_outfile_path) as f:
         agent_results = json.load(f)
 
-    report_file_path = Path(args.agent_outfile_path).parent.joinpath("report.json")
+    name = Path(args.agent_outfile_path).name.replace(".json", "")
+    report_file_path = Path(args.agent_outfile_path).parent.joinpath(f"report-{name}.json")
     report = []
 
     overall_recall = 0
