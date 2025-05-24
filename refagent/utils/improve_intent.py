@@ -84,20 +84,20 @@ def process_ratpack_json(json_file_path, project_name='ratpack'):
                     print(f"Diff Output is empty for entry {i+1}")
                     continue
                 
-                prompt = construct_prompt(hint, diff_output)
+                # prompt = construct_prompt(hint, diff_output)
                 
-                print("\nSending prompt to LLM...")
+                # print("\nSending prompt to LLM...")
                 
-                response = chat_client.invoke(prompt)
-                llm_response = response.content
+                # response = chat_client.invoke(prompt)
+                # llm_response = response.content
 
-                print(f"LLM Response: {llm_response}")
+                # print(f"LLM Response: {llm_response}")
 
                 
-                entry['change_summary'] = llm_response
-                updated = True
+                # entry['change_summary'] = llm_response
+                # updated = True
                 
-                print(f"Updated change_summary for entry {i+1}")
+                # print(f"Updated change_summary for entry {i+1}")
                     
             except Exception as e:
                 print(f"Error processing entry {i+1}: {e}")
@@ -111,15 +111,15 @@ def process_ratpack_json(json_file_path, project_name='ratpack'):
                 missing_fields.append('improved_commit_message')
             print(f"Entry {i+1} missing required fields: {', '.join(missing_fields)}")
     
-    if updated:
-        print(f"\n{'='*80}")
-        print("Saving updated JSON...")
-        with open(json_file_path, 'w') as f:
-            json.dump(data, f, indent=2)
-        print(f"Updated JSON saved to {json_file_path}")
-        print(f"{'='*80}")
-    else:
-        print("No updates made to JSON file.")
+    # if updated:
+    #     print(f"\n{'='*80}")
+    #     print("Saving updated JSON...")
+    #     with open(json_file_path, 'w') as f:
+    #         json.dump(data, f, indent=2)
+    #     print(f"Updated JSON saved to {json_file_path}")
+    #     print(f"{'='*80}")
+    # else:
+    #     print("No updates made to JSON file.")
 
 def construct_prompt(hint, git_diff):
     
