@@ -20,6 +20,7 @@ import langsmith as ls
 def setup_and_run(bench_point: bm_load.BenchmarkItem,
                   ij_server: ij.IntellijServer,
                   results_saver: rm.ResultsManager,
+                  do_replication: bool,
                   plan: Optional[planning.RefactoringPlan],
                   augmented_intent: Optional[str]):
     project = pm.EvalProject(bench_point.project_name)
@@ -41,7 +42,8 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
                      reasoning_model_name='openai:o4-mini',
                      project=project,
                      plan_component=plan_type,
-                     augmented_intent=augmented_intent)
+                     augmented_intent=augmented_intent,
+                     do_replication=do_replication)
     try:
         final_message = agent.run(initial_intent=bench_point.improved_commit_message,
                                   starting_file=bench_point.starting_file)  # run the agent with commit message
@@ -96,7 +98,11 @@ if __name__ == '__main__':
     parser.add_argument('--benchmark_file', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
     parser.add_argument('--benchmark_type', type=str, help='default/rename',
                         default='default')
+    parser.add_argument("--replication", type=str,
+                        help="Whether to run the replication component or not", default=True
+                        )
     args = parser.parse_args()
+
 
     selected_ref_ids = [int(i) for i in args.ref_ids.split(',')] if args.ref_ids is not None else None
 
@@ -111,8 +117,10 @@ if __name__ == '__main__':
 
     use_previous = False
 
+    do_replication = args.replication.lower() == "true"
+    results_file = "no-replication.json" if not do_replication else "results.json"
     benchmark = load_benchmark(args.benchmark_file, args.benchmark_type)
-    results_saver = rm.ResultsManager(run_identifier=args.run_identifier)
+    results_saver = rm.ResultsManager(run_identifier=args.run_identifier, save_file=results_file)
 
     for bench_point in benchmark:
 
@@ -128,6 +136,6 @@ if __name__ == '__main__':
 
         with ls.trace(name=f"refactoring agent - {args.run_identifier}. bench point {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:
-            setup_and_run(bench_point, ij_server, results_saver,
+            setup_and_run(bench_point, ij_server, results_saver, do_replication,
                           plan=planning_results.get(bench_point.ref_id),
                           augmented_intent=augmented_intents.get(bench_point.ref_id))
