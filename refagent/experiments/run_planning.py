@@ -16,21 +16,41 @@ import refagent.benchmark.load as bm_load
 import refagent.experiments.results_manager as rm
 import refagent.utils.project_manager as pm
 
+import refagent.agents.refactrix.analysis as analysis
 
 def run_planning(bench_point: bm_load.BenchmarkItem,
                  results_saver: rm.ResultsManager):
     project = pm.EvalProject(bench_point.project_name)
-    model = ChatOpenAI(model_name="gpt-4o-mini",
-                       temperature=0.3)
+    project.checkout(bench_point.v1_hash, force=True)
+
+    model = ChatOpenAI(model="o4-mini",
+                       temperature=1)
+
+    old_name = bench_point.improved_commit_message.split(" -> ")[0].split(" ")[-1]
+    new_name = bench_point.improved_commit_message.split(" -> ")[1].split(" ")[0]
+
+    augmented_intent = analysis.AnalysisComponent(
+        model=model,
+        source_file_path=bench_point.starting_file,
+        source_code=project.get_file_contents(bench_point.starting_file),
+        initial_intent=bench_point.improved_commit_message,
+        old_name=old_name,
+        new_name=new_name
+    ).run().augmented_intent
 
     planner = planning.PlanningComponent(
-        initial_intent=f"{bench_point.improved_commit_message}. {bench_point.change_summary}",
+        initial_intent=augmented_intent,
         model=model,
         source_file_path=bench_point.starting_file,
         source_code=project.get_file_contents(bench_point.starting_file)
     )
     ref_plan = planner.run()
-    results_saver.add(bench_point.ref_id, json.loads(ref_plan.json()))
+    results_saver.add(bench_point.ref_id,
+                      {
+                          "plan": json.loads(ref_plan.json()),
+                          "augmented_intent": augmented_intent
+                      }
+                      )
     results_saver.save()
 
 
@@ -43,15 +63,15 @@ if __name__ == '__main__':
     parser.add_argument('-run_identifier', type=str, help='An identifier to '
                                                           'checkpoint the performance of the agent',
                         default="default")
+    parser.add_argument('--benchmark_file', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
     args = parser.parse_args()
 
     selected_ref_ids = [int(i) for i in args.ref_ids.split(',')] if args.ref_ids is not None else None
-
-    args.run_identifier = f"planning-{args.run_identifier}"
-
     use_previous = False
-    benchmark = bm_load.load_benchmark(refagent.benchmark_full_json)
-    results_saver = rm.ResultsManager(run_identifier=args.run_identifier)
+    with open(args.benchmark_file) as f:
+        benchmark_json = json.load(f)
+    benchmark = bm_load.load_benchmark(benchmark_json)
+    results_saver = rm.ResultsManager(run_identifier=args.run_identifier, save_file="planning.json")
 
     for bench_point in benchmark:
 
@@ -61,10 +81,10 @@ if __name__ == '__main__':
                   f"Selected: {selected_ref_ids}")
             continue
 
-        # if results_saver.exists(bench_point.ref_id):
-        #     print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
-        #     continue
+        if results_saver.exists(bench_point.ref_id):
+            print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
+            continue
 
-        with ls.trace(name=f"refactoring agent - {args.run_identifier}",
+        with ls.trace(name=f"refactoring agent planning - {args.run_identifier}. ID {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:
             run_planning(bench_point, results_saver)

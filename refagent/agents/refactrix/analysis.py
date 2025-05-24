@@ -90,7 +90,7 @@ class AnalysisComponent(BaseModel):
             messages[0] = system_msg # update the system message to have formatting instructions
             response = self.model.invoke(messages +
                  [HumanMessage(
-                     "Now imagine that a second developer would need to perform similar changes in another location. "
+                     "Now imagine that a second developer would need to perform similar changes in this file and in other locations. "
                      "Provide them the concept/idea of what needs to change. "
                      "Please summarise in the required format."
                  )])
