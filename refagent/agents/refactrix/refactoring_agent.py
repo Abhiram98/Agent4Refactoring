@@ -58,6 +58,8 @@ class Agent(BaseModel):
                                                    default=planning.PlanningComponent)
 
     max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=2)
+    augmented_intent: Optional[str] = Field(description="the intent to be refactored", default=None)
+    do_replication: bool = Field(description="whether to run replication", default=True)
     _files_changed: set[Path] = PrivateAttr(default=set())
     _directly_edited_files: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
@@ -141,8 +143,11 @@ class Agent(BaseModel):
         self._original_source_code = self.project.get_file_contents(starting_file)
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
-        # augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
-        augmented_intent = initial_intent
+
+        if self.augmented_intent is None:
+            augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
+        else:
+            augmented_intent = self.augmented_intent
         current_intent = augmented_intent
 
         for _ in range(self.max_iterations):
@@ -178,12 +183,17 @@ class Agent(BaseModel):
                 current_intent = quality_result.refined_intent
 
         # Run replication component
+        if self.do_replication:
+            self.perform_replication(augmented_intent, current_intent, model, ref_plan)
+        return None
+
+    def perform_replication(self, augmented_intent, current_intent, model, ref_plan):
         replicator = replication.Replication(
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=augmented_intent, # pass the augmented intent,
-                                             # because the quality check's intent may be modified
+            initial_intent=augmented_intent,  # pass the augmented intent,
+            # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,
             starting_file=self._starting_file,
@@ -193,7 +203,6 @@ class Agent(BaseModel):
         for plan in replicator.compile_and_run():
             self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True)
             self.update_changed_files()
-        return None
 
     def get_important_files_diff(self):
         # important_files = [str(i) for i in
