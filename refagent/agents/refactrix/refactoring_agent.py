@@ -14,6 +14,7 @@ from langgraph.graph import MessagesState
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AIMessage, BaseMessage
 from langchain_core.language_models import BaseChatModel
+from collections import defaultdict
 
 try:
     from grazie_langchain_utils.language_models.grazie import ChatGrazie
@@ -23,7 +24,7 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie.api.client.chat.response import Credit
 
-from typing import Annotated, Optional, Type, List
+from typing import Annotated, Optional, Type, List, Dict
 
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
@@ -71,6 +72,7 @@ class Agent(BaseModel):
     _reasoning_model: BaseChatModel = PrivateAttr(default=None)
     _starting_file: str = PrivateAttr(default="")
     _original_starting_file: str = PrivateAttr(default="")
+    _performed_refactorings: Dict = PrivateAttr(default=defaultdict(list))
 
 
     class Config:
@@ -89,6 +91,9 @@ class Agent(BaseModel):
                 i.additional_kwargs['spent'] = i.additional_kwargs['spent'].amount
 
         return self._trajectory
+
+    def get_performed_refactorings(self):
+        return self._performed_refactorings
 
     def create_model(self, model_name) -> BaseChatModel:
         # Assumes that self.model_name looks like
@@ -453,8 +458,11 @@ class Agent(BaseModel):
                 AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}."),
                 self.get_changed_file_contents()
             ]
-            observation = perform_refactoring_graph.invoke({"messages": messages})
+            state = MessagesState(messages=messages)
+            observation = perform_refactoring_graph.invoke(state)
             self._failing_tool_call_count += not executor.refactoring_success  # increment the count if tool calls failed.
+            self._performed_refactorings[rel_file_path] += executor.get_performed_refactorings(state)
+
             last_message = observation['messages'][-1]
             messages = state["messages"]
             messages += [last_message]
