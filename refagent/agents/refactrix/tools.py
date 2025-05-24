@@ -61,14 +61,11 @@ class RefactoringToolProvider(BaseModel):
         @tool
         def rename(old_name: Annotated[str, "The name of the variable to be renamed."],
                    new_name: Annotated[str, "The new name for the variable."],
-                   line_num:  Annotated[Optional[int], "An optional parameter to identify the variable using "
-                                                       "a line number, if there are multiple variables with "
-                                                       "the same name"] = None):
+                   line_num:  Annotated[int, "The line number to identify the variable using,"
+                                             "if there are multiple variables with "
+                                             "the same name"]):
             """Renames occurrences of an entity (variable, field, class) within the scope of a method/class.
-            Please provide a line number to identify the entity at. If no line number is provided, all occurrences will be renamed.
-
-            This tool will refactor the code by replacing all occurrences of the variable named `old_name`
-            with the new variable name `new_name` within the scope of the class or method where it is called."""
+            Please provide a line number to identify the entity at."""
             return self.ide_server.call_tool("rename", old_name=old_name, new_name=new_name, line_num=line_num)
 
         @tool
