@@ -250,7 +250,8 @@ class EvalProject:
         return result.stdout
 
     def squash_changes(self, commit_message: str, count: int) -> Commit:
-        self.reset_head(count)
+        if count > 0:
+            self.reset_head(count)
         new_hash = self.git_repo.index.commit(commit_message)
         return new_hash
 
