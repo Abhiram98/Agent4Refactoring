@@ -1,12 +1,12 @@
 from collections import defaultdict
 
 from pydantic.v1 import BaseModel, Field, PrivateAttr
-from typing import List, Callable, Dict
+from typing import List, Callable, Dict, Optional
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, BaseMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, BaseMessage, ToolCall
 from pathlib import Path
 
 import refagent.agents.refactrix.supported_refactorings as sup_ref
@@ -28,8 +28,8 @@ class PerformRefactoring(BaseModel):
     _performed_refactorings: List = PrivateAttr(default=[])
     _tool_call_map: Dict = PrivateAttr(default=defaultdict(dict))
 
-    def get_tool_call_str(self):
-        tool_call = self._active_tool_call[0]
+    def get_tool_call_str(self, tool_call: Optional[ToolCall]=None) -> str:
+        tool_call = self._active_tool_call[0] if tool_call is None else tool_call
         name = tool_call['name']
         args = ", ".join([f"{k}={v}" for k, v in tool_call['args'].items()])
         tool_call_str = f"{name}({args})"
@@ -73,8 +73,8 @@ class PerformRefactoring(BaseModel):
             return {"messages": [response]}
 
         def success_handler(state: MessagesState):
-            print("Successfully performed the following refactoring -> "
-                  f"{self._active_tool_call}")
+            print("The following refactorings have been performed successfully-> "
+                  f"{self.get_successfull_refactorings()}")
             self.refactoring_success = True
             success_msg = state['messages'][-1].content
 
@@ -168,4 +168,9 @@ class PerformRefactoring(BaseModel):
 
         if isinstance(message, ToolMessage):
             self._tool_call_map[message.tool_call_id]['response'] = message.content
+
+    def get_successfull_refactorings(self) -> str:
+        success_refactorings = "\n".join([self.get_tool_call_str(v['tool_call'])
+                                for k,v in self._tool_call_map.items() if 'success' in v['response'].lower()])
+        return success_refactorings
 
