@@ -148,7 +148,7 @@ class PerformRefactoring(BaseModel):
     def get_performed_refactorings(self, messages: MessagesState):
         tool_call_map = {}
         for message in messages['messages']:
-            if message.tool_calls:
+            if hasattr(message, 'tool_calls') and message.tool_calls:
                 for tool_call in message.tool_calls:
                     tool_call_map[tool_call['id']] = {"tool_call": tool_call}
         for message in messages['messages']:

@@ -141,8 +141,8 @@ class Agent(BaseModel):
         self._original_source_code = self.project.get_file_contents(starting_file)
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
-        augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
-        # augmented_intent = initial_intent
+        # augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
+        augmented_intent = initial_intent
         current_intent = augmented_intent
 
         for _ in range(self.max_iterations):

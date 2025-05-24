@@ -41,7 +41,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
                      project=project,
                      plan_component=plan_type)
     try:
-        final_message = agent.run(initial_intent=bench_point.improved_commit_message,
+        final_message = agent.run(initial_intent=bench_point.change_summary,
                                   starting_file=bench_point.starting_file)  # run the agent with commit message
     except Exception as e:
         print("Agent execution failed ;/")
