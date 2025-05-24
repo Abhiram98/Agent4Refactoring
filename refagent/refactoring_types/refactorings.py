@@ -136,11 +136,18 @@ class RenameParameter(Rename):
     def parent_method_signature(self):
         return self.description.split('in method ')[-1].split(' from class')[0]
 
+    @property
+    def start_line(self):
+        return self.leftSideLocations[0].startLine
+
+    @property
+    def old_param_name(self):
+        return self.leftSideLocations[0].codeElement
+
     def __eq__(self, other):
         return (super().__eq__(other) and
-                (self.parent_method_signature == other.parent_method_signature
-                 or self.description == other.description
-                 )
+                (self.start_line == other.start_line
+                 and self.old_param_name == other.old_param_name)
                 )
 
 
