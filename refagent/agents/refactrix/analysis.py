@@ -65,7 +65,7 @@ class AnalysisComponent(BaseModel):
                                      f"1. Why was the variable {self.old_name} renamed to {self.new_name}? \n"
                                      f"2. In what other situations would a developer perform a similar rename? Where would they rename an element that looks similar to {self.old_name}? \n"
                                      f"3. In what other situations would a developer choose to not "
-                                     f"perform a rename where an element {self.old_name} was present? "
+                                     f"perform a rename where an element {self.old_name} was present? \n"
                                      f"Consider the context of this rename ({self.old_name} -> {self.new_name}) when answering these questions. "
                                      f"Your answers should be specific to this kind of scenario (renaming {self.old_name} -> {self.new_name})\n"
                              )
