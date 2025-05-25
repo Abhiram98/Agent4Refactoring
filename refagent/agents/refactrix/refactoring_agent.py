@@ -507,10 +507,12 @@ class Agent(BaseModel):
                                        f'Please reflect whether the task is complete, '
                                        f'by answering the following questions: '
                                        'Has the original ask been met? '
+                                       'If the answer is no, please specify what needs to be changed (provide details including line numbers). '
                                        # f'2. Have all appropriate locations within the file {self._rel_file_path} '
                                        # f'been updated? '
-                                       'Finally say whether the task is complete '
-                                       'using the word DONE/INCOMPLETE appropriately.')])
+                                       'Finally, say whether the task is complete '
+                                       'by using the following sentence: "The task is <Status>." '
+                                       'Use the word DONE/INCOMPLETE in place of <Status>. ')])
             return {'messages': [response]}
 
         def has_finished_refactoring(state: MessagesState) -> bool:
