@@ -114,6 +114,10 @@ class Rename(RefminerOut):
     def new_name(self):
         return self.rightSideLocations[0].codeElement
 
+    @property
+    def parent_method_signature(self):
+        return self.description.split('in method ')[-1].split(' from class')[0]
+
     def __eq__(self, other: RefminerOut):
         if not self.base_eq(other):  # Call the parent class equality check
             return False
@@ -128,16 +132,28 @@ class RenameMethod(Rename):
 class RenameVariable(Rename):
     TYPE: ClassVar[str] = 'Rename Variable'
 
+    def __eq__(self, other):
+        return (super().__eq__(other) and
+                self.parent_method_signature == other.parent_method_signature)
+
 
 class RenameParameter(Rename):
     TYPE: ClassVar[str] = 'Rename Parameter'
 
+
     @property
-    def parent_method_signature(self):
-        return self.description.split('in method ')[-1].split(' from class')[0]
+    def start_line(self):
+        return self.leftSideLocations[0].startLine
+
+    @property
+    def old_param_name(self):
+        return self.leftSideLocations[0].codeElement
 
     def __eq__(self, other):
-        return super().__eq__(other) and self.parent_method_signature == other.parent_method_signature
+        return (super().__eq__(other) and
+                (self.start_line == other.start_line
+                 and self.old_param_name == other.old_param_name)
+                )
 
 
 class RenameClass(Rename):

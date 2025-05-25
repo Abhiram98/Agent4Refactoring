@@ -4049,7 +4049,7 @@
                     }
                 ]
             },
-            "augmented_intent": "Rename the interface RatpackServerSettings to LaunchConfig throughout the codebase, including its declaration, references, imports, Javadoc, tests, and configuration loaders. Ensure consistency with the \u2018Config\u2019 suffix convention, update any related factory or builder methods, adjust package\u2010level documentation, and apply the same pattern to other classes named *Settings that serve as startup\u2010time configurations by renaming them to *Config. Maintain backward\u2010compatibility via deprecation stubs if necessary."
+            "augmented_intent": "Rename the interface RatpackServerSettings to LaunchConfig throughout the codebase, including its declaration, references, imports, Javadoc, tests, and configuration loaders. Ensure consistency with the \u2018Config\u2019 suffix convention, update any related factory or builder methods, adjust package\u2010level documentation, and apply the same pattern to other classes named *Settings that serve as startup\u2010time configurations by renaming them to *Config."
         }
     },
     {
@@ -4520,22 +4520,22 @@
             "plan": {
                 "steps": [
                     {
-                        "reason": "Clarify that the Class-based overload in the core API truly takes a Provider type, not an instance, by renaming the parameter.",
-                        "final_code": "<T> BindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);",
-                        "execution_details": "In the BindingsSpec interface, locate the method\n    <T> BindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> provider)\nand rename its second parameter from `provider` to `providerType`.",
+                        "reason": "Clarify that the `Class<N>` parameter in `doInit` is a type token by giving it a `*Class` suffix.",
+                        "final_code": "private <T, N> void doInit(final Closure<T> closure, final Class<N> delegateClass, final int resolveStrategy) {\n  init(injector -> {\n    Registry injectorBackedRegistry = Guice.registry(injector);\n    N delegate = delegateClass.equals(Void.class) ? null : injector.getInstance(delegateClass);\n    new ClosureInvoker<T, N>(closure).invoke(injectorBackedRegistry, delegate, resolveStrategy);\n  });\n} ",
+                        "execution_details": "In the private method signature `<T, N> void doInit(final Closure<T> closure, final Class<N> clazz, final int resolveStrategy)`, rename the parameter `clazz` to `delegateClass`, and update all uses inside the method body (`clazz.equals(...)` \u2192 `delegateClass.equals(...)`, `injector.getInstance(clazz)` \u2192 `injector.getInstance(delegateClass)`).",
                         "refactoring_type": "rename",
                         "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/guice/internal/DefaultGroovyBindingsSpec.java"
                     },
                     {
-                        "reason": "Keep the core implementation consistent with the interface and clarify parameter intent.",
-                        "final_code": "@Override\npublic <T> BindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType) {\n  delegate.provider(publicType, providerType);\n  return this;\n}",
-                        "execution_details": "In DefaultBindingsSpec, find the override:\n    @Override\n    public <T> BindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> provider)\nand rename the parameter `provider` to `providerType`. Also update the delegate call to use `providerType`.",
+                        "reason": "Make the `Class<? extends Runnable>` parameter in `init` unambiguously a type token by renaming it to `runnableClass`.",
+                        "final_code": "@Override\npublic GroovyBindingsSpec init(Class<? extends Runnable> runnableClass) {\n  delegate.init(runnableClass);\n  return this;\n}",
+                        "execution_details": "In the override `public GroovyBindingsSpec init(Class<? extends Runnable> clazz)`, rename the parameter `clazz` to `runnableClass`, and update the delegate call accordingly (`delegate.init(clazz)` \u2192 `delegate.init(runnableClass)`).",
                         "refactoring_type": "rename",
                         "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/guice/internal/DefaultGroovyBindingsSpec.java"
                     }
                 ]
             },
-            "augmented_intent": "Identify all overloaded methods in this class and related files where one overload takes a Provider instance and another takes a Class<? extends Provider<?>>. For each Class-based overload, rename the parameter from provider to providerType to make it clear that it represents a type object rather than a Provider instance. Apply the same pattern in other APIs with type-vs-instance overloads (e.g. bind, register, rootBeanDefinition) to improve clarity."
+            "augmented_intent": "Develop a consistent refactoring pattern: identify every method parameter, field, variable, or overload that takes a Class<? extends Provider<?>> (or any type token) and rename its identifier from `provider` to `providerType`. Update method signatures, callers, documentation, tests, and overloads accordingly. Generalize the convention to other type-token parameters (e.g. rename `module` to `moduleClass`, `event` to `eventType`, `handler` to `handlerType`). Maintain API stability by deprecating old names if needed and synchronizing updates across the codebase."
         }
     },
     {
@@ -13758,6 +13758,591 @@
                 ]
             },
             "augmented_intent": "Summarise the approach: rename the exec() method to fork() in DefaultExecution (line 90) and its declaration in ExecControl, update all call sites, adjust related types and imports, and revise documentation and tests to use the new fork() terminology consistently to reflect the branching semantics."
+        }
+    },
+    {
+        "id": 814,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename class and file to use precise term 'Blocking' instead of 'Background'.",
+                        "final_code": "package ratpack.codahale.metrics.internal;\n\npublic class BlockingExecTimingInterceptor implements ExecInterceptor {\n  private final MetricRegistry metricRegistry;\n  private final Request request;\n\n  public BlockingExecTimingInterceptor(MetricRegistry metricRegistry, Request request) {\n    this.metricRegistry = metricRegistry;\n    this.request = request;\n  }\n\n  @Override\n  public void intercept(ExecType type, Runnable continuation) {\n    // ...\n  }\n\n  private String buildBackgroundTimerTag(String requestUri, String requestMethod) {\n    // ...\n  }\n} ",
+                        "execution_details": "In IntelliJ IDEA, right-click on the class name BackgroundExecTimingInterceptor \u2192 Refactor \u2192 Rename \u2192 enter BlockingExecTimingInterceptor \u2192 Apply. Confirm renaming of the file to BlockingExecTimingInterceptor.java and update the constructor name.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Rename helper method to reflect 'Blocking' instead of 'Background'.",
+                        "final_code": "@Override\npublic void intercept(ExecType type, Runnable continuation) {\n  if (type == ExecType.BLOCKING) {\n    String tag = buildBlockingTimerTag(request.getUri(), request.getMethod().getName());\n    Timer.Context timer = metricRegistry.timer(tag).time();\n    continuation.run();\n    timer.stop();\n  } else {\n    continuation.run();\n  }\n}\n\nprivate String buildBlockingTimerTag(String requestUri, String requestMethod) {\n  // ...\n} ",
+                        "execution_details": "In IDEA, place the caret on method name buildBackgroundTimerTag \u2192 Refactor \u2192 Rename \u2192 enter buildBlockingTimerTag \u2192 Apply. This will update the declaration and all invocations inside the class.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Update metrics tag suffix to use 'Blocking' instead of 'Background'.",
+                        "final_code": "private String buildBlockingTimerTag(String requestUri, String requestMethod) {\n  return (requestUri.equals(\"/\") ? \"[root\" : requestUri.replaceFirst(\"/\", \"[\").replace(\"/\", \"][\")) + \"]~\" + requestMethod + \"~Blocking\";\n} ",
+                        "execution_details": "In the buildBlockingTimerTag method body, replace the string literal \"~Background\" with \"~Blocking\".",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Update all imports and instantiations across the main codebase to the new class name.",
+                        "final_code": "// Example updated import in any file:\nimport ratpack.codahale.metrics.internal.BlockingExecTimingInterceptor;\n\n// Example updated instantiation:\nnew BlockingExecTimingInterceptor(metricRegistry, request) ",
+                        "execution_details": "Perform a project-wide rename of BackgroundExecTimingInterceptor \u2192 BlockingExecTimingInterceptor. This updates import statements and constructor calls everywhere in src/main/java.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Update test code references to the renamed interceptor.",
+                        "final_code": "// Example updated import in a test:\nimport ratpack.codahale.metrics.internal.BlockingExecTimingInterceptor;\n\n// Example usage in a test:\nBlockingExecTimingInterceptor interceptor = new BlockingExecTimingInterceptor(metricRegistry, request); ",
+                        "execution_details": "Perform a project-wide rename of BackgroundExecTimingInterceptor \u2192 BlockingExecTimingInterceptor in src/test/java. This updates imports, mocks, and any direct references in tests.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Update documentation to use the new class name and metric tag suffix.",
+                        "final_code": "// Example in a markdown doc:\n### BlockingExecTimingInterceptor\n\nThe `BlockingExecTimingInterceptor` measures the execution time of blocking operations and records metrics with tags ending in `~Blocking`. ",
+                        "execution_details": "Run a find-and-replace across documentation files, replacing BackgroundExecTimingInterceptor \u2192 BlockingExecTimingInterceptor and ~Background \u2192 ~Blocking.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Rename the class BackgroundExecTimingInterceptor to BlockingExecTimingInterceptor and update every related reference\u2014file name, class declaration, constructor, imports, intercept registrations, metrics tag builders, tests, documentation, and other occurrences\u2014to consistently use the precise term \u201cBlocking\u201d for ExecType.BLOCKING across the codebase."
+        }
+    },
+    {
+        "id": 815,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Introduce the new public API method for parser options type and deprecate the old one in the Parser interface to maintain backward compatibility",
+                        "final_code": "/**\n * Returns the parser options type.\n */\nClass<T> getOptsType();\n\n/**\n * @deprecated use {@link #getOptsType()} instead\n */\n@Deprecated\ndefault Class<T> getParsedType() {\n  return getOptsType();\n}",
+                        "execution_details": "Edit the Parser interface: add a new abstract method getOptsType(); mark the existing getParsedType() as @Deprecated and provide a default implementation that delegates to getOptsType(). Use IntelliJ\u2019s method insertion and deprecation quick-fixes.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Align the private field in ParserSupport to the new naming for options type",
+                        "final_code": "private final Class<T> optsType;",
+                        "execution_details": "Use IntelliJ Rename refactoring on the field declaration: change 'private final Class<T> parsedType' to 'private final Class<T> optsType'. This will update all constructor assignments and internal references.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Rename the overridden getter in ParserSupport to match the new API",
+                        "final_code": "@Override\npublic Class<T> getOptsType() {\n  return optsType;\n}",
+                        "execution_details": "Apply Rename refactoring on the method 'getParsedType()' to 'getOptsType()'. Update signature, @Override annotation, and return statements.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Provide a deprecated bridge in ParserSupport so existing callers of getParsedType() still compile",
+                        "final_code": "/**\n * @deprecated Use {@link #getOptsType()} instead.\n */\n@Deprecated\npublic Class<T> getParsedType() {\n  return getOptsType();\n}",
+                        "execution_details": "Add a new deprecated method getParsedType() that calls getOptsType(), annotated with @Deprecated and Javadoc pointing to the new method.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Update Javadoc references in ParserSupport to use the new method name",
+                        "final_code": "/** {@inheritDoc} {@link Parser#getOptsType} */",
+                        "execution_details": "Run structural replace in Javadoc: change '{@link Parser#getParsedType}' to '{@link Parser#getOptsType}' and all textual references of 'getParsedType()' to 'getOptsType()'.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Update the code example in ParserSupport\u2019s class-level Javadoc to reflect the new API",
+                        "final_code": "// Example usage\nClass<?> optsClass = new MaxLengthStringParser().getOptsType();\n",
+                        "execution_details": "In the <pre> test example at the top of the file, replace any call to getParsedType() or direct mention of parsedType with getOptsType() or optsType.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Rename all test code that refers to the old getter or field name",
+                        "final_code": "assertEquals(String.class, myParser.getOptsType());",
+                        "execution_details": "Use IntelliJ\u2019s Rename refactoring across the test sources: change calls to getParsedType() to getOptsType(), and any direct inspected field names of parsedType to optsType.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Document the API change in the project\u2019s release notes for migration guidance",
+                        "final_code": "### Deprecated method rename\n- `Parser.getParsedType()` \u2192 deprecated, use `Parser.getOptsType()`\n- `ParserSupport` field `parsedType` renamed to `optsType`",
+                        "execution_details": "Add an entry under the upcoming version header: note that Parser.getParsedType() is deprecated in favor of getOptsType(), and that ParserSupport now exposes getOptsType().",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Identify and rename every occurrence of parsedType\u2014including field declarations, generic type parameters, getters, setters, constructor assignments, method names, Javadoc comments, documentation examples, and tests\u2014to optsType so that names reflect their role as parser options types. Ensure imports, static utility calls (e.g., findImplParameterTypeAtIndex usages), and API signatures are updated or deprecated in place. Provide migration notes for public APIs, update code examples and comments, and run existing test suites to validate the rename is complete and consistent."
+        }
+    },
+    {
+        "id": 816,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename the RouteHandler class to WhenHandler and update all references in code",
+                        "final_code": "package ratpack.http.internal;\n\nimport ratpack.func.Predicate;\nimport ratpack.handling.Context;\nimport ratpack.handling.Handler;\n\npublic class WhenHandler implements Handler {\n\n  private final Predicate<? super Context> test;\n  private final Handler handler;\n\n  public WhenHandler(Predicate<? super Context> test, Handler handler) {\n    this.test = test;\n    this.handler = handler;\n  }\n\n  @Override\n  public void handle(Context ctx) throws Exception {\n    if (test.apply(ctx)) {\n      ctx.insert(handler);\n    } else {\n      ctx.next();\n    }\n  }\n}",
+                        "execution_details": "In IntelliJ, invoke Rename refactoring (Shift+F6) on the class symbol \u2018RouteHandler\u2019 and rename it to \u2018WhenHandler\u2019. Scope: Entire Project.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    },
+                    {
+                        "reason": "Rename source file to match the new class name",
+                        "final_code": "ratpack-core/src/main/java/ratpack/http/internal/WhenHandler.java",
+                        "execution_details": "Use IntelliJ\u2019s Move/Rename (F6) to rename the file \u2018RouteHandler.java\u2019 to \u2018WhenHandler.java\u2019. IntelliJ will update references automatically.",
+                        "refactoring_type": "move",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    },
+                    {
+                        "reason": "Update DSL usage from route(...) to when(...) across code and documentation",
+                        "final_code": "// Before in Router DSL examples:\n//   route(ctx -> ctx.getPath().startsWith(\"/foo\"), fooHandler)\n// After replacement:\n//   when(ctx -> ctx.getPath().startsWith(\"/foo\"), fooHandler)",
+                        "execution_details": "Perform a structural search for \".route\\(\" in all .java and .md files under ratpack-core/src and replace with \".when(\". Review each replacement to ensure no unintended side effects.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    },
+                    {
+                        "reason": "Update all imports and references in test code to use WhenHandler and when(...)",
+                        "final_code": "// Example in a test:\n// Before:\n//   RouteHandler handler = new RouteHandler(predicate, action);\n//   router.route(predicate, action);\n// After:\n//   WhenHandler handler = new WhenHandler(predicate, action);\n//   router.when(predicate, action);",
+                        "execution_details": "In IntelliJ, run Rename refactoring on symbol \u2018RouteHandler\u2019 in test source root to \u2018WhenHandler\u2019, and apply the same structural search/replace of \u2018route(\u2019 to \u2018when(\u2019 in test code.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    },
+                    {
+                        "reason": "Provide a deprecated shim of the old RouteHandler to maintain binary compatibility",
+                        "final_code": "package ratpack.http.internal;\n\nimport ratpack.func.Predicate;\nimport ratpack.handling.Context;\nimport ratpack.handling.Handler;\n\n/**\n * @deprecated use {@link WhenHandler} instead.\n */\n@Deprecated\npublic class RouteHandler extends WhenHandler {\n\n  public RouteHandler(Predicate<? super Context> test, Handler handler) {\n    super(test, handler);\n  }\n}",
+                        "execution_details": "Create a new class file at this path containing a deprecated subclass of WhenHandler that delegates to the new implementation.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Apply the same rename throughout the codebase: rename the RouteHandler class to WhenHandler in all source files (class declaration, constructors, imports, variable names), update any related route/predicate handler classes, adjust documentation and DSL examples from \u2018route(\u2026)\u2019 to \u2018when(\u2026)\u2019, refactor tests and configuration references accordingly, and add deprecation notices or shims if needed to avoid breaking existing public APIs."
+        }
+    },
+    {
+        "id": 817,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename ConfigDataSpec interface to follow builder naming convention and update all code references and documentation",
+                        "final_code": "public interface ConfigDataBuilder {",
+                        "execution_details": "In IntelliJ IDEA, open ratpack-core/src/main/java/ratpack/config/ConfigDataSpec.java. Place the caret on the declaration of 'ConfigDataSpec'. Invoke Refactor > Rename (Shift+F6). Change the name to 'ConfigDataBuilder'. In the rename dialog, check 'Search in comments and strings' and 'Include non-code files'. Preview the refactoring to ensure Javadoc tags ({@link ConfigDataSpec}), example code in comments, package-level Javadoc links, imports, method return types, variable declarations, and file name are all updated, then apply.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/config/ConfigDataSpec.java"
+                    },
+                    {
+                        "reason": "Rename all other builder-style *Spec interfaces to *Builder for consistent naming",
+                        "final_code": "public interface ${Name}Builder {",
+                        "execution_details": "Use IntelliJ IDEA to locate all interfaces under src/main/java whose names end with 'Spec' and whose methods return their own type (i.e. builder pattern). For each found file (e.g. XxxSpec.java), open it, place the caret on the interface name, invoke Refactor > Rename (Shift+F6), and change the 'Spec' suffix to 'Builder'. In the rename dialog, enable 'Search in comments and strings' and 'Include non-code files'. Preview each refactoring to confirm that declarations, file names, imports, Javadoc references, example code in comments, and any string literals are updated, then apply.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/config/ConfigDataSpec.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Refactor the interface and its usages to follow the builder naming convention: rename the ConfigDataSpec interface to ConfigDataBuilder, update all references in code (method signatures, return types, variable declarations, imports, and package-level Javadoc links), adjust JavaDoc comments to refer to ConfigDataBuilder instead of ConfigDataSpec, and apply the same rename pattern for any other *Spec builder-style types across the codebase."
+        }
+    },
+    {
+        "id": 818,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename the ErrorHandlingContext interface to conform to the new single-method \u2018Handler\u2019 suffix convention and update the file name accordingly.",
+                        "final_code": "package org.ratpackframework.error;\n\nimport org.ratpackframework.routing.Exchange;\n\npublic interface ErrorHandler {\n\n  void error(Exchange exchange, Exception exception);\n\n}",
+                        "execution_details": "In IntelliJ IDEA, right-click on the interface name ErrorHandlingContext, select Refactor \u2192 Rename (Shift+F6), set the new name to ErrorHandler, enable \u201cSearch in comments and strings\u201d and \u201cSearch for text occurrences\u201d, and apply. This will also rename the file to ErrorHandler.java.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/error/ErrorHandlingContext.java"
+                    },
+                    {
+                        "reason": "Update all import statements in routing modules to reference the renamed interface.",
+                        "final_code": "import org.ratpackframework.error.ErrorHandler;",
+                        "execution_details": "Use IntelliJ\u2019s Rename refactoring on the import declaration. In any routing class that imports org.ratpackframework.error.ErrorHandlingContext, invoke Refactor \u2192 Rename on the import name and change it to ErrorHandler (this will update all usages).",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/error/ErrorHandlingContext.java"
+                    },
+                    {
+                        "reason": "Update all import statements in test code to reference the renamed interface.",
+                        "final_code": "import org.ratpackframework.error.ErrorHandler;",
+                        "execution_details": "In test classes importing ErrorHandlingContext, invoke Refactor \u2192 Rename on the import identifier and change to ErrorHandler so that all test references are updated automatically.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/error/ErrorHandlingContext.java"
+                    },
+                    {
+                        "reason": "Correct references in documentation to use the new ErrorHandler name.",
+                        "final_code": "== Error Handling\nUse the ErrorHandler interface to implement custom error logic...",
+                        "execution_details": "Open each .adoc file, select occurrences of ErrorHandlingContext, and invoke Refactor \u2192 Rename to ErrorHandler with \u201cSearch in comments and strings\u201d enabled so all doc references are updated.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/error/ErrorHandlingContext.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Update the ErrorHandlingContext interface and all related references to the new ErrorHandler name across the codebase: rename the source file, change the interface declaration, update import statements and usages in routing, tests, and documentation to maintain consistent \u2018Handler\u2019 suffix for single-method types."
+        }
+    },
+    {
+        "id": 819,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Remove redundant verb prefix from callback parameter for clarity and consistency.",
+                        "final_code": "public static <T> Observable<T> fork(Observable<T> observable, Action<? super RegistrySpec> registrySpec) throws Exception {\n  return observeEach(promise(observable).fork(execSpec -> execSpec.register(registrySpec)));\n}",
+                        "execution_details": "In the method `public static <T> Observable<T> fork(Observable<T> observable, Action<? super RegistrySpec> doWithRegistrySpec)`, place the caret on parameter `doWithRegistrySpec` and invoke IntelliJ Rename (Shift+F6). Rename it to `registrySpec`. Confirm refactoring to update all references and the Javadoc @param tag.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    },
+                    {
+                        "reason": "Remove redundant verb prefix from callback parameter for consistency in overloaded method.",
+                        "final_code": "public static <T> Observable<T> forkEach(Observable<T> observable, Action<? super RegistrySpec> registrySpec) {\n  return observable.lift(downstream -> new Observer<T>() {\n    // ...\n    @Override\n    public void onNext(final T t) {\n      // ...\n      Execution.fork()\n        .register(registrySpec)\n        // ...\n    }\n  });\n}",
+                        "execution_details": "In the method `public static <T> Observable<T> forkEach(Observable<T> observable, Action<? super RegistrySpec> doWithRegistrySpec)`, place the caret on parameter `doWithRegistrySpec` and invoke IntelliJ Rename (Shift+F6). Rename it to `registrySpec`. Confirm refactoring to update all references and the Javadoc @param tag.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    },
+                    {
+                        "reason": "Remove redundant verb prefix from callback parameter for Flowable fork method.",
+                        "final_code": "public static <T> Flowable<T> fork(Flowable<T> flowable, BackpressureStrategy strategy, Action<? super RegistrySpec> registrySpec) throws Exception {\n  return flowEach(promise(flowable).fork(execSpec -> execSpec.register(registrySpec)), strategy);\n}",
+                        "execution_details": "In the method `public static <T> Flowable<T> fork(Flowable<T> flowable, BackpressureStrategy strategy, Action<? super RegistrySpec> doWithRegistrySpec)`, place the caret on parameter `doWithRegistrySpec` and invoke IntelliJ Rename (Shift+F6). Rename it to `registrySpec`. Confirm refactoring to update all references and the Javadoc @param tag.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    },
+                    {
+                        "reason": "Remove redundant verb prefix from callback parameter for Flowable forkEach method.",
+                        "final_code": "public static <T> Flowable<T> forkEach(Flowable<T> flowable, Action<? super RegistrySpec> registrySpec) {\n  return flowable.lift(downstream -> new FlowableSubscriber<T>() {\n    // ...\n    @Override\n    public void onNext(final T t) {\n      // ...\n      Execution.fork()\n        .register(registrySpec)\n        // ...\n    }\n  });\n}",
+                        "execution_details": "In the method `public static <T> Flowable<T> forkEach(Flowable<T> flowable, Action<? super RegistrySpec> doWithRegistrySpec)`, place the caret on parameter `doWithRegistrySpec` and invoke IntelliJ Rename (Shift+F6). Rename it to `registrySpec`. Confirm refactoring to update all references and the Javadoc @param tag.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    }
+                ]
+            },
+            "augmented_intent": "When you see a callback parameter named doWithXxx (e.g. doWithRegistrySpec of type Action<? super RegistrySpec>), drop the redundant \u201cdoWith\u201d verb prefix and rename it to the noun form \u201cxxx\u201d (e.g. registrySpec). Apply this naming cleanup consistently across this file and any other locations where Action<? super T> or Consumer<T> parameters use the doWithXxx pattern, updating method signatures, Javadoc, and all call sites to use the new, concise parameter name."
+        }
+    },
+    {
+        "id": 820,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename the method that aggregates all Observable items into a Promise<List<T>> to clarify it returns all items, aligning with the promiseSingle naming.",
+                        "final_code": "/**\n * Converts an {@link Observable} into a {@link Promise}, for all of the observable's items.\n * <p>\n * This method uses {@link Observable#toList()} to collect the observable's contents into a list.\n * <p>\n * @param observable the observable\n * @param <T>        the type of the value observed\n * @return a promise that returns all values from the observable\n * @throws UnmanagedThreadException if called outside of an execution\n * @see #promiseSingle(Observable)\n */\npublic static <T> Promise<List<T>> promiseAll(Observable<T> observable) throws UnmanagedThreadException {\n  return Promise.async(f -> observable.toList().subscribe(f::success, f::error));\n}",
+                        "execution_details": "In IntelliJ, open RxRatpack.java, place the caret on the method name `promise` (the overload taking `Observable<T>`). Invoke Refactor \u2192 Rename (Shift+F6). Rename to `promiseAll`. Check \u2018Search in comments and strings\u2019 and \u2018Search for text occurrences\u2019 so Javadoc and @see tags are updated as well. Apply.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    },
+                    {
+                        "reason": "Rename the overload taking ObservableOnSubscribe to match the new promiseAll convention for multi\u2010item aggregation.",
+                        "final_code": "/**\n * Converts an {@link Observable} into a {@link Promise}, for all of the observable's items.\n * <p>\n * @param onSubscribe the on subscribe function\n * @param <T>         the type of the value observed\n * @return a promise that returns all values from the observable\n * @throws UnmanagedThreadException if called outside of an execution\n * @see #promiseAll(Observable)\n */\npublic static <T> Promise<List<T>> promiseAll(ObservableOnSubscribe<T> onSubscribe) throws UnmanagedThreadException {\n  return promiseAll(Observable.create(onSubscribe));\n}",
+                        "execution_details": "In RxRatpack.java, place the caret on the method name `promise` (the overload taking `ObservableOnSubscribe<T>`). Invoke Refactor \u2192 Rename (Shift+F6). Rename to `promiseAll` and include comments/strings in the rename.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    },
+                    {
+                        "reason": "Rename the Flowable overload that collects all items into a Promise<List<T>> to use the promiseAll suffix.",
+                        "final_code": "/**\n * @param flowable the flowable\n * @param <T>      the type of the value observed\n * @return a promise that returns all values from the flowable\n * @throws UnmanagedThreadException if called outside of an execution\n * @see RxRatpack#promiseAll(Observable)\n */\npublic static <T> Promise<List<T>> promiseAll(Flowable<T> flowable) throws UnmanagedThreadException {\n  return Promise.async(f -> flowable.toList().subscribe(f::success, f::error));\n}",
+                        "execution_details": "In RxRatpack.java, place the caret on the method name `promise` (the overload taking `Flowable<T>`). Invoke Refactor \u2192 Rename (Shift+F6). Rename to `promiseAll`, include updating Javadoc @see references.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    },
+                    {
+                        "reason": "Rename the FlowableOnSubscribe overload to promiseAll to maintain consistency for all multi\u2010item aggregators.",
+                        "final_code": "/**\n * @param onSubscribe the flowable onSubscribe function\n * @param strategy    The {@link BackpressureStrategy} to use\n * @param <T>         the type of the value observed\n * @return a promise that returns all values from the flowable\n * @throws UnmanagedThreadException if called outside of an execution\n * @see #promiseAll(Flowable)\n */\npublic static <T> Promise<List<T>> promiseAll(FlowableOnSubscribe<T> onSubscribe, BackpressureStrategy strategy) throws UnmanagedThreadException {\n  return promiseAll(Flowable.create(onSubscribe, strategy));\n}",
+                        "execution_details": "In RxRatpack.java, place the caret on `promise` (the overload taking `FlowableOnSubscribe<T>`). Invoke Refactor \u2192 Rename (Shift+F6). Rename to `promiseAll` and update Javadoc accordingly.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    },
+                    {
+                        "reason": "Update all call sites, static imports, method references, Javadoc links, and tests invoking the renamed methods so they compile against the new names.",
+                        "final_code": "// Before in client code or tests:\nimport static ratpack.rx2.RxRatpack.promise;\n...\nList<String> values = ExecHarness.yieldSingle(e ->\n  RxRatpack.promise(obs)\n).getValue();\n\n// After:\nimport static ratpack.rx2.RxRatpack.promiseAll;\n...\nList<String> values = ExecHarness.yieldSingle(e ->\n  RxRatpack.promiseAll(obs)\n).getValue();\n\n// Before method reference:\nobs.as(RxRatpack::promise)\n// After:\nobs.as(RxRatpack::promiseAll)\n\n// Javadoc link before:\n{@link RxRatpack#promise(Observable)}\n// After:\n{@link RxRatpack#promiseAll(Observable)}",
+                        "execution_details": "Use IntelliJ\u2019s Structural Search/Replace to find all occurrences of `RxRatpack.promise(`, static imports `import static ratpack.rx2.RxRatpack.promise;`, and method references `RxRatpack::promise`. Replace them with `promiseAll` and update Javadoc `{@link RxRatpack#promise(Observable)}` to `{@link RxRatpack#promiseAll(Observable)}`. Confirm tests invoking the old names are updated. Review usages in example code and static imports.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    },
+                    {
+                        "reason": "Ensure any other multi-item Promise<List<T>> aggregators in the codebase adhere to the `All` suffix naming convention for consistency.",
+                        "final_code": "// Example custom helper before:\n// public static <T> Promise<List<T>> collect(T... items) { ... }\n// After:\npublic static <T> Promise<List<T>> collectAll(T... items) { ... }",
+                        "execution_details": "Run Structural Search for method declarations returning `Promise<List<` across the project. For each custom helper method not yet suffixed with `All`, place the caret on its name, invoke Refactor \u2192 Rename to append `All`, and update its Javadoc and all call sites.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-rx2/src/main/java/ratpack/rx2/RxRatpack.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Identify all methods and usages that aggregate multiple stream items into a Promise<List<T>> (currently named promise) and rename them to promiseAll. This includes overloads for Observable, ObservableOnSubscribe, Flowable, and FlowableOnSubscribe. Update method names, Javadoc, tests, imports, and any static references, ensuring consistency with promiseSingle. Apply the same \u2018All\u2019 suffix pattern to any other multi\u2010item aggregation helpers across the codebase to maintain a clear, uniform naming convention."
+        }
+    },
+    {
+        "id": 821,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename the FileSystemContext interface to FileSystemBinding to align with other Binding-style types and propagate the new name throughout the codebase.",
+                        "final_code": "package org.ratpackframework.file;\n\nimport java.io.File;\n\npublic interface FileSystemBinding {\n\n  File getFile();\n\n  File file(String... path);\n\n  FileSystemBinding context(String... path);\n\n  FileSystemBinding context(File file);\n\n}",
+                        "execution_details": "In IntelliJ IDEA, open ratpack-core/src/main/java/org/ratpackframework/file/FileSystemContext.java. Place the cursor on the interface name FileSystemContext, invoke Refactor > Rename (Shift+F6), and change it to FileSystemBinding. Confirm the rename refactoring should also rename the file to FileSystemBinding.java and update all usages across the project\u2014imports, return types, parameter types, and references in other classes, tests, and configuration.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/file/FileSystemContext.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Locate every declaration, reference, import, documentation, test or configuration entry named FileSystemContext across the codebase and rename it to FileSystemBinding; update method signatures, return types, parameter types, package imports and Javadoc comments accordingly; ensure consistency with other Binding-style types and run all tests to verify no broken references."
+        }
+    },
+    {
+        "id": 822,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Clarify that this method dispatches handlers downstream rather than performing a simple invocation by renaming it from call() to send().",
+                        "final_code": "  /**\n   * Dispatches the configured method-specific handlers downstream.\n   */\n  @Override\n  public void send() {\n    List<Handler> handlers = new ArrayList<>(runnables.size());\n    for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {\n      handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));\n    }\n    handlers.add(new ClientErrorHandler(METHOD_NOT_ALLOWED.code()));\n    exchange.next(handlers);\n  }",
+                        "execution_details": "In IntelliJ IDEA, place the caret on the declaration of `public void call()` (around line 70) and invoke Refactor \u2192 Rename (Shift+F6). Rename it to `send`. This updates the method signature, all internal references in the class, and the Javadoc comment.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/handling/internal/DefaultByMethodChain.java"
+                    },
+                    {
+                        "reason": "Keep the interface in sync by renaming the contract from call() to send().",
+                        "final_code": "public interface ByMethodChain {\n\n  ByMethodChain get(Runnable runnable);\n\n  ByMethodChain post(Runnable runnable);\n\n  ByMethodChain named(String methodName, Runnable runnable);\n\n  /**\n   * Dispatches the configured handlers downstream.\n   */\n  void send();\n}",
+                        "execution_details": "Navigate to the `void call();` declaration in `ByMethodChain`. Invoke Refactor \u2192 Rename (Shift+F6) and rename it to `send`. Update the Javadoc to describe one-way dispatch.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/handling/internal/DefaultByMethodChain.java"
+                    },
+                    {
+                        "reason": "Update all tests that invoke call() on DefaultByMethodChain to use the new send() method.",
+                        "final_code": "  @Test\n  public void invokesMatchingHandler() throws Exception {\n    DefaultByMethodChain chain = new DefaultByMethodChain(exchange);\n    chain.get(() -> called.set(true));\n    chain.send();\n    assertTrue(called.get());\n  }",
+                        "execution_details": "In the test class, find each occurrence of `chain.call();` (or equivalent) and invoke Refactor \u2192 Rename (Shift+F6) to change it to `chain.send();`. Verify imports and static references are correct.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/handling/internal/DefaultByMethodChain.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Rename the DefaultByMethodChain method 'call()' to 'send()' on line 70 to clarify that it dispatches handlers downstream rather than performing a simple invocation. Update the method signature, internal references, tests, and documentation accordingly. Then apply this renaming concept in other parts of the codebase where a generic 'call' method actually enqueues or sends data\u2014using 'send' or a similarly descriptive term for one-way dispatch operations, while retaining 'call' for synchronous or interface-mandated methods."
+        }
+    },
+    {
+        "id": 823,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Align the class name with the established \u2018Binding\u2019 suffix to reflect its true role.",
+                        "final_code": "package org.ratpackframework.path.internal;\n\nimport org.ratpackframework.path.PathContext;\nimport org.ratpackframework.util.internal.CollectionUtils;\n\nimport java.util.LinkedHashMap;\nimport java.util.Map;\n\npublic class DefaultPathBinding implements PathContext {\n\n  private final String binding;\n  private final String bindingTerminated;\n  private final String pastBinding;\n\n  private final Map<String, String> tokens;\n  private final Map<String, String> allTokens;\n  private final PathContext parent;\n\n  public DefaultPathBinding(String path, String binding, Map<String, String> tokens, PathContext parent) {\n    this.binding = binding;\n    this.tokens = tokens;\n    this.parent = parent;\n\n    if (parent == null) {\n      allTokens = tokens;\n    } else {\n      allTokens = new LinkedHashMap<String, String>(parent.getAllTokens());\n      allTokens.putAll(tokens);\n    }\n\n    this.bindingTerminated = binding + \"/\";\n\n    if (path.equals(binding)) {\n      pastBinding = \"\";\n    } else if (path.startsWith(bindingTerminated)) {\n      pastBinding = path.substring(bindingTerminated.length());\n    } else {\n      throw new IllegalArgumentException(String.format(\"Path '%s' is not a child of '%s'\", path, binding));\n    }\n  }\n\n  public String getPastBinding() {\n    return pastBinding;\n  }\n\n  public String getBoundTo() {\n    return binding;\n  }\n\n  public String join(String path) {\n    return CollectionUtils.join(\"/\", this.binding, path);\n  }\n\n  public Map<String, String> getTokens() {\n    return tokens;\n  }\n\n  public Map<String, String> getAllTokens() {\n    return allTokens;\n  }\n}",
+                        "execution_details": "In IntelliJ IDEA, open ratpack-core/src/main/java/org/ratpackframework/path/internal/DefaultPathContext.java. Place the caret on the class name DefaultPathContext. Invoke Refactor \u2192 Rename (Shift+F6). Rename to DefaultPathBinding. In the dialog, enable \u201cSearch in comments and strings\u201d and \u201cSearch for text occurrences.\u201d Confirm. IDEA will rename the file to DefaultPathBinding.java and update all imports, references, Javadoc comments, and unit tests.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/path/internal/DefaultPathContext.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Locate every occurrence of DefaultPathContext in this file and across the repository\u2014including the class declaration, constructor signatures, import statements, type references, documentation comments, and unit tests\u2014and rename them to DefaultPathBinding. Update any related identifiers (factories, utilities, method names) to match the new suffix, ensure consistency with other Binding-named classes, and run the full test suite to confirm no regressions. Then apply this same Context\u2192Binding renaming heuristic to any other classes whose responsibilities are purely binding rather than general context."
+        }
+    },
+    {
+        "id": 824,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "The private field `httpMessage` is only used to access its headers(), so renaming it to `headers` improves clarity by aligning the name with its limited responsibility.",
+                        "final_code": "private final HttpMessage headers;",
+                        "execution_details": "Rename the field declaration from\n  private final HttpMessage httpMessage;\nto\n  private final HttpMessage headers;",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/HttpMessageBackedHeaders.java"
+                    },
+                    {
+                        "reason": "Constructor parameter and assignment must match the renamed field.",
+                        "final_code": "public HttpMessageBackedHeaders(HttpMessage headers) {\n  this.headers = headers;\n}  ",
+                        "execution_details": "Change the constructor signature and assignment from\n  public HttpMessageBackedHeaders(HttpMessage httpMessage) {\n    this.httpMessage = httpMessage;\n  }\nto\n  public HttpMessageBackedHeaders(HttpMessage headers) {\n    this.headers = headers;\n  }",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/HttpMessageBackedHeaders.java"
+                    },
+                    {
+                        "reason": "All internal references to `httpMessage.headers()` must use the renamed field `headers.headers()`.",
+                        "final_code": "public String get(String name) {\n  return headers.headers().get(name);\n}\n\npublic Date getDate(String name) {\n  return HttpHeaders.getDateHeader(headers, name, null);\n}\n\npublic List<String> getAll(String name) {\n  return headers.headers().getAll(name);\n}\n\npublic boolean contains(String name) {\n  return headers.headers().contains(name);\n}\n\npublic Set<String> getNames() {\n  return headers.headers().names();\n}",
+                        "execution_details": "In each method, replace `httpMessage.headers()` with `headers.headers()`: \n- get(name)\n- getDate(name)\n- getAll(name)\n- contains(name)\n- getNames()",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/HttpMessageBackedHeaders.java"
+                    }
+                ]
+            },
+            "augmented_intent": "In any class or method where a variable, parameter, or field of type HttpMessage is used exclusively to access its headers(), rename it to headers. Update the field declaration, constructor parameter, method calls, documentation, and related tests to use the new name, ensuring consistency and clarity by aligning the delegate name with its limited responsibility."
+        }
+    },
+    {
+        "id": 825,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Drop redundant \u201cHeader\u201d suffix from DefaultResponse.addHeader to align with HttpHeaders.add()",
+                        "final_code": "public void add(String name, Object value) {\n  if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {\n    contentLengthSet = true;\n  }\n  if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {\n    contentTypeSet = true;\n  }\n  response.headers().add(name, value);\n}",
+                        "execution_details": "In DefaultResponse.java, invoke IntelliJ\u2019s Rename refactoring on the method addHeader(String,Object) to rename it to add(String,Object), updating all callers and imports.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Preserve backward compatibility for addHeader in DefaultResponse",
+                        "final_code": "/**\n * @deprecated use {@link #add(String,Object)}\n */\n@Deprecated\npublic void addHeader(String name, Object value) {\n  add(name, value);\n}",
+                        "execution_details": "Immediately below the new add(...) method, add a deprecated stub for addHeader(String,Object) that delegates to add(name,value).",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Unify setting headers under set() in DefaultResponse",
+                        "final_code": "public void set(String name, Object value) {\n  if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {\n    contentLengthSet = true;\n  }\n  if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {\n    contentTypeSet = true;\n  }\n  response.headers().set(name, value);\n}\n\npublic void set(String name, Iterable<?> values) {\n  if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {\n    contentLengthSet = true;\n  }\n  if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {\n    contentTypeSet = true;\n  }\n  response.headers().set(name, values);\n}",
+                        "execution_details": "In DefaultResponse.java, rename both overloads of setHeader (String,Object) and setHeader (String,Iterable<?>) to set(...) via Rename refactoring, updating all call sites.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Preserve backward compatibility for setHeader in DefaultResponse",
+                        "final_code": "/**\n * @deprecated use {@link #set(String,Object)}\n */\n@Deprecated\npublic void setHeader(String name, Object value) {\n  set(name, value);\n}\n\n/**\n * @deprecated use {@link #set(String,Iterable)}\n */\n@Deprecated\npublic void setHeader(String name, Iterable<?> values) {\n  set(name, values);\n}",
+                        "execution_details": "After the new set(...) methods, insert deprecated stubs for both setHeader signatures delegating to set(...).",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Unify removal of headers under remove() in DefaultResponse",
+                        "final_code": "public void remove(String name) {\n  if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {\n    contentLengthSet = false;\n  }\n  if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {\n    contentTypeSet = false;\n  }\n  response.headers().remove(name);\n}",
+                        "execution_details": "Use Rename refactoring on removeHeader(String) to rename it to remove(String), updating all usages.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Preserve backward compatibility for removeHeader in DefaultResponse",
+                        "final_code": "/**\n * @deprecated use {@link #remove(String)}\n */\n@Deprecated\npublic void removeHeader(String name) {\n  remove(name);\n}",
+                        "execution_details": "Add a deprecated stub removeHeader(String) immediately after remove(...).",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Unify clearing headers under clear() in DefaultResponse",
+                        "final_code": "public void clear() {\n  contentLengthSet = false;\n  contentTypeSet = false;\n  response.headers().clear();\n}",
+                        "execution_details": "Rename clearHeaders() to clear() via Rename refactoring, updating all references.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Preserve backward compatibility for clearHeaders in DefaultResponse",
+                        "final_code": "/**\n * @deprecated use {@link #clear()}\n */\n@Deprecated\npublic void clearHeaders() {\n  clear();\n}",
+                        "execution_details": "Add a deprecated stub clearHeaders() that delegates to clear().",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Apply the same add/set/remove/clear renames in DefaultRequest",
+                        "final_code": "public Response add(String name, Object value) { /* ... */ }\npublic Response set(String name, Object value) { /* ... */ }\npublic Response remove(String name) { /* ... */ }\npublic Response clear() { /* ... */ }",
+                        "execution_details": "In DefaultRequest.java, use Rename refactoring to change addHeader\u2192add, setHeader\u2192set, removeHeader\u2192remove, clearHeaders\u2192clear, updating all callers.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Preserve backward compatibility in DefaultRequest",
+                        "final_code": "/** @deprecated use {@link #add(String,Object)} */ @Deprecated public void addHeader(String name, Object value) { add(name, value); }\n/** @deprecated use {@link #set(String,Object)} */ @Deprecated public void setHeader(String name, Object value) { set(name, value); }\n/** @deprecated use {@link #remove(String)} */ @Deprecated public void removeHeader(String name) { remove(name); }\n/** @deprecated use {@link #clear()} */ @Deprecated public void clearHeaders() { clear(); }",
+                        "execution_details": "Add deprecated stubs for addHeader, setHeader, removeHeader, clearHeaders in DefaultRequest.java delegating to the new methods.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Propagate header-method renames to other HTTP-header wrapper classes",
+                        "final_code": "// example in SomeHeaderWrapper.java after refactoring\npublic void add(String name, Object value) { internalHeaders.add(name, value); }\npublic void set(String name, Object value) { internalHeaders.set(name, value); }\npublic void remove(String name) { internalHeaders.remove(name); }\npublic void clear() { internalHeaders.clear(); }",
+                        "execution_details": "Perform an IDE structural search in ratpack-core/src/main/java for methods named addHeader, setHeader, removeHeader, clearHeaders in any class under org.ratpackframework.http, and apply Rename refactoring to add, set, remove, clear respectively, updating all references.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Preserve backward compatibility in other header\u2010wrapping classes",
+                        "final_code": "// in OtherHeaderWrapper.java\n@Deprecated public void addHeader(String n, Object v){add(n,v);}  \n@Deprecated public void setHeader(String n, Object v){set(n,v);}  \n@Deprecated public void removeHeader(String n){remove(n);}  \n@Deprecated public void clearHeaders(){clear();}",
+                        "execution_details": "In each class renamed above, add deprecated stubs for the old addHeader/setHeader/removeHeader/clearHeaders methods delegating to the new API.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Update tests to call the new add()/set()/remove()/clear() methods",
+                        "final_code": "// before: response.addHeader(\"X\", \"v\");\n// after:  response.add(\"X\", \"v\");",
+                        "execution_details": "In ratpack-core/src/test/java, use Rename refactoring to change all invocations of addHeader(...), setHeader(...), removeHeader(...), clearHeaders() to add(...), set(...), remove(...), clear().",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    },
+                    {
+                        "reason": "Synchronize documentation with the new header API",
+                        "final_code": "/** Use {@link Response#add(String,Object)} instead of addHeader. */",
+                        "execution_details": "In documentation (src/main/resources and docs/) search for addHeader, setHeader, removeHeader, clearHeaders in Javadoc and Markdown and replace with add, set, remove, clear, updating @link tags accordingly.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultResponse.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Rename the addHeader method to add across this and other header\u2010wrapping classes to align with the underlying HttpHeaders.add() API. Drop the redundant \u201cHeader\u201d suffix in any DSL where headers are implied, unify naming into an add()/set()/remove() triad, update corresponding methods in similar builders (e.g. cookie, query param, JSON), adjust imports, tests, and documentation, and deprecate the old addHeader signatures for backward compatibility."
+        }
+    },
+    {
+        "id": 826,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Avoid name conflict with ratpack.handling.Chain and reflect Groovy-specific API in the interface name.",
+                        "final_code": "package ratpack.groovy.handling;\n\npublic interface GroovyChain extends ratpack.handling.Chain {\n  // \u2026",
+                        "execution_details": "Use IntelliJ Rename refactoring on the file and the interface declaration: rename file Chain.java \u2192 GroovyChain.java and rename interface Chain \u2192 GroovyChain.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/handling/Chain.java"
+                    },
+                    {
+                        "reason": "Update all method signatures to return the new interface type.",
+                        "final_code": "  @Override\n  GroovyChain handler(Handler handler);\n\n  GroovyChain handler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);\n  // \u2026",
+                        "execution_details": "Use Change Signature refactoring on each method that returns Chain: change return type from Chain to GroovyChain, including overridden methods annotated with @Override.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/handling/Chain.java"
+                    },
+                    {
+                        "reason": "Ensure DelegatesTo annotations point to the renamed interface.",
+                        "final_code": "  Chain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);\n  // \u2026",
+                        "execution_details": "Find all occurrences of @DelegatesTo(value = Chain.class, ...) and update the value to GroovyChain.class.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/handling/Chain.java"
+                    },
+                    {
+                        "reason": "Keep Javadoc references consistent with the new interface name.",
+                        "final_code": " * <p>\n * These methods are generally shortcuts for {@link #handler(ratpack.handling.Handler)} on this underlying chain.\n * See {@link GroovyChain#handler(String, ratpack.handling.Handler)} for more details.\n",
+                        "execution_details": "Globally replace all occurrences of {@link Chain# with {@link GroovyChain# in Javadoc comments.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/handling/Chain.java"
+                    },
+                    {
+                        "reason": "Update import statements in the codebase to reference GroovyChain instead of Chain.",
+                        "final_code": "import ratpack.groovy.handling.GroovyChain;\n",
+                        "execution_details": "Search for import ratpack.groovy.handling.Chain and replace with import ratpack.groovy.handling.GroovyChain in all Java source files.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/handling/Chain.java"
+                    },
+                    {
+                        "reason": "Ensure tests refer to the renamed interface.",
+                        "final_code": "import ratpack.groovy.handling.GroovyChain;\n\npublic class GroovyChainTest {\n  private GroovyChain chain;\n  // \u2026",
+                        "execution_details": "Search for all test classes and methods that import or reference Chain and update them to import and use GroovyChain.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/handling/Chain.java"
+                    },
+                    {
+                        "reason": "Keep example code in resources in sync with the renamed interface.",
+                        "final_code": "import ratpack.groovy.handling.GroovyChain\n\ndef chain = GroovyChain.of { get { ctx.render 'ok' } }\n",
+                        "execution_details": "Search and replace references to Chain in Groovy example scripts to GroovyChain, updating both imports and type names.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/handling/Chain.java"
+                    },
+                    {
+                        "reason": "Prevent outdated references in documentation.",
+                        "final_code": "You can build a handler chain with GroovyChain by importing `ratpack.groovy.handling.GroovyChain`.\n",
+                        "execution_details": "Search for 'ratpack.groovy.handling.Chain' and standalone 'Chain' links in Markdown and replace with 'ratpack.groovy.handling.GroovyChain'.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-groovy/src/main/java/ratpack/groovy/handling/Chain.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Rename the Groovy-specific DSL interface named Chain to GroovyChain across the codebase: update the interface declaration and file name from Chain.java to GroovyChain.java, adjust all import statements and package declarations, change return types and overridden method signatures, update @DelegatesTo annotation values and Javadoc @link references, and modify any tests, examples, or documentation that refer to Chain to prevent conflicts with ratpack.handling.Chain."
         }
     }
 ]

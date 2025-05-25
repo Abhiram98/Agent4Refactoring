@@ -13,6 +13,7 @@ import argparse
 import refagent.agents.refactrix.refactoring_agent as ra
 import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
+import refagent.agents.refactrix.react_agent as react_agent
 
 import langsmith as ls
 
@@ -37,7 +38,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     else:
         plan_type = planning.PlanningComponent
 
-    agent = ra.Agent(ide_server=ij_server,
+    agent = react_agent.ReactAgent(ide_server=ij_server,
                      model_name='openai:gpt-4o-mini',
                      reasoning_model_name='openai:o4-mini',
                      project=project,

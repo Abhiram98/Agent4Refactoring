@@ -14,6 +14,13 @@ class ExtractionType(Enum):
     CLASS = "class"
     ENUM = "enum"
 
+class CodeElementType(Enum):
+    METHOD = "method"
+    FIELD = "field"
+    CLASS = "class"
+    PARAMETER = "parameter"
+    VARIABLE = "variable"
+
 class SupportedRefactorings(Enum):
     EXTRACT_METHOD = "extract_method"
     RENAME = "rename"

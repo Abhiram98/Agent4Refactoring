@@ -61,12 +61,14 @@ class RefactoringToolProvider(BaseModel):
         @tool
         def rename(old_name: Annotated[str, "The name of the variable to be renamed."],
                    new_name: Annotated[str, "The new name for the variable."],
+                   code_element_type: Annotated[sup_ref.CodeElementType,
+                   "The type of entity to be renamed. Choose from 'variable', 'field', 'class', 'method', 'parameter'."],
                    line_num:  Annotated[int, "The line number to identify the variable using,"
                                              "if there are multiple variables with "
                                              "the same name"]):
             """Renames occurrences of an entity (variable, field, class) within the scope of a method/class.
             Please provide a line number to identify the entity at."""
-            return self.ide_server.call_tool("rename", old_name=old_name, new_name=new_name, line_num=line_num)
+            return self.ide_server.call_tool("rename", old_name=old_name, new_name=new_name, line_num=line_num, code_element_type=code_element_type.value)
 
         @tool
         def replace_file_contents(
