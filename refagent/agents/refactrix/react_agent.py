@@ -15,7 +15,7 @@ class ReactAgent(ra.Agent):
     MAX_FAILING_TOOL_CALLS: int = 3
 
     def execute_plan(self, initial_intent, model, ref_plan, ask_finished_first_iteration=False):
-        print(f"Executing step {1}/{len(ref_plan.steps)} in plan.")
+        print("Executing a 1 step plan, in a react loop.")
         self._iterations = 0
         self._failing_tool_call_count = 0
 
@@ -31,7 +31,7 @@ class ReactAgent(ra.Agent):
                                        initial_intent=self.augmented_intent,
                                        plan_step=step,
                                        step_count=0,
-                                       ask_finished_first_iteration=ask_finished_first_iteration)
+                                       ask_finished_first_iteration=True)
             final_state = graph.invoke(
                 {
                     "messages": [
