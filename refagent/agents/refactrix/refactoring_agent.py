@@ -60,6 +60,10 @@ class Agent(BaseModel):
     max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
     augmented_intent: Optional[str] = Field(description="the intent to be refactored", default=None)
     do_replication: bool = Field(description="whether to run replication", default=True)
+
+    MAX_GRAPH_ITERATION: int = Field(description="The maximum number of iterations to run the graph for.", default=5)
+    MAX_FAILING_TOOL_CALLS: int = Field(description="The maximum number of failing tool calls to allow before aborting.", default=1)
+
     _files_changed: set[Path] = PrivateAttr(default=set())
     _directly_edited_files: set[Path] = PrivateAttr(default=set())
     _source_code: str = PrivateAttr(default="")
@@ -486,12 +490,12 @@ class Agent(BaseModel):
             if not ask_finished_first_iteration and step_count == 0 and self._iterations == 0:
                 return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
-            if self._iterations >= 5:
+            if self._iterations >= self.MAX_GRAPH_ITERATION:
                 # Stopping because limit has been reached.
                 return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
 
-            if self._failing_tool_call_count >=1:
-                return {'messages': [AIMessage('finished because tool calls failed more than once. DONE')]}
+            if self._failing_tool_call_count >= self.MAX_FAILING_TOOL_CALLS:
+                return {'messages': [AIMessage(f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
 
             if self.ide_server.call_tool_get("get_source_code") == '':
                 return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
