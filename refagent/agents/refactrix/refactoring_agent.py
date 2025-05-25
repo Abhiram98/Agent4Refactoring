@@ -501,7 +501,7 @@ class Agent(BaseModel):
                 return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
 
             response = self._reasoning_model.invoke(state['messages'] +
-                         [HumanMessage('Please reflect whether the original ask has been completed successfully'
+                         [HumanMessage('Please reflect whether the original ask has been completed successfully (for the given file)'
                                        f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
                                        f'{self.get_changed_file_contents().content}'
                                        f'Please reflect whether the task is complete, '
