@@ -13759,5 +13759,230 @@
             },
             "augmented_intent": "Summarise the approach: rename the exec() method to fork() in DefaultExecution (line 90) and its declaration in ExecControl, update all call sites, adjust related types and imports, and revise documentation and tests to use the new fork() terminology consistently to reflect the branching semantics."
         }
+    },
+    {
+        "id": 814,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename class and file to use precise term 'Blocking' instead of 'Background'.",
+                        "final_code": "package ratpack.codahale.metrics.internal;\n\npublic class BlockingExecTimingInterceptor implements ExecInterceptor {\n  private final MetricRegistry metricRegistry;\n  private final Request request;\n\n  public BlockingExecTimingInterceptor(MetricRegistry metricRegistry, Request request) {\n    this.metricRegistry = metricRegistry;\n    this.request = request;\n  }\n\n  @Override\n  public void intercept(ExecType type, Runnable continuation) {\n    // ...\n  }\n\n  private String buildBackgroundTimerTag(String requestUri, String requestMethod) {\n    // ...\n  }\n} ",
+                        "execution_details": "In IntelliJ IDEA, right-click on the class name BackgroundExecTimingInterceptor \u2192 Refactor \u2192 Rename \u2192 enter BlockingExecTimingInterceptor \u2192 Apply. Confirm renaming of the file to BlockingExecTimingInterceptor.java and update the constructor name.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Rename helper method to reflect 'Blocking' instead of 'Background'.",
+                        "final_code": "@Override\npublic void intercept(ExecType type, Runnable continuation) {\n  if (type == ExecType.BLOCKING) {\n    String tag = buildBlockingTimerTag(request.getUri(), request.getMethod().getName());\n    Timer.Context timer = metricRegistry.timer(tag).time();\n    continuation.run();\n    timer.stop();\n  } else {\n    continuation.run();\n  }\n}\n\nprivate String buildBlockingTimerTag(String requestUri, String requestMethod) {\n  // ...\n} ",
+                        "execution_details": "In IDEA, place the caret on method name buildBackgroundTimerTag \u2192 Refactor \u2192 Rename \u2192 enter buildBlockingTimerTag \u2192 Apply. This will update the declaration and all invocations inside the class.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Update metrics tag suffix to use 'Blocking' instead of 'Background'.",
+                        "final_code": "private String buildBlockingTimerTag(String requestUri, String requestMethod) {\n  return (requestUri.equals(\"/\") ? \"[root\" : requestUri.replaceFirst(\"/\", \"[\").replace(\"/\", \"][\")) + \"]~\" + requestMethod + \"~Blocking\";\n} ",
+                        "execution_details": "In the buildBlockingTimerTag method body, replace the string literal \"~Background\" with \"~Blocking\".",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Update all imports and instantiations across the main codebase to the new class name.",
+                        "final_code": "// Example updated import in any file:\nimport ratpack.codahale.metrics.internal.BlockingExecTimingInterceptor;\n\n// Example updated instantiation:\nnew BlockingExecTimingInterceptor(metricRegistry, request) ",
+                        "execution_details": "Perform a project-wide rename of BackgroundExecTimingInterceptor \u2192 BlockingExecTimingInterceptor. This updates import statements and constructor calls everywhere in src/main/java.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Update test code references to the renamed interceptor.",
+                        "final_code": "// Example updated import in a test:\nimport ratpack.codahale.metrics.internal.BlockingExecTimingInterceptor;\n\n// Example usage in a test:\nBlockingExecTimingInterceptor interceptor = new BlockingExecTimingInterceptor(metricRegistry, request); ",
+                        "execution_details": "Perform a project-wide rename of BackgroundExecTimingInterceptor \u2192 BlockingExecTimingInterceptor in src/test/java. This updates imports, mocks, and any direct references in tests.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    },
+                    {
+                        "reason": "Update documentation to use the new class name and metric tag suffix.",
+                        "final_code": "// Example in a markdown doc:\n### BlockingExecTimingInterceptor\n\nThe `BlockingExecTimingInterceptor` measures the execution time of blocking operations and records metrics with tags ending in `~Blocking`. ",
+                        "execution_details": "Run a find-and-replace across documentation files, replacing BackgroundExecTimingInterceptor \u2192 BlockingExecTimingInterceptor and ~Background \u2192 ~Blocking.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-codahale-metrics/src/main/java/ratpack/codahale/metrics/internal/BackgroundExecTimingInterceptor.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Rename the class BackgroundExecTimingInterceptor to BlockingExecTimingInterceptor and update every related reference\u2014file name, class declaration, constructor, imports, intercept registrations, metrics tag builders, tests, documentation, and other occurrences\u2014to consistently use the precise term \u201cBlocking\u201d for ExecType.BLOCKING across the codebase."
+        }
+    },
+    {
+        "id": 815,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Introduce the new public API method for parser options type and deprecate the old one in the Parser interface to maintain backward compatibility",
+                        "final_code": "/**\n * Returns the parser options type.\n */\nClass<T> getOptsType();\n\n/**\n * @deprecated use {@link #getOptsType()} instead\n */\n@Deprecated\ndefault Class<T> getParsedType() {\n  return getOptsType();\n}",
+                        "execution_details": "Edit the Parser interface: add a new abstract method getOptsType(); mark the existing getParsedType() as @Deprecated and provide a default implementation that delegates to getOptsType(). Use IntelliJ\u2019s method insertion and deprecation quick-fixes.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Align the private field in ParserSupport to the new naming for options type",
+                        "final_code": "private final Class<T> optsType;",
+                        "execution_details": "Use IntelliJ Rename refactoring on the field declaration: change 'private final Class<T> parsedType' to 'private final Class<T> optsType'. This will update all constructor assignments and internal references.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Rename the overridden getter in ParserSupport to match the new API",
+                        "final_code": "@Override\npublic Class<T> getOptsType() {\n  return optsType;\n}",
+                        "execution_details": "Apply Rename refactoring on the method 'getParsedType()' to 'getOptsType()'. Update signature, @Override annotation, and return statements.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Provide a deprecated bridge in ParserSupport so existing callers of getParsedType() still compile",
+                        "final_code": "/**\n * @deprecated Use {@link #getOptsType()} instead.\n */\n@Deprecated\npublic Class<T> getParsedType() {\n  return getOptsType();\n}",
+                        "execution_details": "Add a new deprecated method getParsedType() that calls getOptsType(), annotated with @Deprecated and Javadoc pointing to the new method.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Update Javadoc references in ParserSupport to use the new method name",
+                        "final_code": "/** {@inheritDoc} {@link Parser#getOptsType} */",
+                        "execution_details": "Run structural replace in Javadoc: change '{@link Parser#getParsedType}' to '{@link Parser#getOptsType}' and all textual references of 'getParsedType()' to 'getOptsType()'.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Update the code example in ParserSupport\u2019s class-level Javadoc to reflect the new API",
+                        "final_code": "// Example usage\nClass<?> optsClass = new MaxLengthStringParser().getOptsType();\n",
+                        "execution_details": "In the <pre> test example at the top of the file, replace any call to getParsedType() or direct mention of parsedType with getOptsType() or optsType.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Rename all test code that refers to the old getter or field name",
+                        "final_code": "assertEquals(String.class, myParser.getOptsType());",
+                        "execution_details": "Use IntelliJ\u2019s Rename refactoring across the test sources: change calls to getParsedType() to getOptsType(), and any direct inspected field names of parsedType to optsType.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    },
+                    {
+                        "reason": "Document the API change in the project\u2019s release notes for migration guidance",
+                        "final_code": "### Deprecated method rename\n- `Parser.getParsedType()` \u2192 deprecated, use `Parser.getOptsType()`\n- `ParserSupport` field `parsedType` renamed to `optsType`",
+                        "execution_details": "Add an entry under the upcoming version header: note that Parser.getParsedType() is deprecated in favor of getOptsType(), and that ParserSupport now exposes getOptsType().",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/ratpack/parse/ParserSupport.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Identify and rename every occurrence of parsedType\u2014including field declarations, generic type parameters, getters, setters, constructor assignments, method names, Javadoc comments, documentation examples, and tests\u2014to optsType so that names reflect their role as parser options types. Ensure imports, static utility calls (e.g., findImplParameterTypeAtIndex usages), and API signatures are updated or deprecated in place. Provide migration notes for public APIs, update code examples and comments, and run existing test suites to validate the rename is complete and consistent."
+        }
+    },
+    {
+        "id": 816,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename the RouteHandler class to WhenHandler and update all references in code",
+                        "final_code": "package ratpack.http.internal;\n\nimport ratpack.func.Predicate;\nimport ratpack.handling.Context;\nimport ratpack.handling.Handler;\n\npublic class WhenHandler implements Handler {\n\n  private final Predicate<? super Context> test;\n  private final Handler handler;\n\n  public WhenHandler(Predicate<? super Context> test, Handler handler) {\n    this.test = test;\n    this.handler = handler;\n  }\n\n  @Override\n  public void handle(Context ctx) throws Exception {\n    if (test.apply(ctx)) {\n      ctx.insert(handler);\n    } else {\n      ctx.next();\n    }\n  }\n}",
+                        "execution_details": "In IntelliJ, invoke Rename refactoring (Shift+F6) on the class symbol \u2018RouteHandler\u2019 and rename it to \u2018WhenHandler\u2019. Scope: Entire Project.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    },
+                    {
+                        "reason": "Rename source file to match the new class name",
+                        "final_code": "ratpack-core/src/main/java/ratpack/http/internal/WhenHandler.java",
+                        "execution_details": "Use IntelliJ\u2019s Move/Rename (F6) to rename the file \u2018RouteHandler.java\u2019 to \u2018WhenHandler.java\u2019. IntelliJ will update references automatically.",
+                        "refactoring_type": "move",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    },
+                    {
+                        "reason": "Update DSL usage from route(...) to when(...) across code and documentation",
+                        "final_code": "// Before in Router DSL examples:\n//   route(ctx -> ctx.getPath().startsWith(\"/foo\"), fooHandler)\n// After replacement:\n//   when(ctx -> ctx.getPath().startsWith(\"/foo\"), fooHandler)",
+                        "execution_details": "Perform a structural search for \".route\\(\" in all .java and .md files under ratpack-core/src and replace with \".when(\". Review each replacement to ensure no unintended side effects.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    },
+                    {
+                        "reason": "Update all imports and references in test code to use WhenHandler and when(...)",
+                        "final_code": "// Example in a test:\n// Before:\n//   RouteHandler handler = new RouteHandler(predicate, action);\n//   router.route(predicate, action);\n// After:\n//   WhenHandler handler = new WhenHandler(predicate, action);\n//   router.when(predicate, action);",
+                        "execution_details": "In IntelliJ, run Rename refactoring on symbol \u2018RouteHandler\u2019 in test source root to \u2018WhenHandler\u2019, and apply the same structural search/replace of \u2018route(\u2019 to \u2018when(\u2019 in test code.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    },
+                    {
+                        "reason": "Provide a deprecated shim of the old RouteHandler to maintain binary compatibility",
+                        "final_code": "package ratpack.http.internal;\n\nimport ratpack.func.Predicate;\nimport ratpack.handling.Context;\nimport ratpack.handling.Handler;\n\n/**\n * @deprecated use {@link WhenHandler} instead.\n */\n@Deprecated\npublic class RouteHandler extends WhenHandler {\n\n  public RouteHandler(Predicate<? super Context> test, Handler handler) {\n    super(test, handler);\n  }\n}",
+                        "execution_details": "Create a new class file at this path containing a deprecated subclass of WhenHandler that delegates to the new implementation.",
+                        "refactoring_type": "not_supported",
+                        "file_path": "ratpack-core/src/main/java/ratpack/http/internal/RouteHandler.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Apply the same rename throughout the codebase: rename the RouteHandler class to WhenHandler in all source files (class declaration, constructors, imports, variable names), update any related route/predicate handler classes, adjust documentation and DSL examples from \u2018route(\u2026)\u2019 to \u2018when(\u2026)\u2019, refactor tests and configuration references accordingly, and add deprecation notices or shims if needed to avoid breaking existing public APIs."
+        }
+    },
+    {
+        "id": 817,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename ConfigDataSpec interface to follow builder naming convention and update all code references and documentation",
+                        "final_code": "public interface ConfigDataBuilder {",
+                        "execution_details": "In IntelliJ IDEA, open ratpack-core/src/main/java/ratpack/config/ConfigDataSpec.java. Place the caret on the declaration of 'ConfigDataSpec'. Invoke Refactor > Rename (Shift+F6). Change the name to 'ConfigDataBuilder'. In the rename dialog, check 'Search in comments and strings' and 'Include non-code files'. Preview the refactoring to ensure Javadoc tags ({@link ConfigDataSpec}), example code in comments, package-level Javadoc links, imports, method return types, variable declarations, and file name are all updated, then apply.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/config/ConfigDataSpec.java"
+                    },
+                    {
+                        "reason": "Rename all other builder-style *Spec interfaces to *Builder for consistent naming",
+                        "final_code": "public interface ${Name}Builder {",
+                        "execution_details": "Use IntelliJ IDEA to locate all interfaces under src/main/java whose names end with 'Spec' and whose methods return their own type (i.e. builder pattern). For each found file (e.g. XxxSpec.java), open it, place the caret on the interface name, invoke Refactor > Rename (Shift+F6), and change the 'Spec' suffix to 'Builder'. In the rename dialog, enable 'Search in comments and strings' and 'Include non-code files'. Preview each refactoring to confirm that declarations, file names, imports, Javadoc references, example code in comments, and any string literals are updated, then apply.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/ratpack/config/ConfigDataSpec.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Refactor the interface and its usages to follow the builder naming convention: rename the ConfigDataSpec interface to ConfigDataBuilder, update all references in code (method signatures, return types, variable declarations, imports, and package-level Javadoc links), adjust JavaDoc comments to refer to ConfigDataBuilder instead of ConfigDataSpec, and apply the same rename pattern for any other *Spec builder-style types across the codebase."
+        }
+    },
+    {
+        "id": 818,
+        "response": {
+            "plan": {
+                "steps": [
+                    {
+                        "reason": "Rename the ErrorHandlingContext interface to conform to the new single-method \u2018Handler\u2019 suffix convention and update the file name accordingly.",
+                        "final_code": "package org.ratpackframework.error;\n\nimport org.ratpackframework.routing.Exchange;\n\npublic interface ErrorHandler {\n\n  void error(Exchange exchange, Exception exception);\n\n}",
+                        "execution_details": "In IntelliJ IDEA, right-click on the interface name ErrorHandlingContext, select Refactor \u2192 Rename (Shift+F6), set the new name to ErrorHandler, enable \u201cSearch in comments and strings\u201d and \u201cSearch for text occurrences\u201d, and apply. This will also rename the file to ErrorHandler.java.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/error/ErrorHandlingContext.java"
+                    },
+                    {
+                        "reason": "Update all import statements in routing modules to reference the renamed interface.",
+                        "final_code": "import org.ratpackframework.error.ErrorHandler;",
+                        "execution_details": "Use IntelliJ\u2019s Rename refactoring on the import declaration. In any routing class that imports org.ratpackframework.error.ErrorHandlingContext, invoke Refactor \u2192 Rename on the import name and change it to ErrorHandler (this will update all usages).",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/error/ErrorHandlingContext.java"
+                    },
+                    {
+                        "reason": "Update all import statements in test code to reference the renamed interface.",
+                        "final_code": "import org.ratpackframework.error.ErrorHandler;",
+                        "execution_details": "In test classes importing ErrorHandlingContext, invoke Refactor \u2192 Rename on the import identifier and change to ErrorHandler so that all test references are updated automatically.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/error/ErrorHandlingContext.java"
+                    },
+                    {
+                        "reason": "Correct references in documentation to use the new ErrorHandler name.",
+                        "final_code": "== Error Handling\nUse the ErrorHandler interface to implement custom error logic...",
+                        "execution_details": "Open each .adoc file, select occurrences of ErrorHandlingContext, and invoke Refactor \u2192 Rename to ErrorHandler with \u201cSearch in comments and strings\u201d enabled so all doc references are updated.",
+                        "refactoring_type": "rename",
+                        "file_path": "ratpack-core/src/main/java/org/ratpackframework/error/ErrorHandlingContext.java"
+                    }
+                ]
+            },
+            "augmented_intent": "Update the ErrorHandlingContext interface and all related references to the new ErrorHandler name across the codebase: rename the source file, change the interface declaration, update import statements and usages in routing, tests, and documentation to maintain consistent \u2018Handler\u2019 suffix for single-method types."
+        }
     }
 ]

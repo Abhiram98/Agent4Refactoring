@@ -111,14 +111,70 @@ def update_intent():
         concept = sorted(co_rename_df[['oldName', 'newName', 'type', 'file', 'line']].to_dict(orient='records'),
                          key=name_sort_key)
 
-        matching_entry['improved_commit_message'] = f"Rename entity {concept[0]['oldName']} -> {concept[0]['newName']} on line {concept[0]['line']}."
+        matching_entry['improved_commit_message'] = f"Rename {concept[0]['type']} {concept[0]['oldName']} -> {concept[0]['newName']} on line {concept[0]['line']}."
 
     with open(refagent.data_folder.joinpath('renas/ratpack.json'), "w") as f:
         json.dump(ratpack_data, f, indent=4)
 
+def has_match(oracle, element):
+    for i in oracle:
+        if i['oldName'] == element['name'] and i['line']==element['line'] and i['file']==element['files']:
+            return True
 
+    return False
+
+
+def compute_renas_recall():
+    df = pd.read_csv(refagent.data_folder.joinpath('renas/ratpack_manualValidation.csv'))
+    df_filtered = df[(df['coRename'] != -1) & (df['conceptRename?'] == 'TRUE')]
+    groups = list(df_filtered.groupby(['commit', 'coRename']))
+    co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE']) >= 2]
+
+    with open(refagent.data_folder.joinpath('renas/ratpack.json')) as f:
+        ratpack_data = json.load(f)
+
+    with open("/Users/abhiram/Downloads/icsme2024-renas-dataset/projects/ratpack/recommend.json") as f:
+        renas_json = json.load(f)
+
+    renas_recs = []
+
+    for i, co_rename in enumerate(co_renames):
+        commit = co_rename[0][0]
+        co_rename_id = co_rename[0][1]
+
+        matching_entry = [i for i in ratpack_data if i['v2_hash'] == commit and i['corename_id'] == co_rename_id]
+        assert len(matching_entry) == 1
+        matching_entry = matching_entry[0]
+
+
+
+        co_rename_df = co_rename[1]
+        concept = sorted(co_rename_df[['oldName', 'newName', 'type', 'file', 'line']].to_dict(orient='records'),
+                         key=name_sort_key)
+        old_names = co_rename_df['oldName'].tolist()
+        oracle = co_rename_df.to_dict(orient='records')
+
+        goldset = renas_json[commit]['goldset']
+        goldset_index = [i['oldname'] == concept[0]['oldName'] for i in goldset].index(True)
+        assert goldset_index!=-1
+        renas_recommendations = renas_json[commit]['renas'][str(goldset_index)]
+        matching_oracle = [i for i in renas_recommendations if has_match(oracle, i)
+                           # i['name'] in old_names
+                           ]
+
+        renas_recs.append({
+            "id": matching_entry["id"],
+            "renas_recommendations_count": len(renas_recommendations),
+            "renas_recommendations": renas_recommendations,
+            "true_positives": matching_oracle,
+            "precision": len(matching_oracle) / len(renas_recommendations) if len(renas_recommendations) > 0 else 0,
+            "recall": len(matching_oracle) / len(old_names) if len(old_names) > 0 else 0,
+        })
+
+    with open(refagent.data_folder.joinpath('renas/ratpack_renas_recommendations.json'), "w") as f:
+        json.dump(renas_recs, f, indent=4)
 
 if __name__ == '__main__':
-    update_intent()
+    compute_renas_recall()
 
 
