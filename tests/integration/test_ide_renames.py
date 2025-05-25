@@ -220,3 +220,37 @@ def test_rename_compiled_element():
     print(response)
     assert response != 'success'
 
+def test_rename_equal_method_and_param():
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    project.checkout('aee5543003af39deb386843db1be1c791e668605', force=True)
+    response = intellij_server.open_file(
+        rel_file_path=Path("ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyChain.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='handler',
+                                         new_name='path',
+                                         line_num=121,
+                                         code_element_type='parameter'
+                                         )
+    # print(response)
+    assert response == 'success'
+
+def test_rename_equal_method_and_param2():
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    project = pm.EvalProject("ratpack")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    project.checkout('aee5543003af39deb386843db1be1c791e668605', force=True)
+    response = intellij_server.open_file(
+        rel_file_path=Path("ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyChain.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='handler',
+                                         new_name='path',
+                                         line_num=121,
+                                         code_element_type='method'
+                                         )
+    # print(response)
+    assert response == 'success'
+
