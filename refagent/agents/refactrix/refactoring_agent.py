@@ -412,10 +412,10 @@ class Agent(BaseModel):
                 print(f"Since the {refactoring_type} has no specialised tools, supplying generic tools.")
                 return GENERIC_EDITING_TOOLS
 
-        if self._failing_tool_call_count >= 1:
-            # more than one failing tool call, so supply generic tools.
-            print("supplying generic tools, as tool calls are not working")
-            tools += GENERIC_EDITING_TOOLS
+        # if self._failing_tool_call_count >= 1:
+        #     # more than one failing tool call, so supply generic tools.
+        #     print("supplying generic tools, as tool calls are not working")
+        #     tools += GENERIC_EDITING_TOOLS
         return tools
 
     def current_file_empty(self):
