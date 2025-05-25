@@ -75,6 +75,7 @@ def main():
                 #     continue
 
                 if oracle == i:
+                    # if i not in true_positives:
                     true_positives.append(i)
                     if status == "false negative":
                         recall += 1
