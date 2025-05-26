@@ -118,6 +118,10 @@ class Rename(RefminerOut):
     def parent_method_signature(self):
         return self.description.split('in method ')[-1].split(' from class')[0]
 
+    @property
+    def start_line(self):
+        return self.leftSideLocations[0].startLine
+
     def __eq__(self, other: RefminerOut):
         if not self.base_eq(other):  # Call the parent class equality check
             return False
@@ -127,6 +131,10 @@ class Rename(RefminerOut):
 
 class RenameMethod(Rename):
     TYPE: ClassVar[str] = 'Rename Method'
+
+    def __eq__(self, other):
+        return (super().__eq__(other) and
+                self.start_line == other.start_line)
 
 
 class RenameVariable(Rename):
