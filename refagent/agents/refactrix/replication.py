@@ -185,7 +185,7 @@ class Replication(BaseModel):
                     HumanMessage(
                                 f"Here is the intent of the developer: "
                                  f"{self.initial_intent}"
-                                 f"Here are the EXACT kinds of refactorings that "
+                                 f"Here are the kinds of refactorings that "
                                  f"need to be replicated. These refactorings were already performed:\n"
                                  f"{examples}"),
                     HumanMessage("Answer the following question: "
