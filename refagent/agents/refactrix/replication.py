@@ -64,36 +64,36 @@ class Replication(BaseModel):
 
         files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect) if i!=self.starting_file]
 
-        def handle_file(file_path) -> Optional[planning.RefactoringPlan] :
-            try:
-                ask_replicate = self.compile(file_path)
-                should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
-                print(should_replicate.content)
-
-                if 'YES' in should_replicate.content:  # should replicate the content
-                    plan = planning.PlanningComponent(
-                        initial_intent=self.initial_intent + should_replicate.content,
-                        model=self.model,
-                        source_file_path=file_path,
-                        source_code=self.project.get_file_contents(file_path),
-                    ).run()
-                    for step in plan.steps:
-                        step.file_path = file_path # hard code the file path, so that the correct file is opened.
-                    return plan
-            except Exception as e:
-                print(f"Error compiling and running replication for file {file_path}: {e}")
-                traceback.print_exc()
-            return None
-
 
         with ContextThreadPoolExecutor(max_workers=4) as executor:
-            futures = {executor.submit(handle_file, file_path): file_path for file_path in files_to_inspect}
+            futures = {executor.submit(self.handle_file, file_path): file_path for file_path in files_to_inspect}
             for i, future in enumerate(as_completed(futures)):
                 print(f"completed planning for: {i + 1}/{len(futures)}")
                 result = future.result()
                 if result is not None:
                     yield result
 
+        return None
+
+    def handle_file(self, file_path) -> Optional[planning.RefactoringPlan]:
+        try:
+            ask_replicate = self.compile(file_path)
+            should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
+            print(should_replicate.content)
+
+            if 'YES' in should_replicate.content:  # should replicate the content
+                plan = planning.PlanningComponent(
+                    initial_intent=self.initial_intent + should_replicate.content,
+                    model=self.model,
+                    source_file_path=file_path,
+                    source_code=self.project.get_file_contents(file_path),
+                ).run()
+                for step in plan.steps:
+                    step.file_path = file_path  # hard code the file path, so that the correct file is opened.
+                return plan
+        except Exception as e:
+            print(f"Error compiling and running replication for file {file_path}: {e}")
+            traceback.print_exc()
         return None
 
     def get_elements_to_inspect(self, diffs):
@@ -207,3 +207,27 @@ class Replication(BaseModel):
 
 
 
+class SimpleReplication(Replication):
+
+    def handle_file(self, file_path) -> Optional[planning.RefactoringPlan]:
+        try:
+            ask_replicate = self.compile(file_path)
+            should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
+            print(should_replicate.content)
+            if 'YES' in should_replicate.content:  # should replicate the content
+                plan = planning.RefactoringPlan(
+                    steps=[
+                        planning.PlanningStep(
+                            reason=self.initial_intent,
+                            final_code="",
+                            refactoring_type=sup_ref.SupportedRefactorings.RENAME,
+                            file_path=file_path,
+                            execution_details=""
+                        )
+                    ]
+                )
+                return plan
+        except Exception as e:
+            print(f"Error compiling and running replication for file {file_path}: {e}")
+            traceback.print_exc()
+        return None
