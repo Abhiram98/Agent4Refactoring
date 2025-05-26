@@ -149,19 +149,17 @@ class Agent(BaseModel):
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
 
         if self.augmented_intent is None:
-            augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
-        else:
-            augmented_intent = self.augmented_intent
-        current_intent = augmented_intent
+            self.augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
+        current_intent = self.augmented_intent
 
-        current_intent, ref_plan = self.run_agentic_loop(augmented_intent, current_intent, model, starting_file)
+        current_intent, ref_plan = self.run_agentic_loop(current_intent, model, starting_file)
 
         # Run replication component
         if self.do_replication:
-            self.perform_replication(augmented_intent, current_intent, model, ref_plan)
+            self.perform_replication(current_intent, model, ref_plan)
         return None
 
-    def run_agentic_loop(self, augmented_intent, current_intent, model, starting_file):
+    def run_agentic_loop(self, current_intent, model, starting_file):
         for _ in range(self.max_iterations):
             self.update_starting_file(starting_file)
             self._source_code = self.project.get_file_contents(self._starting_file)
@@ -181,7 +179,7 @@ class Agent(BaseModel):
                 ide_server=self.ide_server,
                 original_code=self._original_source_code,
                 refactored_code=self._source_code,
-                intent=augmented_intent
+                intent=self.augmented_intent
             ).compile_and_run()
             self._internal_commits = \
                 [self.project.squash_changes(current_intent, len(self._internal_commits))]
@@ -194,12 +192,12 @@ class Agent(BaseModel):
                 current_intent = quality_result.refined_intent
         return current_intent, ref_plan
 
-    def perform_replication(self, augmented_intent, current_intent, model, ref_plan):
+    def perform_replication(self, current_intent, model, ref_plan):
         replicator = replication.Replication(
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=augmented_intent,  # pass the augmented intent,
+            initial_intent=self.augmented_intent,  # pass the augmented intent,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,
