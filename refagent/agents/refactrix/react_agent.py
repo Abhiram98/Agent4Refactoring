@@ -24,7 +24,6 @@ class ReactAgent(ra.Agent):
         self._failing_tool_call_count = 0
         assert len(ref_plan.steps) == 1
         step = ref_plan.steps[0]
-
         if len(ref_plan.steps) > 0 and open_file:
             self.try_open_file(step.file_path)
 
@@ -80,6 +79,7 @@ class ReactAgent(ra.Agent):
             refactoring_commit=self._internal_commits[0]
         )
         for plan in replicator.compile_and_run():
+            self.initialize_agent(plan.steps[0].file_path) # try to reset the starting file to the new point.
             self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
             self.update_changed_files()
 
