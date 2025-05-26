@@ -503,6 +503,9 @@ class Agent(BaseModel):
             if self._failing_tool_call_count >= self.MAX_FAILING_TOOL_CALLS:
                 return {'messages': [AIMessage(f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
 
+            if self.contains_tool_call_cycle():
+                return {'messages': [AIMessage('finished because tool calls are cycling. DONE')]}
+
             if self.ide_server.call_tool_get("get_source_code") == '':
                 return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
 
@@ -574,4 +577,29 @@ class Agent(BaseModel):
 
     def add_internal_commit(self, commit: Commit):
         self._internal_commits.append(commit)
+
+    def contains_tool_call_cycle(self):
+        if self._performed_refactorings.get(self._starting_file) is None:
+            return False
+
+        try:
+            tool_calls_args = [tc['tool_call']['args'] for tc in self._performed_refactorings[self._starting_file]
+                          if tc['tool_call']['name']=='rename' and tc['result']=='success']
+
+            args_map = defaultdict(int)
+            for arg in tool_calls_args:
+                arg_tuple = (arg['old_name'], arg['new_name'], arg['line_num'], arg['code_element_type'])
+                args_map[arg_tuple] += 1
+
+            for arg in tool_calls_args:
+                arg_tuple = (arg['old_name'], arg['new_name'], arg['line_num'], arg['code_element_type'])
+                reverse_tuple = (arg['new_name'], arg['old_name'], arg['line_num'], arg['code_element_type'])
+
+                if (args_map[arg_tuple] > 1 and args_map[reverse_tuple] > 1
+                        and args_map[arg_tuple] > args_map[reverse_tuple]):
+                    return True
+
+        except:
+            return  False
+
 
