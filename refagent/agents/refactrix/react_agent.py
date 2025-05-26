@@ -14,10 +14,16 @@ class ReactAgent(ra.Agent):
     MAX_GRAPH_ITERATION: int = 10
     MAX_FAILING_TOOL_CALLS: int = 3
 
-    def execute_plan(self, initial_intent, model, ref_plan, ask_finished_first_iteration=False):
+    def execute_plan(self, initial_intent, model, ref_plan,
+                     ask_finished_first_iteration=False,
+                     open_file=False,
+                     ):
         print("Executing a 1 step plan, in a react loop.")
         self._iterations = 0
         self._failing_tool_call_count = 0
+
+        if len(ref_plan.steps) > 0 and open_file:
+            self.try_open_file(ref_plan.steps[0].file_path)
 
         step = planning.PlanningStep(
             reason=self.augmented_intent,
