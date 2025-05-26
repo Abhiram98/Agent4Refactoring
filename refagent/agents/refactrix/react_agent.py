@@ -81,8 +81,13 @@ class ReactAgent(ra.Agent):
         self.MAX_GRAPH_ITERATION = 2
         self.MAX_FAILING_TOOL_CALLS = 1
         for plan in replicator.compile_and_run():
-            self.initialize_agent(plan.steps[0].file_path) # try to reset the starting file to the new point.
-            self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
+            try:
+                self.initialize_agent(plan.steps[0].file_path)  # try to reset the starting file to the new point.
+                self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
+            except:
+                traceback.print_exc()
+                print(f"Execution of replication for file {plan.steps[0].file_path} failed.")
+                break
             self.update_changed_files()
 
 

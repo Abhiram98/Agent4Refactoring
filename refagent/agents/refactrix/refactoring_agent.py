@@ -557,11 +557,18 @@ class Agent(BaseModel):
         changes = []
         if len(self._internal_commits) > 0:
             changes += self.project.get_changes(str(self._internal_commits[-1]))
-        changes += (self.project.get_unstaged_changes() +
+        uncommited_changes = (self.project.get_unstaged_changes() +
                     self.project.get_staged_changes())
+        if len(uncommited_changes) > 0:
+            self.commit_changes("commit changes for analysis")
+            changes += self.project.get_changes(str(self._internal_commits[-1]))
+
         for c in changes[::-1]: # reverse order, so that the staged changes are considered first.
             if c.git_diff.a_path == starting_file:
                 self._starting_file = c.git_diff.b_path
+                if len(uncommited_changes) > 0:
+                    self._internal_commits.pop()
+                    self.project.reset_head(1) # reset the uncommited changes.
                 return c.git_diff.b_path
         return starting_file
 
