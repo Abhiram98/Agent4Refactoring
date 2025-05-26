@@ -55,6 +55,8 @@ class Replication(BaseModel):
         # files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
         diffs = self.project.get_changes(self.refactoring_commit.hexsha)
         elements_to_inspect = self.get_elements_to_inspect(diffs)
+        elements_to_inspect += [(i,1) for i in
+                                self.get_linked_elements(CodeElement(file_path=self.starting_file, line_num=1))]
 
         should_replicate_msg = self.should_replicate()
         if not should_replicate_msg:

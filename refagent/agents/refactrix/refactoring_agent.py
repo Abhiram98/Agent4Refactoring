@@ -336,6 +336,8 @@ class Agent(BaseModel):
         # for rel_file_path in important_files:
         try:
             file_contents = self.project.get_file_contents(self._starting_file)
+            if file_contents == "":
+                raise Exception("File is empty.")
             source = code_utils.add_line_numbers(
                 "// This file is empty." if file_contents=="" else file_contents)
             current_source_code += f"{self._starting_file}: \n{source}"
