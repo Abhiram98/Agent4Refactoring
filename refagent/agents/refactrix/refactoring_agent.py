@@ -142,11 +142,7 @@ class Agent(BaseModel):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
         # update the intent after each loop
-        self._starting_file = starting_file
-        self._original_starting_file = starting_file
-        self._original_source_code = self.project.get_file_contents(starting_file)
-        model = self.create_model(self.model_name)
-        self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
+        model = self.initialize_agent(starting_file)
 
         if self.augmented_intent is None:
             self.augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
@@ -158,6 +154,14 @@ class Agent(BaseModel):
         if self.do_replication:
             self.perform_replication(current_intent, model, ref_plan)
         return None
+
+    def initialize_agent(self, starting_file):
+        self._starting_file = starting_file
+        self._original_starting_file = starting_file
+        self._original_source_code = self.project.get_file_contents(starting_file)
+        model = self.create_model(self.model_name)
+        self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
+        return model
 
     def run_agentic_loop(self, current_intent, model, starting_file):
         for _ in range(self.max_iterations):
@@ -557,4 +561,7 @@ class Agent(BaseModel):
                 self._starting_file = c.git_diff.b_path
                 return c.git_diff.b_path
         return starting_file
+
+    def add_internal_commit(self, commit: Commit):
+        self._internal_commits.append(commit)
 
