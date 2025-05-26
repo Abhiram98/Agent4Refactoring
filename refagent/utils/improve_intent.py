@@ -49,7 +49,7 @@ def process_ratpack_json(json_file_path, project_name='ratpack'):
     
     updated = False
     for i, entry in enumerate(data):
-        if entry['id'] != 606 :
+        if entry['id'] != 620 :
             continue
         
         if 'v2_hash' in entry and 'starting_file' in entry:
