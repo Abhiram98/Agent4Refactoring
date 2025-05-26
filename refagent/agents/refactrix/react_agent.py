@@ -78,6 +78,8 @@ class ReactAgent(ra.Agent):
             example_changes=self.get_important_files_diff(),
             refactoring_commit=self._internal_commits[0]
         )
+        self.MAX_GRAPH_ITERATION = 2
+        self.MAX_FAILING_TOOL_CALLS = 1
         for plan in replicator.compile_and_run():
             self.initialize_agent(plan.steps[0].file_path) # try to reset the starting file to the new point.
             self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
