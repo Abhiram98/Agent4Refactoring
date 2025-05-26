@@ -18,15 +18,25 @@ def name_sort_key(element):
         return 3000
 
 def curate_dataset():
-    df = pd.read_csv(refagent.data_folder.joinpath('renas/ratpack_manualValidation.csv'))
+
+    project_name = "argouml"
+    with open(f"/Users/abhiram/Downloads/icsme2024-renas-dataset/projects/{project_name}/recommend.json") as f:
+        renas_json = json.load(f)
+        oracle_commits = list(renas_json.keys())
+
+    df = pd.read_csv(refagent.data_folder.joinpath(f'renas/{project_name}_manualValidation.csv'))
     df_filtered = df[(df['coRename'] != -1) & (df['conceptRename?'] == 'TRUE')]
     groups = list(df_filtered.groupby(['commit', 'coRename']))
-    co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE']) >= 2]
+    co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE'])
+                  and i[0][0] in oracle_commits
+                  ]
 
-    project = pm.EvalProject("ratpack")
+
+
+    project = pm.EvalProject(project_name)
     print(f"{len(co_renames)=}")
 
-    starting_id = 500
+    starting_id = 900
 
     processed_dataset = []
 
@@ -68,25 +78,25 @@ def curate_dataset():
 
 
         item = bm_load.RenameItem(
-            project_name="ratpack",
+            project_name=project_name,
             ref_id=starting_id + i,
             v1_hash=project.git_repo.commit(v2_hash).parents[0].hexsha,
             v2_hash=v2_hash,
             orig_commit_message=commit.message,
-            improved_commit_message=f"Rename the concept {old_concept}. "
-                                    f"Rename all related entities like variables, fields, methods, and classes.",
+            improved_commit_message=f"Rename the {concept[0]['type']} {old_concept} -> {new_concept}. "
+                           f"Rename all related entities like variables, fields, methods, and classes.",
             change_summary=f"Rename the concept {old_concept} -> {new_concept}. "
                            f"Rename all related entities like variables, fields, methods, and classes.",
             hints=validated_renames,
             starting_file=starting_file,
             refactoring_changes=filtered_refactorings,
-            diffs=project.get_changes(v2_hash),
+            diffs=[],
             pull_request=None,
             corename_id=co_rename_id
         )
         processed_dataset.append(item.to_json())
 
-        with open(refagent.data_folder.joinpath('renas/ratpack.json'), "w") as f:
+        with open(refagent.data_folder.joinpath(f'renas/{project_name}.json'), "w") as f:
             json.dump(processed_dataset, f, indent=4)
 
 
@@ -158,6 +168,9 @@ def compute_renas_recall():
         goldset_index = [i['oldname'] == concept[0]['oldName'] for i in goldset].index(True)
         assert goldset_index!=-1
         renas_recommendations = renas_json[commit]['renas'][str(goldset_index)]
+
+        # 0.53 ≦ “similarity” *0.5 + (1 / “relationship”)
+        renas_recommendations = [i for i in renas_recommendations if i['similarity'] * 0.5 + (1 / i['relationship']) >= 0.53]
         matching_oracle = [i for i in renas_recommendations if has_match(oracle, i)
                            # i['name'] in old_names
                            ]
@@ -175,6 +188,7 @@ def compute_renas_recall():
         json.dump(renas_recs, f, indent=4)
 
 if __name__ == '__main__':
-    compute_renas_recall()
+    # compute_renas_recall()
+    curate_dataset()
 
 
