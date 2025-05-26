@@ -21,17 +21,12 @@ class ReactAgent(ra.Agent):
         print("Executing a 1 step plan, in a react loop.")
         self._iterations = 0
         self._failing_tool_call_count = 0
+        assert len(ref_plan.steps) == 1
+        step = ref_plan.steps[0]
 
         if len(ref_plan.steps) > 0 and open_file:
-            self.try_open_file(ref_plan.steps[0].file_path)
+            self.try_open_file(step.file_path)
 
-        step = planning.PlanningStep(
-            reason=self.augmented_intent,
-            execution_details="",
-            final_code="",
-            refactoring_type=sup_refs.SupportedRefactorings.RENAME,
-            file_path=self._original_starting_file
-        )
         try:
             graph = self.compile_graph(model=model,
                                        initial_intent=self.augmented_intent,
@@ -56,5 +51,18 @@ class ReactAgent(ra.Agent):
             print(f"Execution of step 1 failed.")
             traceback.print_exc()
             final_state = {'messages': [HumanMessage(f"Execution of step 1 failed.")]}
+
+    def generate_initial_plan(self, analysis_report):
+        return planning.RefactoringPlan(
+            steps=[
+                planning.PlanningStep(
+                    reason=self.augmented_intent,
+                    execution_details="",
+                    final_code="",
+                    refactoring_type=sup_refs.SupportedRefactorings.RENAME,
+                    file_path=self._original_starting_file
+                )
+            ]
+        )
 
 
