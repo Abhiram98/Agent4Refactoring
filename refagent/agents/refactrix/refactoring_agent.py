@@ -157,8 +157,9 @@ class Agent(BaseModel):
 
     def initialize_agent(self, starting_file):
         self._starting_file = starting_file
+        self.update_starting_file(self._starting_file)
         self._original_starting_file = starting_file
-        self._original_source_code = self.project.get_file_contents(starting_file)
+        self._original_source_code = self.project.get_file_contents(self._starting_file)
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
         return model
@@ -558,7 +559,7 @@ class Agent(BaseModel):
             changes += self.project.get_changes(str(self._internal_commits[-1]))
         changes += (self.project.get_unstaged_changes() +
                     self.project.get_staged_changes())
-        for c in changes:
+        for c in changes[::-1]: # reverse order, so that the staged changes are considered first.
             if c.git_diff.a_path == starting_file:
                 self._starting_file = c.git_diff.b_path
                 return c.git_diff.b_path
