@@ -2,6 +2,7 @@ import refagent.agents.refactrix.refactoring_agent as ra
 import refagent.agents.refactrix.perform_refactoring as perform_refactoring
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_refs
+import refagent.agents.refactrix.replication as replication
 
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, BaseMessage
@@ -64,5 +65,22 @@ class ReactAgent(ra.Agent):
                 )
             ]
         )
+
+    def perform_replication(self, current_intent, model, ref_plan):
+        replicator = replication.SimpleReplication(
+            model=self._reasoning_model,
+            executed_plan=ref_plan,
+            ide_server=self.ide_server,
+            initial_intent=self.augmented_intent,  # pass the augmented intent,
+            # because the quality check's intent may be modified
+            edited_files=list(self._files_changed),
+            project=self.project,
+            starting_file=self._starting_file,
+            example_changes=self.get_important_files_diff(),
+            refactoring_commit=self._internal_commits[0]
+        )
+        for plan in replicator.compile_and_run():
+            self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
+            self.update_changed_files()
 
 
