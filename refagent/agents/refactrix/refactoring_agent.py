@@ -206,7 +206,7 @@ class Agent(BaseModel):
             refactoring_commit=self._internal_commits[0]
         )
         for plan in replicator.compile_and_run():
-            self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True)
+            self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
             self.update_changed_files()
 
     def get_important_files_diff(self):
@@ -258,10 +258,11 @@ class Agent(BaseModel):
         final_state = self.execute_plan(initial_intent, model, ref_plan)
         return final_state
 
-    def execute_plan(self, initial_intent, model, ref_plan, ask_finished_first_iteration=False):
+    def execute_plan(self, initial_intent, model, ref_plan,
+                     ask_finished_first_iteration=False, open_file=False):
         last_file_opened = None
 
-        if len(ref_plan.steps) > 0:
+        if len(ref_plan.steps) > 0 and open_file:
             self.try_open_file(ref_plan.steps[0].file_path) # open the file. The edits should happen in only one file.
 
         for i, step in enumerate(ref_plan.steps):
