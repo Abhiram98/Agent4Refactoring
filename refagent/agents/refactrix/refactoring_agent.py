@@ -148,17 +148,17 @@ class Agent(BaseModel):
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
 
-        if self.augmented_intent is None:
-            augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
-        else:
-            augmented_intent = self.augmented_intent
-        current_intent = augmented_intent
+        # if self.augmented_intent is None:
+        #     augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
+        # else:
+        #     augmented_intent = self.augmented_intent
+        current_intent = initial_intent
 
-        current_intent, ref_plan = self.run_agentic_loop(augmented_intent, current_intent, model, starting_file)
+        current_intent, ref_plan = self.run_agentic_loop(initial_intent, current_intent, model, starting_file)
 
         # Run replication component
         if self.do_replication:
-            self.perform_replication(augmented_intent, current_intent, model, ref_plan)
+            self.perform_replication(initial_intent, current_intent, model, ref_plan)
         return None
 
     def run_agentic_loop(self, augmented_intent, current_intent, model, starting_file):
@@ -319,27 +319,32 @@ class Agent(BaseModel):
         return list(self._directly_edited_files)
 
     def get_changed_file_contents(self) -> HumanMessage:
-        self.ide_server.call_tool('save_all_changes')
-        self.update_changed_files()
-        self.update_starting_file(self._original_starting_file)
-
-        current_source_code = "Here is the source code to modify: \n"
-
-        # file_in_same_root = [i for i in self._files_changed if
-        #                      str(Path(self._rel_file_path).parent) in str(i)]
-        self.project.safe_add(self._files_changed)
-
-        # important_files = self.compute_most_important(self._files_changed)
-        # for rel_file_path in important_files:
         try:
-            file_contents = self.project.get_file_contents(self._starting_file)
-            source = code_utils.add_line_numbers(
-                "// This file is empty." if file_contents=="" else file_contents)
-            current_source_code += f"{self._starting_file}: \n{source}"
-        except FileNotFoundError:
-            raise Exception(f"File {self._starting_file} not found.")
+            self.ide_server.call_tool('save_all_changes')
+            self.update_changed_files()
+            self.update_starting_file(self._original_starting_file)
 
-        return HumanMessage(content=current_source_code)
+            current_source_code = "Here is the source code to modify: \n"
+
+            # file_in_same_root = [i for i in self._files_changed if
+            #                      str(Path(self._rel_file_path).parent) in str(i)]
+            self.project.safe_add(self._files_changed)
+
+            # important_files = self.compute_most_important(self._files_changed)
+            # for rel_file_path in important_files:
+            try:
+                file_contents = self.project.get_file_contents(self._starting_file)
+                source = code_utils.add_line_numbers(
+                    "// This file is empty." if file_contents=="" else file_contents)
+                current_source_code += f"{self._starting_file}: \n{source}"
+            except FileNotFoundError:
+                raise Exception(f"File {self._starting_file} not found.")
+
+            return HumanMessage(content=current_source_code)
+        except Exception as e:
+            print(f"Error in get_changed_file_contents: {e}")
+            # Return a default HumanMessage to prevent AttributeError
+            return HumanMessage(content=f"Error retrieving file contents: {e}")
 
     def update_changed_files(self):
         changed_files = set(self.project.get_changed_files())
