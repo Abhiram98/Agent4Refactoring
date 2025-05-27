@@ -128,7 +128,8 @@ if __name__ == '__main__':
     if args.planning_results_file is not None:
         with open(refagent.data_folder.joinpath(args.planning_results_file)) as f:
             json_ = json.load(f)
-            planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) for i in json_}
+            planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) if i['response']['plan'] is not None else None
+                                for i in json_}
             augmented_intents = {i['id']: i['response']['augmented_intent'] for i in json_}
 
     initial_save_file = rm.ResultsManager(run_identifier=args.run_identifier, save_file="no-replication.json").save_file_path
