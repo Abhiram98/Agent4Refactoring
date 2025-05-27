@@ -39,11 +39,11 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
         plan_type = planning.PlanningComponent
 
     agent = react_agent.ReactAgent(ide_server=ij_server,
-                     model_name='openai:gpt-4o-mini',
-                     reasoning_model_name='openai:o4-mini',
+                     model_name='grazie:openai-gpt-4o-mini',
+                     reasoning_model_name='grazie:openai-o4-mini',
                      project=project,
                      plan_component=plan_type,
-                     augmented_intent=augmented_intent,
+                     augmented_intent=bench_point.change_summary,
                      do_replication=do_replication)
     try:
         final_message = agent.run(initial_intent=bench_point.change_summary,
@@ -139,4 +139,4 @@ if __name__ == '__main__':
                       tags=[args.run_identifier]) as tracer:
             setup_and_run(bench_point, ij_server, results_saver, do_replication,
                           plan=planning_results.get(bench_point.ref_id),
-                          augmented_intent=augmented_intents.get(bench_point.ref_id))
+                          augmented_intent=None)
