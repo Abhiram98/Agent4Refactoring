@@ -34,3 +34,6 @@ class ResultsManager:
         matches = [i for i in self.responses if i['id'] == ref_id]
         return len(matches) > 0
 
+    @property
+    def save_file_path(self):
+        return self.save_path.joinpath(self.save_file)
