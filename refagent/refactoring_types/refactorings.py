@@ -132,6 +132,17 @@ class Rename(RefminerOut):
 class RenameMethod(Rename):
     TYPE: ClassVar[str] = 'Rename Method'
 
+    def get_name(self, method_str):
+        return method_str.split('(')[0].split(' ')[-1]
+
+    @property
+    def old_name(self):
+        return self.get_name(self.leftSideLocations[0].codeElement)
+
+    @property
+    def new_name(self):
+        return self.get_name(self.rightSideLocations[0].codeElement)
+
     def __eq__(self, other):
         return (super().__eq__(other) and
                 self.start_line == other.start_line)
@@ -139,6 +150,14 @@ class RenameMethod(Rename):
 
 class RenameVariable(Rename):
     TYPE: ClassVar[str] = 'Rename Variable'
+
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement.split(" :")[0]
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement.split(" :")[0]
 
     def __eq__(self, other):
         return (super().__eq__(other) and
@@ -157,6 +176,14 @@ class RenameParameter(Rename):
     def old_param_name(self):
         return self.leftSideLocations[0].codeElement
 
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement.split(" :")[0]
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement.split(" :")[0]
+
     def __eq__(self, other):
         return (super().__eq__(other) and
                 (self.start_line == other.start_line
@@ -165,9 +192,27 @@ class RenameParameter(Rename):
 
 
 class RenameClass(Rename):
+
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement.split(".")[-1]
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement.split(".")[-1]
+
     TYPE: ClassVar[str] = 'Rename Class'
 
 class RenameAttribute(Rename):
+
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement.split(" :")[0]
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement.split(" :")[0]
+
     TYPE: ClassVar[str] = 'Rename Attribute'
 
 

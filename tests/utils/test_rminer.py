@@ -36,3 +36,10 @@ def test_ratpack_572():
     changes = rminer.default_runner.run(project.get_project_path(), '3cddf4dcfd342155f156bfd813e22699e9e92098')
     print(changes)
     assert len(changes) > 0
+
+def test_ratpack_557():
+    project = pm.EvalProject('ratpack')
+    changes = rminer.default_runner.run(project.get_project_path(), '30b186e119df5bf959a4234f640a2dbab406db71')
+    print(changes)
+    assert len(changes) > 0
+    #
