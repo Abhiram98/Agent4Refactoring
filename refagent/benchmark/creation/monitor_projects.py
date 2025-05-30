@@ -107,7 +107,7 @@ def main():
     args = parser.parse_args()
 
     with open(args.project_names_file) as f:
-        project_names = f.read().split('\n')
+        project_names = [i for i in f.read().split('\n') if i!='']
     Monitor(
         cutoff_date=datetime.fromisoformat(args.cutoff_date).replace(tzinfo=UTC),
             ).run(project_names)
