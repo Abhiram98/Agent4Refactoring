@@ -307,7 +307,7 @@ class RenameProcessor(CommitProcessor):
             for loc in r.leftSideLocations:
                 unique_files.add(loc.filePath)
         rename_pct = refactoring_count['Rename'] / len(refactorings)
-        lots_of_renames = refactoring_count['Rename'] > 10 and len(unique_files) > 1
+        lots_of_renames = refactoring_count['Rename'] > 5 and len(unique_files) >= 1
         high_pct_renames = rename_pct > 0.6 and refactoring_count['Rename'] > 2
 
         return lots_of_renames or high_pct_renames
