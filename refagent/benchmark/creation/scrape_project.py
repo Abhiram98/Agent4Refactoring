@@ -40,7 +40,7 @@ class CommitProcessor(BaseModel):
     id_counter: int = Field(description="value from which to increment the ids from", default=refagent.LAST_ID+1)
     commit: Commit = Field(description="The commit to process")
     project: pm.EvalProject = Field(description="The project to work with")
-    model: Annotated[BaseModel, SkipValidation] = Field(description="Model to use to summarize the commit")
+    model: Annotated[Optional[BaseModel], SkipValidation] = Field(description="Model to use to summarize the commit", default=None)
     _refactorings: List[refactoring_types.RefminerOut] = PrivateAttr(default=[])
     _filtered_refactorings: List[refactoring_types.RefminerOut] = PrivateAttr(default=[])
 
@@ -76,7 +76,12 @@ class CommitProcessor(BaseModel):
             return None # no files were refactored.
         starting_files = max(edited_files.items(), key=lambda x: x[1])
         starting_file = starting_files[0]
-        commit_summary = self.summarize_commit(edited_files)
+        if self.model is not None:
+            commit_summary = self.summarize_commit(edited_files)
+        else:
+            commit_summary = CommitSummary(commit_message=self.commit.message,
+                                           summary="",
+                                           hints=[])
 
         self.id_counter += 1
         print("-" * 50)

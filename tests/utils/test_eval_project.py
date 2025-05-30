@@ -1,3 +1,5 @@
+from openai import project
+
 import refagent.utils.project_manager as pm
 
 def test_changed_files():
@@ -28,3 +30,7 @@ def test_restore_changes():
     project = pm.EvalProject('flink')
     project.restore_changes()
 
+
+def test_iter_commits():
+    project = pm.EvalProject('flink')
+    project.git_repo.iter_commits()
