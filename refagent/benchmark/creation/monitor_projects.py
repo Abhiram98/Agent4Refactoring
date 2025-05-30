@@ -62,19 +62,20 @@ class Monitor(BaseModel):
             ).process_commit()
             if data is not None:
                 monitoring_data.append(data)
-                self._previously_analysed_commits.add(commit.hexsha)
                 self._used_ids.add(data.ref_id)
             else:
                 print(f"commit {commit.hexsha} was not added to the monitoring data")
-            self.save_monitored_commit(commit)
+
+            self._previously_analysed_commits.add(commit.hexsha)
+            self.save_monitored_commit()
+            print(f"commit {commit.hexsha} was added to the monitoring data")
             self.save_used_ids()
 
         return monitoring_data
 
-    def save_monitored_commit(self, commit):
+    def save_monitored_commit(self):
         with open(refagent.data_folder.joinpath('monitoring').joinpath("previously_analysed_commits.json"), 'w') as f:
             json.dump(list(self._previously_analysed_commits), f, indent=4)
-        print(f"commit {commit.hexsha} was added to the monitoring data")
 
     def run(self, project_names: List[str]):
         new_data = []
