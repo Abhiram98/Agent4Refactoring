@@ -26,7 +26,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from typing_extensions import Annotated
 
-from benchmark.creation.add_gh_comments import GithubPR
+import refagent.benchmark.creation.add_gh_comments as add_gh_comments
 
 
 class CommitSummary(BaseModel):
@@ -103,7 +103,7 @@ class CommitProcessor(BaseModel):
                 pull_request=self.get_pr()
             )
 
-    def get_pr(self) -> Optional[GithubPR]:
+    def get_pr(self) -> Optional[add_gh_comments.GithubPR]:
         comment_importer = gh.CommentImporter(project=self.project)
         try:
             return comment_importer.get_comments(
