@@ -37,6 +37,11 @@ Finally, note the path to refactoring miner's executable binary. Usually, it is 
 
 `REFMINER_PATH=RefactoringMiner/build/distributions/RefactoringMiner-<VERSION>`
 
+### Optional: Install github CLI - this is useful when scraping projects and building datasets
+Refer the link here. https://cli.github.com/
+Setup your github token in the .env file like this:
+`GH_TOKEN='<your-github-token-here>'`
+
 
 ### Setup Grazie, OpenAI key
 Create a `.env` file at the root of the project, with the following contents:
