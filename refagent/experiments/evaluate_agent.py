@@ -39,17 +39,17 @@ def main():
         agent_results = json.load(f)
 
     name = Path(args.agent_outfile_path).name.replace(".json", "")
-    report_file_path = Path(args.agent_outfile_path).parent.joinpath(f"report-{name}-5.json")
+    report_file_path = Path(args.agent_outfile_path).parent.joinpath(f"report-{name}.json")
     report = []
 
     overall_recall = 0
     total_oracle = 0
     overall_precision = 0
 
-    df = pd.read_csv(refagent.data_folder.joinpath('renas/ratpack_manualValidation.csv'))
+    df = pd.read_csv(refagent.data_folder.joinpath('renas/manualValidation.csv'))
     df_filtered = df[(df['coRename'] != -1) & (df['conceptRename?'] == 'TRUE')]
     groups = list(df_filtered.groupby(['commit', 'coRename']))
-    co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE']) >= 2]
+    co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE']) >= 1]
 
 
     with open(args.benchmark_file_path) as f:
@@ -58,15 +58,15 @@ def main():
 
     for result in agent_results:
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
-        if len(bench_points) == 0:
-            continue
+        # if len(bench_points) == 0:
+        #     continue
         assert len(bench_points) == 1
         bench_point = bench_points[0]
 
         co_rename_df = [i[1] for i in co_renames if i[0][0]==bench_point.v2_hash and i[0][1]==bench_point.corename_id][0]
         concept = sorted(co_rename_df[['oldName', 'newName', 'type', 'file', 'line']].to_dict(orient='records'),
                          key=scrape_rename.name_sort_key)
-        # starting_example = concept[0]
+        concept = concept[0]
 
 
         id = result['id']
@@ -83,7 +83,7 @@ def main():
             tool_calls = []
             for fname in  result['response']['performed_refactorings']:
                 for tool_call in result['response']['performed_refactorings'][fname]:
-                    if tool_call['response'] == 'success':
+                    if tool_call['response'] == 'success' and tool_call['tool_call']['name']=='rename':
                         r = scrape_rename.RenameRecommendation(
                             oldName=tool_call['tool_call']['args']['old_name'],
                             type=tool_call['tool_call']['args']['code_element_type'].capitalize(),
@@ -122,7 +122,8 @@ def main():
         starting_example = [i for i in bench_point.refactoring_changes
                             if concept['oldName'] in i.leftSideLocations[0].codeElement
                             and i.leftSideLocations[0].filePath == concept['file']
-                            and i.leftSideLocations[0].startLine == concept['line']]
+                            and i.leftSideLocations[0].startLine == concept['line']
+                            and concept['type'] in i.type]
         if len(starting_example) != 1:
             print(f"found {len(starting_example)=}")
             print(starting_example)
@@ -131,6 +132,8 @@ def main():
         starting_example = starting_example[0]
         oracle_refactorings = [i for i in bench_point.refactoring_changes if i!=starting_example]
         refactorings = [i for i in refactorings if i!=starting_example]
+        if len(oracle_refactorings) == 0:
+            continue
 
         recall = 0
         total_oracle += 1
