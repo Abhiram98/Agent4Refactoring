@@ -1,5 +1,5 @@
 import json
-
+import os
 import refagent
 import refagent.utils.project_manager as pm
 import argparse
@@ -7,9 +7,12 @@ from pydantic import BaseModel, PrivateAttr
 from typing import List, Set
 import refagent.benchmark.load as bm_load
 import refagent.benchmark.creation.scrape_project as scrape
+from datetime import datetime, UTC
+from pathlib import Path
 
 class Monitor(BaseModel):
-    output_file_name: str = "monitor_results.json"
+    output_file_path: Path = refagent.data_folder.joinpath('monitoring').joinpath("monitor_results.json")
+    cutoff_date: datetime
     _output_json: List = PrivateAttr(default=[])
     _previously_analysed_commits: Set[str] = PrivateAttr(default=[])
     _used_ids: Set[int] = PrivateAttr(default=[])
@@ -79,8 +82,14 @@ class Monitor(BaseModel):
             project = pm.EvalProject(name)
             new_data += self.process_project(project)
 
-        with open(self.output_file_name, 'w') as f:
-            json.dump(new_data, f, indent=4)
+        previous_data = []
+        if os.path.exists(self.output_file_path):
+            with open(self.output_file_path) as f:
+                previous_data = json.load(f)
+        previous_data += new_data
+        json_data = [i.to_json() for i in previous_data]
+        with open(self.output_file_path, 'w') as f:
+            json.dump(json_data, f, indent=4)
 
     def get_new_id(self):
         return max(self._used_ids) + 1 if len(self._used_ids) > 0 else 10000
@@ -93,12 +102,14 @@ class Monitor(BaseModel):
 def main():
     parser = argparse.ArgumentParser(description='monitor different projects')
     parser.add_argument('project_names_file', type=str, help='File containing project names to monitor')
-    parser.add_argument('--cutoff_date', type=str, default='2025-05-30', help='Cutoff date for commits to monitor from')
-    parser.add_argument('--output_file_name', type=str, default='monitor_results.json', help='Output file to store results')
+    parser.add_argument('--cutoff_date', type=str, default='2025-05-01', help='Cutoff date for commits to monitor from')
     args = parser.parse_args()
 
-    project_names = args.project_names_file.split('\n')
-    Monitor(output_file_name=args.output_file_name).run(project_names)
+    with open(args.project_names_file) as f:
+        project_names = f.read().split('\n')
+    Monitor(
+        cutoff_date=datetime.fromisoformat(args.cutoff_date).replace(tzinfo=UTC),
+            ).run(project_names)
 
 
 
