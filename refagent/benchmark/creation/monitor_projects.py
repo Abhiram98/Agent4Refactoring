@@ -40,6 +40,8 @@ class Monitor(BaseModel):
 
     def process_project(self, project: pm.EvalProject) -> List[bm_load.BenchmarkItem]:
         monitoring_data = []
+        project.pull_project()
+
         for commit in project.git_repo.iter_commits(project.git_repo.head):
             if commit.hexsha in self._previously_analysed_commits:
                 print(f"commit {commit.hexsha} was previously analysed. skipping")
@@ -47,7 +49,8 @@ class Monitor(BaseModel):
 
             if commit.authored_datetime < self.cutoff_date:
                 print(f"commit {commit.hexsha} is older than cutoff date. skipping")
-                continue
+                print("Stopping loop.")
+                break
 
             data = scrape.RenameProcessor(
                 id_counter=self.get_new_id(),

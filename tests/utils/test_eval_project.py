@@ -34,3 +34,24 @@ def test_restore_changes():
 def test_iter_commits():
     project = pm.EvalProject('flink')
     project.git_repo.iter_commits()
+
+def test_flink_master_branch_name():
+    project = pm.EvalProject('flink')
+    master_branch = project.get_master_branch_name()
+    assert master_branch == 'master'
+
+
+
+def test_spring_integration_master_branch_name():
+    project = pm.EvalProject('spring-integration')
+    master_branch = project.get_master_branch_name()
+    assert master_branch == 'main'
+
+def test_kafka_master_branch_name():
+    project = pm.EvalProject('kafka')
+    master_branch = project.get_master_branch_name()
+    assert master_branch == 'trunk'
+
+
+
+
