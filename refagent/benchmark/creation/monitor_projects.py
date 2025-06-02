@@ -9,9 +9,10 @@ import refagent.benchmark.load as bm_load
 import refagent.benchmark.creation.scrape_project as scrape
 from datetime import datetime, UTC
 from pathlib import Path
+import traceback
 
 class Monitor(BaseModel):
-    output_file_path: Path = refagent.data_folder.joinpath('monitoring').joinpath("monitor_results.json")
+    output_file_path: Path = refagent.data_folder.joinpath('monitoring').joinpath("monitor_results.jsonl")
     cutoff_date: datetime
     _output_json: List = PrivateAttr(default=[])
     _previously_analysed_commits: Set[str] = PrivateAttr(default=[])
@@ -62,6 +63,7 @@ class Monitor(BaseModel):
             ).process_commit()
             if data is not None:
                 monitoring_data.append(data)
+                self.append_result(data)
                 self._used_ids.add(data.ref_id)
             else:
                 print(f"commit {commit.hexsha} was not added to the monitoring data")
@@ -77,23 +79,22 @@ class Monitor(BaseModel):
         with open(refagent.data_folder.joinpath('monitoring').joinpath("previously_analysed_commits.json"), 'w') as f:
             json.dump(list(self._previously_analysed_commits), f, indent=4)
 
+    def append_result(self, data: bm_load.BenchmarkItem):
+        with open(self.output_file_path, 'a') as f:
+            f.write(json.dumps(data.to_json()) + "\n")
+
     def run(self, project_names: List[str]):
         new_data = []
         for name in project_names:
             project = pm.EvalProject(name)
-            new_data += self.process_project(project)
-        new_data = [i.to_json() for i in new_data]
-
-        previous_data = []
-        if os.path.exists(self.output_file_path):
-            with open(self.output_file_path) as f:
-                previous_data = json.load(f)
-        previous_data += new_data
-        with open(self.output_file_path, 'w') as f:
-            json.dump(previous_data, f, indent=4)
+            try:
+                new_data += self.process_project(project)
+            except:
+                print(f"failed to process project {name}")
+                traceback.print_exc()
 
     def get_new_id(self):
-        return max(self._used_ids) + 1 if len(self._used_ids) > 0 else 10000
+        return max(self._used_ids) if len(self._used_ids) > 0 else 10000
 
     def save_used_ids(self):
         with open(refagent.data_folder.joinpath('monitoring').joinpath("used_ids.json"), 'w') as f:
