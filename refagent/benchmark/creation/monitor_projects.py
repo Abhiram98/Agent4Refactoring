@@ -45,7 +45,9 @@ class Monitor(BaseModel):
 
     def process_project(self, project: pm.EvalProject) -> List[bm_load.BenchmarkItem]:
         monitoring_data = []
+        print("pulling repo")
         project.pull_project()
+        print("done pulling repo")
 
         for commit in project.git_repo.iter_commits(project.git_repo.head):
             if commit.hexsha in self._previously_analysed_commits:
@@ -88,6 +90,7 @@ class Monitor(BaseModel):
     def run(self, project_names: List[str]):
         new_data = []
         for name in project_names:
+            print("Analyzing project: ", name, " ...")
             project = pm.EvalProject(name)
             try:
                 new_data += self.process_project(project)
