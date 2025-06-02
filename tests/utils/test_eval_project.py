@@ -53,5 +53,12 @@ def test_kafka_master_branch_name():
     assert master_branch == 'trunk'
 
 
+def test_get_remote_url():
+    project = pm.EvalProject('flink')
+    remote_url = project.get_remote_url()
+    print(remote_url)
+    assert remote_url.startswith('https://github.com/')
+    assert remote_url.endswith('flink')
+
 
 

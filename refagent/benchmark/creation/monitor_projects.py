@@ -94,12 +94,12 @@ class Monitor(BaseModel):
                 print(f"failed to process project {name}")
                 traceback.print_exc()
         try:
-            self.send_slack_message(new_data)
+            self.send_slack_messages(new_data)
         except:
             print("failed to send slack message")
             traceback.print_exc()
 
-    def send_slack_message(self, new_data: List[bm_load.BenchmarkItem]):
+    def send_slack_messages(self, new_data: List[bm_load.BenchmarkItem]):
 
         message_content = ""
         for data in new_data:
@@ -109,16 +109,18 @@ class Monitor(BaseModel):
                 if ref.type.startswith("Rename"):
                     renames_str += f"{ref.type}: {ref.old_name} -> {ref.new_name} \n"
                     count += 1
-            commit_time = str(pm.EvalProject(data.project_name).git_repo.commit(data.v2_hash).authored_datetime)
+            project_obj = pm.EvalProject(data.project_name)
+            commit_time = str(project_obj.git_repo.commit(data.v2_hash).authored_datetime)
             message_content += f"Ref id: {data.ref_id} \n" \
                                f"Project: {data.project_name} \n" \
-                               f"Commit: {data.v2_hash[:7]} \n" \
+                               f"Commit: {project_obj.get_remote_url()}/commit/{data.v2_hash[:7]} \n" \
                                f"Commit date: {commit_time} \n" \
                                f"Number of renames: {count} \n" \
-                               f"Renames performed: \n{renames_str} \n " \
 
-        client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
-        client.chat_postMessage(channel=os.getenv('SLACK_CHANNEL_ID'), text=f"Found new renames! \n\n {message_content}")
+            client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
+            response = client.chat_postMessage(channel=os.getenv('SLACK_CHANNEL_ID'), text=f"Found new renames! \n\n {message_content}")
+            thread_ts = response.data['ts']
+            client.chat_postMessage(channel=os.getenv('SLACK_CHANNEL_ID'), text=f"Renames: \n\n {renames_str}", thread_ts=thread_ts)
 
 
     def get_new_id(self):
