@@ -1,6 +1,6 @@
 import json
 import os
-
+import traceback
 import langsmith
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import RequestFailedException
@@ -61,10 +61,17 @@ class CommitProcessor(BaseModel):
         # filter out unrelated hunks
 
         # Run refactoring miner.
-        self._refactorings = refminer.default_runner.run(
-            project_path=self.project.get_project_path(),
-            commit_hash=str(self.commit.hexsha)
-        )
+        print("Running refactoring miner...")
+        try:
+            self._refactorings = refminer.default_runner.run(
+                project_path=self.project.get_project_path(),
+                commit_hash=str(self.commit.hexsha)
+            )
+        except:
+            print("Failed to run refactoring miner.")
+            traceback.print_exc()
+            return None
+        print("Finished running refactoring miner.")
         if len(self._refactorings) == 0:
             return None # There are no refactorings detected by rminer, which is an odd case.
         if not self.should_analyse():
