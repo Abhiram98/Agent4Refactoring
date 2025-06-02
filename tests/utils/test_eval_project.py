@@ -1,6 +1,6 @@
 from openai import project
-
 import refagent.utils.project_manager as pm
+from datetime import datetime, timedelta, UTC
 
 def test_changed_files():
     project = pm.EvalProject('flink')
@@ -60,5 +60,12 @@ def test_get_remote_url():
     assert remote_url.startswith('https://github.com/')
     assert remote_url.endswith('flink')
 
-
+def test_commit_time():
+    project = pm.EvalProject('flink')
+    commit = project.git_repo.commit('a6412b8')
+    # check if the commit if older than two days from current time
+    should_send_message = commit.authored_datetime > datetime.now(UTC) - timedelta(days=2)
+    print(should_send_message)
+    print(commit.authored_datetime)
+    assert not should_send_message
 

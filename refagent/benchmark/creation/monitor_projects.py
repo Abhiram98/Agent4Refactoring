@@ -7,7 +7,7 @@ from pydantic import BaseModel, PrivateAttr
 from typing import List, Set
 import refagent.benchmark.load as bm_load
 import refagent.benchmark.creation.scrape_project as scrape
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from pathlib import Path
 import traceback
 from slack_sdk import WebClient
@@ -114,7 +114,13 @@ class Monitor(BaseModel):
                         renames_str += f"{ref.type}: {ref.old_name} -> {ref.new_name} \n"
                         count += 1
                 project_obj = pm.EvalProject(data.project_name)
+
                 commit_time = str(project_obj.git_repo.commit(data.v2_hash).authored_datetime)
+
+                # send message only if the commit is in the last two days
+                should_send_message = project_obj.git_repo.commit(data.v2_hash).authored_datetime > datetime.now(UTC) - timedelta(days=2)
+                if not should_send_message:
+                    continue
                 message_content += f"Ref id: {data.ref_id} \n" \
                                    f"Project: {data.project_name} \n" \
                                    f"Commit: {project_obj.get_remote_url()}/commit/{data.v2_hash[:7]} \n" \
