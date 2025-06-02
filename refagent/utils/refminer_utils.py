@@ -26,7 +26,7 @@ class RefminerRunner(BaseModel):
             commit_hash,  # on this commits
             '-json', tmp.name  # store output json in tempfile
         ]
-        result = subprocess.run(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=60)
+        result = subprocess.run(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=15)
         if (result.returncode == 0):
             with open(tmp.name) as f:
                 return refactoring_types.RefminerOut.load(json.load(f))
