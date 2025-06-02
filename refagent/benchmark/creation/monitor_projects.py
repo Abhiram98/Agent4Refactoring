@@ -82,15 +82,15 @@ class Monitor(BaseModel):
         for name in project_names:
             project = pm.EvalProject(name)
             new_data += self.process_project(project)
+        new_data = [i.to_json() for i in new_data]
 
         previous_data = []
         if os.path.exists(self.output_file_path):
             with open(self.output_file_path) as f:
                 previous_data = json.load(f)
         previous_data += new_data
-        json_data = [i.to_json() for i in previous_data]
         with open(self.output_file_path, 'w') as f:
-            json.dump(json_data, f, indent=4)
+            json.dump(previous_data, f, indent=4)
 
     def get_new_id(self):
         return max(self._used_ids) + 1 if len(self._used_ids) > 0 else 10000
