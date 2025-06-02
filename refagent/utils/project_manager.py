@@ -260,4 +260,4 @@ class EvalProject:
     def get_remote_url(self):
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'remote', 'get-url', 'origin'], capture_output=True, text=True, check=True)
-        return result.stdout.split('.git')[0].strip()
+        return result.stdout.strip().rstrip('.git')
