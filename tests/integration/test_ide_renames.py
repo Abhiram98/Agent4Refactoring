@@ -254,3 +254,61 @@ def test_rename_equal_method_and_param2():
     # print(response)
     assert response == 'success'
 
+
+def test_argouml_905():
+    project = pm.EvalProject("argouml")
+    project.checkout('8154894d806e29d83bcdd34655ed2417a24d4ffc', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(rel_file_path=Path("src_new/org/argouml/uml/cognitive/critics/ClAttributeCompartment.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='fig',
+                                         new_name='attributesCompartmentFig',
+                                         line_num=56,
+                                         code_element_type='field')
+    assert response == 'success'
+
+
+def test_argouml_910():
+    project = pm.EvalProject("argouml")
+    project.checkout('982c953f978c3238fa7bde44e2a1147197a7d1bb', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(rel_file_path=Path("src_new/org/argouml/uml/diagram/ui/ActionAddAllClassesFromModel.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='myTabName',
+                                         new_name='tabName',
+                                         line_num=55,
+                                         code_element_type='parameter')
+    assert response == 'success'
+
+def test_argouml_913():
+    project = pm.EvalProject("argouml")
+    project.checkout('3a89da0fec36336116decff9a81fc66551c1ef4d', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src/uci/gef/ModeCreateEdge.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='_editor',
+                                         new_name='ce',
+                                         line_num=97,
+                                         code_element_type='variable')
+    assert response == 'success'
+
+def test_argouml_921():
+    project = pm.EvalProject("argouml")
+    project.checkout('1ab4e8046393cac62d61eb0e3c5e82eb5e8bb921', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src_new/org/argouml/uml/diagram/activity/ui/SelectionActionState.java"))
+
+    response = intellij_server.call_tool('rename',
+                                         old_name='cls',
+                                         new_name='existingNode',
+                                         line_num=237,
+                                         code_element_type='variable')
+    assert response == 'success'
+
+#
