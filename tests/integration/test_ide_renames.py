@@ -257,9 +257,11 @@ def test_rename_equal_method_and_param2():
 
 def test_argouml_905():
     project = pm.EvalProject("argouml")
-    project.checkout('8154894d806e29d83bcdd34655ed2417a24d4ffc', force=True)
     intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
     intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.reset_project_reload_counters()
+    project.checkout('8154894d806e29d83bcdd34655ed2417a24d4ffc', force=True)
+    intellij_server.reload_project()
     intellij_server.open_file(rel_file_path=Path("src_new/org/argouml/uml/cognitive/critics/ClAttributeCompartment.java"))
     response = intellij_server.call_tool('rename',
                                          old_name='fig',
@@ -296,6 +298,49 @@ def test_argouml_913():
                                          code_element_type='variable')
     assert response == 'success'
 
+def test_argouml_913_2():
+    project = pm.EvalProject("argouml")
+    project.checkout('3a89da0fec36336116decff9a81fc66551c1ef4d', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src/uci/gef/ModeCreateEdge.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='curEditor',
+                                         new_name='myCurEditor',
+                                         line_num=97,
+                                         code_element_type='method')
+    assert response == 'success'
+
+def test_argouml_913_overiden_method():
+    project = pm.EvalProject("argouml")
+    project.checkout('3a89da0fec36336116decff9a81fc66551c1ef4d', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src/uci/gef/ModeCreateEdge.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='createNewItem',
+                                         new_name='createNewItem22',
+                                         line_num=85,
+                                         code_element_type='method')
+    assert response == 'success'
+
+def test_argouml_913_overiden_method_param():
+    project = pm.EvalProject("argouml")
+    project.checkout('3a89da0fec36336116decff9a81fc66551c1ef4d', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src/uci/gef/ModeCreateEdge.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='snapX',
+                                         new_name='mySnapX',
+                                         line_num=85,
+                                         code_element_type='parameter')
+    assert response == 'success'
+
+
 def test_argouml_921():
     project = pm.EvalProject("argouml")
     project.checkout('1ab4e8046393cac62d61eb0e3c5e82eb5e8bb921', force=True)
@@ -310,5 +355,3 @@ def test_argouml_921():
                                          line_num=237,
                                          code_element_type='variable')
     assert response == 'success'
-
-#
