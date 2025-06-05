@@ -65,6 +65,9 @@ def main():
                        "line_num": concept['line'],
                        "code_element_type": concept['type'].lower()}
         tool_call_status = ij_server.call_tool('rename', **seed_rename_json)
+        if tool_call_status != 'success' and concept['type'].lower()=='class':
+            tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
+                                                   new_name=concept['newName'])
         if tool_call_status != 'success':
             # tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
             #                                        new_name=concept['newName'])
