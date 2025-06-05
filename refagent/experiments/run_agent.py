@@ -133,9 +133,11 @@ if __name__ == '__main__':
             augmented_intents = {i['id']: i['response']['augmented_intent'] for i in json_}
 
     initial_save_file = rm.ResultsManager(run_identifier=args.run_identifier, save_file="no-replication.json").save_file_path
-    with open(initial_save_file) as f:
-        initial_run = json.load(f)
-        initial_commits = {i['id']: i['response']['commit_hash'] for i in initial_run}
+    initial_commits={}
+    if initial_save_file.exists():
+        with open(initial_save_file) as f:
+            initial_run = json.load(f)
+            initial_commits = {i['id']: i['response']['commit_hash'] for i in initial_run}
 
     use_previous = False
 
