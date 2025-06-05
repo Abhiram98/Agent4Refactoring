@@ -131,9 +131,10 @@ class Replication(BaseModel):
 
     def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
         self.ide_server.open_file(Path(code_element.file_path))
+        linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
         try:
             linked_elements_json = json.loads(
-                self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+                linked_elements_json
             )
         except:
             print("Failed to get linked element")
