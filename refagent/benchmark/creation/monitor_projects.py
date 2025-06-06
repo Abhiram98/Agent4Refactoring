@@ -118,7 +118,7 @@ class Monitor(BaseModel):
                 commit_time = str(project_obj.git_repo.commit(data.v2_hash).authored_datetime)
 
                 # send message only if the commit is in the last two days
-                should_send_message = project_obj.git_repo.commit(data.v2_hash).authored_datetime > datetime.now(UTC) - timedelta(days=2)
+                should_send_message = project_obj.git_repo.commit(data.v2_hash).committed_datetime > datetime.now(UTC) - timedelta(days=2)
                 if not should_send_message:
                     continue
                 message_content += f"Ref id: {data.ref_id} \n" \
