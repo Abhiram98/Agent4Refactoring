@@ -54,7 +54,7 @@ class Monitor(BaseModel):
                 print(f"commit {commit.hexsha} was previously analysed. skipping")
                 continue
 
-            if commit.authored_datetime < self.cutoff_date:
+            if commit.committed_datetime < self.cutoff_date:
                 print(f"commit {commit.hexsha} is older than cutoff date. skipping")
                 print("Stopping loop.")
                 break
