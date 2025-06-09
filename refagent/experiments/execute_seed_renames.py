@@ -30,15 +30,6 @@ def main():
             print(f"Seed computation was completed for {r.ref_id}")
             continue
 
-        project = pm.EvalProject(r.project_name)
-        ij_server.open_project(project_path=project.get_project_path())
-
-        ij_server.reset_project_reload_counters()
-        project.checkout(r.v1_hash, force=True)
-        ij_server.reload_project()
-        ij_server.open_file(Path(r.starting_file))
-
-
         co_rename_df = \
         [i[1] for i in co_renames if i[0][0] == r.v2_hash and i[0][1] == r.corename_id][0]
         all_concepts = sorted(co_rename_df[['oldName', 'newName', 'type', 'file', 'line']].to_dict(orient='records'),
@@ -56,9 +47,17 @@ def main():
             # if len(possible_examples) == 1:
             #     break
         if len(possible_examples) != 1:
+            print(f"Couldn't find a seed example for {r.ref_id}")
             continue
         r.seed_example = possible_examples[0]
 
+        project = pm.EvalProject(r.project_name)
+        ij_server.open_project(project_path=project.get_project_path())
+
+        ij_server.reset_project_reload_counters()
+        project.checkout(r.v1_hash, force=True)
+        ij_server.reload_project()
+        ij_server.open_file(Path(r.starting_file))
 
         seed_rename_json = {"old_name": concept['oldName'],
                        "new_name": concept['newName'],
@@ -68,6 +67,14 @@ def main():
         if tool_call_status != 'success' and concept['type'].lower()=='class':
             tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
                                                    new_name=concept['newName'])
+        else:
+            for line in range(concept['line'], concept['line'] + 20):
+                tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
+                                                       new_name=concept['newName'], line_num=line)
+                if tool_call_status == 'success':
+                    break
+            # tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
+            #                                        new_name=concept['newName'], line_num=concept['line'] +1)
         if tool_call_status != 'success':
             # tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
             #                                        new_name=concept['newName'])
