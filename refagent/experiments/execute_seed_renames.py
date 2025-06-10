@@ -10,6 +10,20 @@ import refagent.benchmark.creation.scrape_renas_dataset as scrape_rename
 import refagent.refactoring_types.refactorings as refactorings
 
 
+def setup_project(project: pm.EvalProject):
+    if project.project_name == 'argouml':
+        with open(refagent.data_folder.joinpath("renas/argouml.iml")) as f:
+            iml_content = f.read()
+        iml_file = project.get_project_path().joinpath(f"{project.project_name}.iml")
+        # if not iml_file.exists():
+        with open(iml_file, 'w') as f:
+            f.write(iml_content)
+        if project.get_project_path().joinpath(".idea").exists():
+            with open(project.get_project_path().joinpath(f".idea/{project.project_name}.iml")
+                    , "w") as f:
+                f.write(iml_content)
+
+
 def main():
     print("creating seed renames for renas dataset")
 
@@ -52,6 +66,7 @@ def main():
         r.seed_example = possible_examples[0]
 
         project = pm.EvalProject(r.project_name)
+        setup_project(project) # create intellij files if missing.
         ij_server.open_project(project_path=project.get_project_path())
 
         ij_server.reset_project_reload_counters()
