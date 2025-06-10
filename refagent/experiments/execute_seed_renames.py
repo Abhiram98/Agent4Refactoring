@@ -79,31 +79,37 @@ def main():
                        "line_num": concept['line'],
                        "code_element_type": concept['type'].lower()}
         tool_call_status = ij_server.call_tool('rename', **seed_rename_json)
-        if tool_call_status != 'success' and concept['type'].lower()=='class':
-            tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
-                                                   new_name=concept['newName'])
-        else:
-            for line in range(concept['line'], concept['line'] + 20):
+        if tool_call_status != 'success':
+            if concept['type'].lower() == 'class':
                 tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
-                                                       new_name=concept['newName'], line_num=line)
-                if tool_call_status == 'success':
-                    break
-            # tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
-            #                                        new_name=concept['newName'], line_num=concept['line'] +1)
+                                                       new_name=concept['newName'])
+            else:
+                for line in range(concept['line'], concept['line'] + 20):
+                    tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
+                                                           new_name=concept['newName'], line_num=line)
+                    if tool_call_status == 'success':
+                        break
+                # tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
+                #                                        new_name=concept['newName'], line_num=concept['line'] +1)
         if tool_call_status != 'success':
             # tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
             #                                        new_name=concept['newName'])
             print("too call failed.")
             continue
         assert tool_call_status == 'success'
-        changed_files = project.get_changed_files()
-        project.safe_add(changed_files)
-        new_hash = project.git_repo.index.commit(f"seed rename for {r.ref_id}")
-        seed_hashes[r.ref_id] = str(new_hash)
-        r.seed_hash = str(new_hash)
+        commit_and_write(project, r, rename_data, seed_hashes)
 
-        with open(refagent.data_folder.joinpath('renas/renas_oracle.json'), 'w') as f:
-            final_data = [i.to_json() for i in rename_data]
-            json.dump(final_data, f, indent=4)
+
+def commit_and_write(project, r, rename_data, seed_hashes):
+    changed_files = project.get_changed_files()
+    project.safe_add(changed_files)
+    new_hash = project.git_repo.index.commit(f"seed rename for {r.ref_id}")
+    seed_hashes[r.ref_id] = str(new_hash)
+    r.seed_hash = str(new_hash)
+    with open(refagent.data_folder.joinpath('renas/renas_oracle.json'), 'w') as f:
+        final_data = [i.to_json() for i in rename_data]
+        json.dump(final_data, f, indent=4)
+
+
 if __name__ == '__main__':
     main()
