@@ -169,6 +169,7 @@ class Replication(BaseModel):
         """Compile the langgraph."""
 
         def ask_replicate(state: MessagesState):
+            file_name = file_to_inspect.split('/')[-1]
             try:
                 file_contents = self.project.get_file_contents(file_to_inspect)
             except FileNotFoundError:
@@ -184,19 +185,20 @@ class Replication(BaseModel):
                     SystemMessage("You are an expert developer who decides whether a "
                                   "refactoring needs to be replicated in a certain file, "
                                   "for the sake of consistency. "),
-                    HumanMessage(f"Here are the contents of the file: {file_contents}"),
                     HumanMessage(
                                 f"Here is the intent of the developer: "
                                  f"{self.initial_intent}"
-                                 f"Here are the kinds of refactorings that "
-                                 f"need to be replicated. These refactorings were already performed:\n"
-                                 f"{examples}"),
+                                 # f"Here are the kinds of refactorings that "
+                                 # f"need to be replicated. These refactorings were already performed:\n"
+                                 # f"{examples}"
+                    ),
+                    HumanMessage(f"Here are the contents of the file: {file_contents}"),
                     HumanMessage("Answer the following question: "
-                                 f"Are there any code elements in {file_to_inspect}, "
-                                 f"that could this exact change? "
-                                 f"Then, add a YES/NO at the end of your reply,"
+                                 f"Are there ANY code elements in {file_name}, "
+                                 f"that could change? "
+                                 f"Then, say YES/NO at the end of your reply,"
                                  f" indicating whether to "
-                                 f"replicate the refactoring concept in this file.")
+                                 f"there are any code elements that should change.")
                  ]
             )
 
