@@ -8,7 +8,7 @@ import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
 import refagent.benchmark.creation.scrape_renas_dataset as scrape_rename
 import refagent.refactoring_types.refactorings as refactorings
-
+import refagent.utils.refminer_utils as refminer_utils
 
 def setup_project(project: pm.EvalProject):
     if project.project_name == 'argouml':
@@ -50,7 +50,16 @@ def main():
                          key=scrape_rename.name_sort_key)
         concept = all_concepts[0]
         # for concept in all_concepts:
-        # seed_rename = scrape_rename.RenameRecommendation.from_renas_oracle(concept)
+        oracle_renames = [scrape_rename.RenameRecommendation.from_renas_oracle(c) for c in all_concepts]
+        project = pm.EvalProject(r.project_name)
+        #
+        rminer_refs = refminer_utils.default_runner.run(project.get_project_path(), r.v2_hash, timeout=60)
+        filtered_refs = [i for i in rminer_refs if any(k.compare_with_rminer_rename(i)
+                                                       for k in oracle_renames)]
+        if len(filtered_refs) != len(r.refactoring_changes):
+            print("There was a mismatch in the oracle. updating it.")
+            r.refactoring_changes = filtered_refs
+
         possible_examples = [i for i in r.refactoring_changes if isinstance(i, refactorings.Rename)
                           and i.old_name == concept['oldName']
                           and i.new_name == concept['newName']
@@ -60,12 +69,14 @@ def main():
                           ]
             # if len(possible_examples) == 1:
             #     break
+
+
         if len(possible_examples) != 1:
             print(f"Couldn't find a seed example for {r.ref_id}")
             continue
         r.seed_example = possible_examples[0]
 
-        project = pm.EvalProject(r.project_name)
+
         setup_project(project) # create intellij files if missing.
         ij_server.open_project(project_path=project.get_project_path())
 

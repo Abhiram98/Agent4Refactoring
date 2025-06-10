@@ -16,7 +16,7 @@ class RminerError(Exception):
 class RefminerRunner(BaseModel):
     refminer_path: str = Field(..., description="path of refactoringminer, to execute")
 
-    def run(self, project_path, commit_hash) -> list[refactoring_types.RefminerOut]:
+    def run(self, project_path, commit_hash, timeout=15) -> list[refactoring_types.RefminerOut]:
         """Run refactoring miner on the specific commit
         in the specified project"""
         tmp = tempfile.NamedTemporaryFile()
@@ -26,7 +26,7 @@ class RefminerRunner(BaseModel):
             commit_hash,  # on this commits
             '-json', tmp.name  # store output json in tempfile
         ]
-        result = subprocess.run(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=15)
+        result = subprocess.run(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout=timeout)
         if (result.returncode == 0):
             with open(tmp.name) as f:
                 return refactoring_types.RefminerOut.load(json.load(f))
