@@ -358,6 +358,8 @@ def test_argouml_921():
 
 
 def test_argouml_962_param():
+    """There are multiple classes in this file, that's why the tool is failing"""
+
     project = pm.EvalProject("argouml")
     project.checkout('804aaf9d327fa004acd673467bc2e72256dc8f26', force=True)
     intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
@@ -384,7 +386,7 @@ def test_argouml_999_param():
                                          **_json)
     assert response == 'success'
 
-def test_argouml_999_param():
+def test_argouml_1009_variable():
     project = pm.EvalProject("argouml")
     project.checkout('956c16de8e38b8090012db4c4c2b90a9b6a7e3db', force=True)
     intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)

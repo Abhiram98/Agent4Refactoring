@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 class RenameRecommendation(BaseModel):
     oldName: str
-    # new_name: str
+    # newName: Optional[str] = None
     similarity: Optional[float] = None
     relationship: Optional[float] = None
     type: str
@@ -62,6 +62,14 @@ class RenameRecommendation(BaseModel):
     def __hash__(self):
         return hash((self.oldName, self.type, self.file, self.line))
 
+    def compare_with_rminer_rename(self, other: refactoring_types.Rename):
+        if not isinstance(other, refactoring_types.Rename):
+            return False
+        return (self.oldName == other.old_name
+                and self.line == other.start_line
+                and self.file == other.leftSideLocations[0].filePath
+                and self.type in other.type
+                )
 
 def name_sort_key(element):
     if element['type']=='Class':
