@@ -398,3 +398,19 @@ def test_argouml_1009_variable():
     response = intellij_server.call_tool('rename',
                                          **_json)
     assert response == 'success'
+
+
+def test_flink_method():
+    project = pm.EvalProject("flink")
+    project.checkout('32aa7973daaf70e097f247eaf5a3869b47d8e3e0', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java'))
+    _json = {'code_element_type': 'method', 'line_num': 265, 'new_name': 'deserializeStreamStateHandle2', 'old_name': 'deserializeStreamStateHandle'}
+    intellij_server.reset_project_reload_counters()
+    intellij_server.reload_project()
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+

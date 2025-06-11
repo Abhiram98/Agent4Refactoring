@@ -26,5 +26,362 @@
             "plan": null,
             "augmented_intent": "Rename class RegistrationExecutionRequest to FlowExecutionRequest throughout the codebase, including the file name, class declaration, constructor and builder methods, getters/setters, @JsonProperty and @ApiModelProperty annotations, package paths and import statements, equals(), hashCode(), toString(), REST endpoint paths and Swagger/OpenAPI definitions, test classes and documentation. Ensure naming consistency, update example values, and consider deprecating the old type name for backward compatibility."
         }
+    },
+    {
+        "id": 11162,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Document a naming convention for guard-style methods: any helper that conditionally throws an exception or performs an action should use an imperative name of the form \u2018throwIf<Condition>\u2019 or \u2018do<Action>If<Condition>\u2019 instead of a vague \u2018maybe\u2026\u2019 prefix. Identify all methods named like \u2018maybeX\u2026\u2019 or \u2018tryX\u2026\u2019 that only execute under a specific condition, determine the precise condition, rename them to \u2018throwIf<Condition>\u2019 (for exception-throwing guards) or \u2018<action>If<Condition>\u2019 (for other side-effects), update all callers and Javadoc, and apply this pattern consistently across the codebase."
+        }
+    },
+    {
+        "id": 10443,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor local collection parameters or lambda variables that shadow class methods or use misleading generic names\u2014such as renaming `metas` to `all`\u2014so they clearly represent the entire filtered set. Apply this pattern to any chain of functional calls where a single-word name conflicts with a static method or obscures that the variable holds a full collection (e.g. rename `nodes` to `allNodes`, `items` to `allItems`, or `metas` to `all`). Do not apply the rename when the original name is a well-established domain term in a public API or when specificity (like keeping `metas`) is needed to distinguish multiple collections in the same scope."
+        }
+    },
+    {
+        "id": 10459,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify and rename all boolean methods, variables, and checks in this file and across the codebase that use negative \u2018is\u2026Empty\u2019 or outdated \u2018Wikivoyage\u2019 terminology so they follow the positive \u2018has\u2026\u2019 naming convention with current domain language (\u2018Travel\u2026\u2019). For each occurrence\u2014methods like isWikivoyageArticlesEmpty(), fields, XML attributes, tests, and documentation\u2014update the name (e.g. isWikivoyageArticleListEmpty() \u2192 hasTravelArticles), adjust all references, and ensure consistency with existing \u2018hasX\u2019 patterns and backward-compatibility constraints."
+        }
+    },
+    {
+        "id": 10460,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define and apply a naming convention for boolean predicates that test emptiness: locate methods or variables prefixed with is*Empty (e.g., isWikivoyageRepositoryEmpty) and rename them to positive presence checks using has* or has*Items (e.g., hasTravelRepositories), update any negations at call sites, and extend the same renaming pattern throughout the codebase for similar methods (for example, isCartEmpty\u2192hasCartItems, isCacheEmpty\u2192hasCacheEntries), ensuring all references, tests, and documentation are updated for consistency and improved readability."
+        }
+    },
+    {
+        "id": 10461,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all catch blocks where an exception is intentionally ignored (swallowed) - i.e the catch body is empty, and rename the generic exception variable (`e`) to a descriptive name like `swallow` to document that intent. Apply this change consistently across the file and in other locations with the same pattern."
+        }
+    },
+    {
+        "id": 10463,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a consistent disambiguation convention: wherever a variable, parameter, field, CSV header or JSON key named `productName` actually holds the name from an OrderItem rather than a catalog Product, rename it to `orderItemName`. Extend this pattern across the codebase\u2014loops, method parameters, output formats, logs and tests\u2014to ensure variable names accurately reflect the domain object source and prevent confusion between Product and OrderItem data."
+        }
+    },
+    {
+        "id": 10464,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Create a refactoring guideline to locate every private helper method prefixed with an underscore\u2014especially those following the pattern _get<ResourceName>Resource or other _get* helper names\u2014then remove the leading underscore, rename them to get<ResourceName>Resource (or getHelperName), adjust their access modifiers to match public resource\u2010builder methods, update all call sites and imports accordingly, align documentation and tests with the new names, and apply this same pattern consistently across the entire codebase."
+        }
+    },
+    {
+        "id": 10468,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a consistent naming convention by dropping redundant type-suffixes for homogeneous collections. In this file (and throughout the codebase), locate every local variable, parameter or field named `pluginUiModels` and rename it to `plugins`. Use the same pattern elsewhere: for example, change `customerRecords` to `customers`, `orderDtos` to `orders`, `errorMessagesList` to `errors`, etc. Only retain a suffix (UiModel, Dto, Record, List) when multiple similar collections exist in scope or the suffix conveys essential distinction."
+        }
+    },
+    {
+        "id": 10470,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update the code to consistently use the new \u201cInstalledModel\u201d abstraction instead of the old descriptor terminology. In this file and elsewhere: rename setInstalledDescriptor(...) to setInstalledModel(...); rename the backing field myInstalledDescriptor to myInstalledModel; update any getters, callers, tests, and JavaDocs that reference the descriptor; adjust import statements and UI messages if needed; and, if this is a public API, deprecate the old method signature and add a compatibility shim that delegates to the new setter to avoid breaking clients."
+        }
+    },
+    {
+        "id": 10471,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the field name in this class and elsewhere from myPluginModel to myModelFacade to match its actual type PluginModelFacade. Ensure all variables or fields referencing PluginModelFacade are renamed to include the Facade suffix, improving clarity by indicating the facade layer rather than a raw model."
+        }
+    },
+    {
+        "id": 10481,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Remove the leading underscore from the private field name to match the constructor parameter and project naming conventions: rename `_groupLocalService` to `groupLocalService` and update its declaration, constructor assignment, and all references. Apply this pattern to all private injected service or utility fields (e.g., `_depotEntryLocalService`, `_objectDefinitionService`) across this file and other modules to ensure consistent camelCase naming for dependencies."
+        }
+    },
+    {
+        "id": 10482,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify any fields declared as constants (final or static final) that currently use the `my` prefix and lowerCamelCase. Remove the `my` prefix, convert the name to SCREAMING_SNAKE_CASE, add or verify the `static final` modifiers, and update all references. For example, rename `myKeyDescriptor` to `KEY_DESCRIPTOR`, `myInputFilter` to `INPUT_FILTER`, and so on. Leave fields that hold instance-specific or mutable data unchanged."
+        }
+    },
+    {
+        "id": 10486,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a rule to replace generic exception variable names (e, ex) in catch blocks with descriptive names derived from their exception type (e.g., noSuchFieldException, ioException, sqlException) throughout this file and across the codebase to enhance readability and maintainability."
+        }
+    },
+    {
+        "id": 10489,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a consistent renaming policy for merged or inlined code that introduces duplicate local names: whenever two catch blocks or nested scopes both declare `exception`, rename the inner or later one by appending an incremental numeric suffix (e.g., `exception2`, `exception3`), and apply the same approach to other common collisions like loop indices (`i2`), temps (`temp2`), or values (`value2`) so that every variable remains unique within its scope across the file and the codebase."
+        }
+    },
+    {
+        "id": 10490,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide guidance for systematically renaming the \u2018DefaultUsers\u2019 qualifier to \u2018CompanyUsers\u2019 wherever it appears. In this file: rename the test class and filename from PreupgradeVerifyDefaultUsersTest to PreupgradeVerifyCompanyUsersTest, update its getVerifyProcess() reference, imports, annotations, and any string literals or comments. Then apply the same refactoring pattern in other modules: replace DefaultUsers in class names, test names, service classes, constants, and documentation with CompanyUsers whenever the logic scope has expanded from built-in users to all company users. Use IDE refactoring tools to capture all occurrences and maintain consistency."
+        }
+    },
+    {
+        "id": 10492,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply the same naming clarity across the codebase: whenever a variable, parameter or field is named as if it were a File but actually stores only a String file path, rename it to include the \u201cPath\u201d suffix (e.g. `selectedFile` \u2192 `selectedFilePath`, `configFile` \u2192 `configFilePath`, `logFile` \u2192 `logFilePath`). Update all declarations, references and documentation so that names accurately reflect that they hold path strings rather than File or VirtualFile objects."
+        }
+    },
+    {
+        "id": 10494,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Create a naming\u2010generalization guideline: identify identifiers, parameters, and methods that embed a specific container or format (e.g. \u2018Jar\u2019, \u2018Json\u2019, \u2018Zip\u2019) in their names; when support is extended to multiple file types, rename them to a generic file\u2010based term (e.g. \u2018FilePath\u2019, \u2018File\u2019, \u2018ResourcePath\u2019). Update all occurrences consistently, adjust method signatures and comments, and mark specialized names as deprecated for backward compatibility. Examples: configJsonPath \u2192 configFilePath, archiveZipPath \u2192 archiveFilePath, loadFromJar(Path jarPath) \u2192 loadFromFile(Path filePath). Retain the original name only when the element truly remains constrained to a single format or when the format term is part of the domain language."
+        }
+    },
+    {
+        "id": 10495,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Audit boolean predicate methods prefixed with isValid that are used specifically to gate conversion or rendering operations. For each, rename isValidXxx to isConvertibleXxx (or a domain-appropriate variant like isParsableJson, isReshapableMatrix, etc.) so the method name accurately reflects its purpose. Update all call sites, add deprecation shims for public APIs if needed, and include comments explaining the conversion intent."
+        }
+    },
+    {
+        "id": 10496,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Ensure that all table-column constants across this file and elsewhere follow the exact uppercase \u2018COL_\u2019 prefix convention. Locate any mis-cased or mis-spelled variants (e.g. \u2018COl_\u2019, \u2018Col_\u2019, \u2018C0L_\u2019) and rename them to \u2018COL_<NAME>\u2019. Apply the same principle to other groups of related constants, methods, or fields to maintain uniform naming and prevent copy-paste or readability errors. Skip renaming for identifiers in public APIs, serialization schemas, or generated code unless coordinated as a breaking change in a major release."
+        }
+    },
+    {
+        "id": 10498,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a consistent naming convention for methods that create TestrayAttachment objects: any helper wrapping an artifact (ZIP, URL, directory) into a TestrayAttachment should be named get<DescriptiveLabel>TestrayAttachment. Rename getPlaywrightTraceZip to getPlaywrightTraceViewerTestrayAttachment, update all call sites, documentation, and tests accordingly. Apply the same pattern to other attachment producers (screenshots, logs, coverage reports, etc.) to improve clarity and consistency across the codebase."
+        }
+    },
+    {
+        "id": 10762,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all methods whose names use a singular noun (e.g. findTripTimeOnDate) but return a collection or list of items. For each such method: 1) Rename the method to use the plural form (e.g. findTripTimesOnDate). 2) Update all callers, imports, and documentation to reference the new name. 3) Deprecate the old method signature if it\u2019s part of a public API, providing the new pluralized method until the next major release. 4) Ensure naming consistency across the codebase by applying the same rule to any getX, findX, listX, or fetchX methods that return multiple results."
+        }
+    },
+    {
+        "id": 10811,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify DAO or service methods whose names are plural but whose return type is a single entity, rename them to the singular form to match the actual result, and update all usages (method calls, tests, documentation). Apply the same convention throughout the codebase: for any method named with a trailing 's' yet returning one object, remove the plural suffix so the name accurately reflects its cardinality."
+        }
+    },
+    {
+        "id": 10862,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all variables across this file and in other code that hold unprocessed string templates with placeholder syntax (e.g., URLs, request bodies, SQL, paths, query strings, email subjects/bodies). Rename each generic variable name (like url, body, path, sql, queryString, emailSubject) to explicitly end with \u201cTemplate\u201d (urlTemplate, bodyTemplate, pathTemplate, sqlTemplate, queryTemplate, emailSubjectTemplate). Update their declarations, all references (including method calls to process(template, params)), and any related documentation or comments so that it\u2019s clear these are template strings requiring runtime interpolation rather than final values."
+        }
+    },
+    {
+        "id": 10877,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the record component and all code references from `pem` to `content`. This includes updating the record header (PEMRecord(String type, String pem,\u2026) \u2192 (String type, String content,\u2026)), constructor parameters and assignments (this.pem \u2192 this.content), any method signatures or local variables named pem, Javadoc tags, tests, usages in helper classes (e.g., Pem.pemEncoded calls), and any serialization or reflection metadata. Ensure consistency in naming, update API documentation, and consider deprecation if binary compatibility is required."
+        }
+    },
+    {
+        "id": 10886,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply the project\u2019s concise naming convention by renaming the effect class from AnaBattlemageKickerEffect to AnaBattlemageEffect. Update the class declaration, constructor, copy() method, file name, imports, and all instantiations in the triggered ability setup. Then scan other effect classes that include redundant qualifiers (like \u2018Kicker\u2019) and refactor them to the <CardName>Effect pattern, updating references, files, and tests accordingly."
+        }
+    },
+    {
+        "id": 11037,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a pattern for future renames when a generic method is split into two complementary operations. Identify any method named like `checkQuickService` that now has both \u201carrival\u201d and \u201cdeparture\u201d logic, rename the original to include its specific role (e.g. `checkQuickServiceArrival`), introduce or verify the paired method (e.g. `checkQuickServiceDeparture`), update all callers, documentation, and tests. Apply this suffix\u2010based naming convention (Arrival/Departure, Pre/Post, Start/End, Login/Logout, etc.) consistently wherever similar pairs appear."
+        }
+    },
+    {
+        "id": 11110,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a reusable refactoring pattern: identify any helper named `maybeCreateAndStartX` that currently both constructs and invokes `start()` on a component; extract or relocate its `start()` call into the calling code so the helper only returns the instance; rename the helper to `maybeCreateX` to accurately describe its single responsibility; update all usages, documentation, and tests; and, if this is part of a public API, deprecate the old name or provide a compatibility alias."
+        }
+    },
+    {
+        "id": 11111,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename all occurrences of RegistrationExecutionRequest to FlowExecutionRequest across the codebase, including class declaration, file name, package path, import statements, builder methods, getters/setters, @JsonProperty and @ApiModelProperty annotations, toString()/equals()/hashCode() implementations, plus update references in REST endpoints, tests, documentation and configuration to align with the new generic flow execution model."
+        }
+    },
+    {
+        "id": 11153,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Enforce camelCase for all variable and field names derived from type names: rename AIModelSourceMapper to aiModelSourceMapper at line 48 and in any injection or declaration in this file and elsewhere. Apply the same rule to other type-based variables (e.g., UserAccountDAO -> userAccountDAO, XMLParser -> xmlParser, URLFetcher -> urlFetcher) for fields, parameters and locals. Do not alter class, interface, enum or constant names."
+        }
+    },
+    {
+        "id": 11154,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a naming convention: any method or variable that now returns only enabled/active items must be renamed to include an \u2018enabled\u2019 or \u2018active\u2019 prefix (e.g. sourceNameList \u2192 enableSourceNameList, getUserList \u2192 getActiveUserList, productList \u2192 enabledProductList, featureFlags \u2192 enabledFeatureFlags). Apply this pattern consistently across mappers, DTOs, fields and other locations where filtering semantics changed. Update all references, documentation, and tests, but preserve original names or introduce new methods when full unfiltered lists are still required or for backward compatibility."
+        }
+    },
+    {
+        "id": 11155,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all methods named with an explicit \u2018WithX\u2019 suffix (e.g., chatWithMemory, fetchWithCache, saveWithAudit), determine if the \u2018WithX\u2019 behavior should become the default or be handled via overloads or injected advisors/options, then rename each method to the base name (e.g., chat, fetch, save), add or adjust overloaded signatures and parameters as needed to toggle optional behavior, update all callers to use the unified method names, deprecate or remove the old suffix methods, and ensure documentation and tests reflect the new API"
+        }
+    },
+    {
+        "id": 11163,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply pluralized naming convention for test classes: rename `JdbcTest` to `JdbcTests` and update all corresponding occurrences\u2014including the file name, class declaration, import statements, bean definitions, channel and qualifier names, and any other references\u2014in this file and across the codebase to ensure consistent multi-test naming."
+        }
+    },
+    {
+        "id": 11164,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the private static Pattern constant `_testrayAttachmentURLPattern` to `_testrayS3ObjectURLPattern` everywhere in the codebase. Update its declaration and regex literal to reflect AWS S3 object URL structure, change all references in methods like `getTestrayAttachmentURLs()`, rename related variables (`_testrayAttachmentURLs` \u2192 `_testrayS3ObjectURLs`), adjust method names and javadoc/comments accordingly, and update any unit tests or configuration files that mention `testrayAttachmentURLPattern` or `AttachmentURLs`. Apply the same pattern of renaming for any other constants or methods that switch from a generic \u201cattachment\u201d endpoint to a specific \u201cS3 object\u201d endpoint to keep naming and behavior consistent."
+        }
+    },
+    {
+        "id": 11166,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify any metric or event ID in this file (and related modules) named `*_IN_PROJECT` that in fact measures file\u2010type distributions, and systematically rename them to include `TYPE` (e.g. `FILE_IN_PROJECT` \u2192 `FILE_TYPE_IN_PROJECT`). Update constant names, event registration IDs, and all usages to maintain semantic alignment and avoid breaking external contracts."
+        }
+    },
+    {
+        "id": 11172,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply the same renaming pattern wherever a variable, parameter, or field is named `desc`\u2014expand the abbreviation to `descriptor` for clarity and consistency across this class and other code. Update all references, declarations, and usages (including method calls, property accesses, and documentation) so that every `desc` identifier becomes `descriptor`."
+        }
+    },
+    {
+        "id": 11176,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce a naming convention that variables holding wrapper types (e.g., Reference<BufferQueue>) must reflect the wrapper rather than the wrapped value. For example, rename local vars of type SoftReference<BufferQueue> from `bufferQueue` to `bufferQueueRef` or `reference`. Apply the same pattern to other wrapper types (Optional<T>, AtomicReference<T>, Future<T>, etc.) to improve clarity, and only skip renaming when the variable truly holds the unwrapped object."
+        }
+    },
+    {
+        "id": 11177,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify ThreadLocal wrapper fields and local variables (e.g. bufferQueueThreadLocal) that are immediately unwrapped to their inner resource, centralize that unwrap in one helper or method, then drop the \u201cThreadLocal\u201d suffix and rename the variable to the underlying type (e.g. bufferQueue). Repeat this for any wrapper suffix (Proxy, Adapter, Holder) where callers only ever use the unwrapped object. Only leave the suffix when the wrapper itself must remain part of the API or logic."
+        }
+    },
+    {
+        "id": 11178,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a consistent refactoring across this file and other code locations to remove redundant numeric suffixes from exception parameters in catch blocks\u2014rename exception2 (and any similar numbered exception variables) to exception\u2014and apply the same principle to other numbered local variables by removing the suffix or replacing it with a more descriptive name for improved readability and adherence to naming conventions."
+        }
+    },
+    {
+        "id": 11179,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Describe the general rule: ensure test method and identifier names use the past-participle voice (e.g. Serialized, Written, Matched) instead of the bare infinitive (Serialize, Write, Match). Instruct the developer to scan all test classes and related code for inconsistent verb forms in method names, apply renames (e.g. generatedMapsSerializeIdentically\u2192generatedMapsSerializedIdentically, fileWritesCorrectly\u2192fileWrittenCorrectly), and maintain consistency with existing naming conventions. Note exceptions: skip renames on public API methods or auto-generated code where backward compatibility or code generation rules apply."
+        }
+    },
+    {
+        "id": 11180,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In fluent builder classes, ensure every setter method uses the `withXxx` naming convention for consistency (e.g. `withCallback`, `withTimeout`, `withListener`). Apply this pattern to any optional-parameter methods lacking the `with` prefix across the codebase, while skipping renames in non-builder contexts, interface overrides, or where backward compatibility prevents change."
+        }
+    },
+    {
+        "id": 11182,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When service methods are removed or reordered, the auto-generated numeric suffixes on the static ParameterTypes arrays in the HTTP utility must be adjusted to reflect the new method order. In this case, remove one from the suffix\u2014rename `_updateSystemObjectDefinitionParameterTypes17` to `_updateSystemObjectDefinitionParameterTypes16` and update every reference. Apply the same decrementing (or incrementing) of N on all `_XParameterTypesN` constants and their usages across ServiceHttp classes whenever methods are added, removed, or reordered to keep the numbering consistent."
+        }
+    },
+    {
+        "id": 11183,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a consistent renaming convention for test or code variables that hold potentially unsafe payloads: remove the \u201cmalicious\u201d prefix and use the actual parameter name or domain\u2010specific term under test (e.g., rename maliciousScript\u2192script, maliciousHtml\u2192html, maliciousUrl\u2192url, maliciousParam\u2192param). This should be applied throughout the file and in other locations to improve readability, align with naming standards, and keep focus on the API behavior (escaping/sanitization) rather than on the payload\u2019s malicious nature."
+        }
+    },
+    {
+        "id": 11184,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Concept: Remove leading underscores from private helper method names across the codebase to conform to Liferay\u2019s Java style guide. In this file (and others), rename `_createDDMFormFieldRenderingContext` to `createDDMFormFieldRenderingContext` and apply the same pattern to any private method beginning with `_` (e.g., `_getDDMFormField` \u2192 `getDDMFormField`, `_buildPortletURL` \u2192 `buildPortletURL`). Do not change underscore\u2010prefixed private fields or public/protected/API methods."
+        }
+    },
+    {
+        "id": 11185,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Generalize the removal of the redundant `asset` prefix for local variables of type AssetCategory across this class and similar contexts. For any variable named `assetCategory` representing an AssetCategory instance, rename it to `category` to reduce noise, avoid duplication of type information, and align with existing naming conventions. Apply similar transformations for other Asset-prefixed domain objects (e.g., `assetTag` -> `tag`, `assetEntry` -> `entry`, `assetVocabulary` -> `vocabulary`) where the shorter name remains unambiguous. Skip renaming when the prefix provides necessary context to distinguish between multiple category types or would break public APIs or serialization contracts."
+        }
+    },
+    {
+        "id": 11194,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In any similar context where a local variable named `capabilities` is declared in a very narrow scope\u2014especially if it only fetches one entry or shadows the `CAPABILITIES` constant\u2014rename it to `cap` for brevity and to avoid confusion. Apply the same principle to other long names in tight scopes (e.g., `parameters` \u2192 `params`, `configurationOptions` \u2192 `config`), while preserving full, descriptive names in public APIs or when the variable is used extensively or an abbreviation would be ambiguous."
+        }
+    },
+    {
+        "id": 11197,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a naming convention: any Path/local variable whose role is to hold a fixed root or base directory should use the suffix or name \u2018base\u2019 (e.g., base, testsBase, outputBase) instead of \u2018resolved\u2019. Audit this file and other code locations for locals named \u2018resolved\u2019 that actually denote directory roots, rename them following the convention, update related log messages and documentation, and ensure consistency across modules. Do not apply the change where the variable genuinely represents the dynamic result of a resolution operation."
+        }
+    },
+    {
+        "id": 11200,
+        "response": {
+            "plan": null,
+            "augmented_intent": "For all similar test methods and references in this and other files, replace generic \u201cConfigRefresh\u201d suffixes with descriptive phrases that encode the precise behavior under test. For example, rename any method matching `test*ConfigRefresh` to `test*UpdatesContainersOnConfigChange` (or equivalent behavior-specific wording). Ensure test names follow the pattern `test<Feature><ExpectedOutcome>On<Trigger>` so that each test clearly documents what side-effect is verified when configuration changes occur."
+        }
+    },
+    {
+        "id": 11207,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a naming guideline: whenever you have a variable whose type or domain isn\u2019t clear from its name, rename it to mirror its class or concept precisely. For example, change any variable of type FavouritePoint named \u2018favorite\u2019 to \u2018favouritePoint\u2019, adjust other variables of types (e.g. FavoriteGroup \u2192 favouriteGroup, BookmarkItem \u2192 bookmarkItem, MapMarker \u2192 mapMarker), and ensure spelling matches the class (British \u2018favourite\u2019 vs US \u2018favorite\u2019). Apply this consistently across methods, parameters, and fields\u2014but do not rename identifiers when they\u2019re part of a public API, override a superclass/interface, or when the context is already unambiguous."
+        }
+    },
+    {
+        "id": 11211,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Ensure that any method or variable across this class and related modules which uses a plural noun but actually handles a single element is renamed to the singular form. For example, rename addErrors\u2192addError, setParameters\u2192setParameter, createWidgets\u2192createWidget when they only process one item. Update all call sites, imports, tests, and documentation accordingly, and consider adding deprecation stubs for the old plural names to preserve backward compatibility during the transition."
+        }
+    },
+    {
+        "id": 11212,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Adopt a clear key/value naming convention in map iterations: whenever a variable actually holds the value from a key\u2013value structure, suffix it with `Value` (e.g., `clickableTagValue`), and when a variable represents the key, suffix it with `Key` or use a descriptive name. Audit all loops, lambdas, and helper methods that pull data from maps (tags, headers, attributes, etc.) and apply the same renaming pattern to eliminate ambiguity and improve code readability and consistency."
+        }
+    },
+    {
+        "id": 11213,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a naming convention that any variable receiving the result of a map lookup or similar extraction is clearly marked as a \u201cValue\u201d (e.g., rename all loop or assignment variables holding map.get(key) results to end in \u2018Value\u2019) so that key vs. value roles are unambiguous across this file and elsewhere."
+        }
     }
 ]

@@ -4,9 +4,13 @@ import sys
 import refagent.benchmark.load as bm_load
 import refagent.refactoring_types.refactorings as refactorings
 from typing import List
+import refagent.utils.project_manager as pm
+from datetime import datetime, UTC, timedelta
+
 
 def main():
     '''This script finds data from the monitoring results which are suitable to submit patches'''
+
     file_path = sys.argv[1]
     with open(file_path) as f:
         data = [json.loads(i) for i in f.read().splitlines()]
@@ -14,10 +18,19 @@ def main():
 
     filtered_renames: List[bm_load.BenchmarkItem] = []
     for i in rename_data:
+        print(f"processing item {i.ref_id}")
         i.refactoring_changes = [r for r in i.refactoring_changes if isinstance(r, refactorings.Rename)]
         fun_refactorings = [r for r in i.refactoring_changes if
                             isinstance(r, refactorings.Rename) and r.has_type_change == False]
-        if 2 >= len(fun_refactorings) > 0:
+        project = pm.EvalProject(i.project_name)
+
+        try:
+            commit = project.git_repo.commit(i.v2_hash)
+        except:
+            continue
+        if (2 >= len(fun_refactorings) > 0
+                and commit.committed_datetime
+                > datetime.now(UTC) - timedelta(days=5)):
             filtered_renames.append(i)
 
     for r in filtered_renames:

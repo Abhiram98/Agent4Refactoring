@@ -43,11 +43,12 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     else:
         plan_type = planning.PlanningComponent
 
-    vendor = 'grazie' # switch to `openai` to use the openai models directly
+    # vendor = 'grazie' # switch to `openai` to use the openai models directly
+    vendor = 'openai'
 
     agent = react_agent.ReactAgent(ide_server=ij_server,
-                     model_name=f'{vendor}:openai-gpt-4o-mini',
-                     reasoning_model_name=f'{vendor}:openai-o4-mini',
+                     model_name=f'{vendor}:gpt-4o-mini',
+                     reasoning_model_name=f'{vendor}:o4-mini',
                      project=project,
                      plan_component=plan_type,
                      augmented_intent=augmented_intent,
@@ -60,7 +61,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
             assert initial_commit is not None, "initial commit must be provided for replication"
             agent.add_internal_commit(project.git_repo.commit(initial_commit))
             agent.initialize_agent(starting_file=bench_point.starting_file)
-            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
+            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
         traceback.print_exc()
@@ -80,7 +81,8 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
             "changes": [c.to_json() for c in project.get_changes(new_hash)],
             "commit_hash": str(new_hash),
             "trajectory": [i.to_json() for i in agent.get_trajectory()],
-            "performed_refactorings": agent.get_performed_refactorings()
+            "performed_refactorings": agent.get_performed_refactorings(),
+            "internal_commits": [str(i) for i in internal_commits],
         }
     )
     results_saver.save()
