@@ -24,9 +24,12 @@ class BenchmarkItem(BaseModel):
         arbitrary_types_allowed = True
 
     @classmethod
-    def load(cls, _json) -> "BenchmarkItem":
+    def load(cls, _json, load_changes=False) -> "BenchmarkItem":
         try:
-            changes = pm.EvalProject(_json['project']).get_changes(_json['v2_hash'])
+            if load_changes:
+                changes = pm.EvalProject(_json['project']).get_changes(_json['v2_hash'])
+            else:
+                changes = []
         except:
             changes = []
         return cls(
