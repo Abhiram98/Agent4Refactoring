@@ -222,7 +222,7 @@ class RenameParameter(Rename):
 
     @property
     def has_type_change(self) -> bool:
-        return self.old_param_name != self.new_name
+        return self.old_type != self.new_type
 
     def __eq__(self, other):
         return (super().__eq__(other) and
