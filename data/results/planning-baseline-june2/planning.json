@@ -1,0 +1,44 @@
+[
+    {
+        "id": 10040,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce a naming convention that places the adjective \u2018pinned\u2019 before \u2018AssetLibraryIds\u2019 and apply it everywhere: rename all variable declarations, getters, JSON keys (e.g., in getAdditionalProps), method names, parameters, tests, and documentation from assetLibraryPinIds to pinnedAssetLibraryIds (and from pinnedAssetLibrariesIds to pinnedAssetLibraryIds) to ensure clarity and consistency across the codebase."
+        }
+    },
+    {
+        "id": 10135,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Remove the redundant 'Type' suffix from enum classes and related identifiers when the surrounding context already implies 'Type', aligning names (CompositeType \u2192 Composite, SyntaxType \u2192 Syntax, TokenizationType \u2192 Tokenization). Refactor class and enum declarations, method names (getCompositeType \u2192 getComposite), setters (setCompositeType \u2192 setComposite), static field names (COMPOSITETYPE \u2192 COMPOSITE), property keys, QueryProfileType fields, string literals, documentation, and tests. Use search-and-replace scripts or IDE rename refactorings, update imports and references, and provide deprecation stubs or migration notes to maintain backward compatibility."
+        }
+    },
+    {
+        "id": 10385,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In the BatchOperationFilter interface and its implementation (around line 56), rename the parameter from operationType to batchOperationType. Apply the same qualification pattern to other parameter names where a generic operationType is ambiguous (e.g., jobOperationType in JobFilter, processOperationType in ProcessInstanceFilter) to ensure consistent, collision-free API naming."
+        }
+    },
+    {
+        "id": 10373,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename variables ending with 'Map' that actually hold a single serialized record to end with 'Data' instead of 'Map'. In this file and elsewhere, change typeMap \u2192 typeData and apply the same pattern to other snapshot readers (e.g. methodMap \u2192 methodData, fieldMap \u2192 fieldData, constantMap \u2192 constantData) so that variable names accurately reflect they are single data records and follow the established naming convention."
+        }
+    },
+    {
+        "id": 10375,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Search for all occurrences of the legacy \u201cWEB_SYMBOLS\u201d identifier across code, XML, configuration files and docs, and replace them with the new \u201cPOLY_SYMBOLS\u201d name. This includes: constant declarations (e.g. WEB_SYMBOLS_INSPECTION_TOOL_MAPPING_EP), fully-qualified class names in Holder constants, XML extension-point tags and attributes, string literals in tests, resource-bundle keys, and import statements. Ensure any renamed EP implementations or packages are updated in build files and plugin descriptors. If backward compatibility is required, mark old constants as @Deprecated and delegate to the new ones. Finally, run and update tests and examples to verify that no references to \u201cWEB_SYMBOLS\u201d remain and that the renamed elements load correctly under \u201cPOLY_SYMBOLS.\u201d"
+        }
+    },
+    {
+        "id": 10378,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the method parameter named context to actionContext in getFileIdOptions (line 45) and update all its usages to clearly reflect its ActionContext type. Apply this naming convention consistently across the codebase: any variable or parameter of type ActionContext should be called actionContext, and other specialized context types (e.g., RenderContext, SecurityContext) should be similarly suffixed to prevent ambiguity. Leave a plain context name only when there is truly a single, unambiguous context type in scope."
+        }
+    }
+]

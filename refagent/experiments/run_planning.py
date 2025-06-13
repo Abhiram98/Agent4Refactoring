@@ -38,16 +38,16 @@ def run_planning(bench_point: bm_load.BenchmarkItem,
         new_name=new_name
     ).run().augmented_intent
 
-    planner = planning.PlanningComponent(
-        initial_intent=augmented_intent,
-        model=model,
-        source_file_path=bench_point.starting_file,
-        source_code=project.get_file_contents(bench_point.starting_file)
-    )
-    ref_plan = planner.run()
+    # planner = planning.PlanningComponent(
+    #     initial_intent=augmented_intent,
+    #     model=model,
+    #     source_file_path=bench_point.starting_file,
+    #     source_code=project.get_file_contents(bench_point.starting_file)
+    # )
+    # ref_plan = planner.run()
     results_saver.add(bench_point.ref_id,
                       {
-                          "plan": json.loads(ref_plan.json()),
+                          "plan": None,
                           "augmented_intent": augmented_intent
                       }
                       )

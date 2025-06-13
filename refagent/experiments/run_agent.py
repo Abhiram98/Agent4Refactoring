@@ -43,11 +43,12 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
     else:
         plan_type = planning.PlanningComponent
 
-    vendor = 'grazie' # switch to `openai` to use the openai models directly
+    # vendor = 'grazie' # switch to `openai` to use the openai models directly
+    vendor = 'openai'
 
     agent = react_agent.ReactAgent(ide_server=ij_server,
-                     model_name=f'{vendor}:openai-gpt-4o-mini',
-                     reasoning_model_name=f'{vendor}:openai-o4-mini',
+                     model_name=f'{vendor}:gpt-4o-mini',
+                     reasoning_model_name=f'{vendor}:o4-mini',
                      project=project,
                      plan_component=plan_type,
                      augmented_intent=augmented_intent,
@@ -60,7 +61,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
             assert initial_commit is not None, "initial commit must be provided for replication"
             agent.add_internal_commit(project.git_repo.commit(initial_commit))
             agent.initialize_agent(starting_file=bench_point.starting_file)
-            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
+            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
         traceback.print_exc()
@@ -80,7 +81,8 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
             "changes": [c.to_json() for c in project.get_changes(new_hash)],
             "commit_hash": str(new_hash),
             "trajectory": [i.to_json() for i in agent.get_trajectory()],
-            "performed_refactorings": agent.get_performed_refactorings()
+            "performed_refactorings": agent.get_performed_refactorings(),
+            "internal_commits": [str(i) for i in internal_commits],
         }
     )
     results_saver.save()
@@ -117,6 +119,10 @@ if __name__ == '__main__':
                              "If true, ONLY the replication is performed, starting from an initial commit. "
                              "If false, ONLY the initial agent is run (to edit only the starting file)", default=True
                         )
+    parser.add_argument("--use_change_summary", type=str,
+                        help="Whether to use the change summary or not. "
+                             "If true, the change summary is used to improve the intent. "
+                             "If false, the change summary is not used.", default=False)
     args = parser.parse_args()
 
 
@@ -128,13 +134,16 @@ if __name__ == '__main__':
     if args.planning_results_file is not None:
         with open(refagent.data_folder.joinpath(args.planning_results_file)) as f:
             json_ = json.load(f)
-            planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) for i in json_}
+            planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) if i['response']['plan'] is not None else None
+                                for i in json_}
             augmented_intents = {i['id']: i['response']['augmented_intent'] for i in json_}
 
     initial_save_file = rm.ResultsManager(run_identifier=args.run_identifier, save_file="no-replication.json").save_file_path
-    with open(initial_save_file) as f:
-        initial_run = json.load(f)
-        initial_commits = {i['id']: i['response']['commit_hash'] for i in initial_run}
+    initial_commits={}
+    if initial_save_file.exists():
+        with open(initial_save_file) as f:
+            initial_run = json.load(f)
+            initial_commits = {i['id']: i['response']['commit_hash'] for i in initial_run}
 
     use_previous = False
 
@@ -159,5 +168,5 @@ if __name__ == '__main__':
                       tags=[args.run_identifier]) as tracer:
             setup_and_run(bench_point, ij_server, results_saver, do_replication,
                           plan=planning_results.get(bench_point.ref_id),
-                          augmented_intent=augmented_intents.get(bench_point.ref_id),
+                          augmented_intent=bench_point.change_summary if args.use_change_summary.lower() == "true" else augmented_intents.get(bench_point.ref_id),
                           initial_commit=initial_commits.get(bench_point.ref_id))
