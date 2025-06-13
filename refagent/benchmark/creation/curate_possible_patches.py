@@ -10,15 +10,22 @@ from datetime import datetime, UTC, timedelta
 
 def main():
     '''This script finds data from the monitoring results which are suitable to submit patches'''
-
+    # monitor_results.jsonl
     file_path = sys.argv[1]
     with open(file_path) as f:
         data = [json.loads(i) for i in f.read().splitlines()]
         rename_data = bm_load.load_benchmark(data)
 
+    with open(refagent.data_folder.joinpath("monitoring/for_patches.json")) as f:
+        previous_data = json.load(f)
+
     filtered_renames: List[bm_load.BenchmarkItem] = []
+    filtered_renames += bm_load.load_benchmark(previous_data)
     for i in rename_data:
         print(f"processing item {i.ref_id}")
+        if any(i.ref_id == k.ref_id for k in filtered_renames):
+            print("previously processed item")
+            continue
         i.refactoring_changes = [r for r in i.refactoring_changes if isinstance(r, refactorings.Rename)]
         fun_refactorings = [r for r in i.refactoring_changes if
                             isinstance(r, refactorings.Rename) and r.has_type_change == False]
@@ -30,7 +37,7 @@ def main():
             continue
         if (2 >= len(fun_refactorings) > 0
                 and commit.committed_datetime
-                > datetime.now(UTC) - timedelta(days=5)):
+                > datetime.now(UTC) - timedelta(days=7)):
             filtered_renames.append(i)
 
     for r in filtered_renames:

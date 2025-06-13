@@ -1855,7 +1855,7 @@
         "v1_hash": "1ad00d2a6655fe07bc57a2d8254a9b6d9ca9a021",
         "v2_hash": "791282fbe7f8cdfb7704b952568868868879d19c",
         "orig_commit_message": "[runtime module repository] implement a more efficient format for the repository (IJPL-189949)\n\nA new implementation which generates and loads the runtime module repository from a module-descriptors.dat file in binary format is implemented. module-descriptors.jar in the old format is still generated for compatibility with other tools (e.g., IntelliJ Platform Gradle Plugin) and to provide a human-readable view. It's also used as a fallback variant if module-descriptors.dat is absent.\n\nThe new format speeds up loading by around 10 times.\n\nGitOrigin-RevId: b17ba7b53f825e6dcf243ff0aa5b7aedaf7ab9e2",
-        "improved_commit_message": "Rename Attribute: `myDescriptorsJarPath` -> `myDescriptorsFilePath` on line 25",
+        "improved_commit_message": "Rename Parameter: `moduleDescriptorsJarPath` -> `moduleDescriptorsFilePath` on line 22",
         "change_summary": "",
         "hints": [],
         "starting_file": "platform/runtime/repository/src/com/intellij/platform/runtime/repository/impl/RuntimeModuleRepositoryImpl.java",
@@ -2725,7 +2725,7 @@
         "v1_hash": "c793de989facdb532021e1d5ddd01eb0e089b8e6",
         "v2_hash": "78158f30aee51e14ab203b0127aeb883c010319c",
         "orig_commit_message": "8358099: PEM spec updates\n\nReviewed-by: mullan\n",
-        "improved_commit_message": "Rename Attribute: `pem` -> `content` on line 67",
+        "improved_commit_message": "Rename Parameter: `pem` -> `content` on line 112",
         "change_summary": "",
         "hints": [],
         "starting_file": "src/java.base/share/classes/java/security/PEMRecord.java",
@@ -5477,6 +5477,1216 @@
                         "startColumn": 9,
                         "endColumn": 10,
                         "codeElementType": "ENHANCED_FOR_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11198,
+        "project": "eo",
+        "v1_hash": "3601f7817a0410224c86c0bf6d831e7c97cc0bec",
+        "v2_hash": "b2ffc4db65c7719046cecc75c8d500362a1feae9",
+        "orig_commit_message": "Merge branch 'master' into 4235\n",
+        "improved_commit_message": "Rename Parameter: `tpe` -> `mojo` on line 46",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter tpe : Class<T> to mojo : Class<T> in method package Moja(mojo Class<T>) from class org.eolang.maven.Moja",
+                "leftSideLocations": [
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 46,
+                        "endLine": 46,
+                        "startColumn": 10,
+                        "endColumn": 28,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "tpe : Class<T>"
+                    },
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 47,
+                        "endLine": 47,
+                        "startColumn": 9,
+                        "endColumn": 25,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 46,
+                        "endLine": 46,
+                        "startColumn": 10,
+                        "endColumn": 29,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "mojo : Class<T>"
+                    },
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 47,
+                        "endLine": 47,
+                        "startColumn": 9,
+                        "endColumn": 26,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11234,
+        "project": "quarkus",
+        "v1_hash": "1b7cd3b44bae159dd2029530a2356cdad896b191",
+        "v2_hash": "c0c8c594980f0573c52cc3a7879ca3b80d7d97f4",
+        "orig_commit_message": "Merge pull request #48240 from stefan-schmoeller/test-comparison-use-annotation-attributes\n\nRespect annotation configuration values when comparing test resources",
+        "improved_commit_message": "Rename Class: `EndTestWithList` -> `WithListEndTest` on line 9",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/EndTestWithList.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Class",
+                "description": "Rename Class io.quarkus.it.extension.EndTestWithList renamed to io.quarkus.it.extension.WithListEndTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/EndTestWithList.java",
+                        "startLine": 9,
+                        "endLine": 23,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "io.quarkus.it.extension.EndTestWithList"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/WithListEndTest.java",
+                        "startLine": 9,
+                        "endLine": 23,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "io.quarkus.it.extension.WithListEndTest"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Class",
+                "description": "Rename Class io.quarkus.it.extension.StartTestWithList renamed to io.quarkus.it.extension.WithListStartTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/StartTestWithList.java",
+                        "startLine": 9,
+                        "endLine": 23,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "io.quarkus.it.extension.StartTestWithList"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/WithListStartTest.java",
+                        "startLine": 9,
+                        "endLine": 23,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "io.quarkus.it.extension.WithListStartTest"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11235,
+        "project": "quarkus",
+        "v1_hash": "1fb540c7711530fa2fbf181c238dd5c872bc488a",
+        "v2_hash": "4f48ab312c9b861b6ef0a4b2bed90cc9bdbacfa3",
+        "orig_commit_message": "Rename test classes to match *Test pattern\n",
+        "improved_commit_message": "Rename Class: `EndTestWithList` -> `WithListEndTest` on line 9",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/EndTestWithList.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Class",
+                "description": "Rename Class io.quarkus.it.extension.EndTestWithList renamed to io.quarkus.it.extension.WithListEndTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/EndTestWithList.java",
+                        "startLine": 9,
+                        "endLine": 23,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "io.quarkus.it.extension.EndTestWithList"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/WithListEndTest.java",
+                        "startLine": 9,
+                        "endLine": 23,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "io.quarkus.it.extension.WithListEndTest"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Class",
+                "description": "Rename Class io.quarkus.it.extension.StartTestWithList renamed to io.quarkus.it.extension.WithListStartTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/StartTestWithList.java",
+                        "startLine": 9,
+                        "endLine": 23,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "io.quarkus.it.extension.StartTestWithList"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "integration-tests/test-extension/tests/src/test/java/io/quarkus/it/extension/WithListStartTest.java",
+                        "startLine": 9,
+                        "endLine": 23,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "io.quarkus.it.extension.WithListStartTest"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11242,
+        "project": "vespa",
+        "v1_hash": "fbfc349084ec950baf2caf98736fa49afd459ce5",
+        "v2_hash": "86704ebb528a5cc07c91976ffabc730e2e4d7a9d",
+        "orig_commit_message": "Merge pull request #34218 from vespa-engine/olaa/reapply-azure-dns-types\n\nReapply Azure DNS entry types",
+        "improved_commit_message": "Rename Parameter: `allowReverse` -> `azureIpv6Enabled` on line 33",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter allowReverse : boolean to azureIpv6Enabled : boolean in method public recordTypesFor(ipVersion IP.Version, hostType NodeType, cloudName CloudName, enclave boolean, azureIpv6Enabled boolean) : Set<RecordType> from class com.yahoo.vespa.hosted.provision.node.Dns",
+                "leftSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 33,
+                        "endLine": 33,
+                        "startColumn": 129,
+                        "endColumn": 149,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "allowReverse : boolean"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 34,
+                        "endLine": 34,
+                        "startColumn": 130,
+                        "endColumn": 154,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "azureIpv6Enabled : boolean"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11243,
+        "project": "vespa",
+        "v1_hash": "9bd1a5ac9bc33986ed2b560fa5ce6030bef462fc",
+        "v2_hash": "96b124f33bb54fa7552b4c161eaf5cc31f595d27",
+        "orig_commit_message": "Use old record types if Azure flag is unset\n",
+        "improved_commit_message": "Rename Parameter: `allowReverse` -> `azureIpv6Enabled` on line 33",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter allowReverse : boolean to azureIpv6Enabled : boolean in method public recordTypesFor(ipVersion IP.Version, hostType NodeType, cloudName CloudName, enclave boolean, azureIpv6Enabled boolean) : Set<RecordType> from class com.yahoo.vespa.hosted.provision.node.Dns",
+                "leftSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 33,
+                        "endLine": 33,
+                        "startColumn": 129,
+                        "endColumn": 149,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "allowReverse : boolean"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 34,
+                        "endLine": 34,
+                        "startColumn": 130,
+                        "endColumn": 154,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "azureIpv6Enabled : boolean"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11251,
+        "project": "vespa",
+        "v1_hash": "712579e2b151462755dc7a0f5ea3fc95691bf044",
+        "v2_hash": "f19ac620440758b6dce233d21b70d7bebf67f026",
+        "orig_commit_message": "Merge pull request #34230 from vespa-engine/revert-34218-olaa/reapply-azure-dns-types\n\nRevert \"Reapply Azure DNS entry types\"",
+        "improved_commit_message": "Rename Parameter: `azureIpv6Enabled` -> `allowReverse` on line 34",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter azureIpv6Enabled : boolean to allowReverse : boolean in method public recordTypesFor(ipVersion IP.Version, hostType NodeType, cloudName CloudName, enclave boolean, allowReverse boolean) : Set<RecordType> from class com.yahoo.vespa.hosted.provision.node.Dns",
+                "leftSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 34,
+                        "endLine": 34,
+                        "startColumn": 130,
+                        "endColumn": 154,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "azureIpv6Enabled : boolean"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 33,
+                        "endLine": 33,
+                        "startColumn": 129,
+                        "endColumn": 149,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "allowReverse : boolean"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11252,
+        "project": "vespa",
+        "v1_hash": "712579e2b151462755dc7a0f5ea3fc95691bf044",
+        "v2_hash": "cbde503dd6395d530ae929702cce212e5fbb0af8",
+        "orig_commit_message": "Revert \"Reapply Azure DNS entry types\"\n",
+        "improved_commit_message": "Rename Parameter: `azureIpv6Enabled` -> `allowReverse` on line 34",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter azureIpv6Enabled : boolean to allowReverse : boolean in method public recordTypesFor(ipVersion IP.Version, hostType NodeType, cloudName CloudName, enclave boolean, allowReverse boolean) : Set<RecordType> from class com.yahoo.vespa.hosted.provision.node.Dns",
+                "leftSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 34,
+                        "endLine": 34,
+                        "startColumn": 130,
+                        "endColumn": 154,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "azureIpv6Enabled : boolean"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 33,
+                        "endLine": 33,
+                        "startColumn": 129,
+                        "endColumn": 149,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "allowReverse : boolean"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11255,
+        "project": "intellij-community",
+        "v1_hash": "cb0030bbb223a578cea00ecae7be744e931ea035",
+        "v2_hash": "d0e93f648a820e00da9447e27f6eec4f6136fb7f",
+        "orig_commit_message": "[rd-editor] IJPL-185748 Frontend speculative undo/redo\n\nGitOrigin-RevId: ae276a7506273a06b99761000e536c8b61c67ad8",
+        "improved_commit_message": "Rename Method: `isFrontendUndoEnabled` -> `isSpeculativeUndoEnabled` on line 26",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "platform/platform-impl/src/com/intellij/ide/impl/UndoRemoteBehaviorService.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method protected isFrontendUndoEnabled() : boolean renamed to protected isSpeculativeUndoEnabled() : boolean in class com.intellij.ide.impl.UndoRemoteBehaviorService",
+                "leftSideLocations": [
+                    {
+                        "filePath": "platform/platform-impl/src/com/intellij/ide/impl/UndoRemoteBehaviorService.java",
+                        "startLine": 26,
+                        "endLine": 29,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "protected isFrontendUndoEnabled() : boolean"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "platform/platform-impl/src/com/intellij/ide/impl/UndoRemoteBehaviorService.java",
+                        "startLine": 26,
+                        "endLine": 29,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "protected isSpeculativeUndoEnabled() : boolean"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11285,
+        "project": "vespa",
+        "v1_hash": "3aa886a7eb409c10b0b67b1e56d25353f6827cfd",
+        "v2_hash": "34bedd2dbac3cee1b5b405073499fa2127451812",
+        "orig_commit_message": "Merge pull request #34235 from vespa-engine/olaa/azure-dns-types\n\nReapply Azure DNS record types and feature flag",
+        "improved_commit_message": "Rename Parameter: `allowReverse` -> `azureIpv6Enabled` on line 33",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter allowReverse : boolean to azureIpv6Enabled : boolean in method public recordTypesFor(ipVersion IP.Version, hostType NodeType, cloudName CloudName, enclave boolean, azureIpv6Enabled boolean) : Set<RecordType> from class com.yahoo.vespa.hosted.provision.node.Dns",
+                "leftSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 33,
+                        "endLine": 33,
+                        "startColumn": 129,
+                        "endColumn": 149,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "allowReverse : boolean"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 34,
+                        "endLine": 34,
+                        "startColumn": 130,
+                        "endColumn": 154,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "azureIpv6Enabled : boolean"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 11286,
+        "project": "vespa",
+        "v1_hash": "f19ac620440758b6dce233d21b70d7bebf67f026",
+        "v2_hash": "2bffd247e03dc388d8244051c0df38b7a21fa32c",
+        "orig_commit_message": "Revert \"Merge pull request #34230 from vespa-engine/revert-34218-olaa/reapply-azure-dns-types\"\n\nThis reverts commit f19ac620440758b6dce233d21b70d7bebf67f026, reversing\nchanges made to 712579e2b151462755dc7a0f5ea3fc95691bf044.\n",
+        "improved_commit_message": "Rename Parameter: `allowReverse` -> `azureIpv6Enabled` on line 33",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter allowReverse : boolean to azureIpv6Enabled : boolean in method public recordTypesFor(ipVersion IP.Version, hostType NodeType, cloudName CloudName, enclave boolean, azureIpv6Enabled boolean) : Set<RecordType> from class com.yahoo.vespa.hosted.provision.node.Dns",
+                "leftSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 33,
+                        "endLine": 33,
+                        "startColumn": 129,
+                        "endColumn": 149,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "allowReverse : boolean"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "node-repository/src/main/java/com/yahoo/vespa/hosted/provision/node/Dns.java",
+                        "startLine": 34,
+                        "endLine": 34,
+                        "startColumn": 130,
+                        "endColumn": 154,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "azureIpv6Enabled : boolean"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 10439,
+        "project": "intellij-community",
+        "v1_hash": "47854e8b7b2d39d14b65ef23073db4aaa04c4cb9",
+        "v2_hash": "3bf36654d01a41ad7cb5836746e30f017f7bc3d3",
+        "orig_commit_message": "Java: fix replacing tail recursion with iteration failure caused by conversion to ModCommand (IDEA-371968)\n\nGitOrigin-RevId: 1d05dc8583221fb8583828847720b07be1d5bdd3",
+        "improved_commit_message": "Rename Parameter: `tailCallToken` -> `element` on line 81",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "java/java-impl/src/com/siyeh/ig/performance/TailRecursionInspection.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter tailCallToken : PsiElement to element : PsiElement in method protected applyFix(project Project, element PsiElement, updater ModPsiUpdater) : void from class com.siyeh.ig.performance.TailRecursionInspection.RemoveTailRecursionFix",
+                "leftSideLocations": [
+                    {
+                        "filePath": "java/java-impl/src/com/siyeh/ig/performance/TailRecursionInspection.java",
+                        "startLine": 81,
+                        "endLine": 81,
+                        "startColumn": 55,
+                        "endColumn": 88,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "tailCallToken : PsiElement"
+                    },
+                    {
+                        "filePath": "java/java-impl/src/com/siyeh/ig/performance/TailRecursionInspection.java",
+                        "startLine": 82,
+                        "endLine": 83,
+                        "startColumn": 7,
+                        "endColumn": 118,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "java/java-impl/src/com/siyeh/ig/performance/TailRecursionInspection.java",
+                        "startLine": 113,
+                        "endLine": 119,
+                        "startColumn": 7,
+                        "endColumn": 8,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "java/java-impl/src/com/siyeh/ig/performance/TailRecursionInspection.java",
+                        "startLine": 81,
+                        "endLine": 81,
+                        "startColumn": 55,
+                        "endColumn": 82,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "element : PsiElement"
+                    },
+                    {
+                        "filePath": "java/java-impl/src/com/siyeh/ig/performance/TailRecursionInspection.java",
+                        "startLine": 83,
+                        "endLine": 83,
+                        "startColumn": 7,
+                        "endColumn": 135,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "java/java-impl/src/com/siyeh/ig/performance/TailRecursionInspection.java",
+                        "startLine": 113,
+                        "endLine": 119,
+                        "startColumn": 7,
+                        "endColumn": 8,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 10440,
+        "project": "intellij-community",
+        "v1_hash": "e5362ef678975b3d8ef232b8b6132791963dae17",
+        "v2_hash": "5562fa7311eb6cc4519843f9d163f04451d4cfc1",
+        "orig_commit_message": "[find in files] IJPL-186012 show spinner on backend validation\n\nGitOrigin-RevId: 38b347d33ff69e5e85b86b466281311c56cfbab1",
+        "improved_commit_message": "Rename Variable: `model` -> `validatedModel` on line 1782",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable model : FindModel to validatedModel : FindModel in method public runBackendValidation() : ValidationInfo from class com.intellij.find.impl.FindPopupPanel.BackendValidator",
+                "leftSideLocations": [
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1782,
+                        "endLine": 1782,
+                        "startColumn": 17,
+                        "endColumn": 44,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "model : FindModel"
+                    },
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1782,
+                        "endLine": 1782,
+                        "startColumn": 7,
+                        "endColumn": 45,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1787,
+                        "endLine": 1787,
+                        "startColumn": 7,
+                        "endColumn": 26,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1788,
+                        "endLine": 1802,
+                        "startColumn": 7,
+                        "endColumn": 10,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1784,
+                        "endLine": 1786,
+                        "startColumn": 7,
+                        "endColumn": 8,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1784,
+                        "endLine": 1784,
+                        "startColumn": 17,
+                        "endColumn": 61,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "validatedModel : FindModel"
+                    },
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1784,
+                        "endLine": 1784,
+                        "startColumn": 7,
+                        "endColumn": 62,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1789,
+                        "endLine": 1789,
+                        "startColumn": 7,
+                        "endColumn": 35,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1790,
+                        "endLine": 1804,
+                        "startColumn": 7,
+                        "endColumn": 10,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "platform/lang-impl/src/com/intellij/find/impl/FindPopupPanel.java",
+                        "startLine": 1786,
+                        "endLine": 1788,
+                        "startColumn": 7,
+                        "endColumn": 8,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 10447,
+        "project": "vespa",
+        "v1_hash": "ea5535727661e4fabfd362d53912f3daa9d7b05e",
+        "v2_hash": "98978cd830edd34e7831d3beeed6d76913db09ae",
+        "orig_commit_message": "Merge pull request #34186 from vespa-engine/magnus/lsp-improved-grouping-support\n\nMagnus/lsp improved grouping support",
+        "improved_commit_message": "Rename Method: `finOperationBody` -> `findOperationBody` on line 50",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "integration/schema-language-server/language-server/src/main/java/ai/vespa/schemals/lsp/yqlplus/completion/provider/GroupOperationCompletion.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private finOperationBody(last Node) : Optional<Node> renamed to private findOperationBody(last Node) : Optional<Node> in class ai.vespa.schemals.lsp.yqlplus.completion.provider.GroupOperationCompletion",
+                "leftSideLocations": [
+                    {
+                        "filePath": "integration/schema-language-server/language-server/src/main/java/ai/vespa/schemals/lsp/yqlplus/completion/provider/GroupOperationCompletion.java",
+                        "startLine": 50,
+                        "endLine": 102,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private finOperationBody(last Node) : Optional<Node>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "integration/schema-language-server/language-server/src/main/java/ai/vespa/schemals/lsp/yqlplus/completion/provider/GroupOperationCompletion.java",
+                        "startLine": 50,
+                        "endLine": 102,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private findOperationBody(last Node) : Optional<Node>"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private getPreviosNode(position Position, nodes List<Node>) : Optional<Integer> renamed to private getPreviousNode(position Position, nodes List<Node>) : Optional<Integer> in class ai.vespa.schemals.lsp.yqlplus.completion.provider.GroupOperationCompletion",
+                "leftSideLocations": [
+                    {
+                        "filePath": "integration/schema-language-server/language-server/src/main/java/ai/vespa/schemals/lsp/yqlplus/completion/provider/GroupOperationCompletion.java",
+                        "startLine": 116,
+                        "endLine": 128,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private getPreviosNode(position Position, nodes List<Node>) : Optional<Integer>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "integration/schema-language-server/language-server/src/main/java/ai/vespa/schemals/lsp/yqlplus/completion/provider/GroupOperationCompletion.java",
+                        "startLine": 116,
+                        "endLine": 128,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private getPreviousNode(position Position, nodes List<Node>) : Optional<Integer>"
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 10462,
+        "project": "liferay-portal",
+        "v1_hash": "622546175cdd4b46a1f4e29188dcd9f3867c3509",
+        "v2_hash": "674233bed19de5d8f6c4d153666491108e9b1e03",
+        "orig_commit_message": "LPD-57319 SF\n",
+        "improved_commit_message": "Rename Parameter: `objectRelationshipLookupUnsafeFunction` -> `unsafeFunction` on line 53",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "modules/apps/object/object-api/src/main/java/com/liferay/object/tree/ObjectDefinitionTreeFactory.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter objectRelationshipLookupUnsafeFunction : UnsafeFunction<Long,List<ObjectRelationship>,PortalException> to unsafeFunction : UnsafeFunction<Long,List<ObjectRelationship>,PortalException> in method public create(excludeDifferentStatus boolean, objectDefinitionId long, unsafeFunction UnsafeFunction<Long,List<ObjectRelationship>,PortalException>) : Tree from class com.liferay.object.tree.ObjectDefinitionTreeFactory",
+                "leftSideLocations": [
+                    {
+                        "filePath": "modules/apps/object/object-api/src/main/java/com/liferay/object/tree/ObjectDefinitionTreeFactory.java",
+                        "startLine": 53,
+                        "endLine": 54,
+                        "startColumn": 4,
+                        "endColumn": 43,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "objectRelationshipLookupUnsafeFunction : UnsafeFunction<Long,List<ObjectRelationship>,PortalException>"
+                    },
+                    {
+                        "filePath": "modules/apps/object/object-api/src/main/java/com/liferay/object/tree/ObjectDefinitionTreeFactory.java",
+                        "startLine": 62,
+                        "endLine": 81,
+                        "startColumn": 12,
+                        "endColumn": 7,
+                        "codeElementType": "LAMBDA_EXPRESSION_BODY",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "modules/apps/object/object-api/src/main/java/com/liferay/object/tree/ObjectDefinitionTreeFactory.java",
+                        "startLine": 53,
+                        "endLine": 54,
+                        "startColumn": 4,
+                        "endColumn": 19,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "unsafeFunction : UnsafeFunction<Long,List<ObjectRelationship>,PortalException>"
+                    },
+                    {
+                        "filePath": "modules/apps/object/object-api/src/main/java/com/liferay/object/tree/ObjectDefinitionTreeFactory.java",
+                        "startLine": 62,
+                        "endLine": 80,
+                        "startColumn": 12,
+                        "endColumn": 7,
+                        "codeElementType": "LAMBDA_EXPRESSION_BODY",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 10466,
+        "project": "eo",
+        "v1_hash": "2de91b1f11c8727c48307d8d813d5af13c6e8659",
+        "v2_hash": "410271c135d5a030875e86b3dd3d71d4fb350d06",
+        "orig_commit_message": "Merge pull request #4244 from objectionary/4229\n\ntypos",
+        "improved_commit_message": "Rename Parameter: `tpe` -> `mojo` on line 46",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter tpe : Class<T> to mojo : Class<T> in method package Moja(mojo Class<T>) from class org.eolang.maven.Moja",
+                "leftSideLocations": [
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 46,
+                        "endLine": 46,
+                        "startColumn": 10,
+                        "endColumn": 28,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "tpe : Class<T>"
+                    },
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 47,
+                        "endLine": 47,
+                        "startColumn": 9,
+                        "endColumn": 25,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 46,
+                        "endLine": 46,
+                        "startColumn": 10,
+                        "endColumn": 29,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "mojo : Class<T>"
+                    },
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 47,
+                        "endLine": 47,
+                        "startColumn": 9,
+                        "endColumn": 26,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 10467,
+        "project": "eo",
+        "v1_hash": "daef5e0990986c1c02ac16b08cebaab4c8804ba9",
+        "v2_hash": "71de6a7d1655df3b31ab78ee1766d56865297797",
+        "orig_commit_message": "#4229: Refactor constructor parameter name for clarity.\n",
+        "improved_commit_message": "Rename Parameter: `tpe` -> `mojo` on line 46",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter tpe : Class<T> to mojo : Class<T> in method package Moja(mojo Class<T>) from class org.eolang.maven.Moja",
+                "leftSideLocations": [
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 46,
+                        "endLine": 46,
+                        "startColumn": 10,
+                        "endColumn": 28,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "tpe : Class<T>"
+                    },
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 47,
+                        "endLine": 47,
+                        "startColumn": 9,
+                        "endColumn": 25,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 46,
+                        "endLine": 46,
+                        "startColumn": 10,
+                        "endColumn": 29,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "mojo : Class<T>"
+                    },
+                    {
+                        "filePath": "eo-maven-plugin/src/main/java/org/eolang/maven/Moja.java",
+                        "startLine": 47,
+                        "endLine": 47,
+                        "startColumn": 9,
+                        "endColumn": 26,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 10478,
+        "project": "vespa",
+        "v1_hash": "73d516d1c32a139ed7d552f2ae97def383f12166",
+        "v2_hash": "d31b89781e898e6fb5fc10128756e1580acff78b",
+        "orig_commit_message": "fix(validation): track embedder ids by schema and field\n\nUpdate log messages and test assertions to include schema name for\nbetter clarity in error reporting and debugging.\nHandle fields with name same in multiple schemas.",
+        "improved_commit_message": "Rename Variable: `fieldName` -> `field` on line 62",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "config-model/src/main/java/com/yahoo/vespa/model/application/validation/EmbedExpressionValidator.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable fieldName : null to field : null in method public validate(context Validation.Context) : void from class com.yahoo.vespa.model.application.validation.EmbedExpressionValidator",
+                "leftSideLocations": [
+                    {
+                        "filePath": "config-model/src/main/java/com/yahoo/vespa/model/application/validation/EmbedExpressionValidator.java",
+                        "startLine": 62,
+                        "endLine": 62,
+                        "startColumn": 36,
+                        "endColumn": 45,
+                        "codeElementType": "LAMBDA_EXPRESSION_PARAMETER",
+                        "description": "original variable declaration",
+                        "codeElement": "fieldName : null"
+                    },
+                    {
+                        "filePath": "config-model/src/main/java/com/yahoo/vespa/model/application/validation/EmbedExpressionValidator.java",
+                        "startLine": 62,
+                        "endLine": 68,
+                        "startColumn": 9,
+                        "endColumn": 12,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "config-model/src/main/java/com/yahoo/vespa/model/application/validation/EmbedExpressionValidator.java",
+                        "startLine": 64,
+                        "endLine": 66,
+                        "startColumn": 17,
+                        "endColumn": 120,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "config-model/src/main/java/com/yahoo/vespa/model/application/validation/EmbedExpressionValidator.java",
+                        "startLine": 65,
+                        "endLine": 65,
+                        "startColumn": 36,
+                        "endColumn": 41,
+                        "codeElementType": "LAMBDA_EXPRESSION_PARAMETER",
+                        "description": "renamed variable declaration",
+                        "codeElement": "field : null"
+                    },
+                    {
+                        "filePath": "config-model/src/main/java/com/yahoo/vespa/model/application/validation/EmbedExpressionValidator.java",
+                        "startLine": 65,
+                        "endLine": 72,
+                        "startColumn": 9,
+                        "endColumn": 12,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "config-model/src/main/java/com/yahoo/vespa/model/application/validation/EmbedExpressionValidator.java",
+                        "startLine": 67,
+                        "endLine": 70,
+                        "startColumn": 17,
+                        "endColumn": 102,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 10750,
+        "project": "keycloak",
+        "v1_hash": "9a4b1a99e1e325702dfd7771142e11edc5df9d8e",
+        "v2_hash": "c3bbf45a7be9a7b4580ecc67f908838871b17bbf",
+        "orig_commit_message": "Add webauthn and recovery codes to the default browser flow as disabled\nCloses #39999\n\nSigned-off-by: rmartinc <rmartinc@redhat.com>\n",
+        "improved_commit_message": "Rename Parameter: `requirement` -> `conditionalReq` on line 251",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "testsuite/integration-arquillian/tests/base/src/test/java/org/keycloak/testsuite/federation/ldap/LDAPReadOnlyTest.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter requirement : AuthenticationExecutionModel.Requirement to conditionalReq : AuthenticationExecutionModel.Requirement in method private setTotpRequirementExecutionForRealm(conditionalReq AuthenticationExecutionModel.Requirement, otpReq AuthenticationExecutionModel.Requirement) : void from class org.keycloak.testsuite.federation.ldap.LDAPReadOnlyTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "testsuite/integration-arquillian/tests/base/src/test/java/org/keycloak/testsuite/federation/ldap/LDAPReadOnlyTest.java",
+                        "startLine": 251,
+                        "endLine": 251,
+                        "startColumn": 54,
+                        "endColumn": 106,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "requirement : AuthenticationExecutionModel.Requirement"
+                    },
+                    {
+                        "filePath": "testsuite/integration-arquillian/tests/base/src/test/java/org/keycloak/testsuite/federation/ldap/LDAPReadOnlyTest.java",
+                        "startLine": 255,
+                        "endLine": 255,
+                        "startColumn": 18,
+                        "endColumn": 63,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "testsuite/integration-arquillian/tests/base/src/test/java/org/keycloak/testsuite/federation/ldap/LDAPReadOnlyTest.java",
+                        "startLine": 253,
+                        "endLine": 253,
+                        "startColumn": 54,
+                        "endColumn": 109,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "conditionalReq : AuthenticationExecutionModel.Requirement"
+                    },
+                    {
+                        "filePath": "testsuite/integration-arquillian/tests/base/src/test/java/org/keycloak/testsuite/federation/ldap/LDAPReadOnlyTest.java",
+                        "startLine": 259,
+                        "endLine": 259,
+                        "startColumn": 9,
+                        "endColumn": 75,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ],
+        "diffs": []
+    },
+    {
+        "id": 10957,
+        "project": "bazel",
+        "v1_hash": "84841193cb964ff97dafe33c1f212513230bd0d3",
+        "v2_hash": "8fe29f07c58a74135aee4c9810929142eb91c6af",
+        "orig_commit_message": "Remove support for strings in attribute's \"provides\" parameters\n\nPatch gRPC in Bazel (not released yet).\n\nWithout legacy struct providers, we also can't be specifying them.\nIssue: https://github.com/bazelbuild/bazel/issues/25836\nDownstream run: https://buildkite.com/bazel/bazel-at-head-plus-downstream/builds/4596\nFailures related to this have pending PRs.\n\nRELNOTES[INC]: strings in attribute's \"provides\" parameters are no longer supported\n\nPiperOrigin-RevId: 767629122\nChange-Id: I8f7a88dee9ca1f2d87f7e135cb45396d9a685588\n",
+        "improved_commit_message": "Rename Parameter: `list` -> `listArg` on line 599",
+        "change_summary": "",
+        "hints": [],
+        "starting_file": "src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkAttrModule.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter list : Sequence<?> to listArg : Sequence<?> in method package getStarlarkProviderIdentifiers(listArg Sequence<?>, argumentName String) : ImmutableSet<StarlarkProviderIdentifier> from class com.google.devtools.build.lib.analysis.starlark.StarlarkAttrModule",
+                "leftSideLocations": [
+                    {
+                        "filePath": "src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkAttrModule.java",
+                        "startLine": 599,
+                        "endLine": 599,
+                        "startColumn": 82,
+                        "endColumn": 98,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "list : Sequence<?>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkAttrModule.java",
+                        "startLine": 592,
+                        "endLine": 592,
+                        "startColumn": 7,
+                        "endColumn": 26,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "listArg : Sequence<?>"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable o : Object to sublist : Sequence<?> in method private getProvidersList(starlarkList Sequence<Sequence<?>>, argumentName String) : ImmutableList<ImmutableSet<StarlarkProviderIdentifier>> from class com.google.devtools.build.lib.analysis.starlark.StarlarkAttrModule",
+                "leftSideLocations": [
+                    {
+                        "filePath": "src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkAttrModule.java",
+                        "startLine": 626,
+                        "endLine": 626,
+                        "startColumn": 10,
+                        "endColumn": 18,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "o : Object"
+                    },
+                    {
+                        "filePath": "src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkAttrModule.java",
+                        "startLine": 626,
+                        "endLine": 637,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "ENHANCED_FOR_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkAttrModule.java",
+                        "startLine": 636,
+                        "endLine": 636,
+                        "startColumn": 7,
+                        "endColumn": 74,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkAttrModule.java",
+                        "startLine": 610,
+                        "endLine": 610,
+                        "startColumn": 10,
+                        "endColumn": 29,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "sublist : Sequence<?>"
+                    },
+                    {
+                        "filePath": "src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkAttrModule.java",
+                        "startLine": 610,
+                        "endLine": 612,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "ENHANCED_FOR_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkAttrModule.java",
+                        "startLine": 611,
+                        "endLine": 611,
+                        "startColumn": 7,
+                        "endColumn": 80,
+                        "codeElementType": "EXPRESSION_STATEMENT",
                         "description": "statement referencing the renamed variable",
                         "codeElement": null
                     }

@@ -383,5 +383,138 @@
             "plan": null,
             "augmented_intent": "Establish a naming convention that any variable receiving the result of a map lookup or similar extraction is clearly marked as a \u201cValue\u201d (e.g., rename all loop or assignment variables holding map.get(key) results to end in \u2018Value\u2019) so that key vs. value roles are unambiguous across this file and elsewhere."
         }
+    },
+    {
+        "id": 11198,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update the constructor parameter name from `tpe` to `mojo` (and adjust all references, Javadoc, and method calls) so that it clearly represents the EO-Maven Mojo class being passed in. Apply this same pattern elsewhere: replace terse or ambiguous `type`/`tpe` parameters with domain-specific names (e.g., `entityClass`, `serviceClass`, `config`, `listener`) in builders, factories, or reflection utilities. Ensure consistency across code, update all usages, and align parameter names with the core concept they represent."
+        }
+    },
+    {
+        "id": 11234,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply the same prefix\u2010modifier renaming convention across this file and other code locations: for any class, test, resource or identifier currently named in the pattern <BaseName><Modifier> (for example EndTestWithList), rename it to <Modifier><BaseName> (WithListEndTest). Update all related annotations, import statements, file and fixture names, references in code and documentation to match the new names, ensuring consistency in naming and grouping by modifier."
+        }
+    },
+    {
+        "id": 11235,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a consistent renaming pattern for test classes that include scenario qualifiers (e.g. WithList, WithoutMock, OnError). Specifically, move the feature qualifier to the front of the class name so that similar scenario tests are grouped and sorted together (e.g. EndTestWithList \u2192 WithListEndTest). Update all usages and references\u2014class declarations, file names, imports, annotations, and any instantiations\u2014across this file and related code. Follow this same approach for other test classes or methods whose names include a qualifier, prefixing the qualifier in front of the main entity name to match team naming conventions."
+        }
+    },
+    {
+        "id": 11242,
+        "response": {
+            "plan": null,
+            "augmented_intent": "The boolean flag `allowReverse` should be renamed to `azureIpv6Enabled` everywhere it appears. This means updating the method signature, all internal references, documentation comments, test code, configuration properties, and any callers. The new name clarifies that this flag exclusively controls IPv6 record creation in Azure environments rather than reverse-DNS in general. Ensure consistency in import statements, logging messages, and API documentation, and verify that logic branches and external integrations continue to work as before."
+        }
+    },
+    {
+        "id": 11243,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a project-wide refactoring to rename the boolean parameter allowReverse (which actually only enables Azure IPv6 DNS records) to azureIpv6Enabled: update the Dns.recordTypesFor method signature and overload, all callers and imports, related enum logic, JavaDoc and inline comments, variable names, configuration or property files, tests, logging and exception messages, and any public API surfaces; ensure naming accurately conveys that it toggles Azure IPv6 support and consider deprecating the old name for backward compatibility."
+        }
+    },
+    {
+        "id": 11251,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply this rename consistently across the entire codebase: locate every occurrence of the `azureIpv6Enabled` boolean flag\u2014in method signatures, overloads, variable declarations, comments, Javadocs, configuration constants or feature\u2010flag names, and tests\u2014and rename it to `allowReverse`. Update all callers, documentation, and related configuration so the flag clearly indicates it governs reverse\u2010DNS record creation rather than Azure IPv6."
+        }
+    },
+    {
+        "id": 11252,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Advise the developer to identify any flag, parameter or symbol whose name ties it to a specific provider or feature but whose behavior has been generalized. For each such symbol, choose a clear, intent-focused name (e.g. drop \u2018Azure\u2019 or \u2018IPv6\u2019 when the flag now controls reverse DNS or a broader concern), then rename it in declarations, method signatures, call sites, comments, documentation, tests and configuration. Add deprecation notices if needed, update import statements and usages across the codebase, and ensure unit and integration tests are updated to reflect the new names while preserving functionality."
+        }
+    },
+    {
+        "id": 11255,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply the same rename pattern across the codebase: change the feature toggle and all its uses from \u201cfrontend\u201d to \u201cspeculative.\u201d Specifically, rename the protected method isFrontendUndoEnabled to isSpeculativeUndoEnabled, update public wrappers (e.g. isExperimentalFrontendUndoEnabled, debugExperimentalFrontendUndo), rename registry keys (ide.undo.frontend.if.possible \u2192 ide.undo.speculative.if.possible and its debug variant), adjust any related constants or configuration entries, update tests and documentation accordingly, and consider adding deprecation aliases for backward compatibility. Ensure any similar \u2018frontend\u2019 flags are treated the same where they actually enable speculative behavior."
+        }
+    },
+    {
+        "id": 11285,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Outline the refactoring pattern for renaming boolean flags whose semantics have narrowed: 1) Identify the flag (e.g. allowReverse) whose meaning shifted from generic behavior to a specific feature. 2) Rename the parameter in all method signatures (both overloads of recordTypesFor) and local variables to its new, precise name (azureIpv6Enabled). 3) Update every caller, test, configuration file and public API reference to use the new name. 4) Revise Javadoc, inline comments and parameter docs to explain the flag now gates Azure IPv6 logic instead of reverse DNS. 5) If the flag is part of a public interface, deprecate the old name before removal. 6) Search the codebase for other booleans with outdated or misleading names and apply the same audit-and-rename process to keep flag names self-documenting."
+        }
+    },
+    {
+        "id": 11286,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the boolean parameter `allowReverse` to `azureIpv6Enabled` in the Dns.recordTypesFor methods (both overloads) and throughout all call sites, documentation, and tests. This change should make the flag\u2019s purpose\u2014enabling IPv6 behavior on Azure\u2014self-evident. Update method signatures, internal usages, Javadoc comments, and any downstream references accordingly; deprecate the old name if backward compatibility is required."
+        }
+    },
+    {
+        "id": 10439,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When a method or callback signature is generalized from a specific PSI node type to the broad PsiElement type (for example in quick-fix applyFix methods or visitor overrides), rename any domain-specific parameter names (tailCallToken, methodNameToken, identifierNode, etc.) to a generic name like element (or psiElement) to accurately reflect the declared type and align with IntelliJ API conventions. Apply this rename consistently in all methods whose signature now takes PsiElement. Do not perform the rename when the parameter truly represents a specific PSI subtype whose name conveys important semantic invariants (e.g., PsiMethodCallExpression tailCall or IElementType semicolonToken)."
+        }
+    },
+    {
+        "id": 10440,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify generic variables (such as 'model', 'config', 'input', 'request') that are cloned or transformed (validated, sanitized, parsed, authenticated) and rename the resulting instance to reflect its new state (for example 'validatedModel', 'sanitizedInput', 'parsedValue', 'authenticatedRequest'). Consistently apply the pattern '<process><Name>' for all similar code locations to make clear which instance is the original and which is the processed variant, improving readability and preventing confusion."
+        }
+    },
+    {
+        "id": 10447,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify any methods, variables, or classes whose names are intended to start with the verb \u201cfind\u201d but are missing the \u201cd\u201d (e.g., finOperationBody). Rename the prefix \u201cfin\u201d to \u201cfind\u201d for all lookup or search functions to enforce the verb-noun naming convention. Extend this pattern to other common verbs with dropped letters (e.g., cretae\u2192create, remvoe\u2192remove, updte\u2192update). For public or framework-exposed APIs, introduce the corrected name alongside a deprecated alias to preserve backward compatibility. Update all references in code, tests, and documentation to maintain consistency without breaking existing contracts."
+        }
+    },
+    {
+        "id": 10462,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Create a brief guideline for renaming overly verbose function\u2010type parameters: 1) Identify parameters whose names repeat domain context already clear from the class/method. 2) Shorten them to concise, generic names (e.g. unsafeFunction, transformFunction) that reflect their type and role. 3) Apply the same name across overloads to reinforce consistency. 4) Update method signatures, internal calls, documentation, and tests accordingly. 5) Exceptions: retain full descriptive names when multiple functions in one signature must be distinguished or when context isn\u2019t self\u2010documenting. Document and apply this pattern across the codebase."
+        }
+    },
+    {
+        "id": 10466,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Generalize the pattern of renaming generic Class<T> or type parameters (e.g. `tpe`, `clazz`, `type`, `cls`) to descriptive, domain-specific names (e.g. `mojoClass`, `entityClass`, `handlerClass`, `jsonPayload`) in constructors, factory methods, and builders to improve readability and align with business concepts. Apply this consistently across the codebase, except in truly generic libraries or contexts where sticking to conventional generic names is preferred."
+        }
+    },
+    {
+        "id": 10467,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In builder or factory classes that accept a Mojo class, replace the generic parameter name `tpe` with a descriptive domain name like `mojo` or `mojoClass`. Apply the same pattern throughout this file and other code: any `Class<T>` or similarly typed parameter or variable named `tpe`, `cls`, or `type` should be renamed to reflect its concrete role (e.g., `handlerClass`, `commandType`, `itemType`) to improve readability and consistency."
+        }
+    },
+    {
+        "id": 10478,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the loop variable that iterates over schema fields so it accurately reflects the object type rather than a string. Rename all occurrences of `fieldName` to `field`, update any related log messages or map keys, and apply the same pattern in other methods and classes where a variable named `SomethingName` now holds the full `Something` object. Ensure names align with the object\u2019s class and code conventions throughout the codebase."
+        }
+    },
+    {
+        "id": 10750,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Guide the developer to identify generic parameter or variable names (like `requirement`) used in specific contexts (e.g., configuring conditional OTP) and rename them to context-rich names (e.g., `conditionalReq`) throughout the file and other locations. Emphasize locating methods that handle a single domain concept, replacing broad names with precise ones, updating signatures and references, ensuring consistency across related methods, and avoiding renames in public APIs or when the context is already clear."
+        }
+    },
+    {
+        "id": 10957,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Disambiguate generic parameter names that shadow Java types or Starlark built-ins by appending an 'Arg' suffix. Apply this pattern consistently to all Starlark-exposed parameters (e.g. rename 'map' \u2192 'mapArg', 'set' \u2192 'setArg', 'name' \u2192 'nameArg') so callers and readers immediately know these are user-supplied arguments and avoid naming collisions."
+        }
     }
 ]
