@@ -5,12 +5,49 @@ and online (patch creation)
 
 
 ## Offline evaluation
+This section describes the experimental setup to run the agent on datasets (e.g. renas dataset, 2025 commits)
 
-### With seed example
+For the RENAS dataset (ratpack and argouml), the oracle is present here: [renas_oracle.json](data/renas/renas_oracle.json)
+Each entry in the json file looks like this:
+```
+{
+  "refactoring_changes": [] # list of oracle refactoring changes
+  "seed_example": "" # the first example to trigger the agent on. 
+  "seed_hash": "<>" # the commit hash where the seed example has been triggered. 
+}
+```
 
-### With Intent
+ 
+#### With seed example
+The first setup is to use ONLY the seed example to trigger the agent. 
+The seed example is the first rename that the developer performed. The agent should be triggered from the "seed_hash" here. While evaluating performance, the seed example should not be taken into account. 
 
-### With both Seed example and intent
+Use [run_planning.py](refagent/experiments/run_planning.py) to trigger the intent generation phase. 
+This looks at the seed example and creates an intent. 
+Use the [run_agent.py](refagent/experiments/run_agent.py) to trigger the
+Here are the scripts to trigger, in order:
+1. Run the planning
+```
+python run_planning.py --benchmark_file="data/renas/renas_oracle.json" -run_identifier="<Identifier>"
+```
+2. Run the agent without replication
+```
+python run_agent.py --replication="False" --benchmark_file="data/renas/renas_oracle.json" \ 
+-run_identifier="<Identifier>" \
+-planning_results_file="results/<Identifier>/planning.json"
+```
+3. Run the agent with replication
+```
+python run_agent.py --replication="True" --benchmark_file="data/renas/renas_oracle.json" \ 
+-run_identifier="<Identifier>" \
+-planning_results_file="results/<Identifier>/planning.json"
+```
+
+#### With Intent
+
+#### With both Seed example and intent
+
+### Computing perfomance numbers (precision, recall, f1)
 
 
 ## Online evaluation
