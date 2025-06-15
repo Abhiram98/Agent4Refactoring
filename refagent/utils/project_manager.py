@@ -261,3 +261,18 @@ class EvalProject:
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'remote', 'get-url', 'origin'], capture_output=True, text=True, check=True)
         return result.stdout.strip().rstrip('.git')
+
+    def create_branch(self, branch_name):
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'checkout', '-b',
+            branch_name], capture_output=True, text=True, check=True
+        )
+        return result.stdout
+
+    def push_upstream_branch(self, branch_name):
+        # git push --set-upstream origin seed-1077
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'push', '--set-upstream',
+             'origin', branch_name], capture_output=True, text=True, check=True
+        )
+        return result.stdout
