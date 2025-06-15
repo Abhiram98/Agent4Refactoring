@@ -18,17 +18,22 @@ import refagent.agents.refactrix.react_agent as react_agent
 import langsmith as ls
 
 
-def setup_and_run(bench_point: bm_load.BenchmarkItem,
+def setup_and_run(bench_point: bm_load.RenameItem,
                   ij_server: ij.IntellijServer,
                   results_saver: rm.ResultsManager,
                   do_replication: bool,
                   plan: Optional[planning.RefactoringPlan],
                   augmented_intent: Optional[str],
-                  initial_commit: Optional[str]=None
+                  initial_commit: Optional[str]=None,
+                  use_seed: bool=False,
                   ):
     project = pm.EvalProject(bench_point.project_name)
     ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
     if initial_commit is None:
+        if use_seed:
+            # In this case, we would like to start the agent from the seed changes.
+            project.checkout(bench_point.seed_hash, force=True)
+            project.reset_head(1)
         project.checkout(bench_point.v1_hash, force=True)
     else:
         project.checkout(initial_commit, force=True)
@@ -119,6 +124,7 @@ if __name__ == '__main__':
                              "If true, ONLY the replication is performed, starting from an initial commit. "
                              "If false, ONLY the initial agent is run (to edit only the starting file)", default=True
                         )
+    parser.add_argument("--use_seed", action='store_true')
     args = parser.parse_args()
 
 
@@ -145,7 +151,7 @@ if __name__ == '__main__':
 
     do_replication = args.replication.lower() == "true"
     results_file = "no-replication.json" if not do_replication else "post-replication.json"
-    benchmark = load_benchmark(args.benchmark_file, args.benchmark_type)
+    benchmark = load_benchmark(args.benchmark_file, "rename")
     results_saver = rm.ResultsManager(run_identifier=args.run_identifier, save_file=results_file)
 
     for bench_point in benchmark:
@@ -165,4 +171,5 @@ if __name__ == '__main__':
             setup_and_run(bench_point, ij_server, results_saver, do_replication,
                           plan=planning_results.get(bench_point.ref_id),
                           augmented_intent=augmented_intents.get(bench_point.ref_id),
-                          initial_commit=initial_commits.get(bench_point.ref_id))
+                          initial_commit=initial_commits.get(bench_point.ref_id),
+                          use_seed=args.use_seed)
