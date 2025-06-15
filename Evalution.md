@@ -32,6 +32,26 @@ python run_planning.py --benchmark_file="data/renas/renas_oracle.json" -run_iden
 ```
 2. Run the agent without replication
 ```
+python run_agent.py --replication="False" --use_seed --benchmark_file="data/renas/renas_oracle.json" \ 
+-run_identifier="<Identifier>" \
+-planning_results_file="results/<Identifier>/planning.json"
+```
+3. Run the agent with replication
+```
+python run_agent.py --replication="True" --use_seed --benchmark_file="data/renas/renas_oracle.json" \ 
+-run_identifier="<Identifier>" \
+-planning_results_file="results/<Identifier>/planning.json"
+```
+
+#### With Intent
+
+1. Run the planning
+
+@Raihan, please update this part:
+```
+```
+2. Run the agent without replication
+```
 python run_agent.py --replication="False" --benchmark_file="data/renas/renas_oracle.json" \ 
 -run_identifier="<Identifier>" \
 -planning_results_file="results/<Identifier>/planning.json"
@@ -43,9 +63,10 @@ python run_agent.py --replication="True" --benchmark_file="data/renas/renas_orac
 -planning_results_file="results/<Identifier>/planning.json"
 ```
 
-#### With Intent
 
 #### With both Seed example and intent
+
+WIP. The agent needs to be tweaked to take both of this into account.
 
 ### Computing perfomance numbers (precision, recall, f1)
 
