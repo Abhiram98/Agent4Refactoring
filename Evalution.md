@@ -1,7 +1,7 @@
 # Evaluation Setup
 
 This document describes the evalution setup for our agent in various settings: offline (datasets) 
-and online (patch creation)
+and online (patch creation).
 
 
 ## Offline evaluation
@@ -49,6 +49,13 @@ python run_agent.py --replication="True" --benchmark_file="data/renas/renas_orac
 
 ### Computing perfomance numbers (precision, recall, f1)
 
+Run [evaluate_agent.py](refagent/experiments/evaluate_agent.py), by passing the output file from the run-identifier. For example:
+
+If you would like to avoid comparing with the seed example, use the flag `--without-seed`
+
+```
+python evaluate_agent.py data/results/rename-baseline-May-21/post-replication.json --benchmark_file="<full-path>/data/renas/renas_oracle.json"
+```
 
 ## Online evaluation
 
@@ -70,9 +77,13 @@ This is so that the agent doesn't have to start from scratch, but can pick up fr
 ### Running the agent
 
 1. Run the planning phase. This will generate an `intent` based on the seed example. [run_planning.py](refagent/experiments/run_planning.py)
-    ```python run_planning.py --benchmark_file="data/monitoring/for_patches.json" -run_identifier="patches-june-9"```
+```
+python run_planning.py --benchmark_file="data/monitoring/for_patches.json" -run_identifier="patches-june-9"
+```
 2. RUn the agent . Use [run_agent.py](refagent/experiments/run_agent.py), to trigger the agent on the necessary commit.
-    ```-ref_ids="11198" --replication="True" --benchmark_file="data/monitoring/for_patches.json" -run_identifier="patches-june-9" -planning_results_file="results/patches-june-9/planning.json"```
+```
+python run_agent.py -ref_ids="11198" --replication="True" --benchmark_file="data/monitoring/for_patches.json" -run_identifier="patches-june-9" -planning_results_file="results/patches-june-9/planning.json"
+```
 
 This only runs the replication (post the developers changes.)
 
