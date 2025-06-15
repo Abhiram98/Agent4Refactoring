@@ -91,7 +91,8 @@ class RenameItem(BenchmarkItem):
             pull_request=gh_comment.GithubPR(**_json['pull_request']) if _json.get("pull_request") else None,
             corename_id=_json['corename_id'],
             seed_hash=_json['seed_hash'] if _json.get("seed_hash") else None,
-            seed_example=_json['seed_example'] if _json.get("seed_example") else None
+            seed_example=refactoring_types.RefminerOut.load_from_dictionary(_json['seed_example'])
+                            if _json.get("seed_example") else None
         )
 
 

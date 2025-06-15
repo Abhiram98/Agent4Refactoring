@@ -34,11 +34,12 @@ def setup_and_run(bench_point: bm_load.RenameItem,
             # In this case, we would like to start the agent from the seed changes.
             project.checkout(bench_point.seed_hash, force=True)
             project.reset_head(1)
-        project.checkout(bench_point.v1_hash, force=True)
+        else:
+            project.checkout(bench_point.v1_hash, force=True)
+            project.restore_changes()
     else:
         project.checkout(initial_commit, force=True)
-    # drop any unstaged changes
-    project.restore_changes()
+        project.restore_changes()
 
     ij_server.open_project(project_path=project.get_project_path())
     ij_server.reload_project()

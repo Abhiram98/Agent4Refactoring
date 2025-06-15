@@ -32,7 +32,7 @@ def main():
     parser = argparse.ArgumentParser(description='Evaluate the performance of an agent, given it\'s output file.')
     parser.add_argument('agent_outfile_path', type=str, help='Path to Agent\'s output file')
     parser.add_argument('--benchmark_file_path', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
-    parser.add_argument("--without_seed",
+    parser.add_argument("--without-seed",
                         help='If passed, do not use the seed while computing recall and precision',
                         action='store_true')
     args = parser.parse_args()

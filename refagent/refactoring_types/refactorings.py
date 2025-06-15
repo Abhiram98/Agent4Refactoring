@@ -40,13 +40,17 @@ class RefminerOut(BaseModel):
         return instances
 
     @classmethod
-    def load_from_json(cls, json_element) -> List["RefminerOut"]:
+    def load_from_json(cls, json_element: List) -> List["RefminerOut"]:
         instances = []
         for refactoring in json_element:
-            ref_type = refactoring.get("type")
-            subclass = cls.subclass_registry.get(ref_type, cls)  # Default to RefminerOut if unknown
-            instances.append(subclass(**refactoring))
+            ref_obj = cls.load_from_dictionary(refactoring)
+            instances.append(ref_obj)
         return instances
+
+    @classmethod
+    def load_from_dictionary(cls, dictionary: Dict) -> "RefminerOut":
+        subclass = cls.subclass_registry.get(dictionary.get("type"), cls)  # Default to RefminerOut if unknown
+        return subclass(**dictionary)
 
     def base_eq(self, other):
         if not isinstance(other, RefminerOut):
