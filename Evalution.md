@@ -24,7 +24,7 @@ The seed example is the first rename that the developer performed. The agent sho
 
 Use [run_planning.py](refagent/experiments/run_planning.py) to trigger the intent generation phase. 
 This looks at the seed example and creates an intent. 
-Use the [run_agent.py](refagent/experiments/run_agent.py) to trigger the
+Use the [run_agent.py](refagent/experiments/run_agent.py) to trigger the agent. 
 Here are the scripts to trigger, in order:
 1. Run the planning
 ```
@@ -62,6 +62,8 @@ python run_agent.py --replication="True" --benchmark_file="data/renas/renas_orac
 -run_identifier="<Identifier>" \
 -planning_results_file="results/<Identifier>/planning.json"
 ```
+
+While running the evaluation script, remember to use the `--without-seed` flag
 
 
 #### With both Seed example and intent
