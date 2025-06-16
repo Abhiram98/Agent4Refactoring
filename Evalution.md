@@ -43,6 +43,8 @@ python run_agent.py --replication="True" --use_seed --benchmark_file="data/renas
 -planning_results_file="results/<Identifier>/planning.json"
 ```
 
+While running the evaluation script, remember to use the `--without-seed` flag
+
 #### With Intent
 
 1. Run the planning
@@ -50,21 +52,6 @@ python run_agent.py --replication="True" --use_seed --benchmark_file="data/renas
 @Raihan, please update this part:
 ```
 ```
-2. Run the agent without replication
-```
-python run_agent.py --replication="False" --benchmark_file="data/renas/renas_oracle.json" \ 
--run_identifier="<Identifier>" \
--planning_results_file="results/<Identifier>/planning.json"
-```
-3. Run the agent with replication
-```
-python run_agent.py --replication="True" --benchmark_file="data/renas/renas_oracle.json" \ 
--run_identifier="<Identifier>" \
--planning_results_file="results/<Identifier>/planning.json"
-```
-
-While running the evaluation script, remember to use the `--without-seed` flag
-
 
 #### With both Seed example and intent
 
