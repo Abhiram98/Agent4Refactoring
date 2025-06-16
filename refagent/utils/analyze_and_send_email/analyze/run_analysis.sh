@@ -7,18 +7,19 @@ set -e  # Exit on any error
 
 # Configuration
 CONDA_ENV="myenv"
-WORK_DIR="/Users/raihan/Desktop/AI-Agent/Agent4Refactoring/refagent/utils/analyze_and_send_email/analyze"
+WORK_DIR="/Users/moul7361/Desktop/AI-Agents/Agent4Refactoring/refagent/utils/analyze_and_send_email/analyze"
 ANALYZED_REPO_FILE="analyzed_repo.json"
 PYTHON_SCRIPT="check_entry_from_jsonl.py"
 
 # Default list of JSONL files (modify as needed)
 DEFAULT_FILES=(
+    "temp_azure-sdk-for-java.jsonl"
     "temp_camunda.jsonl"
-    "temp_quarkus.jsonl"
+    "temp_datahub.jsonl"
+    "temp_eo.jsonl"
+    "temp_forge.jsonl"
     "temp_graal.jsonl"
-    "temp_flink.jsonl"
-    "temp_spring-boot.jsonl"
-    "temp_spring-framework.jsonl"
+    "temp_keycloak.jsonl"
     # Add more files here as needed
 )
 

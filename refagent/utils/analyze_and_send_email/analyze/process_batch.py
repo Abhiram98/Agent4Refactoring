@@ -3,6 +3,10 @@ import json
 from pathlib import Path
 from collections import defaultdict
 import csv
+import subprocess
+from plot_utils import get_commit_timestamp
+from git_utils import get_commit_author_info
+import pandas as pd
 
 # Define the rename refactoring types we're interested in
 RENAME_TYPES = {
@@ -138,8 +142,19 @@ def collect_rename_refactorings_count(results_dir):
                 
     return results, total_files_analyzed, count
 
-def save_results_to_csv(results, output_path):
-    columns_to_use = ['commit', 'count']
+def process_and_save_commit_metadata(results, output_path, repo_path):
+    """
+    Process commit metadata, save to CSV, and return enriched DataFrame
+    
+    Args:
+        results (list): List of dictionaries containing commit data
+        output_path (str): Path to save the CSV file
+        repo_path (str): Path to the git repository
+    
+    Returns:
+        tuple: (DataFrame with enriched data, total unique commits)
+    """
+    columns_to_use = ['commit', 'count', 'author_name', 'author_email', 'timestamp']
     
     # Convert to Path object if it's a string
     if isinstance(output_path, str):
@@ -155,10 +170,61 @@ def save_results_to_csv(results, output_path):
         output_file = output_path
         output_file.parent.mkdir(parents=True, exist_ok=True)
     
-    with open(output_file, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=columns_to_use)
-        writer.writeheader()
-        writer.writerows(results)
+    print(f"Processing metadata for {len(results)} commits...")
+    
+    # Get author info and timestamps for each commit
+    for result in results:
+        author_name, author_email = get_commit_author_info(result['commit'], repo_path)
+        result['author_name'] = author_name or ''
+        result['author_email'] = author_email or ''
+        
+        # Get commit timestamp and convert to timezone-naive datetime
+        timestamp = get_commit_timestamp(result['commit'], repo_path)
+        if timestamp is not None and timestamp.tzinfo is not None:
+            timestamp = timestamp.tz_localize(None)
+        result['timestamp'] = timestamp
+    
+    # Convert to DataFrame and process
+    df = pd.DataFrame(results)
+    
+    # Remove duplicate commits, keeping the first occurrence
+    initial_count = len(df)
+    df_deduplicated = df.drop_duplicates(subset=['commit'], keep='first')
+    final_count = len(df_deduplicated)
+    
+    duplicates_removed = initial_count - final_count
+    if duplicates_removed > 0:
+        print(f"Removed {duplicates_removed} duplicate commits")
+        print(f"Processing {final_count} unique commits")
+    else:
+        print("No duplicate commits found")
+    
+    # Convert timestamp to datetime if it's not already
+    df_deduplicated['timestamp'] = pd.to_datetime(df_deduplicated['timestamp'])
+    
+    # Remove rows where we couldn't get timestamps
+    initial_with_timestamps = len(df_deduplicated)
+    df_final = df_deduplicated.dropna(subset=['timestamp'])
+    final_with_timestamps = len(df_final)
+    
+    if initial_with_timestamps != final_with_timestamps:
+        print(f"Warning: Could not get timestamps for {initial_with_timestamps - final_with_timestamps} commits")
+    
+    # Sort by timestamp (oldest to newest)
+    df_final = df_final.sort_values('timestamp').reset_index(drop=True)
+    
+    # Ensure columns are in the exact order we want
+    df_final = df_final[columns_to_use]
+    
+    # Create a copy for CSV output with string timestamps
+    df_for_csv = df_final.copy()
+    df_for_csv['timestamp'] = df_for_csv['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
+    
+    # Save processed data to CSV
+    df_for_csv.to_csv(output_file, index=False)
+    
+    print(f"Successfully processed {len(df_final)} commits with timestamps")
+    return df_final, final_count
 
 def main():
     # Setup paths

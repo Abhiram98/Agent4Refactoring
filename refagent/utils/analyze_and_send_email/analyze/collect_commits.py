@@ -95,18 +95,20 @@ def split_into_batches_with_max_size(items: List[str], max_batch_size: int, num_
     if max_batch_size <= 0:
         raise ValueError("Maximum batch size must be positive")
     
-    # Calculate optimal batch size
-    # Don't exceed max_batch_size, but try to use available threads efficiently
-    optimal_batch_size = min(max_batch_size, max(1, len(items) // num_threads))
+    # Ensure minimum batch size of 2 commits
+    min_batch_size = 2
+    # Calculate optimal batch size, ensuring it's at least 2 commits
+    optimal_batch_size = max(min_batch_size, min(max_batch_size, max(2, len(items) // num_threads)))
     
     batches = []
     for i in range(0, len(items), optimal_batch_size):
         batch = items[i:i + optimal_batch_size]
-        batches.append(batch)
+        if len(batch) >= min_batch_size:  # Only add batches with at least 2 commits
+            batches.append(batch)
     
     return batches
 
-def process_commit_batch(repo_path: str, batch: List[str], output_dir: str, batch_index: int) -> bool:
+def process_commit_batch(repo_path: str, batch: List[str], output_dir: str, batch_index: int, timeout_factor: int = 1) -> bool:
     """Process a batch of commits using RefactoringMiner"""
     try:
         # Create output directory for this batch
@@ -115,8 +117,8 @@ def process_commit_batch(repo_path: str, batch: List[str], output_dir: str, batc
         
         # Skip if batch has less than 2 commits (can't compare)
         if len(batch) < 2:
-            print(f"Batch {batch_index} has only {len(batch)} commit(s), skipping...")
-            return True
+            print(f"Warning: Batch {batch_index} has only {len(batch)} commit(s), skipping...")
+            return False  # Return False to indicate skipped batch
         
         # Get the first and last commit in the batch
         start_commit = batch[0]
@@ -127,7 +129,8 @@ def process_commit_batch(repo_path: str, batch: List[str], output_dir: str, batc
         output_file = batch_output_dir / f"refactoring_{start_commit[:7]}_{end_commit[:7]}.json"
         
         # Calculate timeout based on batch size (30 minutes per 100 commits, minimum 10 minutes)
-        timeout_minutes = max(10, (len(batch) // 100) * 30)
+        # Multiply by timeout_factor for retries
+        timeout_minutes = max(10, (len(batch) // 100) * 30) * timeout_factor
         timeout_seconds = timeout_minutes * 60
         
         # Run RefactoringMiner between start and end commit with dynamic timeout
@@ -171,17 +174,18 @@ def process_commits_with_refactoringminer(repo_path: str, commits: List[str], ou
     
     successful_batches = 0
     failed_batches = 0
+    failed_batch_indices = []
     
     # Process batches in parallel, but limit concurrent batches to num_threads
     max_workers = min(num_threads, actual_batch_count)
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = []
         for i, batch in enumerate(batches):
-            future = executor.submit(process_commit_batch, repo_path, batch, str(output_path), i)
-            futures.append(future)
+            future = executor.submit(process_commit_batch, repo_path, batch, str(output_path), i, timeout_factor=1)
+            futures.append((i, future))
         
         # Wait for all batches to complete
-        for i, future in enumerate(concurrent.futures.as_completed(futures)):
+        for i, future in futures:
             success = future.result()
             if success:
                 print(f"Batch {i} completed successfully")
@@ -189,6 +193,40 @@ def process_commits_with_refactoringminer(repo_path: str, commits: List[str], ou
             else:
                 print(f"Batch {i} failed")
                 failed_batches += 1
+                failed_batch_indices.append(i)
+    
+    # Retry failed batches with smaller size and increased timeout
+    if failed_batch_indices:
+        print(f"\nRetrying {len(failed_batch_indices)} failed batches with smaller size and increased timeout...")
+        retry_batches = []
+        for i in failed_batch_indices:
+            original_batch = batches[i]
+            # Split failed batch into smaller batches of 100 commits each
+            for j in range(0, len(original_batch), 100):
+                if j + 100 <= len(original_batch):  # Ensure we have at least 100 commits
+                    retry_batches.append(original_batch[j:j+100])
+                else:
+                    # Handle remaining commits
+                    retry_batches.append(original_batch[j:])
+        
+        print(f"Created {len(retry_batches)} smaller batches for retry")
+        
+        # Process retry batches with increased timeout (factor of 2)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+            retry_futures = []
+            for i, batch in enumerate(retry_batches):
+                future = executor.submit(process_commit_batch, repo_path, batch, str(output_path), f"retry_{i}", timeout_factor=2)
+                retry_futures.append(future)
+            
+            # Wait for all retry batches to complete
+            for i, future in enumerate(concurrent.futures.as_completed(retry_futures)):
+                success = future.result()
+                if success:
+                    print(f"Retry batch {i} completed successfully")
+                    successful_batches += 1
+                else:
+                    print(f"Retry batch {i} failed")
+                    failed_batches += 1
     
     print(f"\n=== RefactoringMiner Processing Complete ===")
     print(f"Total batches: {actual_batch_count}")
