@@ -121,12 +121,23 @@ def load_and_enrich_data(csv_file, repo_path):
     print(f"Successfully processed {len(df_final)} commits with timestamps")
     return df_final, final_count
 
-def create_weekly_plot(df, output_dir, project_name=None):
+def create_weekly_plot(df, output_dir, project_name=None, since_date="2024-01-01"):
     """Create weekly time series plot similar to the example image"""
     
     # Convert output_dir to Path object if it's a string
     if isinstance(output_dir, str):
         output_dir = Path(output_dir)
+    
+    # Create the output directory if it doesn't exist
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Filter data based on since_date
+    since_date = pd.to_datetime(since_date)
+    df = df[df['timestamp'] >= since_date].copy()
+    
+    if len(df) == 0:
+        print(f"Warning: No data found after {since_date}")
+        return None, None
     
     # Group by week and sum the counts
     df['week'] = df['timestamp'].dt.to_period('W-MON')  # Week starting on Monday
@@ -432,6 +443,9 @@ def create_json_analysis(df, repo_path, output_dir, target_commit_hash=None, pro
     if isinstance(output_dir, str):
         output_dir = Path(output_dir)
     
+    # Create the output directory if it doesn't exist
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
     print("\nCreating comprehensive JSON analysis...")
     
     # Basic statistics
@@ -470,8 +484,8 @@ def create_json_analysis(df, repo_path, output_dir, target_commit_hash=None, pro
             "project_name": project_name if project_name else "Unknown Project",
             "analysis_date": pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S'),
             "dataset_date_range": {
-                "earliest_commit": df['timestamp'].min().strftime('%Y-%m-%d %H:%M:%S'),
-                "latest_commit": df['timestamp'].max().strftime('%Y-%m-%d %H:%M:%S')
+                "earliest_commit": pd.to_datetime(df['timestamp'].min()).strftime('%Y-%m-%d %H:%M:%S'),
+                "latest_commit": pd.to_datetime(df['timestamp'].max()).strftime('%Y-%m-%d %H:%M:%S')
             }
         }
     }
@@ -483,13 +497,14 @@ def create_json_analysis(df, repo_path, output_dir, target_commit_hash=None, pro
         # Check if the commit exists in our dataset
         commit_row = df[df['commit'] == target_commit_hash]
         
+        # get the count of that row with the target commit hash and of less than or equal 3, return none
+        if len(commit_row) > 0 and commit_row.iloc[0]['count'] <= 3:
+            print(f"Warning: Commit {target_commit_hash} has {commit_row.iloc[0]['count']} renames (less than or equal to 3)")
+            return None
+        
         if len(commit_row) == 0:
             print(f"Warning: Commit {target_commit_hash} not found in the dataset")
-            json_data["target_commit_analysis"] = {
-                "commit_hash": target_commit_hash,
-                "found_in_dataset": False,
-                "error": "Commit not found in dataset"
-            }
+            return None
         else:
             # Get author info for the target commit
             author_name, author_email = get_commit_author_info(target_commit_hash, repo_path)
@@ -526,7 +541,7 @@ def create_json_analysis(df, repo_path, output_dir, target_commit_hash=None, pro
                     
                     # Get the target commit's rename count
                     target_commit_renames = int(commit_row.iloc[0]['count'])
-                    target_commit_timestamp = commit_row.iloc[0]['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+                    target_commit_timestamp = pd.to_datetime(commit_row.iloc[0]['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
                     
                     json_data["target_commit_analysis"] = {
                         "commit_hash": target_commit_hash,
@@ -560,7 +575,7 @@ def create_json_analysis(df, repo_path, output_dir, target_commit_hash=None, pro
                         "author_info_available": True,
                         "target_commit_info": {
                             "total_rename_in_author_commit": int(commit_row.iloc[0]['count']),
-                            "timestamp": commit_row.iloc[0]['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+                            "timestamp": pd.to_datetime(commit_row.iloc[0]['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
                         },
                         "author_info": {
                             "name": author_name,
@@ -575,7 +590,7 @@ def create_json_analysis(df, repo_path, output_dir, target_commit_hash=None, pro
                     }
     
     # Save JSON file
-    json_file = f'{output_dir}/comprehensive_analysis_{developer_name}.json'
+    json_file = output_dir / f'comprehensive_analysis_{developer_name}.json'
     with open(json_file, 'w', encoding='utf-8') as f:
         json.dump(json_data, f, indent=2, ensure_ascii=False)
     
@@ -831,7 +846,7 @@ def main():
         
         # Create weekly plot
         print("\nCreating weekly time series plot...")
-        weekly_csv_data, summary_data = create_weekly_plot(df, output_dir, args.project_name)
+        weekly_data, summary_data = create_weekly_plot(df, output_dir, args.project_name)
         
         # Create heatmap
         print("\nCreating heatmap of rename activity...")
