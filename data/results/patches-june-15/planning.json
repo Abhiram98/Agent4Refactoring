@@ -1,0 +1,114 @@
+[
+    {
+        "id": 11203,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce a descriptive naming convention for local test variables created via RecordToWrite.command(): rename generic `command` to a name that encodes the specific intent and parameters (e.g. `scaleTo3` for a ScaleIntent.SCALE_UP with desiredPartitionCount=3). Apply the same pattern elsewhere\u2014e.g. use `scaleTo4`, `statusScaleTo4`, `createUserRequest`, `cancelOrder123Command`, `validLoginRequest`\u2014so that each variable clearly conveys its action and key arguments, reducing ambiguity and improving readability when multiple commands appear."
+        }
+    },
+    {
+        "id": 11204,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Standardize naming for rejection messages across the codebase: rename local validation variables called `reason` to `rejection`, update all related method calls to rejectionWriter and responseWriter, and apply the same pattern in other stream processors and utilities. Adopt explicit names (e.g., `errorMessage`, `validationError`, `cancellationReason`) for error contexts, and avoid renaming when a `reason` variable serves as a generic explanation or is part of a public API to prevent breaking changes."
+        }
+    },
+    {
+        "id": 11241,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify and correct occurrences where the word \u201cOn\u201d has been mistakenly used instead of the numeric word \u201cOne\u201d in method names, test names, variables, and related documentation. Rename these elements (e.g., shouldContinueMigrationIfOneRoleAlreadyExists) to improve clarity, maintain consistency in numeric wording, and update all references across the codebase accordingly."
+        }
+    },
+    {
+        "id": 11258,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Ensure all Spring @Configuration classes that act purely as bean\u2010wiring containers end with \u201cConfig\u201d to avoid confusion with runtime connector implementations. In this file and across the codebase, rename any class named *Connector (e.g. DatabaseConnector, KafkaConnector) under a config package to *ConnectorConfig. Update package declarations, imports, tests, and references accordingly. Do not apply this rename to classes that contain actual connector logic or I/O behavior; only suffix bean\u2010definition classes to clearly signal their configuration role."
+        }
+    },
+    {
+        "id": 11283,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Enforce a consistent naming convention by prefixing request parameters and DTO fields with the domain subject before the action. Specifically, rename `bootstrappedPartition` to `partitionBootstrapped`, update its use in the constructor, setter call, and any tests or docs, then apply the same pattern across other broker/gateway requests and protocol records (e.g., rename `rebalanceTopicId` \u2192 `topicRebalanced`, `migratedRecordKey` \u2192 `recordMigrated`) to ensure all parameters follow the \u2018subject + verb/adjective\u2019 style."
+        }
+    },
+    {
+        "id": 11284,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Change the generic method name processRecord(...) to processNewCommand(...) wherever it only handles new incoming commands: update its declaration, all calls, overrides, documentation, and tests. In each processor class that splits handling of new commands versus replayed or other record types, rename the command\u2010handling entry point to processNewCommand and optionally introduce processReplayedCommand or similar for the replay path. Maintain framework override signatures where needed and ensure backward compatibility of public APIs."
+        }
+    },
+    {
+        "id": 11293,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a naming rule for DB composite\u2010key wrapper classes: any class extending DbCompositeKey (or similar) that ends with the redundant \u201cValue\u201d suffix but represents a key should drop that suffix. In this file and across the codebase, find classes like ScopeKeyAndValueTypeValue (or KeyCompositeValue, FooIdValue, etc.), verify they are key types not payloads, rename them by removing \u201cValue\u201d, and update all usages, imports, constructors, and documentation accordingly."
+        }
+    },
+    {
+        "id": 11294,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename `createdUserTaskRecord` to `createdUserTask` to reflect that the code now holds only the record\u2019s value (the payload) rather than the full record envelope; apply the same pattern elsewhere by finding local variables ending in `Record` that immediately call `.getValue()` and removing the `Record` suffix for improved clarity, while keeping the `Record` suffix on variables that still reference intent, metadata, or record\u2010level fields."
+        }
+    },
+    {
+        "id": 11295,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the local variable `optionalRequest` on line 87 to `asyncRequest` to accurately describe that it holds an asynchronous request record rather than the Optional wrapper. Then, apply this naming pattern throughout the codebase: when you unwrap an Optional<T> and immediately work with the inner T, rename variables from optionalXyz to xyz or domain-specific names (for example, optionalTimer \u2192 timerJob, optionalResponse \u2192 asyncResponse). Ensure all AsyncRequest-related identifiers align with AsyncRequestBehavior, AsyncRequestState, and AsyncRequestIntent naming conventions. Do not rename when the Optional<T> is still passed around or when team guidelines require the optional prefix to signal presence checks."
+        }
+    },
+    {
+        "id": 11296,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Scan for predicate or helper names that describe low-level mechanics (e.g., matching by elementInstanceKey or union of record types) and rename each to a concise, domain-specific name that reflects the test\u2019s semantic intent (for example, change isUserTaskOrVariableDocumentWithElementInstanceKey to isUserTaskVariablesUpdateRelatedRecords). Update all references to use the new name and ensure consistency with the language used in the test\u2019s scenario."
+        }
+    },
+    {
+        "id": 11297,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When a method reads an incoming `intent` and then computes or maps a new intent for writing a follow-up record, rename the variable holding the output intent from `intent` to `intentToWrite` (or similar) to clearly distinguish input from output. Apply this convention in all processors (e.g. MessageProcessor, VariableDocumentProcessor, JobProcessor, TimerProcessor) wherever both input and output intents are in scope. If only a single intent is used or the same value is both read and written, retain the simple name `intent`."
+        }
+    },
+    {
+        "id": 11298,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Outline the pattern: identify any test, method, or variable names that list multiple conditions or flags, detect which conditions have been removed or made irrelevant by recent refactoring, and update those identifiers by dropping the obsolete clauses. Ensure the new names accurately describe the remaining behavior. Apply this consistently across code, tests, and documentation whenever logic is simplified or features are removed."
+        }
+    },
+    {
+        "id": 11299,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every local variable, parameter, or method element named `metadata` that actually holds request context (requestId, requestStreamId, triggerType) and rename it to `request` or `requestMetadata`. Perform this change throughout this file and related modules: update declarations, method signatures, calls, logging messages, switch cases, and conditional checks (e.g., hasRequestMetadata) so that all request-related data is clearly named and consistently referenced."
+        }
+    },
+    {
+        "id": 11300,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Extend this change across the file and similar code: whenever a generic `key` variable is introduced by the KeyGenerator or represents a specific domain key alongside others (e.g., scopeKey, userTaskKey), rename it to a descriptive identifier (e.g., `variableDocKey`, `jobKey`, `elementInstanceKey`) and update all declarations, assignments, method calls, and event writer usages to use the new name for clarity and to avoid ambiguity."
+        }
+    },
+    {
+        "id": 11302,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide general guidance for the second developer: rename the constant and all its usages (exception messages, logs, tests, documentation) from the generic CLAIM_NOT_STRING_OR_STRING_ARRAY to DERIVED_GROUPS_ARE_NOT_STRING_ARRAY so it accurately describes an error in derived\u2010groups extraction. Then apply the same pattern to any other constants or messages whose name no longer matches the specific functionality (e.g., derived roles, principal IDs). If these constants are part of a public API, deprecate or alias the old name to avoid breaking changes."
+        }
+    },
+    {
+        "id": 11327,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the integration test class FormHistoricalArchiveDateIT to DateOfArchivedDocumentsUtilIT and update the file name, class declaration, import statements, test references, and any CI/build configurations to match. Ensure the test name aligns exactly with the production class under test (DateOfArchivedDocumentsUtil) and follows project naming conventions for utility integration tests."
+        }
+    }
+]

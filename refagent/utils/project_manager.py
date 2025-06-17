@@ -264,3 +264,20 @@ class EvalProject:
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'diff', '-U100', sha1, sha2, '--', file_path], capture_output=True, text=True, check=True)
         return result.stdout
+
+    def pull_project(self):
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'pull', 'origin',
+             self.get_master_branch_name()], capture_output=True, text=True, check=True)
+        return result.stdout
+
+    def get_master_branch_name(self):
+        # git symbolic-ref refs/remotes/origin/HEAD
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'symbolic-ref', 'refs/remotes/origin/HEAD'], capture_output=True, text=True, check=True)
+        return result.stdout.split('/')[-1].strip()
+
+    def get_remote_url(self):
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'remote', 'get-url', 'origin'], capture_output=True, text=True, check=True)
+        return result.stdout.strip().rstrip('.git')

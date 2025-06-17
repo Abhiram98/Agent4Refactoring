@@ -66,6 +66,9 @@ class Replication(BaseModel):
 
         files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect) if i!=self.starting_file]
 
+        list_of_keywords = self.invokeLLM() 
+        files_to_inspect = self.filterFiles(files_to_inspect, list_of_keywords)
+
 
         with ContextThreadPoolExecutor(max_workers=4) as executor:
             futures = {executor.submit(self.handle_file, file_path): file_path for file_path in files_to_inspect}
@@ -79,7 +82,7 @@ class Replication(BaseModel):
 
     def handle_file(self, file_path) -> Optional[planning.RefactoringPlan]:
         try:
-            ask_replicate = self.compile(file_path)
+            ask_replicate = self.compile(file_path) # the edited file?
             should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
             print(should_replicate.content)
 
@@ -131,9 +134,10 @@ class Replication(BaseModel):
 
     def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
         self.ide_server.open_file(Path(code_element.file_path))
+        linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
         try:
             linked_elements_json = json.loads(
-                self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+                linked_elements_json
             )
         except:
             print("Failed to get linked element")
@@ -168,6 +172,7 @@ class Replication(BaseModel):
         """Compile the langgraph."""
 
         def ask_replicate(state: MessagesState):
+            file_name = file_to_inspect.split('/')[-1]
             try:
                 file_contents = self.project.get_file_contents(file_to_inspect)
             except FileNotFoundError:
@@ -183,19 +188,20 @@ class Replication(BaseModel):
                     SystemMessage("You are an expert developer who decides whether a "
                                   "refactoring needs to be replicated in a certain file, "
                                   "for the sake of consistency. "),
-                    HumanMessage(f"Here are the contents of the file: {file_contents}"),
                     HumanMessage(
                                 f"Here is the intent of the developer: "
                                  f"{self.initial_intent}"
-                                 f"Here are the kinds of refactorings that "
-                                 f"need to be replicated. These refactorings were already performed:\n"
-                                 f"{examples}"),
+                                 # f"Here are the kinds of refactorings that "
+                                 # f"need to be replicated. These refactorings were already performed:\n"
+                                 # f"{examples}"
+                    ),
+                    HumanMessage(f"Here are the contents of the file: {file_contents}"),
                     HumanMessage("Answer the following question: "
-                                 f"Are there any code elements in {file_to_inspect}, "
-                                 f"that could this exact change? "
-                                 f"Then, add a YES/NO at the end of your reply,"
+                                 f"Are there ANY code elements in {file_name}, "
+                                 f"that could change? "
+                                 f"Then, say YES/NO at the end of your reply,"
                                  f" indicating whether to "
-                                 f"replicate the refactoring concept in this file.")
+                                 f"there are any code elements that should change.")
                  ]
             )
 
@@ -206,6 +212,44 @@ class Replication(BaseModel):
         workflow.add_edge(START, "ask_replicate")
 
         return workflow.compile()
+
+    def invokeLLM(self):
+        filtered_steps = [i for i in self.executed_plan.steps
+                          if i.refactoring_type in Replication.SUPPORTED_REPLICATIONS]
+        examples = '\n'.join([i.execution_details for i in filtered_steps])
+        examples += self.example_changes
+        
+        response = self.model.invoke([
+            SystemMessage("You are an expert developer who can collect list of keywords "
+                          "to identify the rename changes that need to be replicated."),
+            HumanMessage(
+                f"Here is the intent of the developer: "
+                f"{self.initial_intent}\n"
+                f"Here are the kinds of refactorings that "
+                f"need to be replicated. These refactorings were already performed:\n"
+                f"{examples}"),
+            HumanMessage("Answer the following question: "
+                         f"What are the keywords that could identify the rename changes that need to be replicated? "
+                         f"Extract variable names, method names, class names, or other identifiers that were renamed. Only the old names, not the new names."
+                         f"Provide only the list of keywords in comma separated format, no other text.")
+        ])
+
+        # Parse the response to extract keywords
+        list_of_keywords = [keyword.strip() for keyword in response.content.split(',') if keyword.strip()]
+        print(f"List of keywords: {list_of_keywords}")
+        return list_of_keywords
+    
+    def filterFiles(self, files_to_inspect, list_of_keywords): 
+        if not list_of_keywords:
+            return files_to_inspect
+            
+        filtered_files = []
+        for file in files_to_inspect:
+            file_contents = self.project.get_file_contents(file)
+            if any(keyword in file_contents for keyword in list_of_keywords):
+                filtered_files.append(file)
+        print(f"Filtered files: {len(filtered_files)} raw files: {len(files_to_inspect)}")
+        return filtered_files
 
 
 
@@ -233,3 +277,4 @@ class SimpleReplication(Replication):
             print(f"Error compiling and running replication for file {file_path}: {e}")
             traceback.print_exc()
         return None
+

@@ -159,9 +159,9 @@ class Agent(BaseModel):
         self._starting_file = starting_file
         self.update_starting_file(self._starting_file)
         self._original_starting_file = starting_file
-        self._original_source_code = self.project.get_file_contents(self._starting_file)
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
+        self._original_source_code = self.project.get_file_contents(self._starting_file)
         return model
 
     def run_agentic_loop(self, current_intent, model, starting_file):

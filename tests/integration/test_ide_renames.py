@@ -254,3 +254,163 @@ def test_rename_equal_method_and_param2():
     # print(response)
     assert response == 'success'
 
+
+def test_argouml_905():
+    project = pm.EvalProject("argouml")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.reset_project_reload_counters()
+    project.checkout('8154894d806e29d83bcdd34655ed2417a24d4ffc', force=True)
+    intellij_server.reload_project()
+    intellij_server.open_file(rel_file_path=Path("src_new/org/argouml/uml/cognitive/critics/ClAttributeCompartment.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='fig',
+                                         new_name='attributesCompartmentFig',
+                                         line_num=56,
+                                         code_element_type='field')
+    assert response == 'success'
+
+
+def test_argouml_910():
+    project = pm.EvalProject("argouml")
+    project.checkout('982c953f978c3238fa7bde44e2a1147197a7d1bb', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(rel_file_path=Path("src_new/org/argouml/uml/diagram/ui/ActionAddAllClassesFromModel.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='myTabName',
+                                         new_name='tabName',
+                                         line_num=55,
+                                         code_element_type='parameter')
+    assert response == 'success'
+
+def test_argouml_913():
+    project = pm.EvalProject("argouml")
+    project.checkout('3a89da0fec36336116decff9a81fc66551c1ef4d', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src/uci/gef/ModeCreateEdge.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='_editor',
+                                         new_name='ce',
+                                         line_num=97,
+                                         code_element_type='variable')
+    assert response == 'success'
+
+def test_argouml_913_2():
+    project = pm.EvalProject("argouml")
+    project.checkout('3a89da0fec36336116decff9a81fc66551c1ef4d', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src/uci/gef/ModeCreateEdge.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='curEditor',
+                                         new_name='myCurEditor',
+                                         line_num=97,
+                                         code_element_type='method')
+    assert response == 'success'
+
+def test_argouml_913_overiden_method():
+    project = pm.EvalProject("argouml")
+    project.checkout('3a89da0fec36336116decff9a81fc66551c1ef4d', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src/uci/gef/ModeCreateEdge.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='createNewItem',
+                                         new_name='createNewItem22',
+                                         line_num=85,
+                                         code_element_type='method')
+    assert response == 'success'
+
+def test_argouml_913_overiden_method_param():
+    project = pm.EvalProject("argouml")
+    project.checkout('3a89da0fec36336116decff9a81fc66551c1ef4d', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src/uci/gef/ModeCreateEdge.java"))
+    response = intellij_server.call_tool('rename',
+                                         old_name='snapX',
+                                         new_name='mySnapX',
+                                         line_num=85,
+                                         code_element_type='parameter')
+    assert response == 'success'
+
+
+def test_argouml_921():
+    project = pm.EvalProject("argouml")
+    project.checkout('1ab4e8046393cac62d61eb0e3c5e82eb5e8bb921', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path("src_new/org/argouml/uml/diagram/activity/ui/SelectionActionState.java"))
+
+    response = intellij_server.call_tool('rename',
+                                         old_name='cls',
+                                         new_name='existingNode',
+                                         line_num=237,
+                                         code_element_type='variable')
+    assert response == 'success'
+
+
+def test_argouml_962_param():
+    """There are multiple classes in this file, that's why the tool is failing"""
+
+    project = pm.EvalProject("argouml")
+    project.checkout('804aaf9d327fa004acd673467bc2e72256dc8f26', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('src/uci/uml/ui/Actions.java'))
+    _json = {'code_element_type': 'parameter', 'line_num': 629, 'new_name': 'ae', 'old_name': 'e'}
+
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
+
+def test_argouml_999_param():
+    project = pm.EvalProject("argouml")
+    project.checkout('54d2a049e5f6cd5fc8baccf25c58f888deb47a90', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('src_new/org/argouml/uml/ui/UMLModelElementListModel2.java'))
+    _json = {'code_element_type': 'parameter', 'line_num': 250, 'new_name': 'theNewTarget', 'old_name': 'target'}
+
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
+def test_argouml_1009_variable():
+    project = pm.EvalProject("argouml")
+    project.checkout('956c16de8e38b8090012db4c4c2b90a9b6a7e3db', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('src/uci/uml/critics/ClClassName.java'))
+    _json = {'code_element_type': 'variable', 'line_num': 51, 'new_name': 'fnme', 'old_name': 'fc'}
+
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
+
+def test_flink_method():
+    project = pm.EvalProject("flink")
+    project.checkout('32aa7973daaf70e097f247eaf5a3869b47d8e3e0', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java'))
+    _json = {'code_element_type': 'method', 'line_num': 265, 'new_name': 'deserializeStreamStateHandle2', 'old_name': 'deserializeStreamStateHandle'}
+    intellij_server.reset_project_reload_counters()
+    intellij_server.reload_project()
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
