@@ -202,26 +202,6 @@ class EvalProject:
             result = subprocess.run(
                 ['git', '-C', self.get_project_path(), 'diff', '--staged', file_path], capture_output=True, text=True, check=True)
         return result.stdout
-    
-    def get_commit_diff(self, file_path_1: str=None, file_path_2: str=None, sha_1: str=None, sha_2: str=None, unified_context: int=None) -> str:
-        git_cmd = ['git', '-C', self.get_project_path(), 'diff']
-        
-        if unified_context is not None:
-            git_cmd.append(f'-U{unified_context}')
-
-        if sha_1 is not None:
-            git_cmd.append(sha_1)
-            git_cmd.append(sha_2)
-            git_cmd.append('--')
-            git_cmd.append(file_path_1)
-            git_cmd.append(file_path_2)
-        else:
-            git_cmd.append(sha_2)
-            git_cmd.append('--')
-            git_cmd.append(file_path_2)
-        
-        result = subprocess.run(git_cmd, capture_output=True, text=True, check=True)
-        return result.stdout
 
     def file_exists(self, file_path: str) -> bool:
         return os.path.exists(self.get_project_path().joinpath(file_path))
@@ -281,3 +261,18 @@ class EvalProject:
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'remote', 'get-url', 'origin'], capture_output=True, text=True, check=True)
         return result.stdout.strip().rstrip('.git')
+
+    def create_branch(self, branch_name):
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'checkout', '-b',
+            branch_name], capture_output=True, text=True, check=True
+        )
+        return result.stdout
+
+    def push_upstream_branch(self, branch_name):
+        # git push --set-upstream origin seed-1077
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'push', '--set-upstream',
+             'origin', branch_name], capture_output=True, text=True, check=True
+        )
+        return result.stdout

@@ -1,6 +1,6 @@
 import json
 import os
-
+import traceback
 import langsmith
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import RequestFailedException
@@ -26,7 +26,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from typing_extensions import Annotated
 
-from benchmark.creation.add_gh_comments import GithubPR
+import refagent.benchmark.creation.add_gh_comments as add_gh_comments
 
 
 class CommitSummary(BaseModel):
@@ -40,7 +40,7 @@ class CommitProcessor(BaseModel):
     id_counter: int = Field(description="value from which to increment the ids from", default=refagent.LAST_ID+1)
     commit: Commit = Field(description="The commit to process")
     project: pm.EvalProject = Field(description="The project to work with")
-    model: Annotated[BaseModel, SkipValidation] = Field(description="Model to use to summarize the commit")
+    model: Annotated[Optional[BaseModel], SkipValidation] = Field(description="Model to use to summarize the commit", default=None)
     _refactorings: List[refactoring_types.RefminerOut] = PrivateAttr(default=[])
     _filtered_refactorings: List[refactoring_types.RefminerOut] = PrivateAttr(default=[])
 
@@ -61,10 +61,17 @@ class CommitProcessor(BaseModel):
         # filter out unrelated hunks
 
         # Run refactoring miner.
-        self._refactorings = refminer.default_runner.run(
-            project_path=self.project.get_project_path(),
-            commit_hash=str(self.commit.hexsha)
-        )
+        print("Running refactoring miner...")
+        try:
+            self._refactorings = refminer.default_runner.run(
+                project_path=self.project.get_project_path(),
+                commit_hash=str(self.commit.hexsha)
+            )
+        except:
+            print("Failed to run refactoring miner.")
+            traceback.print_exc()
+            return None
+        print("Finished running refactoring miner.")
         if len(self._refactorings) == 0:
             return None # There are no refactorings detected by rminer, which is an odd case.
         if not self.should_analyse():
@@ -76,7 +83,12 @@ class CommitProcessor(BaseModel):
             return None # no files were refactored.
         starting_files = max(edited_files.items(), key=lambda x: x[1])
         starting_file = starting_files[0]
-        commit_summary = self.summarize_commit(edited_files)
+        if self.model is not None:
+            commit_summary = self.summarize_commit(edited_files)
+        else:
+            commit_summary = CommitSummary(commit_message=self.commit.message,
+                                           summary="",
+                                           hints=[])
 
         self.id_counter += 1
         print("-" * 50)
@@ -98,7 +110,7 @@ class CommitProcessor(BaseModel):
                 pull_request=self.get_pr()
             )
 
-    def get_pr(self) -> Optional[GithubPR]:
+    def get_pr(self) -> Optional[add_gh_comments.GithubPR]:
         comment_importer = gh.CommentImporter(project=self.project)
         try:
             return comment_importer.get_comments(
@@ -302,7 +314,7 @@ class RenameProcessor(CommitProcessor):
             for loc in r.leftSideLocations:
                 unique_files.add(loc.filePath)
         rename_pct = refactoring_count['Rename'] / len(refactorings)
-        lots_of_renames = refactoring_count['Rename'] > 10 and len(unique_files) > 1
+        lots_of_renames = refactoring_count['Rename'] >= 1 and len(unique_files) >= 1
         high_pct_renames = rename_pct > 0.6 and refactoring_count['Rename'] > 2
 
         return lots_of_renames or high_pct_renames

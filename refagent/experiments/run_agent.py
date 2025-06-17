@@ -18,22 +18,28 @@ import refagent.agents.refactrix.react_agent as react_agent
 import langsmith as ls
 
 
-def setup_and_run(bench_point: bm_load.BenchmarkItem,
+def setup_and_run(bench_point: bm_load.RenameItem,
                   ij_server: ij.IntellijServer,
                   results_saver: rm.ResultsManager,
                   do_replication: bool,
                   plan: Optional[planning.RefactoringPlan],
                   augmented_intent: Optional[str],
-                  initial_commit: Optional[str]=None
+                  initial_commit: Optional[str]=None,
+                  use_seed: bool=False,
                   ):
     project = pm.EvalProject(bench_point.project_name)
     ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
     if initial_commit is None:
-        project.checkout(bench_point.v1_hash, force=True)
+        if use_seed:
+            # In this case, we would like to start the agent from the seed changes.
+            project.checkout(bench_point.seed_hash, force=True)
+            project.reset_head(1)
+        else:
+            project.checkout(bench_point.v1_hash, force=True)
+            project.restore_changes()
     else:
         project.checkout(initial_commit, force=True)
-    # drop any unstaged changes
-    project.restore_changes()
+        project.restore_changes()
 
     ij_server.open_project(project_path=project.get_project_path())
     ij_server.reload_project()
@@ -45,8 +51,12 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
 
     # vendor = 'grazie' # switch to `openai` to use the openai models directly
     vendor = 'openai'
+    # vendor = 'grazie' # switch to `openai` to use the openai models directly
+    vendor = 'openai'
 
     agent = react_agent.ReactAgent(ide_server=ij_server,
+                     model_name=f'{vendor}:gpt-4o-mini',
+                     reasoning_model_name=f'{vendor}:o4-mini',
                      model_name=f'{vendor}:gpt-4o-mini',
                      reasoning_model_name=f'{vendor}:o4-mini',
                      project=project,
@@ -61,6 +71,7 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
             assert initial_commit is not None, "initial commit must be provided for replication"
             agent.add_internal_commit(project.git_repo.commit(initial_commit))
             agent.initialize_agent(starting_file=bench_point.starting_file)
+            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
             agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
@@ -81,6 +92,8 @@ def setup_and_run(bench_point: bm_load.BenchmarkItem,
             "changes": [c.to_json() for c in project.get_changes(new_hash)],
             "commit_hash": str(new_hash),
             "trajectory": [i.to_json() for i in agent.get_trajectory()],
+            "performed_refactorings": agent.get_performed_refactorings(),
+            "internal_commits": [str(i) for i in internal_commits],
             "performed_refactorings": agent.get_performed_refactorings(),
             "internal_commits": [str(i) for i in internal_commits],
         }
@@ -123,6 +136,7 @@ if __name__ == '__main__':
                         help="Whether to use the change summary or not. "
                              "If true, the change summary is used to improve the intent. "
                              "If false, the change summary is not used.", default=False)
+    parser.add_argument("--use_seed", action='store_true')
     args = parser.parse_args()
 
 
@@ -136,9 +150,16 @@ if __name__ == '__main__':
             json_ = json.load(f)
             planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) if i['response']['plan'] is not None else None
                                 for i in json_}
+            planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) if i['response']['plan'] is not None else None
+                                for i in json_}
             augmented_intents = {i['id']: i['response']['augmented_intent'] for i in json_}
 
     initial_save_file = rm.ResultsManager(run_identifier=args.run_identifier, save_file="no-replication.json").save_file_path
+    initial_commits={}
+    if initial_save_file.exists():
+        with open(initial_save_file) as f:
+            initial_run = json.load(f)
+            initial_commits = {i['id']: i['response']['commit_hash'] for i in initial_run}
     initial_commits={}
     if initial_save_file.exists():
         with open(initial_save_file) as f:
@@ -149,7 +170,7 @@ if __name__ == '__main__':
 
     do_replication = args.replication.lower() == "true"
     results_file = "no-replication.json" if not do_replication else "post-replication.json"
-    benchmark = load_benchmark(args.benchmark_file, args.benchmark_type)
+    benchmark = load_benchmark(args.benchmark_file, "rename")
     results_saver = rm.ResultsManager(run_identifier=args.run_identifier, save_file=results_file)
 
     for bench_point in benchmark:
@@ -169,4 +190,5 @@ if __name__ == '__main__':
             setup_and_run(bench_point, ij_server, results_saver, do_replication,
                           plan=planning_results.get(bench_point.ref_id),
                           augmented_intent=bench_point.change_summary if args.use_change_summary.lower() == "true" else augmented_intents.get(bench_point.ref_id),
-                          initial_commit=initial_commits.get(bench_point.ref_id))
+                          initial_commit=initial_commits.get(bench_point.ref_id),
+                          use_seed=args.use_seed)

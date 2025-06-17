@@ -24,7 +24,14 @@ class BenchmarkItem(BaseModel):
         arbitrary_types_allowed = True
 
     @classmethod
-    def load(cls, _json) -> "BenchmarkItem":
+    def load(cls, _json, load_changes=False) -> "BenchmarkItem":
+        try:
+            if load_changes:
+                changes = pm.EvalProject(_json['project']).get_changes(_json['v2_hash'])
+            else:
+                changes = []
+        except:
+            changes = []
         return cls(
             ref_id=_json['id'],
             project_name=_json['project'],
@@ -36,7 +43,7 @@ class BenchmarkItem(BaseModel):
             hints=_json['hints'],
             starting_file=_json['starting_file'],
             refactoring_changes=refactoring_types.RefminerOut.load_from_json(_json['refactoring_changes']),
-            diffs=pm.EvalProject(_json['project']).get_changes(_json['v2_hash']),
+            diffs=changes,
             pull_request=gh_comment.GithubPR(**_json['pull_request']) if _json.get("pull_request") else None
         )
 
@@ -56,12 +63,38 @@ class BenchmarkItem(BaseModel):
         }
 
 class RenameItem(BenchmarkItem):
+    corename_id: int
+    seed_hash: Optional[str] = None
+    seed_example: Optional[refactoring_types.RefminerOut] = None
+
     def to_json(self):
         json_ = super().to_json()
         json_['corename_id'] = self.corename_id
+        json_['seed_hash'] = self.seed_hash
+        json_['seed_example'] = self.seed_example.model_dump() if self.seed_example else None
         return json_
 
-    corename_id: int
+    @classmethod
+    def load(cls, _json) -> "RenameItem":
+        return cls(
+            ref_id=_json['id'],
+            project_name=_json['project'],
+            v1_hash=_json['v1_hash'],
+            v2_hash=_json['v2_hash'],
+            orig_commit_message=_json['orig_commit_message'],
+            improved_commit_message=_json['improved_commit_message'],
+            change_summary=_json['change_summary'],
+            hints=_json['hints'],
+            starting_file=_json['starting_file'],
+            refactoring_changes=refactoring_types.RefminerOut.load_from_json(_json['refactoring_changes']),
+            diffs=[],
+            pull_request=gh_comment.GithubPR(**_json['pull_request']) if _json.get("pull_request") else None,
+            corename_id=_json['corename_id'],
+            seed_hash=_json['seed_hash'] if _json.get("seed_hash") else None,
+            seed_example=refactoring_types.RefminerOut.load_from_dictionary(_json['seed_example'])
+                            if _json.get("seed_example") else None
+        )
+
 
 
 def load_benchmark(json_benchmark, bench_type: Type[BenchmarkItem] = BenchmarkItem) -> list[BenchmarkItem]:

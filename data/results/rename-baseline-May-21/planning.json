@@ -14344,5 +14344,1251 @@
             },
             "augmented_intent": "Rename the Groovy-specific DSL interface named Chain to GroovyChain across the codebase: update the interface declaration and file name from Chain.java to GroovyChain.java, adjust all import statements and package declarations, change return types and overridden method signatures, update @DelegatesTo annotation values and Javadoc @link references, and modify any tests, examples, or documentation that refer to Chain to prevent conflicts with ratpack.handling.Chain."
         }
+    },
+    {
+        "id": 900,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Adopt a rule that any method parameter whose name matches a class field must be prefixed with 'p' to avoid shadowing. In practice, rename parameter 'x' to 'px' (and analogously 'y' to 'py', 'width' to 'pWidth', etc.), update all references in method bodies, signatures, Javadoc, callers, overrides, tests, and adjust any related variables, setters/getters, and documentation to reflect the new names consistently across the codebase."
+        }
+    },
+    {
+        "id": 901,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Extract a new UmlHelper interface, rename the existing concrete class and file to UmlHelperImpl (updating its constructor and singleton instance), and refactor all imports, type declarations, method return types, variables, parameters, and factory calls that reference UmlHelper to use UmlHelperImpl for implementation. Ensure client code depends only on the UmlHelper interface. Apply the same interface/implementation renaming pattern (ClassName -> ClassNameImpl) consistently to other helper/factory classes across the codebase to support future alternative or mock implementations."
+        }
+    },
+    {
+        "id": 902,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a holistic refactoring that renames GUITestActionClassDiagram to TestActionClassDiagram everywhere in the project. This includes updating the Java class declaration, constructor signatures, filename and directory path, import statements, variable and field names, method references, Javadoc comments, test suite registrations, build or test runner configurations, and any documentation or XML/config files that mention the old name. Follow the existing \u2018Test\u2026\u2019 prefix convention for JUnit tests to ensure automated tools discover the renamed class."
+        }
+    },
+    {
+        "id": 903,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a guideline for a follow-on developer to generalize all occurrences of the name \u2018attr\u2019 to \u2018element\u2019 wherever parsing routines and model visitors have been widened from MAttribute to any UML element. Specifically:\n1. Rename local variables and method parameters named attr to element in ParserDisplay and related helpers.\n2. Update field names, getters/setters, and test fixture constants (ATTRxx) to use a generic element naming convention or leave constants unchanged but refer to them via element variables.\n3. Rename methods that mention \u2018Attribute\u2019 in their signature when they now accept any element, e.g. parseAttribute(...) \u2192 parseElement(...), or keep the old public method and refactor the internal implementation to use element.\n4. Adjust import statements and type casts: replace MAttribute-specific usages with Object or the common model element interface.\n5. Update all unit tests: change variable names in test methods, assertions on ModelFacade.getName(attr) to getName(element), and verify they all still pass.\n6. Search for any other code that treats attr specially (visitors, factories, stereotype helpers), and apply the same rename and type-generalization.\n7. Run full regression and fix any unresolved references, documentation comments, or examples to ensure consistency across the codebase."
+        }
+    },
+    {
+        "id": 904,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a checklist for applying this rename across files and modules: 1) Locate every identifier, parameter, local variable, field or constant named \u201cattr\u201d that refers to a UML Attribute and rename it to \u201cfeature\u201d. 2) Rename parser APIs (parseAttribute \u2192 parseFeature) and update all call sites. 3) Rename test helpers and constants (e.g. ATTR01 \u2192 FEATURE01, checkAttribute* \u2192 checkFeature*). 4) Update Javadoc, comments, tagged-value keys and stereotypes to reflect \u201cfeature.\u201d 5) Refactor class, interface or factory names if they embed \u201cAttribute.\u201d 6) Provide deprecation wrappers or aliases for any public API breakage and update documentation accordingly."
+        }
+    },
+    {
+        "id": 905,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all instances of short, two-letter variable names for figure objects (e.g., fg, fc, ft) whose semantic role has shifted; for each, choose a new suffix that reflects its purpose (r for region, h for highlight, s for segment, etc.) and rename variables, parameters, fields, getters/setters, method names, and documentation accordingly. Use automated refactoring tools to update all references, adjust public API or deprecate old names as needed, and ensure naming consistency across classes in the package. Update tests, comments, and examples to match the new names."
+        }
+    },
+    {
+        "id": 906,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor all custom-named UI handler methods (e.g. newExtensionPoint) to use the standard Swing ActionListener pattern: rename each handler to actionPerformed(ActionEvent), have the class implement ActionListener, replace reflection or custom binding (PropPanelButton\u2019s method name lookup) with addActionListener(this) on buttons and menu items, update imports (java.awt.event.ActionEvent, java.awt.event.ActionListener), adjust any PropPanelButton or Action classes to use the new signature, and propagate these changes consistently across all PropPanel* and Action* classes that currently rely on bespoke method names."
+        }
+    },
+    {
+        "id": 907,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Standardize UI event handlers by converting custom addOperation methods to the Swing ActionListener.actionPerformed pattern. For each occurrence of addOperation in this file and elsewhere: rename the method to actionPerformed, change its signature to accept ActionEvent, implement or extend ActionListener/AbstractAction as needed, update button or menu wiring to call addActionListener(this) rather than a string name, and revise any variable names, constants, translator keys, comments, tests, and documentation that reference addOperation. Apply the same refactoring steps to analogous methods (e.g. addAttribute, newDataType) in other UI panels to ensure consistent event\u2010callback conventions across the codebase."
+        }
+    },
+    {
+        "id": 908,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Audit constructors and methods for any parameter named 'tabName' that shadows a class field; rename each parameter to 'myTabName', update the corresponding field or variable names if needed to follow the naming convention, refactor all method calls, assignments, documentation, and imports to use the new name, and apply the same renaming pattern in other classes or methods where parameters duplicate instance or local variable names to eliminate ambiguity and enforce consistency."
+        }
+    },
+    {
+        "id": 909,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a consistent pattern for renaming any generic UI text field called \u201cname\u201d to a concise, context-specific identifier (e.g. \u201ch\u201d for the deep-history icon). Update the field declaration, constructor initializations, clone() mappings, accessor methods, event handlers, and any references in other classes or packages. Ensure you don\u2019t collide with inherited getName()/setName() or JavaBean property listeners. Apply the same approach for other icon labels (e.g. rename an initial-state label field \u201cname\u201d to \u201ci\u201d, final-state to \u201cf\u201d), but leave true model name properties and public API fields called \u201cname\u201d unchanged."
+        }
+    },
+    {
+        "id": 910,
+        "response": {
+            "plan": null,
+            "augmented_intent": "For all occurrences of parameters, fields, local variables or methods using a prefix like \u201cmy\u201d, \u201cm\u201d or \u201cthe\u201d (e.g. myTabName, mButtonColor), strip the prefix and rename to the core identifier (tabName \u2192 name, myFoo \u2192 foo). Update constructors, assignments, getters/setters and all references across this file and other locations. Align names with superclass or interface properties where applicable. If these elements are part of a public API, add deprecated overloads before removing old names to preserve backward compatibility. When multiple name\u2010type fields exist (e.g. tabName vs fileName), keep specific descriptors to avoid ambiguity."
+        }
+    },
+    {
+        "id": 911,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Ensure every use of UMLCallEventOperationListModel is updated to UMLCallEventOperationComboBoxModel: rename the class and its source file, update constructor name and super(\u2026) call if needed, adjust imports and package paths, refactor any methods, fields or variables referencing the old name, correct Javadoc and comments, and revise unit tests. Apply the same pattern to other UI-model pairs (e.g. UMLAttributeListModel -> UMLAttributeComboBoxModel) so that model class names reflect their actual Swing control type."
+        }
+    },
+    {
+        "id": 912,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a comprehensive refactoring of all occurrences of FigCommentPort to FigEdgePort across the codebase: update the class name, file name, constructor calls, field and variable names, methods (getPortFig, hit, setOwner, etc.), serialization UID, import statements, Javadoc comments, persistence or PGML mappings, tests, diagrams and external plugin references. Ensure naming consistency with other Fig*Port classes, provide deprecation aliases or migration notes for backward compatibility, and verify that all API consumers, documentation and build artifacts continue to function correctly after the change."
+        }
+    },
+    {
+        "id": 913,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Explain that any local variable or parameter (e.g. `_editor`) which shadows an inherited field should be renamed to a clear, concise alias (such as `ce`), and that this renaming pattern must be applied consistently across the codebase. Instruct the developer to: 1) scan for shadowed names in classes and methods, 2) choose unambiguous short names that follow project conventions, 3) update all declarations and references (including tests, docs, and related classes), 4) avoid renaming public API elements or fields used by reflection/serialization, and 5) run validations to ensure no regressions or naming collisions remain."
+        }
+    },
+    {
+        "id": 914,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Treat updateText as a model\u2010change handler: locate its declaration and all invocations, rename the method to modelChanged(), update any variables, fields, bindings, listener registrations, comments and docs that reference it; apply the same pattern in other classes where a UI refresh method is really responding to model changes; ensure naming consistency with observer conventions, update tests, run refactoring tools and verify compilation and behavior"
+        }
+    },
+    {
+        "id": 915,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the class declaration from UMLExtendBaseComboBoxModel to UMLExtendBaseListModel, including the source file name and package import paths; update the constructor signature and super() call; refactor all code references (variable names, field names, method names, event listener registrations and metadata strings) that mention ComboBoxModel to use ListModel; update UI wiring, unit tests, XML or configuration files, documentation, and resource descriptors that refer to the old class name; and if backward compatibility is required, deprecate the old identifier and provide migration guidance."
+        }
+    },
+    {
+        "id": 916,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Guide a developer to systematically locate all occurrences of ambiguous single-letter listener parameters and related identifiers (method parameters, local variables, fields, listener-registration methods, imports, Javadoc tags, tests) and refactor each to a descriptive name matching its type (e.g., treeModelListener). Extend this approach to other listener or callback interfaces (e.g., actionListener, changeListener), update method signatures, class names, comments, and tests accordingly, use IDE refactoring tools for safe propagation, and ensure consistency and API stability (or provide deprecation warnings if needed)."
+        }
+    },
+    {
+        "id": 917,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a refactoring pattern to replace leading-underscore private fields that shadow Java keywords or are too generic with descriptive camelCase names indicating their origin (e.g. parsedPackage). In this file and across the codebase, locate fields named _package, _class, _model, _method, etc., and rename them to parsedPackage, parsedClass, parsedModel, parsedMethod, or importedX as appropriate. Update every declaration, reference, test assertion, comment, and serialization or reflection hook to use the new names. Ensure the new identifiers clearly describe that the object was parsed/imported and remove collisions with Java keywords, while conforming to project naming standards."
+        }
+    },
+    {
+        "id": 918,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a systematic renaming of any parameter, variable, field or method named oldOwner to modelElement across this file and other code locations. That includes method signatures (e.g., updateListeners(Object oldOwner, \u2026)), local variables, field names, calls to removeElementListeners(oldOwner), documentation, and any references in Javadoc or comments. Ensure consistency in constructors and clone methods, and mirror similar changes in other Fig* classes that use oldOwner/newOwner patterns. The goal is to clarify that the object represents a generic UML model element rather than a transient or historical \u201cowner.\u201d"
+        }
+    },
+    {
+        "id": 919,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a naming guideline: any method or element prefixed with update* that actually only performs one-time initialization (e.g., wiring listeners) should be renamed to initialise* or init* to reflect its role. Apply the change to methods, variables, fields and classes, update all references, tests, and documentation, ensure consistent singular/plural use, deprecate the old name if it\u2019s a public API, and avoid renaming when the method truly performs incremental updates or overrides an existing contract."
+        }
+    },
+    {
+        "id": 920,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a step-by-step guideline for a developer to systematically replace the identifier 'mgm' with 'gm' wherever it appears as a MutableGraphModel reference. This includes method parameters, local variables, fields, method and class names, comments, tests, and documentation. The developer should search the entire project for 'mgm', rename each occurrence to 'gm', update all references and imports to prevent conflicts, and ensure the code compiles and tests pass. Apply the same renaming convention in other places where a subtype variable duplicates its general type name, collapsing redundant prefixes to improve readability and consistency."
+        }
+    },
+    {
+        "id": 921,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every occurrence where a generic identifier (cls) represents a newly created model node and replace it with a role-specific name (newNode). This includes renaming method parameters, local variables, helper-method signatures (e.g., addOutgoingTrans(MutableGraphModel mgm, MStateVertex cls, MStateVertex newCls)), calls, and any Javadoc or comments. Apply the same pattern in other classes: change vague placeholders (n, v1, cls, oldCls) to descriptive roles (sourceNode, targetNode, existingNode, newNode). Ensure that in edge-creation flows the method calls read addOutgoingTrans(model, existingNode, newNode) or addIncomingTrans(model, newNode, existingNode). Maintain public API stability for widely used interfaces but refactor private/internal methods comprehensively for semantic clarity."
+        }
+    },
+    {
+        "id": 922,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every occurrence of the directional addCompClassXxx methods (Above, Below, Left, Right) and consistently rename them to createEdgeXxx across the codebase. This includes method definitions, calls in dragHandle/buttonClicked logic, helper methods, variables, constants, documentation, tests, and resource keys. Maintain the directional suffix conventions, update related UI labels and comments, and ensure any public API changes are handled with deprecation or compatibility shims."
+        }
+    },
+    {
+        "id": 923,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce a consistent, generic naming convention for directional edge\u2010creation methods across the codebase: replace addCompClassBelow with createEdgeRight (and likewise rename addCompClassAbove\u2192createEdgeAbove, addCompClassLeft\u2192createEdgeLeft). Update all method signatures, callers, variable names, icon resource identifiers (e.g. depRight), handle instruction strings, switch cases, comments, tests, and documentation. Search the entire project for addCompClass* (or similar domain-specific methods) and apply the createEdge<Direction> pattern. Deprecate any old API methods only if they\u2019re publicly exposed, providing wrappers for backward compatibility."
+        }
+    },
+    {
+        "id": 924,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a high-level summary of the refactoring pattern: locate all methods, variables, constants, UI labels, icons, resource keys, comments, tests and classes whose names imply a positional or specialized \u2018addAssocClassX\u2019 behavior; rename them to follow the \u2018createEdge\u2026\u2019 convention that accurately describes the new semantics (e.g. createEdgeToSelf, createEdgeBetweenNodes, createGeneralizationEdge); update every call site, import, override, documentation block, and automated test; if it\u2019s a public API, add a deprecated alias for the old name and document the change; ensure the new names are consistent with existing ModeCreateEdgeAndNode usage and overall project naming guidelines; and perform the refactor in atomic commits to maintain build integrity and ease code review."
+        }
+    },
+    {
+        "id": 925,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Standardize all edge\u2010creation methods and identifiers to the pattern createEdge<Direction> (e.g., createEdgeAbove, createEdgeBelow, createEdgeLeft, createEdgeRight) across this and all diagram\u2010UI modules. Rename addSubClass to createEdgeRight (and similarly rename addSuperClass \u2192 createEdgeAbove, addAssocClassLeft \u2192 createEdgeLeft, addAssocClassRight \u2192 createEdgeBelow or createEdgeRight as appropriate), update any fields, variables, event codes, button indices, and documentation that reference the old names, and apply equivalent renames in other packages or files that implement UI handles or mode classes for edge creation."
+        }
+    },
+    {
+        "id": 926,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a consistent edge-creation naming pattern across this and related UI code: identify each domain-specific addXyz method (addSuperClass, addSubClass, addAssocClassRight/Left, addSelfAssociation, etc.) and rename it to createEdge + Direction (createEdgeAbove, createEdgeBelow, createEdgeRight, createEdgeLeft, createSelfEdge). Update all method signatures, calls, variable and field names, UI button labels and instructions, icon resource identifiers, handle indices comments, and tests. Apply the same refactoring in other diagram selection or palette classes to ensure uniform API and consider deprecation stubs for backward compatibility."
+        }
+    },
+    {
+        "id": 927,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a directional edge\u2010creation naming convention throughout the codebase: replace any method, variable, constant or class named add<Something>Trans with createEdge<Direction> matching its UI handle (e.g., addOutgoingTrans \u2192 createEdgeRight, addIncomingTrans \u2192 createEdgeLeft). Update handle indices, button codes, instructions, icon references, tests and documentation to use the new names, and ensure all call sites, overrides, public APIs, and resource identifiers are updated for consistency without breaking existing integrations."
+        }
+    },
+    {
+        "id": 928,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Instruct the developer to systematically locate every method, variable, field, constant, class, UI label or test that uses the old \u2018addIncomingTrans\u2019/\u2018addOutgoingTrans\u2019 naming (or similar \u2018add\u2026Trans\u2019) and rename them to the new verb-noun pattern \u2018createEdgeUnder\u2019, \u2018createEdgeAbove\u2019, \u2018createEdgeLeft\u2019, \u2018createEdgeRight\u2019. Update all call sites, import statements, documentation, test cases and button codes to reflect the new names. Maintain consistent naming conventions across the codebase, add deprecation stubs if necessary for public APIs, and run the full test suite to verify no regressions."
+        }
+    },
+    {
+        "id": 929,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Plan and execute a global refactoring to replace the static UI font attribute smallFont with stdFont across this file and the entire codebase. Update the field declaration in PropPanel, all references in methods (addField, addFieldAfter, addFieldBefore), titleLabel setup, comments, Javadoc, unit tests, and any external resources or documentation. Apply the same pattern to similarly misnamed UI constants (for example, smallIcon \u2192 defaultIcon, littleMargin \u2192 standardMargin) when their actual role is the default styling. If the old smallFont is part of a public API, mark it @Deprecated and provide compatibility until clients migrate. Use IDE rename\u2010refactoring tools to ensure imports, serialization names, and resource lookups are updated, then compile and run UI tests to confirm behavior and appearance remain unchanged."
+        }
+    },
+    {
+        "id": 930,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename UMLCollaborationRepresentedOperationListModel to UMLCollaborationRepresentedOperationComboBoxModel across the codebase: update the file name, directory path, class declaration, import statements and all references in variables, fields and methods. Change the Swing model interface from ListModel to ComboBoxModel, update any UI code instantiating a JList to use a JComboBox, adjust constructor calls and superclass references, and rename or refactor related test cases and documentation. Apply the same ListModel\u2192ComboBoxModel renaming convention for any other UML*ListModel classes backing combo\u2010boxes, and consider deprecating the old names for backward compatibility where needed."
+        }
+    },
+    {
+        "id": 931,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Locate every identifier and reference containing \u2018testRemoveRepresentedOperation\u2019 or \u2018RepresentedOperation\u2019 and apply a coordinated rename to \u2018testExtraRepresentedOperation\u2019 or \u2018ExtraRepresentedOperation\u2019 across methods, class names, variables, fields, imports, comments, and documentation. Ensure test names and helper calls match the new behavior and that all references are updated consistently in this file and in other affected locations."
+        }
+    },
+    {
+        "id": 932,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Scan this file and the wider codebase for every occurrence of the generic placeholder name doIt\u2014method declarations, overrides, calls, variables, fields, listener registrations, test methods, import statements, and comments\u2014and rename each to doOnEdit (or another clear onEdit handler name). Update Javadoc, renderer references, model names, and any related identifiers to match the new name. Apply the same approach wherever a vague doIt handler appears for edit events, following the on<Event> naming convention for consistency and clarity."
+        }
+    },
+    {
+        "id": 933,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every override or implementation method that declares a parameter named 'handle' but does not actually use its incoming value (because it is immediately reassigned). In each of these methods\u2014both in this file and elsewhere\u2014rename the formal parameter 'handle' to 'notUsedHandle' (or a similar \u2018unused\u2019 prefix), update all references in the method body (logging calls, exception messages, Javadoc tags), and adjust any related fields or local variables. Follow the same pattern for other unused parameters (for example, event listener arguments like 'e' or 'context'). This clarifies intent, silences unused-parameter warnings, and keeps method signatures consistent with interfaces or superclasses."
+        }
+    },
+    {
+        "id": 934,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a reusable refactoring pattern: any no-op or placeholder override named updateClassifiers in sequence-diagram code should be renamed to determineFigNodes to reflect its role of selecting or computing the source/destination FigClassifierRole nodes. Perform a codebase-wide search for updateClassifiers overrides, calls, Javadoc, comments, tests, imports, and update them consistently. Extend the same principle to other generic \u201cupdateX\u201d hooks that merely compute or locate data (e.g., updateLayout \u2192 computeLayout, updateBounds \u2192 calculateBounds), ensuring method names accurately describe their operation. Document the pattern in the team\u2019s refactoring guidelines and deprecate old names only if public APIs require it."
+        }
+    },
+    {
+        "id": 935,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Instruct developers to locate every generic coordinate or size variable that defines the bounding-box of a graphical element (e.g., x, y, width, height) across this class and other UI/diagram classes, then systematically rename them to boundX, boundY, boundWidth, and boundHeight. Update all declarations, constructor parameters, setter/getter methods, clone logic, setBounds overrides, gravity-point calculations, comments, and any usages or method signatures. Ensure consistency of naming in Javadoc, class fields, local variables, and external callers, and apply the same pattern to similar shape or figure classes to maintain a self-documenting API."
+        }
+    },
+    {
+        "id": 936,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Follow the project\u2019s naming convention for UI compartments by renaming HasFeaturesCompartment to FeaturesCompartmentContainer. Update every occurrence across the codebase\u2014including class definitions, import statements, variable and field names, method names, documentation, and tests\u2014to reflect the new name. Align with similar interfaces such as OperationsCompartmentContainer and StereotypesCompartmentContainer. If backward compatibility is required, provide a deprecated alias for the old interface. Search for 'HasFeaturesCompartment' and systematically replace it with 'FeaturesCompartmentContainer' in code, configs, and comments."
+        }
+    },
+    {
+        "id": 937,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a blueprint for a second developer: use IDE or script-based refactoring to change the class name and all references from ArgoSecurityManager to ExitSecurityManager\u2014including source file name, package and class declaration, constructor, SINGLETON field, getInstance() method, imports, variable and field names, logging statements, exception types, getter/setter methods\u2014and update tests, comments, documentation, and build configurations to reflect the new name. Run a full build and test suite to verify no references to the old name remain."
+        }
+    },
+    {
+        "id": 938,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify boolean flags with underscore-prefixed or ambiguous noun names (e.g. _Splash), rename them to clear verb-oriented predicate names (e.g. showSplashScreen), and propagate the change across fields, methods (getters/setters), configuration keys, documentation, resource bundles, and any dependent code to ensure consistent, self-documenting naming aligned with Java conventions."
+        }
+    },
+    {
+        "id": 939,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a guide for bulk renaming: identify every occurrence of the visibility concept for end A and B in this file and across the codebase\u2014including variable names (_visALabel, _visAField, _visBLabel, _visBField), displayed texts (\u201cVisibility:\u201d \u2192 \u201cAggregation:\u201d), event handlers, accessor methods (e.g. setTargetVisibility \u2192 setTargetAggregation), resource or localization keys, CSS/identifier names, test cases, documentation, serialization IDs and public APIs\u2014and systematically rename them to the aggregation equivalents (aggALabel, aggAField, aggBLabel, aggBField, setTargetAggregation, etc.) to maintain consistent naming and avoid broken references."
+        }
+    },
+    {
+        "id": 940,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Migrate all custom UML listener callbacks to use the standard Java Beans PropertyChangeListener: rename methods roleAdded(MElementEvent) and roleRemoved(MElementEvent) to a single propertyChange(PropertyChangeEvent), adjust method signatures and imports (replace MElementEvent with PropertyChangeEvent and MElementListener with PropertyChangeListener), update UmlModelEventPump calls to addPropertyChangeListener/removePropertyChangeListener with the appropriate property names, rename any variables, fields or listener instances from \u201crole\u2026\u201d to \u201cpropertyChange\u2026\u201d, consolidate event\u2010specific logic inside the propertyChange method by switching on e.getPropertyName(), and apply these renames and signature changes consistently across all affected classes, fields, test code and registrations in the codebase."
+        }
+    },
+    {
+        "id": 941,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Describe a systematic approach to renaming the generic 'name' identifier to 'uniqueName' wherever it represents a system\u2010guaranteed unique key. Instruct the developer to: 1) rename the private field (name \u2192 uniqueName), its getter/setter methods (getName()/setName() \u2192 getUniqueName()/setUniqueName()), and constructor parameters; 2) update all Javadoc comments, serialization annotations, database column mappings, JSON keys and API definitions that reference this property; 3) search across modules, build scripts, tests, and configuration files for similar 'name' patterns (e.g., fileName, userName) that carry the same uniqueness invariant and apply consistent renames; 4) adjust any references in business logic, ZIP handling code, and UI labels; and 5) consider deprecating old methods or adding aliases to maintain backward compatibility while ensuring the codebase uniformly reflects the new 'uniqueName' concept."
+        }
+    },
+    {
+        "id": 942,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Audit the codebase for any generic file-extension getters and related identifiers, then refactor them to the ZIP-specific variant. In this file change getFileExtension() \u2192 getZipFileExtension(), rename FILE_EXT \u2192 ZIP_FILE_EXT and MEMBER_TYPE \u2192 ZIP_MEMBER_TYPE, update Javadoc, override annotations, and all call sites. Propagate the same pattern to other modules\u2014find any getFileExtension-style methods or constants for other formats and rename them to reflect their specific compressed or archive extensions. Ensure tests, imports, documentation, and configuration are updated accordingly and deprecate or alias the old API if backward compatibility is required."
+        }
+    },
+    {
+        "id": 943,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update the code to reflect the new UML metamodel term \u201cStructuralFeature\u201d instead of \u201cAttribute.\u201d Specifically, rename the class ActionSetAttributeType to ActionSetStructuralFeatureType (including file name and constructor), update any constants or SINGLETON instances, change variable and parameter names (e.g. attr \u2192 feature), adjust import statements (e.g. MAttribute \u2192 MStructuralFeature), revise method names and comments, and update resource bundle keys or UI labels. Apply the same pattern in other files: any action, helper, or UI class that references \u2018Attribute\u2019 in this sense should be renamed to use \u2018StructuralFeature,\u2019 and associated tests, documentation, and examples should be updated accordingly."
+        }
+    },
+    {
+        "id": 944,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Generalize the visibility\u2010setting action by replacing every association-end\u2013specific reference with a generic model-element one. In this file and elsewhere, rename the class and its file from ActionSetAssociationEndVisibility to ActionSetModelElementVisibility; update the SINGLETON field, constructor names, and action command constants; change imports and type casts from MAssociationEnd to MModelElement; adjust the conditional in actionPerformed to use instanceof MModelElement; rename local variables (e.g. m \u2192 element); modify UI panels and localization keys to reference the new name; and apply the same pattern of renaming and consolidation for any other element-specific visibility actions across the codebase."
+        }
+    },
+    {
+        "id": 945,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Scan for any methods whose sole job is to build a string representation (e.g. generateObjectFlowState1 and similar generateX methods), rename their declarations to toString(), update all invocations (renderingChanged, updateClassifierText, UI bindings, logging, debuggers) to call .toString(), adjust parser calls (ParserDisplay.parseObjectFlowState1 \u2192 parseDefaultString or integrate into parse(Object)), rename related variables/fields to reflect .toString(), update Javadoc, comments, tests, event\u2010listener registrations, and UI labels, deprecate or remove old generateX methods, and provide migration notes to ensure backward compatibility and consistency with Java conventions."
+        }
+    },
+    {
+        "id": 946,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a refactoring plan to replace the placeString() accessor with a standard JavaBean getter getH(): update the method signature in FigDeepHistoryState, rename all calls and overrides, change any variables or fields named placeString to h or getH references, adjust Javadoc and inline comments, update unit tests or client code invoking placeString(), preserve backward compatibility by marking the old method as deprecated if needed, and ensure all UML diagram elements and serialization IDs remain consistent after the rename."
+        }
+    },
+    {
+        "id": 947,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Locate all loop-bound or size/count variables named size across this file and others, especially those driving indexed loops or representing collection counts. Refactor loops to use Iterator or enhanced for-each, replace each size variable with a descriptive iterator name (e.g., it or iterator), and rename any related fields, methods, classes, or getters/setters to match the new role. Ensure public APIs remain compatible, deprecating old names if needed, and verify consistency of naming and loop behavior after refactoring."
+        }
+    },
+    {
+        "id": 948,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every loop that reads a collection\u2019s size into a generic variable named size and rename that variable to a descriptive name reflecting the iterated collection (e.g. figIter for FigClass loops). Then update all related declarations, references, method or field names, parameters, and comments to use the new name. Apply this same pattern in other files and contexts: derive a specific bound name from the collection being traversed, replace generic size (or n/len) with that name, and ensure consistency and clarity across the codebase."
+        }
+    },
+    {
+        "id": 949,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Convert the implicit-model API into an explicit-model API by adding an MModel parameter and appending the suffix \u2018WithModel\u2019 on every affected element. Specifically, update each method signature to accept a Model argument first, rename getAllModelElementsOfKind(...) to getAllModelElementsOfKindWithModel(MModel, Class), and similarly rename any String\u2010based overload. Refactor all call sites, variable and parameter names, Javadoc comments, tests, and related helper methods or classes. Apply the same pattern in other locations where operations shifted from using a global or default context to an explicit context parameter, ensuring consistency across the codebase."
+        }
+    },
+    {
+        "id": 950,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Summarize the refactoring pattern: align code to UML domain terminology by renaming every element that refers to a comment\u2019s \u201cname\u201d to use \u201cnote\u201d instead. This includes methods (storeName\u2192storeNote, retrieveName\u2192retrieveNote), backing fields (nameText\u2192noteText, bodyText remains), property names, test cases, documentation, and any UI labels. Apply the same pattern in other classes handling UML comments or annotations, ensure consistent naming across the codebase, update API references, and, if needed, introduce deprecated wrappers for backward compatibility."
+        }
+    },
+    {
+        "id": 951,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Systematically eliminate shadowing of the field named title by any parameter, variable or argument named title. In this file and across the codebase, locate every method/constructor parameter, local variable or lambda argument called title that conflicts with a class\u2010level field or existing identifier, rename it to titleArg, and update all signatures, calls, references, comments, tests and documentation. Apply the same \u2018Arg\u2019\u2010suffix convention for other fields with naming conflicts (for example, name\u2192nameArg, count\u2192countArg) to ensure consistency and clarity."
+        }
+    },
+    {
+        "id": 952,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Summarize a refactoring guideline: identify identifiers with redundant context-implied prefixes (e.g., modelElement), drop the prefix (rename to element), and apply consistently across variables, fields, methods and classes in this file and others. Ensure that domain and layer semantics remain clear, update all affected references (including Javadoc, tests, and listeners), avoid renaming when it introduces ambiguity or loses necessary qualifiers, and follow project naming conventions for stable public APIs."
+        }
+    },
+    {
+        "id": 953,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Locate every use of the identifier modelClass in this file and across the codebase where it represents a UML metaclass and rename it to metaType. This includes method parameters, local variables, field names, and any methods whose name includes modelClass. Update related Javadoc, comments, unit tests, and imports to reflect the new name. Apply the same pattern in other modules: whenever a Class parameter is used to specify a UML meta\u2010type, rename its identifier from modelClass to metaType. Skip renaming cases where the Class object is used purely for Java reflection or where changing the public API would break backward compatibility. After refactoring, rebuild the project and run all tests to ensure everything remains functional."
+        }
+    },
+    {
+        "id": 954,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When switching from per-keystroke updates to updates on focus loss in Swing forms, replace DocumentListener.insertUpdate with FocusListener.focusLost throughout the codebase: rename the handler methods, change registrations (remove addDocumentListener, add addFocusListener), adjust method signatures to accept FocusEvent, update any related variable, field, class, or interface names to reflect focusLost, and apply the same renaming and registration changes in all affected files, tests, and import statements to keep naming consistent and behavior correct."
+        }
+    },
+    {
+        "id": 955,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a comprehensive, consistent rename of all identifiers and related elements referencing 'base' to 'baseStr' across the codebase: update local variables (base -> baseStr), private fields (_baseField -> _baseStrField), methods (setTargetBase -> setTargetBaseStr), UI labels and text constants (\"Base :\" -> \"Base String:\"), document listeners, event handlers, comments, tests, XML bindings, serialization hooks, and any getter/setter signatures to maintain code conventions and backward compatibility."
+        }
+    },
+    {
+        "id": 956,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a guideline to refactor local collection variables across the codebase: whenever you bind a collection returned by a getter with a plural domain name (e.g., getClassifiers()), rename the local to a concise generic identifier (e.g., col) and update all its usages. Apply the same pattern to other getters (getParameters() \u2192 params, getNodes() \u2192 nodes/v, etc.) and update any related fields, private methods, or inner classes that reference the old name. Do not apply this refactoring to public APIs, long-lived variables, or contexts where multiple collections coexist and descriptive names are required."
+        }
+    },
+    {
+        "id": 957,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Across this file and all others, locate every occurrence of a Map or similar container named attribs (or synonyms like params, props, attributes) that holds the serialized state of exactly one object instance. Refactor each parameter name, local variable, field, method name, and any class member from attribs to instance. Update related documentation, comments, unit tests, and public API signatures to reflect the new name, ensuring consistency and preserving backward compatibility where necessary."
+        }
+    },
+    {
+        "id": 958,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a broad refactoring pattern to replace every occurrence of propertySetName with name in this class and throughout the codebase. This includes renaming the private field (_propertySetName \u2192 _name), constructor parameter (propertySetName \u2192 name), local variables, getters/setters (getPropertySetName()/setPropertySetName() \u2192 getName()/setName()), constants, Action command keys, and event listener registrations (addModelEventListener(..., name)). Then extend the same approach to any other identifiers that use redundant qualifiers (for example, userInputString \u2192 input, actionCommandKey \u2192 commandKey). Where APIs are public or binary\u2010compatible, add deprecation stubs or migration notes, update documentation and tests to reference the simplified name, and ensure consistency with the UML event API\u2019s getName() method."
+        }
+    },
+    {
+        "id": 959,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Outline a generalized refactoring guideline: locate all instances of generic 'container' variables, parameters, methods, and comments that refer to a UMLUserInterfaceContainer; rename each to 'theUIContainer'\u2014including field declarations, constructor arguments, getters/setters, Action mappings, import statements, and JavaDoc; update any related documentation and tests to use the new name; apply the same approach in other modules for similarly broad identifiers by qualifying them with their specific domain (e.g., 'settingsMap', 'dataContainer', 'shapeFactory'); and document exceptions where the generic name remains acceptable due to unambiguous context or fixed external APIs."
+        }
+    },
+    {
+        "id": 960,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify generic or overly broad method names whose implementations serve a narrow purpose (e.g., only updating UI text or a single model property). For each such method: choose a concise verb-noun name reflecting its true action and target (e.g., updateNameText), refactor the method signature and body name, update all callers and overrides (including tests, documentation, comments, and configuration), adjust related field/variable names if they reference the old name, and add deprecation stubs or migration notes if part of a public API to preserve backward compatibility."
+        }
+    },
+    {
+        "id": 961,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Concept for similar changes: Perform a project-wide audit for any parameter, variable, method or field named \u201cindent\u201d that actually carries an XML fragment. Rename each occurrence to \u201cxmlFragment\u201d (or a similarly descriptive name), update method signatures and all call sites, revise Javadoc and comments, adjust tests, and deprecate the old API if backward compatibility is required. Apply the same pattern in other modules: whenever a name implies formatting or whitespace but holds structured data (XML, JSON, HTML), rename it to reflect the true data type (e.g., jsonPayload, htmlSnippet). Ensure code compiles, behaviors remain unchanged, and documentation is aligned with the new names."
+        }
+    },
+    {
+        "id": 962,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a reusable pattern: search for every event parameter named 'e' (especially ActionEvent in actionPerformed methods) and rename it to a two-letter descriptive abbreviation 'ae'; extend the same approach to other event types (e.g. 'me' for MouseEvent, 'ke' for KeyEvent, etc.); update all parameter declarations, local variable references, overrides, anonymous and inner classes, lambdas, documentation comments, and tests to use the new names; ensure you select names that avoid shadowing, follow team style guidelines, and apply the rename consistently across the entire codebase."
+        }
+    },
+    {
+        "id": 963,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a refactoring guideline: locate all boolean identifiers (methods, fields, variables, classes) prefixed with shouldBe, and rename them to use is followed by the state name (e.g., shouldBeVisible \u2192 isVisible) to conform to JavaBeans conventions. Update all references, documentation, tests, and configuration entries accordingly, and deprecate or alias the old names if backward compatibility is required."
+        }
+    },
+    {
+        "id": 964,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Adopt a clear naming convention for UI fields that display association multiplicity by replacing the '_end' suffix with '_Mult'. Apply this change across FigAssociation and all other Fig* classes: rename variables (_dest_end -> _destMult, _source_end -> _sourceMult), update addPathItem calls, updateText logic, arrowhead update methods, any getters/setters, method parameters, and related class or file names. Ensure consistency with model methods like getMultiplicity(), align variable names with domain terminology, and avoid renaming actual domain objects or breaking public APIs."
+        }
+    },
+    {
+        "id": 965,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a step-by-step approach that applies the rename consistently across the codebase: 1. Identify all symbols and references to the first association end (fields, local variables, parameters, method names, documentation tags, test fixtures, config keys) named \u201c_end_1\u201d and rename them to \u201cae1.\u201d 2. Mirror the same pattern for the second end (\u201c_end_2\u201d \u2192 \u201cae2\u201d). 3. Update related getters/setters, constructors, and factory methods to use the new names. 4. Refactor any class, method or interface names that embed the old identifier. 5. Search and replace in comments, Javadoc, UML model annotations, and XML/JSON serialization mappings. 6. Verify naming consistency against coding conventions (no leading underscores, lowercase prefix for domain terms). 7. Run and update unit/integration tests, sample code, and database migrations to reflect the new names. 8. Perform a full build and regression test to ensure no references to the old identifiers remain."
+        }
+    },
+    {
+        "id": 966,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Search for any parameter, variable, field or method name that begins with a non-semantic \u201cint\u201d prefix (e.g. intType) where the prefix does not convey distinct domain meaning, and rename it to the concise domain term (e.g. type). Update factory method signatures (buildAttribute, buildParameter, etc.), local variables, class fields, Javadoc, comments, unit tests and all caller code. Apply the same pattern to other similar cases (e.g. intReturnType \u2192 returnType, intParameterType \u2192 parameterType), ensuring consistency with existing naming conventions. If the \u201cint\u201d prefix is genuinely meaningful (integer type or internal) or if backward-compatibility must be preserved, leave the name or introduce a deprecated alias instead. Finally, recompile and run the full test suite to confirm no regressions."
+        }
+    },
+    {
+        "id": 967,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every occurrence of the identifier voidType (method parameters, local variables, Javadoc references, helper functions) and rename it to returnType throughout this file and across the codebase. Update method signatures (buildOperation, buildParameter, private helpers), internal variable names, comments, and tests. Ensure all call sites, overloads, and documentation reflect the new name. Apply the same naming-clarity principle to analogous misnamed variables (e.g., argType\u2192parameterType, inType/outType\u2192sourceType/targetType), but skip renaming truly specialized constants (e.g., a dedicated VOID_TYPE constant) or public API methods unless you introduce deprecation wrappers to preserve backward compatibility."
+        }
+    },
+    {
+        "id": 968,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In this file (and across the codebase) find every declaration, parameter, field, method name, Javadoc tag, test reference or class that uses the identifier voidType\u2014and consistently rename it to type. Update method signatures (e.g., buildParameter(Model, Classifier voidType) \u2192 buildParameter(Model, Classifier type)), adjust all callers, overloads and documentation to use the new name, and deprecate or alias the old voidType name if needed for backward compatibility. Apply the same refactoring pattern to any other overly specialized \u2018XType\u2019 parameters (for example stringType, intType) consolidating them to a generic type parameter to improve readability and domain consistency."
+        }
+    },
+    {
+        "id": 969,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Outline a general refactoring approach: search for any variable, parameter, field, method, or class named propertyChangeListeners (or similar) that in fact holds a Project object; rename those identifiers to project (or projectInstance) across method signatures, local variables, fields, getters/setters, tests, comments, logs and documentation; update imports and type references to match the Project API; and verify the code compiles and all tests still pass under the new naming."
+        }
+    },
+    {
+        "id": 970,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Change every occurrence of TestActionAddAttribute to GUITestActionAddAttribute: update the class name and file name, update its constructor, references, imports, static getters, test suite registrations, assertions, and any related constants or documentation. Ensure the build scripts, package declarations, and test runners reflect the new name. Then apply the same GUI\u2010prefix convention to all other UI test classes in this package and across the codebase to maintain consistent layer disambiguation and avoid naming collisions."
+        }
+    },
+    {
+        "id": 971,
+        "response": {
+            "plan": null,
+            "augmented_intent": "For any code element where the name 'strs' or a close abbreviation is used to hold UML Attribute objects (e.g., Collection strs = getAttributes(...)), rename it to 'attrs' or 'attributes'. This includes: local variables, method parameters, fields, loop iterators, getters/setters (getStrs\u2192getAttributes, setStrs\u2192setAttributes), and any helper methods or classes named with 'Strs'. Leave unchanged any identifiers where 'strs' truly represents strings or follows an external API contract. Update comments, documentation, and references accordingly to match the new naming."
+        }
+    },
+    {
+        "id": 972,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When a helper or copy-method bears a type-specific name (like doCopyNamespace) but actually implements shared logic for a broader UML element, it should be renamed to reflect its true scope (doCopyModelElement). To apply this pattern elsewhere in this file and other packages: 1. Identify all doCopyXxx methods whose bodies just copy common MModelElement metadata. 2. Consolidate or generalize them under a common supertype name (doCopyModelElement or doCopyClassifier), updating the method signature, Javadoc, and all internal invocations. 3. Rename variables, fields, tests, and callers accordingly via search-and-replace, ensuring no remaining references to the old name. 4. For public APIs, consider keeping a deprecated stub of the old name that delegates to the new method for backward compatibility. 5. Apply the same refactoring pattern to other factory classes (e.g., doCopyDataType, doCopyClass, doCopyInterface), choosing names that match each method\u2019s actual responsibility and scope."
+        }
+    },
+    {
+        "id": 973,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Scan the codebase for every occurrence of the old token and attribute names (TOKEN_ALLOWNOTATIONS, STRING_ALLOWNOTATIONS, isAllowNotations(), <allownotations>), including constants, variable names, methods, comments, XML tags, schema definitions, tests, and documentation. Rename each to the new form (TOKEN_AUTHOREMAIL, STRING_AUTHOREMAIL, getAuthorEmail(), <authoremail>) and update any related getters/setters, UI labels, persistence logic, and build configurations. Ensure the refactoring is applied consistently across all modules, XML/JSON files, and tests, and verify that backward\u2010compatibility mappings or deprecation notices are added if necessary."
+        }
+    },
+    {
+        "id": 974,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Enforce a convention to replace generic iterator names like \u201cit\u201d with domain\u2010specific, descriptive names such as \u201clisteners.\u201d  Identify every loop or iteration over MElementListener collections (or similar), rename the Iterator variable (e.g. Iterator it \u2192 Iterator<MElementListener> listenerIterator), use a singular name for each element inside the loop (e.g. listener), and update any related method parameters, local variables, comments, and documentation.  Apply the same pattern in this file and across other modules: audit for generic loop identifiers, rename them to reflect the actual element type, and ensure code readability and consistency throughout the codebase."
+        }
+    },
+    {
+        "id": 975,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Traverse all code locations where a method named setTarget is declared, overridden, or invoked and rename it to setTargetInternal. Update call sites, override annotations, imports, and documentation to reference setTargetInternal. Rename any supporting fields, parameters, variables, UI component names, and test methods that include \u201ctarget\u201d in this context to use an \u201cInternal\u201d suffix (e.g. target \u2192 internalTarget). If preserving a public API hook is required, introduce or retain a public setTarget that performs validation, logging, or event firing, then delegates to setTargetInternal. Apply the same pattern to any other hook-style methods (e.g. initialize, updateModel) needing a clear separation between the public facade and core implementation. Ensure consistency in UML panels, property editors, and code generation templates after renaming."
+        }
+    },
+    {
+        "id": 976,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Audit all diagram\u2010view classes (e.g., FigAssociationRole, FigMessageGroup and any Fig* subclasses) that override or call delete(): rename each delete() override to removeFromDiagram(), update all call sites (including super.delete() calls) to invoke removeFromDiagram(), rename related helpers (e.g., FigMessageGroup.delete() \u2192 removeMessagesFromDiagram()), adjust variable and field names that reference delete actions, search the codebase for .delete() on diagram elements and refactor appropriately, add deprecation stubs for the old delete() signatures that delegate to removeFromDiagram(), update tests and documentation to use the new method name, and ensure the rename clearly separates view removal from model destruction throughout the codebase."
+        }
+    },
+    {
+        "id": 977,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every occurrence where a generic dispose() method (or field/variable/class name) actually removes or deletes a UML model element. Rename each to deleteFromModel(), including method definitions, calls, related variables, fields, test names, comments, and documentation. Ensure imports, overrides, interface implementations, and subclass calls are updated. Propagate the change consistently across packages so that all model-deletion routines share the deleteFromModel() naming convention."
+        }
+    },
+    {
+        "id": 978,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Systematically rename fields, variables, methods, constructors, class names, Javadoc comments, and API calls that mention AssociationEnd to use AssociationRole instead, ensure all references in tests, documentation, and modules align with UML2.0 terminology, and where needed add deprecated aliases for backward compatibility."
+        }
+    },
+    {
+        "id": 979,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a step-by-step guide for refactoring the domain-specific equals(NotationName) method to sameNotationAs across the codebase: identify every definition and invocation of equals(NotationName) in this class and others, rename the method signature, update all callers, variable and field names, test methods, event types, and comments, verify that no standard Object.equals(Object) overrides are broken, regenerate documentation, run and fix tests, and apply the same pattern whenever a type-specific equality check needs a clear, self-documenting name."
+        }
+    },
+    {
+        "id": 980,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Search the entire codebase for every occurrence of \u2018FigTee\u2019 and replace it with \u2018FigCommentPort\u2019. This includes: renaming the class and its file (FigTee.java \u2192 FigCommentPort.java), updating constructors, variable names, field declarations, method names, import statements, factory registrations, tests, and documentation comments. Also adjust any UML diagram XML/config entries or build scripts that reference FigTee. If backward compatibility is required, provide deprecated aliases or type forwards labeled FigTee and add migration notes. Finally, run integration tests to verify that the comment\u2010attachment port behaves correctly under its new name."
+        }
+    },
+    {
+        "id": 981,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every API, field, local variable, test, and documentation reference that uses storeNote or retrieveNote to manage the element\u2019s core identifier and refactor them to storeName and retrieveName (or getName/setName) for consistency. Ensure any helper methods, UML facade calls, property names, and comments are updated to reflect 'name' instead of 'note'. If this change touches public APIs, mark the old storeNote methods as deprecated and introduce storeName aliases to preserve backwards compatibility. Finally, update unit tests, model\u2010change handlers, and class names where necessary so that the code uniformly treats the element\u2019s name property as 'name' rather than 'note'."
+        }
+    },
+    {
+        "id": 982,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Outline the concept: identify all variables, fields, parameters, methods, classes, and interfaces named \u2018impl\u2019 or \u2018implementation\u2019 in proxy/decorator or dependency-injection contexts and rename them to \u2018component\u2019; update constructors, factory methods, documentation, imports, and tests to match; ensure naming consistency with other pluggable collaborators and avoid conflicts with existing UI or framework components."
+        }
+    },
+    {
+        "id": 983,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update all ambiguous coordinate variables named 'x' that represent the port\u2019s X position to 'px' throughout this file and any similar classes or modules. Apply the same prefixing convention to related dimensions (e.g. 'y'\u2192'py', 'width'\u2192'pw', 'height'\u2192'ph'), renaming fields, local variables, method parameters, getters/setters, and any usages. Ensure method names, comments, and documentation are updated accordingly to maintain semantic clarity and consistency across the codebase."
+        }
+    },
+    {
+        "id": 984,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When refactoring a UI model class to target a different UML property: 1. Rename the class, constructor, file, logger, and references from \u2018Stereotype\u2019 to \u2018Owner\u2019. 2. Update the constructor\u2019s super(\u2026) property string from \"stereotype\" to \"owner\". 3. Change event-listener registrations and binding keys to use the new UML meta-type (namespace ownedElement pointing to owners). 4. Adjust isValidElement() to validate the new element type if needed. 5. Modify buildModelList() helper calls to retrieve owners instead of stereotypes. 6. Update getSelectedModelElement() logic to return the owner. 7. Rename variables, fields, methods, tests, docs, UI bindings and data keys to reflect \u201cOwner.\u201d 8. Apply this same pattern wherever a ComboBoxModel, TableModel, cell renderer, or controller shifts its underlying UML property\u2014replacing old meta-type names, helper/facade calls, constructor args, listener strings and documentation to stay in sync. Deprecate or alias old names if backward compatibility is required."
+        }
+    },
+    {
+        "id": 985,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When a method or member name implies a specific domain type (for example using \u2018cls\u2019 to mean Classifier) but the signature has been generalized (e.g. now takes Object or any model element), update all identifiers\u2014parameter names, local variables, fields, method signatures, comments and Javadoc tags\u2014to use a neutral placeholder like \u2018o\u2019, \u2018obj\u2019 or \u2018item\u2019. Apply this consistently across overloads, utility functions, factories and any generalized dispatch methods in this file and elsewhere. The same principle holds for other patterns: whenever a name no longer matches the actual type, rename it to reflect its true role. Do not rename when the parameter or variable remains strictly tied to its original specific type, as domain clarity then takes priority over generic uniformity."
+        }
+    },
+    {
+        "id": 986,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify instances where a generic 'actions' variable or member is used to represent UI menu entries and rename them to 'menuItems'. Apply the same principle across parameters, local variables, fields, method signatures, and class names so that each UI collection variable reflects its specific role. In other contexts, use similarly precise names (e.g., rename 'actions' used for toolbar commands to 'toolbarButtons', for combo\u2010box choices to 'dropdownOptions', etc.). Do not apply this rename when a collection of Action objects genuinely represents a domain-level command set or framework API actions where the generic name remains accurate."
+        }
+    },
+    {
+        "id": 987,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Unify all definition nodes under a generic name \u201cdef\u201d instead of \u201cclassDef\u201d throughout this file and related modules. Specifically: rename the private field classDef to def; update constructor parameters, local variables, getters/setters (getClassDef\u2192getDef, setClassDef\u2192setDef) and all references in method bodies; revise Javadoc tags and comments; rename any classes, interfaces or types tied to classDef (e.g., ClassDefCodePiece\u2192DefCodePiece) when collapsing to a single Def concept; update imports, tests, and serialization IDs; and handle reserved\u2010word or naming collisions. Ensure consistency across the code\u2010generation and parsing framework, while preserving distinct names only when behavior truly differs by definition type."
+        }
+    },
+    {
+        "id": 988,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In this file and throughout the codebase, locate every identifier ending with \u201cDef\u201d that holds Javadoc comment definitions (parameters, fields, variables, methods, classes, getters/setters, code-piece types) and drop the \u201cDef\u201d suffix to improve clarity. For example, rename javadocDef \u2192 javadoc, getJavadocDef() \u2192 getJavadoc(), setJavadocDef() \u2192 setJavadoc(), class JavadocDefCodePiece \u2192 JavadocCodePiece. Update all references\u2014including imports, tests, model mappings, serialization keys, and documentation comments\u2014to use the new names. Only retain the \u201cDef\u201d suffix when it carries distinct domain meaning (e.g. to distinguish definitions from references) or when required for backward compatibility."
+        }
+    },
+    {
+        "id": 989,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update all usages of the generic parameter 'm' (of type MNamespace) to the more descriptive name 'handle' across this file and other modules. This includes renaming method parameters and signatures, local variables, class fields, and accessor methods to 'handle'; refactoring all calls to those methods; updating JavaDoc comments and inline comments; and ensuring consistency in naming for any helper methods or classes that take a namespace handle. Perform a scoped search-and-replace for 'MNamespace m' and propagate changes to method calls, overriding methods, and documentation to fully replace 'm' with 'handle'."
+        }
+    },
+    {
+        "id": 990,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every occurrence where a UML namespace parameter or variable is named \u201cns\u201d and replace it with \u201chandle\u201d to reflect its broader use as a generic model element reference. This includes: updating method signatures and parameter names in all ActionAddDiagram subclasses (e.g., ActionClassDiagram, ActionSequenceDiagram), renaming fields of type MNamespace to mHandle or handle, adjusting helper methods (e.g., isValidNamespace \u2192 isValidHandle), refactoring any local variables named ns, and updating related documentation, tests, and callers. Ensure consistency across the entire codebase and consider adding deprecation notices or compatibility shims for any public APIs that previously exposed \u201cns.\u201d"
+        }
+    },
+    {
+        "id": 991,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Unify the loading hook name by changing loadProject to doLoad everywhere to match the doSave/doLoad template pattern. Update the abstract declaration in AbstractFilePersister, rename all overrides in subclasses, adjust variable and field names, logger tags, test cases, documentation, and any configuration or scripting references. Also update imports, API usages, and provide deprecation stubs or adapter methods if backward compatibility is required, ensuring the codebase consistently uses doLoad for internal load operations."
+        }
+    },
+    {
+        "id": 992,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Consistently refactor all identifiers that refer to the GEF presentation object (FigEdge) by prefixing them with \u201cfig\u201d. For example, rename local variables and parameters from edge to figEdge, change helper classes like EdgeData to FigEdgeData, update getters (getEdge\u2192getFigEdge), method signatures, fields, and any logging or comments in this file and across other parser/UI modules where both model edges and view edges coexist. Skip renaming where only model\u2010level edges are in scope and no ambiguity exists."
+        }
+    },
+    {
+        "id": 993,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every method, field, parameter or variable named handle that represents a specific UML element type, discover its true type (e.g., MParameter, MAttribute, MAssociationEnd), and rename it to a precise, domain-specific name (param, attr, ae, etc.). Update all internal references, casts, documentation, comments, and related method names to use the new identifier. Follow the existing convention (cls for classifier, op for operation, state for state, message for message). Apply this refactoring consistently across this file and the entire codebase wherever a generic handle is used."
+        }
+    },
+    {
+        "id": 994,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Give a concise guideline: whenever you see a method or variable declared as a generic Object or 'handle' that is immediately cast to a concrete UML element type, you should rename that parameter (and all its references) to a short, meaningful name that matches the actual type (for example, rename a MTaggedValue handle to tv, a MAttribute handle to attr, a MOperation handle to op). Apply this consistently in method signatures, local variables, and comments throughout this file and other files. Do not rename when the generic name must be retained to satisfy an external API or preserve legitimate abstraction."
+        }
+    },
+    {
+        "id": 995,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a domain\u2010specific getter refactoring: replace any overriding of Object.toString() that solely returns a rule name with a new method called getRuleName(). Update all callers, tests, UI bindings, variable names, fields and imports to use getRuleName() instead of toString(). Ensure tree renderers, concatenations, log statements and any serialization that expect a rule\u2019s name are redirected to getRuleName(). Use automated refactoring tools to rename the method signature, update references across packages (org.argouml.uml.diagram.sequence.ui and elsewhere), and adjust any documentation or localization keys to reflect getRuleName(). Finally, remove or restore the default toString() where appropriate to avoid unintended uses."
+        }
+    },
+    {
+        "id": 996,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update every KeyListener implementation and related code paths that currently handle raw keyPressed events for character input so they use keyTyped instead. This involves: renaming handler methods and their occurrences in classes, variables, fields, imports and tests; adjusting method signatures and overrides to match keyTyped(KeyEvent); replacing keyCode\u2010based checks with keyChar comparisons; updating documentation, comments and adapter classes to forward to the new method; running a global search across GUI modules to ensure all mistaken press\u2010event usages for typed input are corrected, while leaving genuine physical key press handlers unchanged."
+        }
+    },
+    {
+        "id": 997,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Across every class, UI component, helper and test that refers to a Comment\u2019s \u201cnote\u201d property, rename it to \u201cbody\u201d to align with the UML metamodel and the Model API\u2019s getBody()/setBody() methods. Specifically:\n1. Rename fields and local variables: note \u2192 body; noteTextFig \u2192 bodyTextFig; any helper named note* \u2192 body*.\n2. Rename methods and parameters: storeNote(String) \u2192 storeBody(String); retrieveNote() \u2192 retrieveBody(); getNote()/setNote() \u2192 getBody()/setBody(); update callbacks and listeners accordingly.\n3. Update class names or inner types that include \u201cNote\u201d where they wrap the UML Comment text to use \u201cBody\u201d instead.\n4. Refactor documentation, javadoc comments, UI labels and resource strings that mention \u201cnote\u201d in the context of Comment content.\n5. Search the repository for any remaining references to Comment::note and rename or alias them, deprecating old methods if they\u2019re part of the public API to preserve backward compatibility.\n6. Update and rename unit tests, fixtures and mocks that assume a \u201cnote\u201d property.\n7. Run a full build and test suite to verify behavior is unchanged. Commit with a message such as: \u201cRename Comment text references from note \u2192 body for model consistency.\u201d"
+        }
+    },
+    {
+        "id": 998,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a global refactoring that replaces the term \u201cpseudoStereotype\u201d with \u201ckeyword\u201d throughout the codebase. This includes: renaming fields, local variables, method names and parameters (e.g. setPseudoSereotype\u2192setKeyword), updating class names or interfaces if needed, revising comments and Javadoc, adjusting UI labels and resource bundles, altering tests and fixtures, and modifying any persistence or serialization keys. Where this identifier is part of a public API, provide deprecated aliases or migration notes. After refactoring, run the full build and test suite to verify consistency and correct behavior."
+        }
+    },
+    {
+        "id": 999,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Document the renaming guideline: whenever a parameter, field, local variable, method or class named \u2018target\u2019 conflicts with an existing field or could cause ambiguity, rename it to \u2018theNewTarget\u2019 (or newTarget/newValue) to clearly distinguish incoming values. Apply this in setters, event handlers, listener callbacks, and any overloaded contexts. Update all references (field declarations, constructor parameters, method signatures, call sites, comments, and tests). Exceptions: do not rename when implementing or overriding framework/API methods where parameter names must match or when there\u2019s no naming conflict and \u2018target\u2019 remains unambiguous."
+        }
+    },
+    {
+        "id": 1000,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide guidelines to rename all generic event parameters named \u2018e\u2019 in event listener methods to descriptive names based on their event types (e.g. \u2018ke\u2019 for KeyEvent, \u2018me\u2019 for MouseEvent, \u2018ae\u2019 for ActionEvent), including variables, fields, methods, and related entities, ensuring consistency across the codebase; explain when to apply and when to leave single-letter \u2018e\u2019 unchanged."
+        }
+    },
+    {
+        "id": 1001,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a refactoring plan to remove the IBM suffix and standardize the parser name across the codebase. Steps: 1) Search for all declarations and references to XMIParserIBM (class names, constructors, static fields, SINGLETON instances, factory methods, type casts, variable names, parameters, imports, package declarations). 2) Rename to XMIParser in each location. 3) Update any XML or configuration entries, documentation, tests, scripts, and build files that mention XMIParserIBM. 4) Add a deprecated alias or compatibility shim if external APIs depend on the old name. 5) Adjust IoC/DI registrations or service loader files. 6) Run and update unit/integration tests and release notes to reflect the new class name."
+        }
+    },
+    {
+        "id": 1002,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Systematically rename the horizontal gap parameter from 'hGap' to 'h' across all code and resources. This includes private fields (_hGap\u2192_h), public methods (setHGap\u2192setH, getHGap\u2192getH), constants, local variables, class and interface names, configuration files, documentation, code comments, API references, and test cases. Apply the same pattern for the vertical gap ('vGap'\u2192'v'). Use automated refactoring tools where possible, add deprecation stubs for any public methods to preserve backward compatibility, update examples and version changelog, and verify changes by running the full test suite."
+        }
+    },
+    {
+        "id": 1003,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Describe the general renaming pattern: scan the codebase for any generic identifier named \u2018url\u2019 (fields, parameters, locals, methods) that holds the project\u2019s file location and rename it to a context-specific name such as \u2018theProjectUrl\u2019. Update all references (declarations, assignments, getters/setters, Javadoc, comments, tests). Apply the same principle to other ambiguous identifiers (e.g., rename \u2018file\u2019 to \u2018theConfigFile\u2019 or \u2018theHistoryFile\u2019, \u2018id\u2019 to \u2018theOrderId\u2019, \u2018path\u2019 to \u2018theSearchPath\u2019) by prefixing with a descriptive qualifier. Exclude cases where the method signature is fixed by an external API or the single-purpose helper method is already clear. Ensure consistency by propagating changes across documentation, configuration, and test code."
+        }
+    },
+    {
+        "id": 1004,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a refactoring pattern to systematically replace generic \u201cswap\u201d operations with semantically accurate \u201cmoveTo\u201d methods when the intent is to reposition a single element within an ordered collection. This includes renaming the method signature from swap(index1,index2) to moveTo(fromIndex,toIndex), updating all variable names (e.g., mem1 \u2192 sourceElement, c \u2192 connections), adjusting facade/helper calls (setConnections), revising JavaDocs, UI labels, and tests to use \u201cmove\u201d terminology, and adding deprecation wrappers if backward\u2010compatibility is required. Apply the same pattern to any list, tree, table column, or UI reorder APIs across the codebase where elements are moved rather than symmetrically exchanged."
+        }
+    },
+    {
+        "id": 1005,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide clear guidance to the second developer: search for any factory or builder methods whose signature includes a parameter named \"model\" but which actually represents a UML Namespace (the owning context for the new element). For each occurrence:\n1. Rename the parameter from \"model\" to \"ns\" in the method signature, implementation, and JavaDoc.\n2. Update all local uses of that parameter (variable names, assignments, method calls).\n3. Refactor all call sites to use the new parameter name or update calls accordingly.\n4. Run and update unit tests to reflect the renamed parameter.\n5. Apply the same pattern in other classes and packages where \"model\" parameters denote a namespace rather than the full model. Document each change in commit messages for traceability."
+        }
+    },
+    {
+        "id": 1006,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Search the codebase for any references to \u2018setBase\u2019 on Include elements (test method names, calls to Model.getUseCasesHelper().setBase, variable names, comments, fixtures, mocks, class names, UI models) and change them to \u2018setAddition\u2019. Update test method names (testSetBase \u2192 testSetAddition), method calls, field names, event strings, documentation, and any supporting UI/model classes (e.g., UMLIncludeBaseComboBoxModel \u2192 UMLIncludeAdditionComboBoxModel). Ensure consistency in package imports, assertions, and tearDown/delete calls so all occurrences of the old \u2018Base\u2019 API are aligned to the new \u2018Addition\u2019 terminology."
+        }
+    },
+    {
+        "id": 1007,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a systematic refactor to replace all legacy Enumeration\u2010based identifiers (variables, fields, parameters, method names, and classes using the suffix or prefix \u2018Enum\u2019) with names that reflect modern Java collections (List<T>). For example, rename itemEnum \u2192 itemList or toDoItems, update return types from Enumeration to List<T>, rename methods (e.g., getElements() \u2192 getItems()), and adjust class and field names accordingly. Apply the same pattern consistently throughout this file and other code locations to align identifiers with actual collection types and improve semantic clarity."
+        }
+    },
+    {
+        "id": 1008,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Adopt a consistent \u201cImpl\u201d suffix for all internal implementation hooks across the codebase. Identify every occurrence of methods, fields, variables, parameters, subclasses, tests, documentation, and comments using the \u201cInternal\u201d suffix (for example setBoundsInternal, initializeInternal, paintInternal), and rename them to the corresponding \u201cImpl\u201d form (setBoundsImpl, initializeImpl, paintImpl). Propagate the changes to all callers and overrides, update JavaDoc references, model-event listener registrations, and any metadata or configuration that refers to the old names. Ensure the public API remains stable by keeping facade methods or template hooks unchanged, and capture all edits with automated refactoring tools and regression tests to avoid breaking overrides or third-party extensions."
+        }
+    },
+    {
+        "id": 1009,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all short or cryptic figure-related identifiers (e.g., fc, ft) used in class name rendering and replace them with clear, self-documenting names that reflect their role (for example, fnme for FigNameElement, ftext for FigText, fnode for FigNode, etc.). Update every occurrence\u2014field declarations, method parameters, paintIcon logic, hit-test methods, comments, and references in related classes\u2014so names remain consistent and convey purpose. Apply this same renaming pattern across this file and other UI or UML critic modules to turn terse abbreviations into descriptive identifiers while preserving coding conventions and functionality."
+        }
+    },
+    {
+        "id": 1010,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all occurrences of \u201curl\u201d used as a resource locator\u2014field names, constants, method names (getUrl, setUrl), constructor parameters, local variables, class or interface names\u2014and rename them to use \u201curi\u201d. Update the type from java.net.URL to java.net.URI, adjust imports, Javadoc, tests, and documentation. In public APIs, mark old url\u2010based methods @Deprecated before removal to preserve backward compatibility. Apply the same search-and-replace refactoring across all modules ensuring the code compiles and the naming accurately reflects URI semantics."
+        }
+    },
+    {
+        "id": 1011,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Outline a refactoring plan: search for all occurrences of eventNames, eventName, and related identifiers in method signatures, parameter lists, variable and field names, class names, JavaDocs, tests, and configuration or XML mapping files; rename them to propertyNames or propertyName to align with JavaBean PropertyChangeEvent terminology; update method overloads, documentation, test cases, and any event-tree or config entries; use automated IDE/refactoring tools and add deprecated aliases or overloads if backward compatibility is required; run full test suite and code review to ensure no lingering references remain and consistency is maintained throughout the codebase."
+        }
+    },
+    {
+        "id": 1012,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a general guideline for updating explorer-related code: search for any use of \u201cNavigator\u201d in the context of the Explorer UI component and rename it to \u201cExplorer.\u201d This includes class names (NavigatorMouseListener \u2192 ExplorerMouseListener, NavigationTreeSelectionListener \u2192 ExplorerTreeSelectionListener), constructor calls, variable and field names, method names, import statements, UI resource keys, tests, and documentation. Ensure consistency in the org.argouml.ui.explorer package and related packages. If these classes are part of a public API, consider deprecating the old names and providing aliases to maintain backward compatibility during the transition."
+        }
+    },
+    {
+        "id": 1013,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a consistent naming convention for boolean membership checks by renaming includesKnowledgeType to containsKnowledgeType throughout the codebase. This includes updating the method signature, all invocations, any associated private fields or variables, related comments and documentation, and any similarly named membership methods (e.g., includesRole\u2192containsRole, includesElement\u2192containsElement). Ensure that class names, constants, and test code reflect the change, and if part of a public API, provide deprecated aliases or adapt callers to maintain backward compatibility."
+        }
+    },
+    {
+        "id": 1014,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update the codebase to rename every instance of ActionPrevTab to ActionPrevEditTab, including the class name, static field in Actions, constructor, import statements, references in UI wiring or menus, and any related methods or variables. Change the display label to \u201cPrevious Edit Tab\u201d. Ensure consistency with paired actions (e.g., ActionNextEditTab). Apply the same systematic renaming pattern for other generic tab navigation actions when new tab categories are introduced, while preserving backward\u2010compatible API names when required."
+        }
+    },
+    {
+        "id": 1015,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Ensure every identifier (local variable, method parameter, field, method name, and class name) that uses the ambiguous abbreviation \"col\" to hold a UML Namespace or Namespace collection is consistently renamed to \"ns\" across this file and the entire codebase. Update all references, including comments, getters/setters, and documentation, to reflect the precise domain term and maintain naming consistency with the UML metamodel."
+        }
+    },
+    {
+        "id": 1016,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a refactoring guideline to locate every identifier, parameter, field, method or API named \u2018basefirst\u2019 and systematically rename it to \u2018bases\u2019 so that names correctly express a collection of base classifiers (matching setBases/addBase). Include updating local variables, function names, parameters, class members, tests and documentation. Preserve any occurrence of \u2018basefirst\u2019 that genuinely denotes a single or first element or is part of a public/binary-stable API where renaming would break compatibility."
+        }
+    },
+    {
+        "id": 1017,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide guidance for other developers to locate any constants or identifiers named with a DEFAULT_ prefix that actually function as enforced minimum constraints or fixed lower bounds, then systematically rename them to use MIN_ (and include a descriptive target, e.g., MIN_HEAD_WIDTH, MIN_HEAD_HEIGHT). Ensure all code references\u2014fields, local variables, method names, documentation, comments, test cases, and any API exposures\u2014are updated for consistency. Where backward compatibility matters, introduce deprecation aliases or migration notes. Apply the same pattern across other files and modules to maintain uniform naming semantics for minimum-size constraints."
+        }
+    },
+    {
+        "id": 1018,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a consistent naming convention that prefixes instance fields and test fixtures (e.g. myKeys) to distinguish them from API methods and locals. In any class or test where a generic name like keys, values or entries coexists with calls to map.keySet(), map.values() or map.entrySet(), rename the field, parameter or local declaration to myKeys (and similarly myValues, myEntries), updating all declarations, references, assertions and method signatures to avoid shadowing and improve code clarity across the codebase."
+        }
+    },
+    {
+        "id": 1019,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a high-level guideline describing the rationale and process for renaming any identifier named 'values' to avoid collision with Map.values() or similar API methods. Instruct the developer to search for all occurrences of 'values' (fields, local variables, methods, classes), apply the chosen prefix (e.g., 'myValues' or a domain-specific qualifier), outline criteria for exceptions when no collision exists, and emphasize maintaining consistency across the codebase."
+        }
+    },
+    {
+        "id": 1020,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a systematic refactoring across this file and all related UML modules to replace every generic use of the identifier \u2018element\u2019 (which represents an MModelElement) with the more descriptive \u2018modelElement\u2019. This includes: renaming private fields (_element \u2192 _modelElement), constructor and method parameters (element \u2192 modelElement), getters/setters (getElement \u2192 getModelElement, setElement \u2192 setModelElement), internal local variables, compareTo logic, collision checks, comments, and Javadoc. Ensure that only uses tied to UML model elements are renamed; other domains (e.g. uiElement, xmlElement) should keep or introduce their own qualifier. Update all import statements, method calls, and overrides consistently to maintain API compatibility."
+        }
+    },
+    {
+        "id": 1021,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When an identifier represents the initial or default selection passed into a component, rename it from \u201cselected\u201d to \u201cpreselected\u201d to distinguish it from the live, user-driven selection. Update constructor parameters, backing fields, getters/setters, methods, Javadoc, UI labels, resource keys, tests, and any listener code that refers to the initial selection. Leave APIs and variables that represent the mutable, current selection named \u201cselected.\u201d Apply this pattern consistently across other dialogs, UI components, and modules wherever an initial selection concept exists."
+        }
+    },
+    {
+        "id": 1022,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Developers should scan for generic parameter names (arg0, arg1, etc.) and replace each with a descriptive name matching its type and role (e.g. event, listener, modelElement). They must update all method signatures, local variables, fields, related class names, and documentation to reflect the new names. After renaming, adjust any listener registration or removal calls, update imports and tests, and ensure consistency with the project\u02bcs naming conventions across the entire codebase."
+        }
+    },
+    {
+        "id": 1023,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a project-wide refactoring to rename every code element where a String identifier named \u2018goal\u2019 actually holds the goal\u2019s name. This includes method parameters (String goal \u2192 String goalName), local variables, private fields (_goals \u2192 _goalNames), getters/setters (getGoalInfo \u2192 getGoalNameInfo, setGoalPriority \u2192 setGoalNamePriority), method calls, comments, JavaDocs, configuration keys and tests. Exclude renames of actual Goal object classes or methods that operate on Goal instances. Use IDE refactoring tools to update all references, then rebuild and run tests to ensure correctness."
+        }
+    },
+    {
+        "id": 1024,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Use consistent, descriptive naming for model-element accessors: replace abbreviations Src/Dest with full words Source/Destination and change Port (a UI concept) to Node (the underlying model element). In practice this means renaming all similar methods and their parameters, variables, fields, and Javadoc in this class and across the codebase\u2014for example getDestMessagePort \u2192 getDestinationMessageNode, setSrcMessagePort(...) \u2192 setSourceMessageNode(...), local vars msgPort \u2192 messageNode, etc. Do not rename methods legitimately returning UI ports or break stable public APIs without deprecation."
+        }
+    },
+    {
+        "id": 1025,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Summarize guidelines for renaming all generic FigNode references (variables, fields, methods, classes) that in practice represent a specific UML metamodel element: use the precise UML name (e.g., sourceFigNode\u2192sourceFigClassifierRole, destFigNode\u2192destFigClassifierRole), apply the same pattern in other diagram contexts (stateVertices, FigActor, FigUseCase, etc.), update method signatures, field names, class names, test fixtures, documentation, and logging. Omit such renames in truly generic utilities or framework APIs where FigNode must remain unconstrained."
+        }
+    },
+    {
+        "id": 1026,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Replace all occurrences of the text alignment property \"alignment\" with \"justification\" throughout the codebase: update the field name (_alignment \u2192 _justification), rename constants (JUSTIFY_LEFT/CENTER/RIGHT \u2192 JUSTIFICATION_LEFT/CENTER/RIGHT), rename accessor and utility methods (getAlignment/setAlignment \u2192 getJustification/setJustification, alignmentByName \u2192 justificationByName), update PropCategoryManager keys, comments, documentation, tests, and all call sites to ensure consistent, clear terminology for text justification."
+        }
+    },
+    {
+        "id": 1027,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Developers should locate each occurrence of the identifier 'string_length' (and other variables or methods whose names redundantly encode types, like 'buffer_size' or 'array_length') and refactor them to concise, idiomatic names ('len', 'size', 'length'), including updates to variable names, field names, method names (e.g., getStringLength \u2192 getLength), class names, comments, test cases, and documentation. Ensure all references are updated, maintain consistency with local naming conventions, and preserve API compatibility by providing deprecated aliases if necessary."
+        }
+    },
+    {
+        "id": 1028,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a refactoring across the ZIP\u2010handling subsystem so that every generic getName identifier is specialized to getZipName. This includes changing:\n1. Method signatures and overrides named getName to getZipName.\n2. All call sites and imports that reference getName in ZIP classes.\n3. Field and variable names (e.g. name, theName) that hold ZIP entry names to zipName or zipEntryName.\n4. Constructors, parameters, and Javadoc tags that mention getName or name in this context.\n5. Test methods, test data fixtures, and mock classes that expect getName behavior.\n6. Any class or interface names (e.g. NameParser) that are ZIP\u2010specific to include ZipName.\n7. Documentation, configuration files, UI labels or messages referring to ZIP member names.\nOptionally add a deprecated getName wrapper if API stability is required, then remove it in a later major release. Ensure imports and references in all modules reflect getZipName and run a full test suite to validate the change."
+        }
+    },
+    {
+        "id": 1029,
+        "response": {
+            "plan": null,
+            "augmented_intent": "For any internal boolean flag that\u2019s only used in one class or method context and whose meaning is obvious from surrounding code, collapse the long descriptive name (notifyModel) to a single\u2010letter identifier (n). Update the field declaration, constructor signature, assignments, usages in methods/listeners, and any test or helper code accordingly. Apply this pattern consistently to other similar internal flags, while preserving full descriptive names in public APIs or in contexts where clarity is essential."
+        }
+    },
+    {
+        "id": 1030,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a domain-driven refactoring by replacing every occurrence of \u201cLink\u201d with \u201cMessage\u201d in the sequence\u2010diagram code. Rename the FigLink class to FigMessage, update constructors, method names (e.g., getSrcLinkPort() \u2192 getSrcMessagePort(), getDestLinkPort() \u2192 getDestMessagePort()), LinkPort references, variables, fields, import statements, Javadoc tags, comments, test cases, UI labels and resource files. Use automated IDE refactoring to capture all identifiers, then manually review to ensure consistency with UML2 terminology and no residual \u201cLink\u201d names remain. Document any public API changes and update related UML model definitions if needed."
+        }
+    },
+    {
+        "id": 1031,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a clear checklist for a repeat rename: search and replace the class name FigObject with FigClassifierRole (including file names, constructor names, imports, references in code, comments and JavaDoc), rename all related variables, methods, fields, ports and nodes (e.g. objectNode \u2192 classifierRoleNode, getObjectNode() \u2192 getClassifierRoleNode()), update import paths and metamodel listener registrations to reference ClassifierRole instead of Object, adjust documentation and UML terminology in comments, update tests and serialization identifiers, verify link port creation and deepHitPort logic uses the new names, ensure backward-compatibility aliases or deprecation notices if needed, and run a full build and test of sequence-diagram behavior after changes."
+        }
+    },
+    {
+        "id": 1032,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a generic \u2018Impl\u2019-extraction pattern for all public lifecycle methods in Fig classes: 1) Extract the existing body of removeFromDiagram() into a new protected helper named removeFromDiagramImpl(). 2) Update removeFromDiagram() to call any pre-hooks, delegate to removeFromDiagramImpl(), then run post-hooks. 3) Refactor all subclasses and direct callers to invoke the impl method when bypassing wrappers. 4) Apply the same sequence to other similar methods (addToDiagram, deleteFromDiagram, deleteFromModel, paint, initialize, etc.) across the codebase. 5) Rename any variables, fields, listeners or factories that reference the old method to match the new Impl naming. 6) Preserve the original public API signatures to maintain backward compatibility. This pattern centralizes core logic in *Impl() helpers and leaves the public methods as flexible fa\u00e7ades for cross-cutting behavior."
+        }
+    },
+    {
+        "id": 1033,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a consistent renaming pattern: for any test class prefixed with \u201cGUITest\u201d, remove the \u201cGUI\u201d prefix. In this file rename GUITestActionAddAttribute.java to TestActionAddAttribute.java, update the class declaration, constructor signature, any variables, imports, references in test methods and suite registrations. Apply the same change everywhere: locate classes named GUITest* (e.g. GUITestFooBar), rename them to TestFooBar, adjust file names, package imports, constructors, variables, fields, methods, and documentation to match. Ensure test discovery and naming conventions remain consistent after the rename."
+        }
+    },
+    {
+        "id": 1034,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Adopt a naming convention where any UML figure compartment variable includes its role, the \u2018Fig\u2019 prefix, and its semantic type. For example: rename attrVec to attributeFigCompartment, operVec to operationFigCompartment, noteList to noteFigCompartment, edgeGroup to edgeFigGroup, nameComp to nameFigText, stereoBlinder to stereotypeLineBlinderFig, etc. Apply these changes consistently to variable names, method parameters, field names, getters/setters (getAttributesFig \u2192 getAttributeFigCompartment), and any class or interface identifiers reflecting compartments. Skip renaming only when the identifier is part of a stable public API or serialized form, or in very localized throwaway code where brevity outweighs clarity."
+        }
+    },
+    {
+        "id": 1035,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every declaration and reference where the field or type name expressionModel refers specifically to an Action\u2019s script, and rename it to scriptModel. This includes: field names, local variables, constructor parameters, getter/setter methods (e.g. getExpressionModel \u2192 getScriptModel, setExpressionModel \u2192 setScriptModel), UI labels and i18n keys (e.g. label.expression \u2192 label.script), test fixtures, configuration keys, and XML serialization tags. Update imports and any classes that embed \u201cExpressionModel\u201d when used for the script to match \u201cScriptModel.\u201d Apply the same pattern in other code modules and tests wherever a generic expressionModel is actually the model of a script rather than a different kind of expression. Ensure all build, runtime, and test references are corrected to preserve functionality and clarity."
+        }
+    },
+    {
+        "id": 1036,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every local or parameter named \u2018m\u2019 that semantically represents a model element and consistently rename it to \u2018me\u2019 (short for modelElement). Apply the same pattern to related identifiers (e.g., mObj \u2192 meObj, m2 \u2192 me2, fields prefixed with m \u2192 me) in methods and classes to improve clarity, avoid single-letter ambiguity, and follow the style guide\u2014while skipping cases where \u2018m\u2019 is a well-known loop index, a stable public API name, or a deliberate Hungarian-style prefix."
+        }
+    },
+    {
+        "id": 1037,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When a parameter or identifier named text actually represents a UML element\u2019s name property, rename it to theName (or name in simple cases) to improve clarity and consistency. Update any methods (e.g., setText()/getText() \u2192 setName()/getName()), variables, fields, and classes that propagate or reference this parameter. Apply the same pattern wherever generic text parameters semantically map to a name attribute, ensuring all related code (method signatures, internal vars, documentation) uses theName or a form of Name instead of text."
+        }
+    },
+    {
+        "id": 1038,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a consistent naming rule for object parameters: prefix with 'the' and suffix with 'Object'. Refactor every identifier and reference named 'modelElement'\u2014including parameters, local variables, fields, methods, classes, constants, documentation, tests, and XML attributes\u2014to 'theModelElementObject'. Use an automated refactoring tool to update method signatures, overrides, and usages without breaking public APIs, and verify changes in unit tests and configuration files."
+        }
+    },
+    {
+        "id": 1039,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the layout code to replace the old Orientation flag with a boolean ignoreSplitters flag. Rename the private field (_orientation \u2192 _ignoreSplitters), update constructors to accept a boolean instead of an Orientation, change getOrientation()/setOrientation() to isIgnoreSplitters()/setIgnoreSplitters(), replace Orientation.getInstance() calls with the appropriate boolean default, remove or deprecate the Orientation enum if it\u2019s no longer used, and update all variable names, parameters, Javadoc comments, serialization keys, factory methods, and tests across the codebase to use the new name and semantics."
+        }
+    },
+    {
+        "id": 1040,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a consistent rename pattern across the codebase: any local variable, field, method name, or class suffixed with \u201cMemory\u201d that merely holds a user-supplied parameter (e.g., themeMemory) should be renamed to \u201ctheX\u201d or a clear noun (e.g., theTheme, theLocale, theFilePath) to match existing conventions (projectName, urlToOpen). Update all references, method signatures, and documentation. Do not rename classes or APIs where \u201cMemory\u201d denotes a caching or memory-management component, and preserve public API stability by deprecating rather than renaming breaking external interfaces."
+        }
+    },
+    {
+        "id": 1041,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce a naming convention for all String constants and related members that hold fully qualified class names by appending _CLASS_NAME. Refactor METAL_LAF to METAL_LAF_CLASS_NAME and apply the same pattern to other look-and-feel and theme constants (e.g. GTK_LAF -> GTK_LAF_CLASS_NAME), update configuration key constants, getters and setters (e.g. getCurrentLookAndFeel -> getCurrentLookAndFeelClassName), and methods returning class-name strings. Ensure actual LookAndFeel or theme objects and display-name constants are not renamed."
+        }
+    },
+    {
+        "id": 1042,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a clear public\u2010wrapper/internal\u2010implementation pattern for methods that require pre/post logic. In this file you must: 1) Rename the core setBounds implementation to setBoundsInternal, updating all declarations, overrides, super calls, and usages in cover.setBounds/getBigPort().setBounds. 2) Introduce or refactor a new public setBounds that delegates to setBoundsInternal plus any event dispatch, recalculation, or validation steps. 3) Update listeners, tests, and any direct calls so they invoke the public API. 4) Deprecate old signatures if backward compatibility is needed. Then apply the same pattern across the codebase for other methods (e.g., setSize, paint, loadData, fireEvent) by renaming their internal logic to XInternal (or implX), adding wrapper methods for validation, synchronization, or event firing, and updating all references to maintain consistency and avoid recursion."
+        }
+    },
+    {
+        "id": 1043,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all terse boolean flags and related identifiers following the pattern aOn/aOff, oOn/oOff, eOn/eOff and their SHOW_*/HIDE_* action constants in this file and other modules. Replace them with clear, self-describing names that combine the domain and state, e.g. attrPresent/attrHidden or attributesVisible/attributesHidden, operationsVisible/operationsHidden, extensionPointsVisible/extensionPointsHidden. Update associated variable names, method signatures (getters/setters), static action instances, menu keys, comments, and any references to maintain consistency and improve code readability."
+        }
+    },
+    {
+        "id": 1044,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In GoalsDialog and across the codebase, locate every generic WIDTH constant and member that refers to a dialog\u2019s width and rename it to DIALOG_WIDTH. Apply the same pattern to other dimension constants (e.g., HEIGHT \u2192 DIALOG_HEIGHT, MIN_WIDTH \u2192 DIALOG_MIN_WIDTH) by updating fields, variables, methods, classes, layout constraints, and documentation to include the component context. For any public API constants, introduce the new names alongside the old ones as deprecated aliases to preserve backward compatibility."
+        }
+    },
+    {
+        "id": 1045,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Create a guideline for consistently renaming any variable or parameter named \u201ctarget\u201d to \u201cnewTarget\u201d (or another name indicating an incoming or updated value) throughout the codebase. Include instructions to:\n1. Search for method parameters, local variables, fields, and callback listener names using \u201ctarget.\u201d\n2. Rename them to \u201cnewTarget\u201d (or similarly descriptive names like \u201cincomingTarget\u201d) to avoid shadowing existing fields or confusing old vs. new values.\n3. Use the IDE\u2019s rename refactoring to update all references, method signatures, Javadocs, and unit tests.\n4. Skip renaming in overridden methods with fixed signatures or where no naming conflict exists.\n5. Verify compilation, run tests, and update documentation to reflect the new naming convention."
+        }
+    },
+    {
+        "id": 1046,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a refactoring pattern: any parameter, variable, field, constant, method, or class identifier named \u201cmodelClass\u201d that actually represents a UML metamodel type should be renamed to \u201cmetaType.\u201d Apply this consistently across signatures, locals, documentation, XML configs, and unit tests. Use automated IDE refactoring to update calls, overrides and examples, and consider deprecating or adapting old names to preserve backward compatibility when exposing public APIs."
+        }
+    },
+    {
+        "id": 1047,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the SettingsTabAppearance class (and any other SettingsTabPanel implementations) to replace getModuleDescription() with getTabPanel(), updating its signature to return the settings panel component instead of a description string. Rename method declarations, overrides, references, associated variables, tests, documentation, and any classes or constants that include \"ModuleDescription\" to use \"TabPanel\". Ensure compatibility with the SettingsTabPanel interface, adjust imports and API calls across the codebase, and deprecate or remove the old getModuleDescription where appropriate."
+        }
+    },
+    {
+        "id": 1048,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Standardize all fa\u00e7ade methods (in ModelFacade and similar utility classes) that take a generic Object parameter representing a UML metamodel element by renaming their type-specific parameter names (e.g., stateVertex, statemachine, transition, assocEnd, message, operation) to a single uniform name \u2018handle\u2019. Update every method signature, local variable, field, Javadoc tag, internal reference, and overload that refers to any of these specific names so they use \u2018handle\u2019 instead. Apply this pattern consistently across all files and modules implementing the generic Object-handle fa\u00e7ade to maintain a clear, uniform interface."
+        }
+    },
+    {
+        "id": 1049,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In all test fixture classes, replace the custom initializeTruth() hook with the standard setUp() lifecycle method by renaming method definitions, overrides, invocations, and related variables or fields. Update base test classes, remove manual initializeTruth() calls in tests, and ensure setUp() is automatically invoked by the JUnit runner. Apply similar renames for any tear-down or cleanup methods to tearDown(), adjust class and file names if they reference initializeTruth, and propagate changes across all modules. Verify imports, annotations, and documentation are updated, and run the full test suite to confirm no regressions."
+        }
+    },
+    {
+        "id": 1050,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every occurrence where a parameter, variable, field, or method name 'in' holds an InputStream (or Reader) and rename it to 'inputStream'. Propagate this rename through method signatures, local variables, field declarations, getter/setter names, JavaDoc tags, log messages, tests, and any string-based references (XML, annotations). For method overrides or interface implementations, either update the signature or document the API change. Ensure consistency in naming and preserve readability across the entire codebase."
+        }
+    },
+    {
+        "id": 1051,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all toolbar action fields prefixed with _action, remove the leading underscore to conform to the project\u2019s camelCase naming convention (e.g., _actionBroom \u2192 actionBroom), and update every declaration, reference, method name, toolbar initialization, and related class or factory usage accordingly. Apply the same pattern to all other _action* fields (such as _actionComment, _actionSelect, etc.) across this file and other UI or diagram classes to ensure uniform naming."
+        }
+    },
+    {
+        "id": 1052,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor code and UI to replace the abbreviation \u2018Oper\u2019 with the full descriptive \u2018AddOperation\u2019 everywhere this action appears. Update the ActionOper class name, its field in the Actions registry, constructor invocations, import statements, menu labels, documentation comments, tests, and any related identifiers. Apply the same verb\u2013noun renaming pattern to other abbreviated action classes (e.g., ActionAttr\u2192ActionAddAttribute, ActionMsg\u2192ActionAddMessage) to ensure a consistent, self-documenting naming convention across the codebase."
+        }
+    },
+    {
+        "id": 1053,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update the code to replace every occurrence of the abbreviated ActionAttr with the full, pattern\u2010consistent ActionAddAttribute. This includes: renaming the class ActionAttr to ActionAddAttribute; updating its constructor calls (new ActionAttr() \u2192 new ActionAddAttribute()); changing the static field in Actions (public static UMLAction Attr \u2192 public static UMLAction AddAttribute); adjusting any variables, parameters or return types that reference ActionAttr; updating the action label string from \"Attribute\" to \"Add Attribute\" if needed; revising imports, comments, tests and documentation; and ensuring any serialization or reflection entries depending on the old name are migrated. Follow the same pattern for any other action classes that use abbreviations to bring them in line with Action<Verb><Object> naming."
+        }
+    },
+    {
+        "id": 1054,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every identifier, class, method, menu label, tooltip, resource bundle key and test that is named \u201cSave\u201d (or another misleading SaveX) but actually invokes a file\u2010chooser and writes a new file; rename them to follow the pattern SaveProjectAs (or SaveImageAs, SaveDiagramAs, etc.), update all references and UI text accordingly, preserve genuine silent in\u2010place Save actions, add aliases or deprecation shims if required for public APIs, and document the naming convention in code comments and development guidelines so that the pattern can be applied consistently elsewhere."
+        }
+    },
+    {
+        "id": 1055,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a refactoring guideline: locate every use of the single-letter variable \u2018p\u2019 when it represents the object under action (the \u2018target\u2019) and rename it to \u2018target\u2019. This includes method parameters, local variables, class fields, getters/setters, and any methods or classes whose names imply \u2018p\u2019. Update all call sites, overrides, documentation, and comments to match. Extend the same approach to other terse names (e.g., \u2018e\u2019\u2192\u2018event\u2019, \u2018o\u2019\u2192\u2018object\u2019) to enforce clear, self-documenting variable names throughout the codebase."
+        }
+    },
+    {
+        "id": 1056,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a clear, systematic refactoring plan so a second developer can rename every occurrence of the UML container concept from \u201cmodel\u201d to \u201cnamespace.\u201d This includes: renaming the private field _model to _namespace; updating constructor parameters and assignments; renaming getters/setters (getModel()\u2192getNamespace()); changing all local variables, method parameters, and calls that refer to \u201cmodel\u201d; adjusting import statements and type references (e.g. Model\u2192Namespace if applicable); updating documentation comments, tests, and any related classes or interfaces; and, if this is part of a public API, adding deprecated stubs or aliases to preserve backward compatibility while guiding callers to the new names."
+        }
+    },
+    {
+        "id": 1057,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a clear refactoring guideline: identify every occurrence of the generic openItem identifier (including menu-item variables, action fields, method names, event handlers, UI labels, comments and documentation) and rename it to openProjectItem to reflect its specific purpose. Apply the same disambiguation pattern in this file and in other code bases wherever a generic \u201copenXItem\u201d exists\u2014e.g., rename newItem\u2192newProjectItem, openDiagramItem\u2192openDiagramItem, etc.\u2014ensuring consistency with existing naming conventions, avoiding conflicts, and updating all references and tests."
+        }
+    },
+    {
+        "id": 1058,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Guide on renaming event\u2010driven update routines: Identify every method, field, listener, and class whose sole purpose is to refresh the view when the underlying model changes (e.g. updateText, updatePorts, updateAttributes). Rename them to follow the pattern <modelElement>Changed (e.g. modelChanged, portsChanged, attributesChanged). Update listener registrations (add/removeVetoableChangeListener or PropertyChangeListener calls) to invoke the new methods. Rename any backing fields or helper variables (_nameText, _textUpdater) to reflect the new method names (_modelChangedListener, _modelChangedCallback). Deprecate the old updateX methods only if they are part of a public API, delegating to the new XChanged methods. Apply this pattern consistently across all visualization and UI classes that respond to model events to improve discoverability and semantic alignment."
+        }
+    },
+    {
+        "id": 1059,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify generic or inconsistent variable names (like p) that represent specific domain objects (e.g., Fig). For each occurrence across the codebase\u2014method parameters, local variables, fields, method names, comments, documentation, and tests\u2014refactor the name to a clear, type-aligned identifier (e.g., f or fig). Use automated IDE refactoring to update all references safely. Ensure consistency with existing naming conventions, update related comments and Javadoc, adapt unit tests and serialization mappings, and verify that overridden or implemented signatures remain compatible. Skip renames in contexts where single-letter names are conventional or external interfaces dictate the identifier."
+        }
+    },
+    {
+        "id": 1060,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Migrate all code that previously treated resources as URL objects to use java.io.File instead.  Update method signatures, parameter names, local variables, getters/setters, factory methods and any class or interface members from url to file (or path) to match the new type.  Ensure tests, documentation, logging, and Javadoc reflect the File-based API.  When renaming, preserve binary compatibility only if breaking changes are acceptable; otherwise deprecate the old URL-based methods and introduce new File-based ones.  Apply the same pattern in other packages where URL parameters have been replaced by File or Path types to keep naming consistent and clear."
+        }
+    },
+    {
+        "id": 1061,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a renaming guideline: replace every generic event parameter named \u2018e\u2019 with a descriptive abbreviation based on its type (e.g. ListSelectionEvent e \u2192 lse), update all related references\u2014including variable names, method parameters, listener interfaces, and any fields or classes that echo that name\u2014and apply the same pattern to other listeners (ActionEvent \u2192 ae or actionEvent, DocumentEvent \u2192 docEvt, MouseEvent \u2192 me, KeyEvent \u2192 ke, etc.). Also document when to skip the rename (very short handlers or projects that enforce using \u2018e\u2019 by style guide)."
+        }
+    },
+    {
+        "id": 1062,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the \u2018Hush Critic\u2019 feature into a \u2018Snooze Critic\u2019 feature across the codebase: rename the ActionHush class to ActionSnooze (including filename and constructor super call), update the instance declaration in Actions (change .Hush to .Snooze and its label), search and replace all references to \u2018Hush\u2019 in variables, methods, UI labels, resource bundles, icons and help text, update any documentation and tests, and provide deprecation aliases or warnings if this API is publicly consumed to ensure a smooth transition."
+        }
+    },
+    {
+        "id": 1063,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide concept for refactoring: rename the createFeature factory method to createModelElement in all declarations and overrides; update all callers, import statements, and test code to use the new name; rename related variables, parameters, fields, and classes (e.g., FigFeaturesCompartment -> FigModelElementCompartment) to maintain consistent terminology; revise Javadoc, comments, UI labels, and any serialization or version identifiers; consider adding deprecated stubs for backward compatibility if this is a public API; rebuild and run regression tests to confirm all references are updated and behavior remains correct."
+        }
+    },
+    {
+        "id": 1064,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a comprehensive refactor plan for any developer: systematically rename the legacy createFeatureIn method and all its occurrences\u2014method definitions, calls, parameters, local variables, fields, UI actions, pop-up menu entries, selection and helper classes\u2014to createContainedModelElement. Update associated Javadoc and inline comments, test method names, configuration or XML entries, and any code generation templates. In other modules with similar routines (such as createAttributeIn or createOperationIn) that are evolving into a generic containment API, apply the same rename for consistency. If maintaining backward compatibility, add @Deprecated stubs under the old name that delegate to the new method. After renaming, run a full build and test suite, update migration documentation (CHANGELOG, upgrade guide), and verify all references are correctly updated across the codebase."
+        }
+    },
+    {
+        "id": 1065,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a consistent renaming rule: every method parameter or local variable currently named \"handle\" should be renamed to reflect its actual UML element type\u2014for example, use \"param\" for MParameter, \"operation\" or \"op\" for MOperation, \"attribute\" or \"attr\" for MAttribute, and \"classifier\" or \"cls\" for MClassifier. Apply this renaming across method signatures, local variables, fields, comments, and any supporting methods in this file and in other generator files. Ensure all references, imports, and documentation are updated to maintain consistency and clarity according to camelCase naming conventions."
+        }
+    },
+    {
+        "id": 1066,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In GeneratorCSharp, any method or variable named \u201chandle\u201d that always holds an MClassifier should be renamed to \u201ccls\u201d (and where feasible change the parameter type from Object to MClassifier). Update the parameter name in generateClassifier(Object handle) to generateClassifier(MClassifier cls), rename all local variables, casts, loop variables, fields, and comments accordingly. Apply the same pattern in other methods that accept a generic Object by specializing the name and type to match the actual model element they handle (e.g., in generateOperation rename Object handle to MOperation op, in generateParameter rename Object handle to MParameter param). Ensure you only rename names when the API contract allows (don\u2019t change signatures mandated by external interfaces) and leave truly generic handles unchanged. This improves self-documenting code, removes unnecessary casts, and makes the intent of each method clear."
+        }
+    },
+    {
+        "id": 1067,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all occurrences of generic parameters named handle (or similarly vague names) in this file and across other generator classes where the method actually expects a concrete UML element. For each, change the parameter name to the specific domain type it represents (e.g., state, operation, attribute, transition, guard, message), update the method signature, all internal references (variables, fields, comments), and any call sites. Repeat this pattern for every generateX(Object handle) so that handle is consistently replaced by X. Preserve generic names only where required by public API or truly polymorphic methods."
+        }
+    },
+    {
+        "id": 1068,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a refactoring pattern: rename generic list-repositioning methods (e.g., moveTo) to direction-specific names (e.g., moveDown or moveUp) when their implementation only performs a single-step shift; systematically update all code references (methods, variables, fields, tests, docs) across the project; generalize this pattern to other contexts (e.g., rotate->rotateClockwise/CounterClockwise, goTo->goToNext/goToPrevious); and provide guidelines for when to apply such renames versus when to keep the original generic method or deprecate it for backward compatibility."
+        }
+    },
+    {
+        "id": 1069,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Locate every occurrence where the abbreviation sm denotes a StateMachine\u2014constructor parameters, local variables, class fields (e.g. theStateMachine), accessor methods (getStateMachine/setStateMachine), GraphModel calls (setMachine, getMachine), initialize/setup methods, comments, and translator keys\u2014and replace it with the full word machine. Apply the same change across this file and any other diagram or model classes that use sm for clarity and consistency. Update public API signatures, tests, documentation, and localization keys to use machine, ensuring naming conventions are preserved and backward compatibility is considered where necessary."
+        }
+    },
+    {
+        "id": 1070,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every listener or callback method that takes a single event parameter currently named 'mee' (or other non-standard names), and rename that parameter to the conventional single letter 'e' in method signatures, local variables, documentation, and all references. Apply this same convention to all similar single-parameter event handlers (e.g., MouseEvent, ActionEvent) throughout the codebase to ensure consistent Java listener naming and improve readability."
+        }
+    },
+    {
+        "id": 1071,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Replace class name UmlHelperProxy with AbstractUmlHelperDecorator consistently across the codebase. Update the source file name, class declaration, constructor name and parameter, private field (e.g., impl \u2192 decoratedHelper or delegate), method parameters, local variables, Javadoc comments, and any references or imports. Adjust factory methods or model helpers that instantiate this class, update unit tests and documentation accordingly, and ensure new subclasses extend the renamed abstract decorator. Optionally provide a deprecated alias for backward compatibility if UmlHelperProxy is part of a public API."
+        }
+    },
+    {
+        "id": 1072,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Systematically replace all occurrences of 'name' used as a resource or mode lookup identifier with 'key' throughout the codebase. Update parameters, variables, fields, methods (including getters/setters, constructors), classes, resource bundle entries, and references in ResourceLoaderWrapper.getImageBinding and Translator.localize. Preserve 'name' only for genuine display labels or domain entity names, and when modifying public APIs provide deprecation for old 'name' identifiers."
+        }
+    },
+    {
+        "id": 1073,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Outline the renaming pattern and steps for consistency: 1) Locate all ActionFixIt* classes (ActionFixItNext, ActionFixItBack, ActionFixItFinish) and rename them to ActionRecordFixNext, ActionRecordFixBack, ActionRecordFixFinish (or similar \u2018RecordFix\u2019 variants). 2) Update class names, constructors (super(name)), and references in Actions._allActions fields. 3) Adjust UI labels and Action.NAME values to \u2018Record Fix\u2026\u2019 terminology. 4) Rename icon resource files and update stripJunk(name) paths. 5) Refactor variable names, method calls, and imports across the codebase and update tests, documentation, and resource bundles. 6) Consider deprecating old names or providing aliases for backward compatibility. 7) Apply the same \u2018FixIt\u2192RecordFix\u2019 pattern to any similar actions where the behavior is logging or recording rather than navigation. 8) Verify changes in dialogs, ToDoItemAction subclasses, build scripts, and configuration files."
+        }
+    },
+    {
+        "id": 1074,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Create a high-level checklist: 1) Rename the class ActionFixItBack to ActionReplayFix (class declaration, constructor, file name). 2) Update every instantiation and reference in the Actions registry and elsewhere (e.g. Actions.FixItBack \u2192 Actions.ReplayFix). 3) Rename related variables, fields, methods, button IDs or menu constants (fixItBackButton \u2192 replayFixButton, getFixItBackIcon \u2192 getReplayFixIcon). 4) Update UI resources: icon file (FixItBack.gif \u2192 ReplayFix.gif), resource-bundle keys and menu XML entries. 5) Search and replace in code comments, javadoc, documentation examples, and serialized action IDs or settings. 6) Refactor unit and integration tests to use the new name. 7) If backward compatibility is required, add a deprecated stub ActionFixItBack that forwards to ActionReplayFix. 8) Update change logs, version history, and notify the team. 9) Run full build and test suite to ensure no leftover references or regressions."
+        }
+    },
+    {
+        "id": 1075,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Scan for every declaration, parameter, field, method, setter/getter, Javadoc tag and usage that refers to the horizontal gap (named hgap) and rename it to the single\u2010letter symbol h. Update constructor parameters, private fields, public API methods getHgap()/setHgap(), Javadoc @see tags, formulas in layout methods, and any references in other classes or layout utilities. Apply the same pattern for the vertical gap (vgap\u2192v). If there are other paired layout or geometry properties (e.g. paddingHorizontal, marginLeft), rename them consistently to concise symbols (h, v, l, t) in formulas and internal code. Ensure any deprecated public API is either aliased or documented, and run tests to verify no usages remain of the old names."
+        }
+    },
+    {
+        "id": 1076,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a consistent, code-wide rename of the layout spacing identifier from gap to myGap. Update the protected field (_gap), constructor parameters, local variables, getter/setter methods, all internal method calls, Javadoc and comment references, test cases, and any dependent classes or configuration files that reference gap. Follow the project\u2019s naming conventions, introduce deprecated aliases as needed for backward compatibility, and verify that the code compiles, tests pass, and no naming collisions remain."
+        }
+    },
+    {
+        "id": 1077,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Perform a comprehensive refactoring to replace every occurrence of the singleton accessor and related identifiers: rename method getSingleton() to getInstance(), rename the static final field SINGLETON to INSTANCE, rename any variables or parameters named singleton to instance, update all callers, imports, Javadoc tags, unit tests, configuration files and UML diagrams. If breaking changes are a concern, deprecate the old getSingleton() method with @Deprecated and delegate to the new method. Finally, update comments and documentation to reflect the new naming and run the full build and test suite to ensure consistency."
+        }
     }
 ]
