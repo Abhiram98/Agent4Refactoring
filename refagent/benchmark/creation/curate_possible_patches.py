@@ -45,7 +45,7 @@ def main():
                             isinstance(r1, refactorings.Rename) and r1.has_type_change == False]
         f1 = fun_refactorings[0]
         r.improved_commit_message = f"{f1.type}: `{f1.old_name}` -> `{f1.new_name}` on line {f1.start_line}"
-    with open(refagent.data_folder.joinpath("monitoring/for_patches_temp.json"), 'w') as f:
+    with open(refagent.data_folder.joinpath("monitoring/for_patches.json"), 'w') as f:
         json.dump([i.to_json() for i in filtered_renames], f, indent=4)
 
     no_replication_fake_commits = []
@@ -61,7 +61,7 @@ def main():
                 }
             }
         )
-    with open(refagent.data_folder.joinpath("results/patches-june-15/no-replication.json"), 'w') as f:
+    with open(refagent.data_folder.joinpath("results/patches-june-9/no-replication.json"), 'w') as f:
         json.dump(no_replication_fake_commits, f, indent=4)
 
 if __name__ == '__main__':
