@@ -16,7 +16,7 @@ def main():
         data = [json.loads(i) for i in f.read().splitlines()]
         rename_data = bm_load.load_benchmark(data)
 
-    with open(refagent.data_folder.joinpath("monitoring/for_patches.json")) as f:
+    with open(refagent.data_folder.joinpath("monitoring/for_patches_temp.json")) as f:
         previous_data = json.load(f)
 
     filtered_renames: List[bm_load.BenchmarkItem] = []
