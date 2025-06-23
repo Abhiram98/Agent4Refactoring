@@ -30,6 +30,8 @@ def main():
         fun_refactorings = [r for r in i.refactoring_changes if
                             isinstance(r, refactorings.Rename) and r.has_type_change == False]
         project = pm.EvalProject(i.project_name)
+        project.checkout_main()
+        project.pull_project()
 
         try:
             commit = project.git_repo.commit(i.v2_hash)

@@ -63,7 +63,7 @@ class BenchmarkItem(BaseModel):
         }
 
 class RenameItem(BenchmarkItem):
-    corename_id: int
+    corename_id: Optional[int]
     seed_hash: Optional[str] = None
     seed_example: Optional[refactoring_types.RefminerOut] = None
 
@@ -89,7 +89,7 @@ class RenameItem(BenchmarkItem):
             refactoring_changes=refactoring_types.RefminerOut.load_from_json(_json['refactoring_changes']),
             diffs=[],
             pull_request=gh_comment.GithubPR(**_json['pull_request']) if _json.get("pull_request") else None,
-            corename_id=_json['corename_id'],
+            corename_id=_json.get('corename_id'),
             seed_hash=_json['seed_hash'] if _json.get("seed_hash") else None,
             seed_example=refactoring_types.RefminerOut.load_from_dictionary(_json['seed_example'])
                             if _json.get("seed_example") else None
