@@ -13,13 +13,7 @@ PYTHON_SCRIPT="check_entry_from_jsonl.py"
 
 # Default list of JSONL files (modify as needed)
 DEFAULT_FILES=(
-    "temp_azure-sdk-for-java.jsonl"
-    "temp_camunda.jsonl"
-    "temp_datahub.jsonl"
-    "temp_eo.jsonl"
-    "temp_forge.jsonl"
-    "temp_graal.jsonl"
-    "temp_keycloak.jsonl"
+    "temp_liferay-portal.jsonl"
     # Add more files here as needed
 )
 

@@ -18,12 +18,19 @@ warnings.filterwarnings('ignore')
 plt.style.use('default')
 
 
-RENAME_TYPE = ['Rename Class', 'Rename Method', 'Rename Variable', 'Rename Attribute', 'Rename Parameter']
+RENAME_TYPES = {
+    'Rename Class',
+    'Rename Method',
+    'Rename Variable',
+    'Rename Parameter',
+    'Rename Attribute',
+    'Rename Package'
+}
 
 def get_rename_instance_count(refactoring_changes):
     count = 0
     for refactoring_change in refactoring_changes:
-        if refactoring_change['type'] in RENAME_TYPE:
+        if refactoring_change['type'] in RENAME_TYPES:
             count += 1
     return count
 
@@ -527,8 +534,17 @@ def create_json_analysis(df, repo_path, output_dir, target_commit_hash=None, pro
                 author_avg_renames = round(author_commits['count'].mean(), 2)
                 author_max_renames = int(author_commits['count'].max())
                 
-                target_commit_renames = int(commit_row.iloc[0]['count'])
-                target_commit_timestamp = pd.to_datetime(commit_row.iloc[0]['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
+                # Get the target commit's rename count
+                if json_data.get('commits') and len(json_data['commits']) > 0:
+                    target_commit_renames = get_rename_instance_count(json_data['commits'][0]['refactorings'])
+                else:
+                    target_commit_renames = 0
+                target_commit_timestamp = get_commit_timestamp(target_commit_hash, repo_path)
+                # Convert timestamp to string for JSON serialization
+                if target_commit_timestamp is not None:
+                    target_commit_timestamp_str = target_commit_timestamp.strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    target_commit_timestamp_str = None
                 
                 json_data["target_commit_analysis"] = {
                     "commit_hash": target_commit_hash,
@@ -536,7 +552,7 @@ def create_json_analysis(df, repo_path, output_dir, target_commit_hash=None, pro
                     "author_info_available": True,
                     "target_commit_info": {
                         "total_rename_in_author_commit": target_commit_renames,
-                        "timestamp": target_commit_timestamp
+                        "timestamp": target_commit_timestamp_str
                     },
                     "author_info": {
                         "name": author_name,
