@@ -64,7 +64,6 @@ def process_flink_json(json_file_path, save_file_path):
     with open(save_file_path, 'w') as f:
         json.dump(clean_data, f, indent=2)
 
-def 
 
 def construct_prompt(hint, git_diff):
     
