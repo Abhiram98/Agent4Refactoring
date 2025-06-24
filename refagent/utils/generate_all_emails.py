@@ -9,7 +9,12 @@ from email_template import attach_inline_image, generate_html_email
 
 def generate_emails_for_all_projects(analyze_dir):
     analyze_dir = Path(analyze_dir)
+    analyzed_repo = None
+    repo_url = None
+    with open("/Users/moul7361/Desktop/AI-Agents/Agent4Refactoring/refagent/utils/analyze_and_send_email/analyze/analyzed_repo.json", "r") as f:
+        analyzed_repo = json.load(f)
     for project_dir in analyze_dir.iterdir():
+        repo_url = None
         if not project_dir.is_dir() or not project_dir.name.startswith("refactoring_results_"):
             continue
 
@@ -30,6 +35,12 @@ def generate_emails_for_all_projects(analyze_dir):
             # Load stats
             with open(developer_json, "r") as f:
                 stats = json.load(f)
+            
+            if repo_url is None:
+                for repo in analyzed_repo:
+                    if repo['project'] == stats.get("analysis_metadata", {}).get("project_name", ""):
+                        repo_url = repo['repo_url']
+                        break
             # Extract developer info from the JSON structure
             author_info = stats.get("target_commit_analysis", {}).get("author_info", {})
             developer_name = author_info.get("name", "Developer")
@@ -37,12 +48,14 @@ def generate_emails_for_all_projects(analyze_dir):
             entity_count = author_info.get("total_rename_by_author", 0)
             commit_count = author_info.get("total_rename_commit_by_author", 0)
             total_renames_in_the_commit = stats.get("target_commit_analysis", {}).get("target_commit_info", {}).get("total_rename_in_author_commit", 0)
+            renamed_attributes = stats.get("renamed_attributes", [])
 
             # Construct commit URL if possible
             project = stats.get("analysis_metadata", {}).get("project_name", "project")
             commit_hash = stats.get("target_commit_analysis", {}).get("commit_hash", "EXAMPLE")
             org_or_user = "yourorg"  # <-- Set this to your actual org/user
-            commit_url = f"https://github.com/{org_or_user}/{project}/commit/{commit_hash}"
+            # commit_url = f"https://github.com/{org_or_user}/{project}/commit/{commit_hash}"
+            commit_url = f"{repo_url.split('.git')[0]}/commit/{commit_hash}"
 
             # Prepare email
             msg = EmailMessage()
@@ -56,7 +69,7 @@ def generate_emails_for_all_projects(analyze_dir):
 
             # Set HTML body using your template
             html = generate_html_email(
-                developer_name, stats, weekly_img_cid, heatmap_img_cid, commit_url, entity_count, commit_count, total_renames_in_the_commit
+                developer_name, stats, weekly_img_cid, heatmap_img_cid, commit_url, entity_count, commit_count, total_renames_in_the_commit, renamed_attributes
             )
             msg.set_content("This email contains HTML content. Please view in an HTML-compatible email client.")
             msg.add_alternative(html, subtype='html')

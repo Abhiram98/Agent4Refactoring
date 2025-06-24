@@ -7,8 +7,9 @@ import concurrent.futures
 from typing import List
 from datetime import datetime
 import pandas as pd
+import json
 
-CPU_COUNT = os.cpu_count() - 2
+CPU_COUNT = os.cpu_count() - 4
 
 def get_default_branch(repo_path):
     """Get the default branch name of the repository"""
@@ -81,10 +82,16 @@ def save_commits_to_file(commits, output_file):
         output_path = Path(output_file)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
-        with open(output_file, 'w') as f:
+        # Check if file already exists to determine write mode
+        file_exists = output_path.exists()
+        mode = 'a' if file_exists else 'w'
+        
+        with open(output_file, mode) as f:
             for commit in commits:
                 f.write(f"{commit}\n")
-        print(f"Saved {len(commits)} commit SHAs to {output_file}")
+        
+        action = "Appended" if file_exists else "Saved"
+        print(f"{action} {len(commits)} commit SHAs to {output_file}")
     except Exception as e:
         print(f"Error saving commits to file: {e}")
 
@@ -151,7 +158,7 @@ def process_commit_batch(repo_path: str, batch: List[str], output_dir: str, batc
         print(f"Error processing batch {batch_index}: {e}")
         return False
 
-def process_commits_with_refactoringminer(repo_path: str, commits: List[str], output_dir: str, num_threads: int = CPU_COUNT, max_batch_size: int = 500):
+def process_commits_with_refactoringminer(repo_path: str, commits: List[str], output_dir: str, num_threads: int = CPU_COUNT, max_batch_size: int = 500, start_batch_index: int = 0):
     """Process commits in parallel using RefactoringMiner"""
     # Create output directory
     output_path = Path(output_dir)
@@ -181,26 +188,26 @@ def process_commits_with_refactoringminer(repo_path: str, commits: List[str], ou
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = []
         for i, batch in enumerate(batches):
-            future = executor.submit(process_commit_batch, repo_path, batch, str(output_path), i, timeout_factor=1)
+            future = executor.submit(process_commit_batch, repo_path, batch, str(output_path), i + start_batch_index, timeout_factor=1)
             futures.append((i, future))
         
         # Wait for all batches to complete
         for i, future in futures:
             success = future.result()
             if success:
-                print(f"Batch {i} completed successfully")
+                print(f"Batch {i + start_batch_index} completed successfully")
                 successful_batches += 1
             else:
-                print(f"Batch {i} failed")
+                print(f"Batch {i + start_batch_index} failed")
                 failed_batches += 1
-                failed_batch_indices.append(i)
+                failed_batch_indices.append(i + start_batch_index)
     
     # Retry failed batches with smaller size and increased timeout
     if failed_batch_indices:
         print(f"\nRetrying {len(failed_batch_indices)} failed batches with smaller size and increased timeout...")
         retry_batches = []
         for i in failed_batch_indices:
-            original_batch = batches[i]
+            original_batch = batches[i - start_batch_index]
             # Split failed batch into smaller batches of 100 commits each
             for j in range(0, len(original_batch), 100):
                 if j + 100 <= len(original_batch):  # Ensure we have at least 100 commits
@@ -215,17 +222,17 @@ def process_commits_with_refactoringminer(repo_path: str, commits: List[str], ou
         with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
             retry_futures = []
             for i, batch in enumerate(retry_batches):
-                future = executor.submit(process_commit_batch, repo_path, batch, str(output_path), f"retry_{i}", timeout_factor=2)
+                future = executor.submit(process_commit_batch, repo_path, batch, str(output_path), f"retry_{i + start_batch_index}", timeout_factor=2)
                 retry_futures.append(future)
             
             # Wait for all retry batches to complete
             for i, future in enumerate(concurrent.futures.as_completed(retry_futures)):
                 success = future.result()
                 if success:
-                    print(f"Retry batch {i} completed successfully")
+                    print(f"Retry batch {i + start_batch_index} completed successfully")
                     successful_batches += 1
                 else:
-                    print(f"Retry batch {i} failed")
+                    print(f"Retry batch {i + start_batch_index} failed")
                     failed_batches += 1
     
     print(f"\n=== RefactoringMiner Processing Complete ===")
@@ -503,6 +510,48 @@ def collect_commits_between_dates(repo_path, start_date, end_date, branch=None, 
     except Exception as e:
         print(f"Error collecting commits between dates: {e}")
         return []
+
+def process_single_commit_with_refactoringminer(repo_path: str, commit_sha: str, output_file: str, timeout_minutes: int = 30) -> tuple[bool, dict]:
+    """Process a single commit using RefactoringMiner with -c flag"""
+    try:
+        # Create output directory if it doesn't exist
+        output_path = Path(output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        print(f"Processing single commit {commit_sha[:7]} with RefactoringMiner...")
+        
+        # Calculate timeout in seconds
+        timeout_seconds = timeout_minutes * 60
+        
+        # Run RefactoringMiner on single commit with -c flag
+        cmd = f"RefactoringMiner -c {repo_path} {commit_sha} -json {output_file}"
+        print(f"Running command: {cmd}")
+        print(f"Timeout: {timeout_minutes} minutes")
+        
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout_seconds)
+        
+        if result.returncode != 0:
+            print(f"Error processing commit {commit_sha[:7]}: {result.stderr}")
+            return False, {}
+            
+        print(f"Successfully processed commit {commit_sha[:7]}")
+        print(f"Results saved to: {output_file}")
+        
+        # Read and return the output file content as JSON
+        try:
+            with open(output_file, 'r') as f:
+                output_content = json.load(f)
+            return True, output_content
+        except Exception as e:
+            print(f"Warning: Could not read or parse JSON output file {output_file}: {e}")
+            return True, {}
+        
+    except subprocess.TimeoutExpired:
+        print(f"Timeout: Processing commit {commit_sha[:7]} took longer than {timeout_minutes} minutes")
+        return False, {}
+    except Exception as e:
+        print(f"Error processing commit {commit_sha[:7]}: {e}")
+        return False, {}
 
 def main():
     parser = argparse.ArgumentParser(description='Collect commit SHAs and process with RefactoringMiner')
