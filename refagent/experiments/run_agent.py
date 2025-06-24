@@ -49,16 +49,12 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     else:
         plan_type = planning.PlanningComponent
 
-    # vendor = 'grazie' # switch to `openai` to use the openai models directly
-    vendor = 'openai'
-    # vendor = 'grazie' # switch to `openai` to use the openai models directly
-    vendor = 'openai'
+    vendor = 'grazie' # switch to `openai` to use the openai models directly
+    # vendor = 'openai'
 
     agent = react_agent.ReactAgent(ide_server=ij_server,
-                     model_name=f'{vendor}:gpt-4o-mini',
-                     reasoning_model_name=f'{vendor}:o4-mini',
-                     model_name=f'{vendor}:gpt-4o-mini',
-                     reasoning_model_name=f'{vendor}:o4-mini',
+                     reasoning_model_name=f'{vendor}:openai-o4-mini',
+                     model_name=f'{vendor}:openai-gpt-4o-mini',
                      project=project,
                      plan_component=plan_type,
                      augmented_intent=augmented_intent,
@@ -71,8 +67,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
             assert initial_commit is not None, "initial commit must be provided for replication"
             agent.add_internal_commit(project.git_repo.commit(initial_commit))
             agent.initialize_agent(starting_file=bench_point.starting_file)
-            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
-            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
+            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
         traceback.print_exc()
@@ -145,6 +140,7 @@ if __name__ == '__main__':
     ij_server = ij.IntellijServer(server_url=args.ij_server_url)
 
     planning_results = {}
+    augmented_intents = {}
     if args.planning_results_file is not None:
         with open(refagent.data_folder.joinpath(args.planning_results_file)) as f:
             json_ = json.load(f)
@@ -174,6 +170,13 @@ if __name__ == '__main__':
     results_saver = rm.ResultsManager(run_identifier=args.run_identifier, save_file=results_file)
 
     for bench_point in benchmark:
+
+        if args.use_change_summary.lower() == "true":
+            print(f"Using change summary for {bench_point.change_summary}")
+        else:
+            print(args.use_change_summary)
+            print(f"Using initial commit for {bench_point.improved_commit_message}")
+
 
         if (selected_ref_ids is not None and
                 bench_point.ref_id not in selected_ref_ids):

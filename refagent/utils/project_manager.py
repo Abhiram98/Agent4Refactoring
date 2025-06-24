@@ -276,3 +276,20 @@ class EvalProject:
              'origin', branch_name], capture_output=True, text=True, check=True
         )
         return result.stdout
+    
+    def get_commit_diff(self, file_path_1: str, file_path_2: str, sha_1: str, sha_2: str, unified_context: int = 3) -> str:
+        result = subprocess.run(
+            [
+                'git',
+                '-C', str(self.get_project_path()),
+                'diff',
+                f'-U{unified_context}',
+                sha_1,
+                sha_2,
+                '--',
+                file_path_1,
+                file_path_2
+            ],
+            capture_output=True, text=True, check=True
+        )
+        return result.stdout

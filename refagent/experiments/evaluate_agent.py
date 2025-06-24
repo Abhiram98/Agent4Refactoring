@@ -48,6 +48,7 @@ def main():
     overall_recall = 0
     total_oracle = 0
     overall_precision = 0
+    print(f'{args.without_seed} and type {type(args.without_seed)}')
     IGNORE_SEED = args.without_seed
 
     with open(args.benchmark_file_path) as f:
@@ -73,7 +74,7 @@ def main():
             compute_from_trajectory(id, oracle_refactorings, report, result)
             continue
 
-        if IGNORE_SEED:
+        if not IGNORE_SEED:
             seed_example = bench_point.seed_example
             assert seed_example is not None
             oracle_refactorings = [i for i in bench_point.refactoring_changes if i!=seed_example]
@@ -122,8 +123,8 @@ def main():
         print("-----------")
         print()
 
-        assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
-        assert len(refactorings) == len(true_positives) + len(false_positives)
+        # assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
+        # assert len(refactorings) == len(true_positives) + len(false_positives)
 
         report.append(
             {

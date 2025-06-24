@@ -38,7 +38,7 @@ def _get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
         sha_2=v2_hash,
         unified_context=1000)
 
-def process_ratpack_json(json_file_path, project_name='vespa'):
+def process_ratpack_json(json_file_path, project_name='ratpack'):
     
     project = EvalProject(project_name)
     # chat_client = get_chat_grazie_client()
@@ -134,14 +134,14 @@ def main():
     project_root = get_project_root()
     print(f"Project root directory: {project_root}")
     
-    json_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "camunda.json")
+    json_file_path = os.path.join(project_root, "data", "renas", "ratpack-700-800.json")
     
     if not os.path.exists(json_file_path):
         print(f"Error: {json_file_path} not found")
         return
     
     print(f"Processing {json_file_path}...")
-    process_ratpack_json(json_file_path, project_name='camunda')
+    process_ratpack_json(json_file_path, project_name='ratpack')
 
 if __name__ == "__main__":
     main() 

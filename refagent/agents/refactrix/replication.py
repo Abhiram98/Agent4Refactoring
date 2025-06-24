@@ -12,6 +12,7 @@ from langgraph.graph import END, START, StateGraph, MessagesState
 from pathlib import Path
 from typing import Optional
 import os
+import re
 
 import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
@@ -69,7 +70,7 @@ class Replication(BaseModel):
                             ]
 
         list_of_keywords = self.invokeLLM() 
-        files_to_inspect = self.filterFiles(files_to_inspect, list_of_keywords)
+        files_to_inspect = self.filterFilesWithLCS(files_to_inspect, list_of_keywords)
 
 
         with ContextThreadPoolExecutor(max_workers=4) as executor:
@@ -220,36 +221,58 @@ class Replication(BaseModel):
                           if i.refactoring_type in Replication.SUPPORTED_REPLICATIONS]
         examples = '\n'.join([i.execution_details for i in filtered_steps])
         examples += self.example_changes
-        
-        response = self.model.invoke([
-            SystemMessage("You are an expert developer who can collect list of keywords "
-                          "to identify the rename changes that need to be replicated."),
-            HumanMessage(
-                f"Here is the intent of the developer: "
-                f"{self.initial_intent}\n"
-                f"Here are the kinds of refactorings that "
-                f"need to be replicated. These refactorings were already performed:\n"
-                f"{examples}"),
-            HumanMessage("Answer the following question: "
-                         f"What are the keywords that could identify the rename changes that need to be replicated? "
-                         f"Extract variable names, method names, class names, or other identifiers that were renamed. Only the old names, not the new names."
-                         f"Provide only the list of keywords in comma separated format, no other text.")
-        ])
 
-        # Parse the response to extract keywords
-        list_of_keywords = [keyword.strip() for keyword in response.content.split(',') if keyword.strip()]
-        print(f"List of keywords: {list_of_keywords}")
-        return list_of_keywords
-    
-    def filterFiles(self, files_to_inspect, list_of_keywords): 
-        if not list_of_keywords:
+        response = self.model.invoke([
+            SystemMessage("You are an expert developer who can extract pairs of old and new identifiers (variable, method, class names, etc.) that were renamed from code diffs. You will be given code diffs and should output a list of (old_name, new_name) pairs for all identifiers that were renamed."),
+            HumanMessage(
+                f"Here is the code diffs:\n"
+                f"{examples}"),
+            HumanMessage(
+                "Extract all variable names, method names, class names, or other identifiers that were renamed. Output only a list of pairs in the format: old_name -> new_name, one pair per line. Do not include any explanation or extra text."
+            )
+        ])
+        # Parse the response to extract pairs
+        pairs = []
+        content = response.content if hasattr(response, 'content') else str(response)
+        if not isinstance(content, str):
+            content = str(content)
+        for line in content.strip().split('\n'):
+            if '->' in line:
+                old, new = line.split('->', 1)
+                pairs.append((old.strip(), new.strip()))
+        print(f"Extracted rename pairs: {pairs}")
+        return pairs
+
+    def lcs_length(self, a, b):
+        dp = [[0]*(len(b)+1) for _ in range(len(a)+1)]
+        for i in range(len(a)):
+            for j in range(len(b)):
+                if a[i] == b[j]:
+                    dp[i+1][j+1] = dp[i][j]+1
+                else:
+                    dp[i+1][j+1] = max(dp[i][j+1], dp[i+1][j])
+        return dp[-1][-1]
+
+    def is_similar(self, old_name, candidate, threshold=0.7):
+        lcs = self.lcs_length(old_name, candidate)
+        return lcs / len(old_name) > threshold if old_name else False
+
+    def filterFilesWithLCS(self, files_to_inspect, rename_pairs, threshold=0.5):
+        if not rename_pairs:
             return files_to_inspect
-            
         filtered_files = []
+        identifier_pattern = re.compile(r'\b\w+\b')
         for file in files_to_inspect:
             file_contents = self.project.get_file_contents(file)
-            if any(keyword in file_contents for keyword in list_of_keywords):
-                filtered_files.append(file)
+            identifiers = set(identifier_pattern.findall(file_contents))
+            for old_name, _ in rename_pairs:
+                for candidate in identifiers:
+                    if self.is_similar(old_name, candidate, threshold):
+                        filtered_files.append(file)
+                        break
+                else:
+                    continue
+                break
         print(f"Filtered files: {len(filtered_files)} raw files: {len(files_to_inspect)}")
         return filtered_files
 
