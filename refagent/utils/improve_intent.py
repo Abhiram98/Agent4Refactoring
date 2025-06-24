@@ -22,15 +22,15 @@ def get_chat_grazie_client():
     return ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
                       client_auth_type=AuthType.APPLICATION,
                       client_url=GrazieApiGatewayUrls.STAGING,
-                      profile="gpt-4o",
+                      profile="openai-gpt-4o-mini",
                       client_agent_name='fix-agent',
                       client_agent_version='0.1',
-                      temperature=0.3)
+                      temperature=1)
 def get_chat_openai_client():
     return ChatOpenAI(model="gpt-4o-mini", temperature=1)
 
 def _get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
-    project = EvalProject('ratpack')
+    project = EvalProject(project_name)
     return project.get_commit_diff(
         file_path_1=file_path_1,
         file_path_2=file_path_2,
@@ -38,7 +38,7 @@ def _get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
         sha_2=v2_hash,
         unified_context=1000)
 
-def process_ratpack_json(json_file_path, project_name='ratpack'):
+def process_ratpack_json(json_file_path, project_name='flink'):
     
     project = EvalProject(project_name)
     # chat_client = get_chat_grazie_client()
@@ -49,8 +49,8 @@ def process_ratpack_json(json_file_path, project_name='ratpack'):
     
     updated = False
     for i, entry in enumerate(data):
-        if entry['id'] != 620 :
-            continue
+        # if entry['id'] != 620 :
+        #     continue
         
         if 'v2_hash' in entry and 'starting_file' in entry:
             file_1 = entry['starting_file']
@@ -134,14 +134,14 @@ def main():
     project_root = get_project_root()
     print(f"Project root directory: {project_root}")
     
-    json_file_path = os.path.join(project_root, "data", "renas", "ratpack-600-650.json")
+    json_file_path = os.path.join(project_root, "data", "ref_miner","rename", "flink-clean-split-manual.json")
     
     if not os.path.exists(json_file_path):
         print(f"Error: {json_file_path} not found")
         return
     
     print(f"Processing {json_file_path}...")
-    process_ratpack_json(json_file_path)
+    process_ratpack_json(json_file_path, project_name='flink')
 
 if __name__ == "__main__":
     main() 

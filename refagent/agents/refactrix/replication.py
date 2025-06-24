@@ -12,6 +12,7 @@ from langgraph.graph import END, START, StateGraph, MessagesState
 from pathlib import Path
 from typing import Optional
 import os
+import re
 
 import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
@@ -55,6 +56,8 @@ class Replication(BaseModel):
         # files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
         diffs = self.project.get_changes(self.refactoring_commit.hexsha)
         elements_to_inspect = self.get_elements_to_inspect(diffs)
+        elements_to_inspect += [(i,1) for i in
+                                self.get_linked_elements(CodeElement(file_path=self.starting_file, line_num=1))]
 
         should_replicate_msg = self.should_replicate()
         if not should_replicate_msg:
@@ -62,38 +65,43 @@ class Replication(BaseModel):
             # the developer did not ask for it.
             return []
 
-        files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect) if i!=self.starting_file]
+        files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect)
+                            # if i!=self.starting_file
+                            ]
 
-        def handle_file(file_path) -> Optional[planning.RefactoringPlan] :
-            try:
-                ask_replicate = self.compile(file_path)
-                should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
-                print(should_replicate.content)
-
-                if 'YES' in should_replicate.content:  # should replicate the content
-                    plan = planning.PlanningComponent(
-                        initial_intent=self.initial_intent + should_replicate.content,
-                        model=self.model,
-                        source_file_path=file_path,
-                        source_code=self.project.get_file_contents(file_path),
-                    ).run()
-                    for step in plan.steps:
-                        step.file_path = file_path # hard code the file path, so that the correct file is opened.
-                    return plan
-            except Exception as e:
-                print(f"Error compiling and running replication for file {file_path}: {e}")
-                traceback.print_exc()
-            return None
+        list_of_keywords = self.invokeLLM() 
+        files_to_inspect = self.filterFilesWithLCS(files_to_inspect, list_of_keywords)
 
 
         with ContextThreadPoolExecutor(max_workers=4) as executor:
-            futures = {executor.submit(handle_file, file_path): file_path for file_path in files_to_inspect}
+            futures = {executor.submit(self.handle_file, file_path): file_path for file_path in files_to_inspect}
             for i, future in enumerate(as_completed(futures)):
                 print(f"completed planning for: {i + 1}/{len(futures)}")
                 result = future.result()
                 if result is not None:
                     yield result
 
+        return None
+
+    def handle_file(self, file_path) -> Optional[planning.RefactoringPlan]:
+        try:
+            ask_replicate = self.compile(file_path) # the edited file?
+            should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
+            print(should_replicate.content)
+
+            if 'YES' in should_replicate.content:  # should replicate the content
+                plan = planning.PlanningComponent(
+                    initial_intent=self.initial_intent + should_replicate.content,
+                    model=self.model,
+                    source_file_path=file_path,
+                    source_code=self.project.get_file_contents(file_path),
+                ).run()
+                for step in plan.steps:
+                    step.file_path = file_path  # hard code the file path, so that the correct file is opened.
+                return plan
+        except Exception as e:
+            print(f"Error compiling and running replication for file {file_path}: {e}")
+            traceback.print_exc()
         return None
 
     def get_elements_to_inspect(self, diffs):
@@ -129,9 +137,10 @@ class Replication(BaseModel):
 
     def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
         self.ide_server.open_file(Path(code_element.file_path))
+        linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
         try:
             linked_elements_json = json.loads(
-                self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+                linked_elements_json
             )
         except:
             print("Failed to get linked element")
@@ -166,6 +175,7 @@ class Replication(BaseModel):
         """Compile the langgraph."""
 
         def ask_replicate(state: MessagesState):
+            file_name = file_to_inspect.split('/')[-1]
             try:
                 file_contents = self.project.get_file_contents(file_to_inspect)
             except FileNotFoundError:
@@ -181,19 +191,20 @@ class Replication(BaseModel):
                     SystemMessage("You are an expert developer who decides whether a "
                                   "refactoring needs to be replicated in a certain file, "
                                   "for the sake of consistency. "),
-                    HumanMessage(f"Here are the contents of the file: {file_contents}"),
                     HumanMessage(
                                 f"Here is the intent of the developer: "
                                  f"{self.initial_intent}"
-                                 f"Here are the EXACT kinds of refactorings that "
-                                 f"need to be replicated. These refactorings were already performed:\n"
-                                 f"{examples}"),
+                                 # f"Here are the kinds of refactorings that "
+                                 # f"need to be replicated. These refactorings were already performed:\n"
+                                 # f"{examples}"
+                    ),
+                    HumanMessage(f"Here are the contents of the file: {file_contents}"),
                     HumanMessage("Answer the following question: "
-                                 f"Are there any code elements in {file_to_inspect}, "
-                                 f"that could this exact change? "
-                                 f"Then, add a YES/NO at the end of your reply,"
+                                 f"Are there ANY code elements in {file_name}, "
+                                 f"that could change? "
+                                 f"Then, say YES/NO at the end of your reply,"
                                  f" indicating whether to "
-                                 f"replicate the refactoring concept in this file.")
+                                 f"there are any code elements that should change.")
                  ]
             )
 
@@ -205,5 +216,90 @@ class Replication(BaseModel):
 
         return workflow.compile()
 
+    def invokeLLM(self):
+        filtered_steps = [i for i in self.executed_plan.steps
+                          if i.refactoring_type in Replication.SUPPORTED_REPLICATIONS]
+        examples = '\n'.join([i.execution_details for i in filtered_steps])
+        examples += self.example_changes
 
+        response = self.model.invoke([
+            SystemMessage("You are an expert developer who can extract pairs of old and new identifiers (variable, method, class names, etc.) that were renamed from code diffs. You will be given code diffs and should output a list of (old_name, new_name) pairs for all identifiers that were renamed."),
+            HumanMessage(
+                f"Here is the code diffs:\n"
+                f"{examples}"),
+            HumanMessage(
+                "Extract all variable names, method names, class names, or other identifiers that were renamed. Output only a list of pairs in the format: old_name -> new_name, one pair per line. Do not include any explanation or extra text."
+            )
+        ])
+        # Parse the response to extract pairs
+        pairs = []
+        content = response.content if hasattr(response, 'content') else str(response)
+        if not isinstance(content, str):
+            content = str(content)
+        for line in content.strip().split('\n'):
+            if '->' in line:
+                old, new = line.split('->', 1)
+                pairs.append((old.strip(), new.strip()))
+        print(f"Extracted rename pairs: {pairs}")
+        return pairs
+
+    def lcs_length(self, a, b):
+        dp = [[0]*(len(b)+1) for _ in range(len(a)+1)]
+        for i in range(len(a)):
+            for j in range(len(b)):
+                if a[i] == b[j]:
+                    dp[i+1][j+1] = dp[i][j]+1
+                else:
+                    dp[i+1][j+1] = max(dp[i][j+1], dp[i+1][j])
+        return dp[-1][-1]
+
+    def is_similar(self, old_name, candidate, threshold=0.7):
+        lcs = self.lcs_length(old_name, candidate)
+        return lcs / len(old_name) > threshold if old_name else False
+
+    def filterFilesWithLCS(self, files_to_inspect, rename_pairs, threshold=0.5):
+        if not rename_pairs:
+            return files_to_inspect
+        filtered_files = []
+        identifier_pattern = re.compile(r'\b\w+\b')
+        for file in files_to_inspect:
+            file_contents = self.project.get_file_contents(file)
+            identifiers = set(identifier_pattern.findall(file_contents))
+            for old_name, _ in rename_pairs:
+                for candidate in identifiers:
+                    if self.is_similar(old_name, candidate, threshold):
+                        filtered_files.append(file)
+                        break
+                else:
+                    continue
+                break
+        print(f"Filtered files: {len(filtered_files)} raw files: {len(files_to_inspect)}")
+        return filtered_files
+
+
+
+class SimpleReplication(Replication):
+
+    def handle_file(self, file_path) -> Optional[planning.RefactoringPlan]:
+        try:
+            ask_replicate = self.compile(file_path)
+            should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
+            print(should_replicate.content)
+            if 'YES' in should_replicate.content:  # should replicate the content
+                plan = planning.RefactoringPlan(
+                    steps=[
+                        planning.PlanningStep(
+                            reason=self.initial_intent,
+                            final_code="",
+                            refactoring_type=sup_ref.SupportedRefactorings.RENAME,
+                            file_path=file_path,
+                            execution_details=""
+                        )
+                    ]
+                )
+                return plan
+        except Exception as e:
+            print(f"Error compiling and running replication for file {file_path}: {e}")
+            traceback.print_exc()
+        return None
 

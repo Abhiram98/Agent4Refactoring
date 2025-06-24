@@ -7,7 +7,7 @@ import refagent.utils.project_manager as pm
 import refagent.utils.refminer_utils as rminer
 import refagent.refactoring_types.refactorings as refactoring_types
 import pandas as pd
-
+from typing import List
 from pathlib import Path
 
 import refagent.benchmark.creation.scrape_renas_dataset as scrape_rename
@@ -32,6 +32,9 @@ def main():
     parser = argparse.ArgumentParser(description='Evaluate the performance of an agent, given it\'s output file.')
     parser.add_argument('agent_outfile_path', type=str, help='Path to Agent\'s output file')
     parser.add_argument('--benchmark_file_path', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
+    parser.add_argument("--without-seed",
+                        help='If passed, do not use the seed while computing recall and precision',
+                        action='store_true')
     args = parser.parse_args()
 
     print(f'File Path: {args.agent_outfile_path}')
@@ -45,10 +48,12 @@ def main():
     overall_recall = 0
     total_oracle = 0
     overall_precision = 0
+    print(f'{args.without_seed} and type {type(args.without_seed)}')
+    IGNORE_SEED = args.without_seed
 
     with open(args.benchmark_file_path) as f:
         benchmark_json = json.load(f)
-    benchmark = bm_load.load_benchmark(benchmark_json)
+    benchmark: List[bm_load.RenameItem] = bm_load.load_benchmark(benchmark_json, bench_type=bm_load.RenameItem)
 
     for result in agent_results:
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
@@ -64,6 +69,19 @@ def main():
         oracle_refactorings = bench_point.refactoring_changes
         if len(oracle_refactorings) == 0:
             continue
+
+        if len(refactorings) == 0:
+            compute_from_trajectory(id, oracle_refactorings, report, result)
+            continue
+
+        if not IGNORE_SEED:
+            seed_example = bench_point.seed_example
+            assert seed_example is not None
+            oracle_refactorings = [i for i in bench_point.refactoring_changes if i!=seed_example]
+            refactorings = [i for i in refactorings if i!=seed_example]
+        if len(oracle_refactorings) == 0:
+            continue
+
         recall = 0
         total_oracle += 1
         true_positives = []
@@ -111,18 +129,59 @@ def main():
         report.append(
             {
                 "id": id,
+                "oracle_count": len(oracle_refactorings),
                 "oracle": [i.model_dump() for i in oracle_refactorings],
                 "agent_refactorings": [i.model_dump() for i in refactorings],
+                "agent_refactoring_count": len(refactorings),
                 "recall": recall/len(oracle_refactorings),
                 "precision": precision,
                 "false_negatives": [i.model_dump() for i in false_negatives],
                 "false_positives": [i.model_dump() for i in false_positives],
                 "true_positives": [i.model_dump() for i in true_positives],
+                "agent_recommendations_str": str([i.old_name for i in refactorings])
             }
         )
 
     with open(report_file_path, 'w') as f:
         json.dump(sorted(report, key=lambda x: x['id']), f, indent=4)
+
+
+def compute_from_trajectory(id, oracle_refactorings, report, result):
+    tool_calls = []
+    for fname in result['response']['performed_refactorings']:
+        for tool_call in result['response']['performed_refactorings'][fname]:
+            if tool_call['response'] == 'success' and tool_call['tool_call']['name'] == 'rename':
+                r = scrape_rename.RenameRecommendation(
+                    oldName=tool_call['tool_call']['args']['old_name'],
+                    type=tool_call['tool_call']['args']['code_element_type'].capitalize(),
+                    file=fname,
+                    line=tool_call['tool_call']['args']['line_num']
+                )
+                tool_calls.append(r)
+    true_positives = []
+    for rename in tool_calls:
+        if any([rename.line == oracle.old_name
+                and rename.line == oracle.leftSideLocations[0].startLine
+                and rename.file == oracle.leftSideLocations[0].filePath
+                and rename.type in oracle.type
+                for oracle in oracle_refactorings]):
+            true_positives.append(rename)
+    report.append(
+        {
+            "id": id,
+            "oracle_count": len(oracle_refactorings),
+            "oracle": [i.model_dump() for i in oracle_refactorings],
+            "agent_refactorings": [tool_call.model_dump() for tool_call in tool_calls],
+            "agent_refactoring_count": len(tool_calls),
+            "recall": len(true_positives) / len(oracle_refactorings) if len(oracle_refactorings) > 0 else 0,
+            "precision": len(true_positives) / len(tool_calls) if len(tool_calls) > 0 else 0,
+            # "false_negatives": [i.model_dump() for i in false_negatives],
+            # "false_positives": [i.model_dump() for i in false_positives],
+            "true_positives": [i.model_dump() for i in true_positives],
+            # "agent_recommendations_str": str([i.old_name for i in refactorings])
+        }
+    )
+    print("nothing ;/")
 
 
 def compute_our_recall():
@@ -178,3 +237,5 @@ def compute_our_recall():
 
 if __name__ == '__main__':
     main()
+
+    # compute_our_recall()

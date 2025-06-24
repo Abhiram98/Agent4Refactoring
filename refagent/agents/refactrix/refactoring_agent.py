@@ -142,26 +142,29 @@ class Agent(BaseModel):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
         print("Starting refactoring-agent")
         # update the intent after each loop
-        self._starting_file = starting_file
-        self._original_starting_file = starting_file
-        self._original_source_code = self.project.get_file_contents(starting_file)
-        model = self.create_model(self.model_name)
-        self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
+        model = self.initialize_agent(starting_file)
 
         if self.augmented_intent is None:
-            augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
-        else:
-            augmented_intent = self.augmented_intent
-        current_intent = augmented_intent
+            self.augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
+        current_intent = self.augmented_intent
 
-        current_intent, ref_plan = self.run_agentic_loop(augmented_intent, current_intent, model, starting_file)
+        current_intent, ref_plan = self.run_agentic_loop(current_intent, model, starting_file)
 
         # Run replication component
         if self.do_replication:
-            self.perform_replication(augmented_intent, current_intent, model, ref_plan)
+            self.perform_replication(current_intent, model, ref_plan)
         return None
 
-    def run_agentic_loop(self, augmented_intent, current_intent, model, starting_file):
+    def initialize_agent(self, starting_file):
+        self._starting_file = starting_file
+        self.update_starting_file(self._starting_file)
+        self._original_starting_file = starting_file
+        model = self.create_model(self.model_name)
+        self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
+        self._original_source_code = self.project.get_file_contents(self._starting_file)
+        return model
+
+    def run_agentic_loop(self, current_intent, model, starting_file):
         for _ in range(self.max_iterations):
             self.update_starting_file(starting_file)
             self._source_code = self.project.get_file_contents(self._starting_file)
@@ -181,7 +184,7 @@ class Agent(BaseModel):
                 ide_server=self.ide_server,
                 original_code=self._original_source_code,
                 refactored_code=self._source_code,
-                intent=augmented_intent
+                intent=self.augmented_intent
             ).compile_and_run()
             self._internal_commits = \
                 [self.project.squash_changes(current_intent, len(self._internal_commits))]
@@ -194,12 +197,12 @@ class Agent(BaseModel):
                 current_intent = quality_result.refined_intent
         return current_intent, ref_plan
 
-    def perform_replication(self, augmented_intent, current_intent, model, ref_plan):
+    def perform_replication(self, current_intent, model, ref_plan):
         replicator = replication.Replication(
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=augmented_intent,  # pass the augmented intent,
+            initial_intent=self.augmented_intent,  # pass the augmented intent,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,
@@ -208,7 +211,7 @@ class Agent(BaseModel):
             refactoring_commit=self._internal_commits[0]
         )
         for plan in replicator.compile_and_run():
-            self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True)
+            self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
             self.update_changed_files()
 
     def get_important_files_diff(self):
@@ -260,10 +263,11 @@ class Agent(BaseModel):
         final_state = self.execute_plan(initial_intent, model, ref_plan)
         return final_state
 
-    def execute_plan(self, initial_intent, model, ref_plan, ask_finished_first_iteration=False):
+    def execute_plan(self, initial_intent, model, ref_plan,
+                     ask_finished_first_iteration=False, open_file=False):
         last_file_opened = None
 
-        if len(ref_plan.steps) > 0:
+        if len(ref_plan.steps) > 0 and open_file:
             self.try_open_file(ref_plan.steps[0].file_path) # open the file. The edits should happen in only one file.
 
         for i, step in enumerate(ref_plan.steps):
@@ -333,6 +337,8 @@ class Agent(BaseModel):
         # for rel_file_path in important_files:
         try:
             file_contents = self.project.get_file_contents(self._starting_file)
+            if file_contents == "":
+                raise Exception("File is empty.")
             source = code_utils.add_line_numbers(
                 "// This file is empty." if file_contents=="" else file_contents)
             current_source_code += f"{self._starting_file}: \n{source}"
@@ -497,6 +503,9 @@ class Agent(BaseModel):
             if self._failing_tool_call_count >= self.MAX_FAILING_TOOL_CALLS:
                 return {'messages': [AIMessage(f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
 
+            if self.contains_tool_call_cycle():
+                return {'messages': [AIMessage('finished because tool calls are cycling. DONE')]}
+
             if self.ide_server.call_tool_get("get_source_code") == '':
                 return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
 
@@ -551,11 +560,46 @@ class Agent(BaseModel):
         changes = []
         if len(self._internal_commits) > 0:
             changes += self.project.get_changes(str(self._internal_commits[-1]))
-        changes += (self.project.get_unstaged_changes() +
+        uncommited_changes = (self.project.get_unstaged_changes() +
                     self.project.get_staged_changes())
-        for c in changes:
+        if len(uncommited_changes) > 0:
+            self.commit_changes("commit changes for analysis")
+            changes += self.project.get_changes(str(self._internal_commits[-1]))
+
+        for c in changes[::-1]: # reverse order, so that the staged changes are considered first.
             if c.git_diff.a_path == starting_file:
                 self._starting_file = c.git_diff.b_path
+                if len(uncommited_changes) > 0:
+                    self._internal_commits.pop()
+                    self.project.reset_head(1) # reset the uncommited changes.
                 return c.git_diff.b_path
         return starting_file
+
+    def add_internal_commit(self, commit: Commit):
+        self._internal_commits.append(commit)
+
+    def contains_tool_call_cycle(self):
+        if self._performed_refactorings.get(self._starting_file) is None:
+            return False
+
+        try:
+            tool_calls_args = [tc['tool_call']['args'] for tc in self._performed_refactorings[self._starting_file]
+                          if tc['tool_call']['name']=='rename' and tc['result']=='success']
+
+            args_map = defaultdict(int)
+            for arg in tool_calls_args:
+                arg_tuple = (arg['old_name'], arg['new_name'], arg['line_num'], arg['code_element_type'])
+                args_map[arg_tuple] += 1
+
+            for arg in tool_calls_args:
+                arg_tuple = (arg['old_name'], arg['new_name'], arg['line_num'], arg['code_element_type'])
+                reverse_tuple = (arg['new_name'], arg['old_name'], arg['line_num'], arg['code_element_type'])
+
+                if (args_map[arg_tuple] > 1 and args_map[reverse_tuple] > 1
+                        and args_map[arg_tuple] > args_map[reverse_tuple]):
+                    return True
+
+        except:
+            return  False
+
 

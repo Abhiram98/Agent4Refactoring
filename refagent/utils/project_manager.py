@@ -202,26 +202,6 @@ class EvalProject:
             result = subprocess.run(
                 ['git', '-C', self.get_project_path(), 'diff', '--staged', file_path], capture_output=True, text=True, check=True)
         return result.stdout
-    
-    def get_commit_diff(self, file_path_1: str=None, file_path_2: str=None, sha_1: str=None, sha_2: str=None, unified_context: int=None) -> str:
-        git_cmd = ['git', '-C', self.get_project_path(), 'diff']
-        
-        if unified_context is not None:
-            git_cmd.append(f'-U{unified_context}')
-
-        if sha_1 is not None:
-            git_cmd.append(sha_1)
-            git_cmd.append(sha_2)
-            git_cmd.append('--')
-            git_cmd.append(file_path_1)
-            git_cmd.append(file_path_2)
-        else:
-            git_cmd.append(sha_2)
-            git_cmd.append('--')
-            git_cmd.append(file_path_2)
-        
-        result = subprocess.run(git_cmd, capture_output=True, text=True, check=True)
-        return result.stdout
 
     def file_exists(self, file_path: str) -> bool:
         return os.path.exists(self.get_project_path().joinpath(file_path))
@@ -263,4 +243,53 @@ class EvalProject:
     def get_unified_file_diff_between_commits(self, sha1: str, sha2: str, file_path: str) -> str:
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'diff', '-U100', sha1, sha2, '--', file_path], capture_output=True, text=True, check=True)
+        return result.stdout
+
+    def pull_project(self):
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'pull', 'origin',
+             self.get_master_branch_name()], capture_output=True, text=True, check=True)
+        return result.stdout
+
+    def get_master_branch_name(self):
+        # git symbolic-ref refs/remotes/origin/HEAD
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'symbolic-ref', 'refs/remotes/origin/HEAD'], capture_output=True, text=True, check=True)
+        return result.stdout.split('/')[-1].strip()
+
+    def get_remote_url(self):
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'remote', 'get-url', 'origin'], capture_output=True, text=True, check=True)
+        return result.stdout.strip().rstrip('.git')
+
+    def create_branch(self, branch_name):
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'checkout', '-b',
+            branch_name], capture_output=True, text=True, check=True
+        )
+        return result.stdout
+
+    def push_upstream_branch(self, branch_name):
+        # git push --set-upstream origin seed-1077
+        result = subprocess.run(
+            ['git', '-C', self.get_project_path(), 'push', '--set-upstream',
+             'origin', branch_name], capture_output=True, text=True, check=True
+        )
+        return result.stdout
+    
+    def get_commit_diff(self, file_path_1: str, file_path_2: str, sha_1: str, sha_2: str, unified_context: int = 3) -> str:
+        result = subprocess.run(
+            [
+                'git',
+                '-C', str(self.get_project_path()),
+                'diff',
+                f'-U{unified_context}',
+                sha_1,
+                sha_2,
+                '--',
+                file_path_1,
+                file_path_2
+            ],
+            capture_output=True, text=True, check=True
+        )
         return result.stdout

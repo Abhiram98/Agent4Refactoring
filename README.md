@@ -6,7 +6,7 @@ A refactoring agent + a benchmark to evaluate agents design for refactoring soft
 
 ### Install package
 
-Tested python version: 3.10. (It will probably work with other versions?!)
+Tested python version: 3.12. (It will probably _not_ work with other versions?! :/)
 
 ```shell
 pip install -e . # this install the repository in edit mode (good for development) 
@@ -36,6 +36,11 @@ Follow the instructions to [How to run RefactoringMiner from the command line](h
 Finally, note the path to refactoring miner's executable binary. Usually, it is something like:
 
 `REFMINER_PATH=RefactoringMiner/build/distributions/RefactoringMiner-<VERSION>`
+
+### Optional: Install github CLI - this is useful when scraping projects and building datasets
+Refer the link here. https://cli.github.com/
+Setup your github token in the .env file like this:
+`GH_TOKEN='<your-github-token-here>'`
 
 
 ### Setup Grazie, OpenAI key
