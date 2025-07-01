@@ -403,8 +403,7 @@ class Replication(BaseModel):
         print(f"Direct keyword matches: {len(direct_matches)}")
 
         # Strategy 2: LCSubstring with generic word filtering
-        if len(direct_matches) < len(
-                files_to_inspect) * 0.1:  # If direct matching found few files (if less than 10% got matched, maybe there are more candidate files
+        if len(direct_matches) == 0:  # If direct matching found zero files, try pattern matching
             lcs_matches = self.filter_by_lcsubstring_filtered(files_to_inspect, rename_pairs, threshold)
             filtered_files.update(lcs_matches)
             print(f"LCSubstring matches: {len(lcs_matches)}")
