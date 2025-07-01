@@ -82,6 +82,8 @@ def split_data(json_file_path, save_file_path, csv_file_path):
             if not matching_rows.empty:
                 grouped = matching_rows.groupby('coRename')
                 for co_rename_value, group_df in grouped:
+                    if co_rename_value == -1:
+                        continue
                     unique_pair = set()
                     for index, row in group_df.iterrows():
                         print(f'row["old_name"]: {row["old_name"]}, row["new_name"]: {row["new_name"]}')
@@ -96,7 +98,8 @@ def split_data(json_file_path, save_file_path, csv_file_path):
                         if first == 0:
                             temp['starting_file'] = co_rename[data][0]['leftSideLocations'][0]['filePath']
                             first = 1
-                        temp['refactoring_changes'].append(co_rename[data])
+                        for refactoring_change in co_rename[data]:
+                            temp['refactoring_changes'].append(refactoring_change)
                         temp['hints'].append(data)
                     data_list.append(temp)
     with open(save_file_path, 'w') as f:
@@ -109,9 +112,9 @@ def main():
     project_root = os.path.dirname(os.path.dirname(project_root))  # Go up two levels to reach project root
 
     # Default paths
-    csv_file_path = os.path.join(project_root, 'data', "ref_miner", "rename", "split-data.csv")
+    csv_file_path = os.path.join(project_root, 'data', "ref_miner", "rename", "split-data2.csv")
     json_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "flink-clean.json")
-    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "flink-clean-split-manual.json")
+    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "flink-clean-split-manual2.json")
 
     # Check if JSON file exists
     if not os.path.exists(json_file_path):

@@ -1,0 +1,623 @@
+[
+  {
+    "id": 10135,
+    "project": "vespa",
+    "v1_hash": "5fbb48dc046aef73d91a7c623c9cd83029c8748e",
+    "v2_hash": "9e6f74198ff1618b390ef2cfa221d8446d2b08c3",
+    "orig_commit_message": "Simplify naming\n",
+    "improved_commit_message": "Simplify naming. Rename CompositeType -> Composite\n",
+    "change_summary": "The rename from `CompositeType` to `Composite` in the `QueryType` class aims to simplify and standardize naming conventions for consistency and clarity in the codebase.",
+    "hints": [
+      "CompositeType -> Composite"
+    ],
+    "starting_file": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Class",
+        "description": "Rename Class com.yahoo.search.query.QueryType.CompositeType renamed to com.yahoo.search.query.QueryType.Composite",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 145,
+            "endLine": 145,
+            "startColumn": 5,
+            "endColumn": 59,
+            "codeElementType": "ENUM_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "com.yahoo.search.query.QueryType.CompositeType"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 141,
+            "endLine": 141,
+            "startColumn": 5,
+            "endColumn": 55,
+            "codeElementType": "ENUM_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "com.yahoo.search.query.QueryType.Composite"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public getCompositeType() : CompositeType renamed to public getComposite() : Composite in class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 56,
+            "endLine": 57,
+            "startColumn": 5,
+            "endColumn": 68,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public getCompositeType() : CompositeType"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 52,
+            "endLine": 53,
+            "startColumn": 5,
+            "endColumn": 58,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public getComposite() : Composite"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public setCompositeType(compositeType CompositeType) : QueryType renamed to public setComposite(composite Composite) : QueryType in class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 59,
+            "endLine": 67,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public setCompositeType(compositeType CompositeType) : QueryType"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 55,
+            "endLine": 63,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public setComposite(composite Composite) : QueryType"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public setCompositeType(composite String) : QueryType renamed to public setComposite(composite String) : QueryType in class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 69,
+            "endLine": 74,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public setCompositeType(composite String) : QueryType"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 65,
+            "endLine": 70,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public setComposite(composite String) : QueryType"
+          }
+        ]
+      },
+      {
+        "type": "Change Parameter Type",
+        "description": "Change Parameter Type compositeType : CompositeType to composite : Composite in method public QueryType(type Query.Type, composite Composite, tokenization Tokenization, syntax Syntax) from class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 46,
+            "endLine": 46,
+            "startColumn": 39,
+            "endColumn": 66,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "compositeType : CompositeType"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 48,
+            "endLine": 48,
+            "startColumn": 9,
+            "endColumn": 44,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 42,
+            "endLine": 42,
+            "startColumn": 39,
+            "endColumn": 58,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "changed-type variable declaration",
+            "codeElement": "composite : Composite"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 44,
+            "endLine": 44,
+            "startColumn": 9,
+            "endColumn": 36,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the variable with changed type",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter compositeType : CompositeType to composite : Composite in method public QueryType(type Query.Type, composite Composite, tokenization Tokenization, syntax Syntax) from class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 46,
+            "endLine": 46,
+            "startColumn": 39,
+            "endColumn": 66,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "compositeType : CompositeType"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 48,
+            "endLine": 48,
+            "startColumn": 9,
+            "endColumn": 44,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 42,
+            "endLine": 42,
+            "startColumn": 39,
+            "endColumn": 58,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "composite : Composite"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 44,
+            "endLine": 44,
+            "startColumn": 9,
+            "endColumn": 36,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Change Return Type",
+        "description": "Change Return Type CompositeType to Composite in method public getComposite() : Composite from class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 57,
+            "endLine": 57,
+            "startColumn": 12,
+            "endColumn": 25,
+            "codeElementType": "TYPE",
+            "description": "original return type",
+            "codeElement": "CompositeType"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 56,
+            "endLine": 57,
+            "startColumn": 5,
+            "endColumn": 68,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public getCompositeType() : CompositeType"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 53,
+            "endLine": 53,
+            "startColumn": 12,
+            "endColumn": 21,
+            "codeElementType": "TYPE",
+            "description": "changed return type",
+            "codeElement": "Composite"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 52,
+            "endLine": 53,
+            "startColumn": 5,
+            "endColumn": 58,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with changed return type",
+            "codeElement": "public getComposite() : Composite"
+          }
+        ]
+      },
+      {
+        "type": "Change Parameter Type",
+        "description": "Change Parameter Type compositeType : CompositeType to composite : Composite in method public setComposite(composite Composite) : QueryType from class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 64,
+            "endLine": 64,
+            "startColumn": 39,
+            "endColumn": 66,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "compositeType : CompositeType"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 65,
+            "endLine": 65,
+            "startColumn": 9,
+            "endColumn": 44,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 60,
+            "endLine": 60,
+            "startColumn": 35,
+            "endColumn": 54,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "changed-type variable declaration",
+            "codeElement": "composite : Composite"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 61,
+            "endLine": 61,
+            "startColumn": 9,
+            "endColumn": 36,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the variable with changed type",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter compositeType : CompositeType to composite : Composite in method public setComposite(composite Composite) : QueryType from class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 64,
+            "endLine": 64,
+            "startColumn": 39,
+            "endColumn": 66,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "compositeType : CompositeType"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 65,
+            "endLine": 65,
+            "startColumn": 9,
+            "endColumn": 44,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 60,
+            "endLine": 60,
+            "startColumn": 35,
+            "endColumn": 54,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "composite : Composite"
+          },
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 61,
+            "endLine": 61,
+            "startColumn": 9,
+            "endColumn": 36,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Attribute",
+        "description": "Rename Attribute COMPOSITETYPE : String to COMPOSITE : String in class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 29,
+            "endLine": 29,
+            "startColumn": 32,
+            "endColumn": 63,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "original attribute declaration",
+            "codeElement": "COMPOSITETYPE : String"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 25,
+            "endLine": 25,
+            "startColumn": 32,
+            "endColumn": 55,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "renamed attribute declaration",
+            "codeElement": "COMPOSITE : String"
+          }
+        ]
+      },
+      {
+        "type": "Rename Attribute",
+        "description": "Rename Attribute compositeType : CompositeType to composite : Composite in class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 23,
+            "endLine": 23,
+            "startColumn": 27,
+            "endColumn": 40,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "original attribute declaration",
+            "codeElement": "compositeType : CompositeType"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 21,
+            "endLine": 21,
+            "startColumn": 23,
+            "endColumn": 32,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "renamed attribute declaration",
+            "codeElement": "composite : Composite"
+          }
+        ]
+      },
+      {
+        "type": "Change Attribute Type",
+        "description": "Change Attribute Type compositeType : CompositeType to composite : Composite in class com.yahoo.search.query.QueryType",
+        "leftSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 23,
+            "endLine": 23,
+            "startColumn": 27,
+            "endColumn": 40,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "original attribute declaration",
+            "codeElement": "compositeType : CompositeType"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+            "startLine": 21,
+            "endLine": 21,
+            "startColumn": 23,
+            "endColumn": 32,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "changed-type attribute declaration",
+            "codeElement": "composite : Composite"
+          }
+        ]
+      }
+    ],
+    "diffs": [
+      {
+        "a_filename": "container-search/src/main/java/com/yahoo/prelude/query/parser/AbstractParser.java",
+        "b_filename": "container-search/src/main/java/com/yahoo/prelude/query/parser/AbstractParser.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 407,
+            "old_lines": 7,
+            "new_start": 407,
+            "new_lines": 7,
+            "content": "@@ -407,7 +407,7 @@ public abstract class AbstractParser implements CustomParser {\n \n     /** Creates a new composite of the type specified in environment.getType().getComposite(). */\n     protected CompositeItem newComposite() {\n-        return switch (environment.getType().getCompositeType()) {\n+        return switch (environment.getType().getComposite()) {\n             case and     -> new AndItem();\n             case or      -> new OrItem();\n             case phrase  -> new PhraseItem();"
+          }
+        ],
+        "patch": "@@ -407,7 +407,7 @@ public abstract class AbstractParser implements CustomParser {\n \n     /** Creates a new composite of the type specified in environment.getType().getComposite(). */\n     protected CompositeItem newComposite() {\n-        return switch (environment.getType().getCompositeType()) {\n+        return switch (environment.getType().getComposite()) {\n             case and     -> new AndItem();\n             case or      -> new OrItem();\n             case phrase  -> new PhraseItem();\n"
+      },
+      {
+        "a_filename": "container-search/src/main/java/com/yahoo/prelude/query/parser/AllParser.java",
+        "b_filename": "container-search/src/main/java/com/yahoo/prelude/query/parser/AllParser.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 114,
+            "old_lines": 7,
+            "new_start": 114,
+            "new_lines": 7,
+            "content": "@@ -114,7 +114,7 @@ public class AllParser extends SimpleParser {\n     }\n \n     private boolean weakAnd() {\n-        return environment.getType().getCompositeType() == QueryType.CompositeType.weakAnd;\n+        return environment.getType().getComposite() == QueryType.Composite.weakAnd;\n     }\n \n     protected CompositeItem addAnd(Item item, CompositeItem parent) {"
+          }
+        ],
+        "patch": "@@ -114,7 +114,7 @@ public class AllParser extends SimpleParser {\n     }\n \n     private boolean weakAnd() {\n-        return environment.getType().getCompositeType() == QueryType.CompositeType.weakAnd;\n+        return environment.getType().getComposite() == QueryType.Composite.weakAnd;\n     }\n \n     protected CompositeItem addAnd(Item item, CompositeItem parent) {\n"
+      },
+      {
+        "a_filename": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+        "b_filename": "container-search/src/main/java/com/yahoo/search/query/QueryType.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 1,
+            "old_lines": 9,
+            "new_start": 1,
+            "new_lines": 7,
+            "content": "@@ -1,9 +1,7 @@\n package com.yahoo.search.query;\n \n-import com.yahoo.processing.request.CompoundName;\n import com.yahoo.search.Query;\n import com.yahoo.search.query.profile.types.FieldDescription;\n-import com.yahoo.search.query.profile.types.QueryProfileFieldType;\n import com.yahoo.search.query.profile.types.QueryProfileType;\n \n import java.util.Objects;"
+          },
+          {
+            "old_start": 20,
+            "old_lines": 13,
+            "new_start": 18,
+            "new_lines": 11,
+            "content": "@@ -20,13 +18,11 @@ public class QueryType {\n \n     private final Query.Type type;\n \n-    private CompositeType compositeType;\n+    private Composite composite;\n     private Tokenization tokenization;\n     private Syntax syntax;\n \n-    //         argumentType.addField(new FieldDescription(TYPE, \"string\", \"type\"));\n-\n-    public static final String COMPOSITETYPE = \"compositeType\";\n+    public static final String COMPOSITE = \"composite\";\n     public static final String TOKENIZATION = \"tokenization\";\n     public static final String SYNTAX = \"syntax\";\n "
+          },
+          {
+            "old_start": 35,
+            "old_lines": 7,
+            "new_start": 31,
+            "new_lines": 7,
+            "content": "@@ -35,7 +31,7 @@ public class QueryType {\n         argumentType.setStrict(true);\n         argumentType.setBuiltin(true);\n         argumentType.addField(new FieldDescription(\"\", \"string\")); // The Query.Type\n-        argumentType.addField(new FieldDescription(COMPOSITETYPE, \"string\"));\n+        argumentType.addField(new FieldDescription(COMPOSITE, \"string\"));\n         argumentType.addField(new FieldDescription(TOKENIZATION, \"string\"));\n         argumentType.addField(new FieldDescription(SYNTAX, \"string\"));\n         argumentType.freeze();"
+          },
+          {
+            "old_start": 43,
+            "old_lines": 33,
+            "new_start": 39,
+            "new_lines": 33,
+            "content": "@@ -43,33 +39,33 @@ public class QueryType {\n \n     public static QueryProfileType getArgumentType() { return argumentType; }\n \n-    public QueryType(Query.Type type, CompositeType compositeType, Tokenization tokenization, Syntax syntax) {\n+    public QueryType(Query.Type type, Composite composite, Tokenization tokenization, Syntax syntax) {\n         this.type = type;\n-        this.compositeType = compositeType;\n+        this.composite = composite;\n         this.tokenization = tokenization;\n         this.syntax = syntax;\n     }\n \n     /** Returns the overall type of this. */\n-    public Query.Type getType() {return type;}\n+    public Query.Type getType() { return type; }\n \n     /** Returns the composite type terms should be collected as by default. */\n-    public CompositeType getCompositeType() {return compositeType;}\n+    public Composite getComposite() { return composite; }\n \n     /**\n      * Sets the composite type terms should be collected as by default.\n      *\n      * @return this for chaining\n      */\n-    public QueryType setCompositeType(CompositeType compositeType) {\n-        this.compositeType = compositeType;\n+    public QueryType setComposite(Composite composite) {\n+        this.composite = composite;\n         return this;\n     }\n \n     /** Sets the composite value from a string enum value. If the argument is null this does nothing. */\n-    public QueryType setCompositeType(String composite) {\n+    public QueryType setComposite(String composite) {\n         if (composite == null) return this;\n-        this.compositeType = CompositeType.valueOf(composite);\n+        this.composite = Composite.valueOf(composite);\n         return this;\n     }\n "
+          },
+          {
+            "old_start": 125,
+            "old_lines": 7,
+            "new_start": 121,
+            "new_lines": 7,
+            "content": "@@ -125,7 +121,7 @@ public class QueryType {\n     public boolean equals(Object o) {\n         if (!(o instanceof QueryType other)) return false;\n         if (other.type != this.type) return false;\n-        if (other.compositeType != this.compositeType) return false;\n+        if (other.composite != this.composite) return false;\n         if (other.tokenization != this.tokenization) return false;\n         if (other.syntax != this.syntax) return false;\n         return true;"
+          },
+          {
+            "old_start": 133,
+            "old_lines": 16,
+            "new_start": 129,
+            "new_lines": 16,
+            "content": "@@ -133,16 +129,16 @@ public class QueryType {\n \n     @Override\n     public int hashCode() {\n-        return Objects.hash(type, compositeType, tokenization, syntax);\n+        return Objects.hash(type, composite, tokenization, syntax);\n     }\n \n     @Override\n     public String toString() {\n         return \"query type \" + type +\n-               \" [compositeType: \" + compositeType + \", tokenization: \" + tokenization + \", syntax: \" + syntax + \"]\";\n+               \" [composite: \" + composite + \", tokenization: \" + tokenization + \", syntax: \" + syntax + \"]\";\n     }\n \n-    public enum CompositeType { and, or, phrase, weakAnd }\n+    public enum Composite { and, or, phrase, weakAnd }\n \n     public enum Tokenization { internal, linguistics }\n "
+          },
+          {
+            "old_start": 150,
+            "old_lines": 17,
+            "new_start": 146,
+            "new_lines": 17,
+            "content": "@@ -150,17 +146,17 @@ public class QueryType {\n \n     public static QueryType from(Query.Type type) {\n         return switch (type) {\n-            case ADVANCED ->     new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.advanced);\n-            case ALL ->          new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.simple);\n-            case ANY ->          new QueryType(type, CompositeType.or,      Tokenization.internal,    Syntax.simple);\n-            case LINGUISTICS ->  new QueryType(type, CompositeType.weakAnd, Tokenization.linguistics, Syntax.none);\n-            case PHRASE ->       new QueryType(type, CompositeType.phrase,  Tokenization.internal,    Syntax.simple);\n-            case PROGRAMMATIC -> new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.programmatic);\n-            case SELECT ->       new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.json);\n-            case TOKENIZE ->     new QueryType(type, CompositeType.weakAnd, Tokenization.internal,    Syntax.none);\n-            case WEAKAND ->      new QueryType(type, CompositeType.weakAnd, Tokenization.internal,    Syntax.simple);\n-            case WEB ->          new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.web);\n-            case YQL ->          new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.yql);\n+            case ADVANCED ->     new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.advanced);\n+            case ALL ->          new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.simple);\n+            case ANY ->          new QueryType(type, Composite.or,      Tokenization.internal,    Syntax.simple);\n+            case LINGUISTICS ->  new QueryType(type, Composite.weakAnd, Tokenization.linguistics, Syntax.none);\n+            case PHRASE ->       new QueryType(type, Composite.phrase,  Tokenization.internal,    Syntax.simple);\n+            case PROGRAMMATIC -> new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.programmatic);\n+            case SELECT ->       new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.json);\n+            case TOKENIZE ->     new QueryType(type, Composite.weakAnd, Tokenization.internal,    Syntax.none);\n+            case WEAKAND ->      new QueryType(type, Composite.weakAnd, Tokenization.internal,    Syntax.simple);\n+            case WEB ->          new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.web);\n+            case YQL ->          new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.yql);\n         };\n     }\n "
+          }
+        ],
+        "patch": "@@ -1,9 +1,7 @@\n package com.yahoo.search.query;\n \n-import com.yahoo.processing.request.CompoundName;\n import com.yahoo.search.Query;\n import com.yahoo.search.query.profile.types.FieldDescription;\n-import com.yahoo.search.query.profile.types.QueryProfileFieldType;\n import com.yahoo.search.query.profile.types.QueryProfileType;\n \n import java.util.Objects;\n@@ -20,13 +18,11 @@ public class QueryType {\n \n     private final Query.Type type;\n \n-    private CompositeType compositeType;\n+    private Composite composite;\n     private Tokenization tokenization;\n     private Syntax syntax;\n \n-    //         argumentType.addField(new FieldDescription(TYPE, \"string\", \"type\"));\n-\n-    public static final String COMPOSITETYPE = \"compositeType\";\n+    public static final String COMPOSITE = \"composite\";\n     public static final String TOKENIZATION = \"tokenization\";\n     public static final String SYNTAX = \"syntax\";\n \n@@ -35,7 +31,7 @@ public class QueryType {\n         argumentType.setStrict(true);\n         argumentType.setBuiltin(true);\n         argumentType.addField(new FieldDescription(\"\", \"string\")); // The Query.Type\n-        argumentType.addField(new FieldDescription(COMPOSITETYPE, \"string\"));\n+        argumentType.addField(new FieldDescription(COMPOSITE, \"string\"));\n         argumentType.addField(new FieldDescription(TOKENIZATION, \"string\"));\n         argumentType.addField(new FieldDescription(SYNTAX, \"string\"));\n         argumentType.freeze();\n@@ -43,33 +39,33 @@ public class QueryType {\n \n     public static QueryProfileType getArgumentType() { return argumentType; }\n \n-    public QueryType(Query.Type type, CompositeType compositeType, Tokenization tokenization, Syntax syntax) {\n+    public QueryType(Query.Type type, Composite composite, Tokenization tokenization, Syntax syntax) {\n         this.type = type;\n-        this.compositeType = compositeType;\n+        this.composite = composite;\n         this.tokenization = tokenization;\n         this.syntax = syntax;\n     }\n \n     /** Returns the overall type of this. */\n-    public Query.Type getType() {return type;}\n+    public Query.Type getType() { return type; }\n \n     /** Returns the composite type terms should be collected as by default. */\n-    public CompositeType getCompositeType() {return compositeType;}\n+    public Composite getComposite() { return composite; }\n \n     /**\n      * Sets the composite type terms should be collected as by default.\n      *\n      * @return this for chaining\n      */\n-    public QueryType setCompositeType(CompositeType compositeType) {\n-        this.compositeType = compositeType;\n+    public QueryType setComposite(Composite composite) {\n+        this.composite = composite;\n         return this;\n     }\n \n     /** Sets the composite value from a string enum value. If the argument is null this does nothing. */\n-    public QueryType setCompositeType(String composite) {\n+    public QueryType setComposite(String composite) {\n         if (composite == null) return this;\n-        this.compositeType = CompositeType.valueOf(composite);\n+        this.composite = Composite.valueOf(composite);\n         return this;\n     }\n \n@@ -125,7 +121,7 @@ public class QueryType {\n     public boolean equals(Object o) {\n         if (!(o instanceof QueryType other)) return false;\n         if (other.type != this.type) return false;\n-        if (other.compositeType != this.compositeType) return false;\n+        if (other.composite != this.composite) return false;\n         if (other.tokenization != this.tokenization) return false;\n         if (other.syntax != this.syntax) return false;\n         return true;\n@@ -133,16 +129,16 @@ public class QueryType {\n \n     @Override\n     public int hashCode() {\n-        return Objects.hash(type, compositeType, tokenization, syntax);\n+        return Objects.hash(type, composite, tokenization, syntax);\n     }\n \n     @Override\n     public String toString() {\n         return \"query type \" + type +\n-               \" [compositeType: \" + compositeType + \", tokenization: \" + tokenization + \", syntax: \" + syntax + \"]\";\n+               \" [composite: \" + composite + \", tokenization: \" + tokenization + \", syntax: \" + syntax + \"]\";\n     }\n \n-    public enum CompositeType { and, or, phrase, weakAnd }\n+    public enum Composite { and, or, phrase, weakAnd }\n \n     public enum Tokenization { internal, linguistics }\n \n@@ -150,17 +146,17 @@ public class QueryType {\n \n     public static QueryType from(Query.Type type) {\n         return switch (type) {\n-            case ADVANCED ->     new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.advanced);\n-            case ALL ->          new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.simple);\n-            case ANY ->          new QueryType(type, CompositeType.or,      Tokenization.internal,    Syntax.simple);\n-            case LINGUISTICS ->  new QueryType(type, CompositeType.weakAnd, Tokenization.linguistics, Syntax.none);\n-            case PHRASE ->       new QueryType(type, CompositeType.phrase,  Tokenization.internal,    Syntax.simple);\n-            case PROGRAMMATIC -> new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.programmatic);\n-            case SELECT ->       new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.json);\n-            case TOKENIZE ->     new QueryType(type, CompositeType.weakAnd, Tokenization.internal,    Syntax.none);\n-            case WEAKAND ->      new QueryType(type, CompositeType.weakAnd, Tokenization.internal,    Syntax.simple);\n-            case WEB ->          new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.web);\n-            case YQL ->          new QueryType(type, CompositeType.and,     Tokenization.internal,    Syntax.yql);\n+            case ADVANCED ->     new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.advanced);\n+            case ALL ->          new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.simple);\n+            case ANY ->          new QueryType(type, Composite.or,      Tokenization.internal,    Syntax.simple);\n+            case LINGUISTICS ->  new QueryType(type, Composite.weakAnd, Tokenization.linguistics, Syntax.none);\n+            case PHRASE ->       new QueryType(type, Composite.phrase,  Tokenization.internal,    Syntax.simple);\n+            case PROGRAMMATIC -> new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.programmatic);\n+            case SELECT ->       new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.json);\n+            case TOKENIZE ->     new QueryType(type, Composite.weakAnd, Tokenization.internal,    Syntax.none);\n+            case WEAKAND ->      new QueryType(type, Composite.weakAnd, Tokenization.internal,    Syntax.simple);\n+            case WEB ->          new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.web);\n+            case YQL ->          new QueryType(type, Composite.and,     Tokenization.internal,    Syntax.yql);\n         };\n     }\n \n"
+      },
+      {
+        "a_filename": "container-search/src/main/java/com/yahoo/search/query/parser/ParserFactory.java",
+        "b_filename": "container-search/src/main/java/com/yahoo/search/query/parser/ParserFactory.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 54,
+            "old_lines": 9,
+            "new_start": 54,
+            "new_lines": 9,
+            "content": "@@ -54,9 +54,9 @@ public final class ParserFactory {\n                 return new TokenizeParser(environment);\n         }\n         else if (type.getSyntax() == QueryType.Syntax.simple) {\n-            if (type.getCompositeType() == QueryType.CompositeType.or)\n+            if (type.getComposite() == QueryType.Composite.or)\n                 return new AnyParser(environment);\n-            if (type.getCompositeType() == QueryType.CompositeType.phrase)\n+            if (type.getComposite() == QueryType.Composite.phrase)\n                 return new PhraseParser(environment);\n             else\n                 return new AllParser(environment); // Covers both 'weakAnd' and 'and'"
+          }
+        ],
+        "patch": "@@ -54,9 +54,9 @@ public final class ParserFactory {\n                 return new TokenizeParser(environment);\n         }\n         else if (type.getSyntax() == QueryType.Syntax.simple) {\n-            if (type.getCompositeType() == QueryType.CompositeType.or)\n+            if (type.getComposite() == QueryType.Composite.or)\n                 return new AnyParser(environment);\n-            if (type.getCompositeType() == QueryType.CompositeType.phrase)\n+            if (type.getComposite() == QueryType.Composite.phrase)\n                 return new PhraseParser(environment);\n             else\n                 return new AllParser(environment); // Covers both 'weakAnd' and 'and'\n"
+      },
+      {
+        "a_filename": "container-search/src/main/java/com/yahoo/search/query/properties/QueryProperties.java",
+        "b_filename": "container-search/src/main/java/com/yahoo/search/query/properties/QueryProperties.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 71,
+            "old_lines": 7,
+            "new_start": 71,
+            "new_lines": 7,
+            "content": "@@ -71,7 +71,7 @@ public class QueryProperties extends Properties {\n         Map<CompoundName, GetterSetter> map = new HashMap<>();\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.QUERY_STRING), GetterSetter.of(query -> query.getModel().getQueryString(), (query, value) -> query.getModel().setQueryString(asString(value, \"\"))));\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE), GetterSetter.of(query -> query.getModel().getType(), (query, value) -> query.getModel().setType(asString(value, \"ANY\"))));\n-        map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE, QueryType.COMPOSITETYPE), GetterSetter.of(query -> query.getModel().getQueryType().getCompositeType(), (query, value) -> query.getModel().getQueryType().setCompositeType(asString(value, null))));\n+        map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE, QueryType.COMPOSITE), GetterSetter.of(query -> query.getModel().getQueryType().getComposite(), (query, value) -> query.getModel().getQueryType().setComposite(asString(value, null))));\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE, QueryType.TOKENIZATION), GetterSetter.of(query -> query.getModel().getQueryType().getTokenization(), (query, value) -> query.getModel().getQueryType().setTokenization(asString(value, null))));\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE, QueryType.SYNTAX), GetterSetter.of(query -> query.getModel().getQueryType().getSyntax(), (query, value) -> query.getModel().getQueryType().setSyntax(asString(value, null))));\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.FILTER), GetterSetter.of(query -> query.getModel().getFilter(), (query, value) -> query.getModel().setFilter(asString(value, \"\"))));"
+          }
+        ],
+        "patch": "@@ -71,7 +71,7 @@ public class QueryProperties extends Properties {\n         Map<CompoundName, GetterSetter> map = new HashMap<>();\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.QUERY_STRING), GetterSetter.of(query -> query.getModel().getQueryString(), (query, value) -> query.getModel().setQueryString(asString(value, \"\"))));\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE), GetterSetter.of(query -> query.getModel().getType(), (query, value) -> query.getModel().setType(asString(value, \"ANY\"))));\n-        map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE, QueryType.COMPOSITETYPE), GetterSetter.of(query -> query.getModel().getQueryType().getCompositeType(), (query, value) -> query.getModel().getQueryType().setCompositeType(asString(value, null))));\n+        map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE, QueryType.COMPOSITE), GetterSetter.of(query -> query.getModel().getQueryType().getComposite(), (query, value) -> query.getModel().getQueryType().setComposite(asString(value, null))));\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE, QueryType.TOKENIZATION), GetterSetter.of(query -> query.getModel().getQueryType().getTokenization(), (query, value) -> query.getModel().getQueryType().setTokenization(asString(value, null))));\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.TYPE, QueryType.SYNTAX), GetterSetter.of(query -> query.getModel().getQueryType().getSyntax(), (query, value) -> query.getModel().getQueryType().setSyntax(asString(value, null))));\n         map.put(CompoundName.fromComponents(Model.MODEL, Model.FILTER), GetterSetter.of(query -> query.getModel().getFilter(), (query, value) -> query.getModel().setFilter(asString(value, \"\"))));\n"
+      },
+      {
+        "a_filename": "container-search/src/test/java/com/yahoo/prelude/semantics/test/SegmentSubstitutionTestCase.java",
+        "b_filename": "container-search/src/test/java/com/yahoo/prelude/semantics/test/SegmentSubstitutionTestCase.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 56,
+            "old_lines": 7,
+            "new_start": 56,
+            "new_lines": 7,
+            "content": "@@ -56,7 +56,7 @@ public class SegmentSubstitutionTestCase extends RuleBaseAbstractTestCase {\n     private static Item parseQuery(String query) {\n         var environment = new ParserEnvironment();\n         environment.setLinguistics(TestLinguistics.INSTANCE);\n-        environment.getType().setCompositeType(QueryType.CompositeType.and);\n+        environment.getType().setComposite(QueryType.Composite.and);\n         AllParser parser = new AllParser(environment);\n         return parser.parse(new Parsable().setQuery(query).setLanguage(Language.CHINESE_SIMPLIFIED)).getRoot();\n     }"
+          }
+        ],
+        "patch": "@@ -56,7 +56,7 @@ public class SegmentSubstitutionTestCase extends RuleBaseAbstractTestCase {\n     private static Item parseQuery(String query) {\n         var environment = new ParserEnvironment();\n         environment.setLinguistics(TestLinguistics.INSTANCE);\n-        environment.getType().setCompositeType(QueryType.CompositeType.and);\n+        environment.getType().setComposite(QueryType.Composite.and);\n         AllParser parser = new AllParser(environment);\n         return parser.parse(new Parsable().setQuery(query).setLanguage(Language.CHINESE_SIMPLIFIED)).getRoot();\n     }\n"
+      },
+      {
+        "a_filename": "container-search/src/test/java/com/yahoo/search/test/QueryTestCase.java",
+        "b_filename": "container-search/src/test/java/com/yahoo/search/test/QueryTestCase.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 1269,
+            "old_lines": 24,
+            "new_start": 1269,
+            "new_lines": 24,
+            "content": "@@ -1269,24 +1269,24 @@ public class QueryTestCase {\n         assertParsed(\"+(OR a b) -c\",           \"a b -c\", type(\"any\"));\n         assertParsed(\"\\\"a b c\\\"\",              \"a b -c\", type(\"phrase\"));\n         assertParsed(\"WEAKAND(100) a b c\",     \"a b -c\", type(\"tokenize\"));\n-        assertParsed(\"AND a b c\",              \"a b -c\", type(\"tokenize\").setCompositeType(QueryType.CompositeType.and));\n+        assertParsed(\"AND a b c\",              \"a b -c\", type(\"tokenize\").setComposite(QueryType.Composite.and));\n         assertParsed(\"+(AND a b) -c\",          \"a b -c\", type(\"web\"));\n-        assertParsed(\"+(WEAKAND(100) a b) -c\", \"a b -c\", type(\"web\").setCompositeType(QueryType.CompositeType.weakAnd));\n+        assertParsed(\"+(WEAKAND(100) a b) -c\", \"a b -c\", type(\"web\").setComposite(QueryType.Composite.weakAnd));\n         assertParsed(\"WEAKAND(100) a b c\",     \"a b -c\", type(\"linguistics\"));\n-        assertParsed(\"OR a b c\",               \"a b -c\", type(\"linguistics\").setCompositeType(QueryType.CompositeType.or));\n-        assertParsed(\"OR a b c\",               \"a b -c\", type(\"weakAnd\").setCompositeType(QueryType.CompositeType.or).setTokenization(QueryType.Tokenization.linguistics).setSyntax(QueryType.Syntax.none));\n+        assertParsed(\"OR a b c\",               \"a b -c\", type(\"linguistics\").setComposite(QueryType.Composite.or));\n+        assertParsed(\"OR a b c\",               \"a b -c\", type(\"weakAnd\").setComposite(QueryType.Composite.or).setTokenization(QueryType.Tokenization.linguistics).setSyntax(QueryType.Syntax.none));\n         assertParsed(\"+(WEAKAND(100) a b) -c\", \"a b -c\", type(\"tokenize\").setSyntax(QueryType.Syntax.web));\n         assertParsed(\"AND a b c\",              \"a b -c\", type(\"web\").setSyntax(QueryType.Syntax.none));\n \n         assertFails(\"Failed parsing query: query type linguistics \" +\n-                    \"[compositeType: weakAnd, tokenization: linguistics, syntax: web] is invalid: \" +\n+                    \"[composite: weakAnd, tokenization: linguistics, syntax: web] is invalid: \" +\n                     \"Linguistics tokenization can only be combined with syntax none\",\n                     type(\"linguistics\").setSyntax(QueryType.Syntax.web));\n \n         assertEquals(\"WEAKAND(100) a b c\",\n                      new Query(httpEncode(\"?query=a b -c&model.type=linguistics\")).getModel().getQueryTree().toString());\n         assertEquals(\"OR a b c\",\n-                     new Query(httpEncode(\"?query=a b -c&model.type.compositeType=or&model.type.tokenization=linguistics&model.type.syntax=none\")).getModel().getQueryTree().toString());\n+                     new Query(httpEncode(\"?query=a b -c&model.type.composite=or&model.type.tokenization=linguistics&model.type.syntax=none\")).getModel().getQueryTree().toString());\n         assertEquals(QueryType.from(Query.Type.ALL), new Query(httpEncode(\"?query=a b -c&model.type=all\")).getModel().getQueryType());\n         assertEquals(QueryType.from(Query.Type.ALL).getType(), new Query(httpEncode(\"?query=a b -c&model.type=all\")).properties().get(\"model.type\"));\n         assertEquals(QueryType.from(Query.Type.ALL).getType(), new Query(httpEncode(\"?query=a b -c&type=all\")).properties().get(\"model.type\"));"
+          }
+        ],
+        "patch": "@@ -1269,24 +1269,24 @@ public class QueryTestCase {\n         assertParsed(\"+(OR a b) -c\",           \"a b -c\", type(\"any\"));\n         assertParsed(\"\\\"a b c\\\"\",              \"a b -c\", type(\"phrase\"));\n         assertParsed(\"WEAKAND(100) a b c\",     \"a b -c\", type(\"tokenize\"));\n-        assertParsed(\"AND a b c\",              \"a b -c\", type(\"tokenize\").setCompositeType(QueryType.CompositeType.and));\n+        assertParsed(\"AND a b c\",              \"a b -c\", type(\"tokenize\").setComposite(QueryType.Composite.and));\n         assertParsed(\"+(AND a b) -c\",          \"a b -c\", type(\"web\"));\n-        assertParsed(\"+(WEAKAND(100) a b) -c\", \"a b -c\", type(\"web\").setCompositeType(QueryType.CompositeType.weakAnd));\n+        assertParsed(\"+(WEAKAND(100) a b) -c\", \"a b -c\", type(\"web\").setComposite(QueryType.Composite.weakAnd));\n         assertParsed(\"WEAKAND(100) a b c\",     \"a b -c\", type(\"linguistics\"));\n-        assertParsed(\"OR a b c\",               \"a b -c\", type(\"linguistics\").setCompositeType(QueryType.CompositeType.or));\n-        assertParsed(\"OR a b c\",               \"a b -c\", type(\"weakAnd\").setCompositeType(QueryType.CompositeType.or).setTokenization(QueryType.Tokenization.linguistics).setSyntax(QueryType.Syntax.none));\n+        assertParsed(\"OR a b c\",               \"a b -c\", type(\"linguistics\").setComposite(QueryType.Composite.or));\n+        assertParsed(\"OR a b c\",               \"a b -c\", type(\"weakAnd\").setComposite(QueryType.Composite.or).setTokenization(QueryType.Tokenization.linguistics).setSyntax(QueryType.Syntax.none));\n         assertParsed(\"+(WEAKAND(100) a b) -c\", \"a b -c\", type(\"tokenize\").setSyntax(QueryType.Syntax.web));\n         assertParsed(\"AND a b c\",              \"a b -c\", type(\"web\").setSyntax(QueryType.Syntax.none));\n \n         assertFails(\"Failed parsing query: query type linguistics \" +\n-                    \"[compositeType: weakAnd, tokenization: linguistics, syntax: web] is invalid: \" +\n+                    \"[composite: weakAnd, tokenization: linguistics, syntax: web] is invalid: \" +\n                     \"Linguistics tokenization can only be combined with syntax none\",\n                     type(\"linguistics\").setSyntax(QueryType.Syntax.web));\n \n         assertEquals(\"WEAKAND(100) a b c\",\n                      new Query(httpEncode(\"?query=a b -c&model.type=linguistics\")).getModel().getQueryTree().toString());\n         assertEquals(\"OR a b c\",\n-                     new Query(httpEncode(\"?query=a b -c&model.type.compositeType=or&model.type.tokenization=linguistics&model.type.syntax=none\")).getModel().getQueryTree().toString());\n+                     new Query(httpEncode(\"?query=a b -c&model.type.composite=or&model.type.tokenization=linguistics&model.type.syntax=none\")).getModel().getQueryTree().toString());\n         assertEquals(QueryType.from(Query.Type.ALL), new Query(httpEncode(\"?query=a b -c&model.type=all\")).getModel().getQueryType());\n         assertEquals(QueryType.from(Query.Type.ALL).getType(), new Query(httpEncode(\"?query=a b -c&model.type=all\")).properties().get(\"model.type\"));\n         assertEquals(QueryType.from(Query.Type.ALL).getType(), new Query(httpEncode(\"?query=a b -c&type=all\")).properties().get(\"model.type\"));\n"
+      }
+    ]
+  }
+]

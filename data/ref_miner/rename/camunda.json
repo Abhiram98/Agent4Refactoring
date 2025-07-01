@@ -1,0 +1,466 @@
+[
+  {
+    "id": 10136,
+    "project": "camunda",
+    "v1_hash": "dc32d3cab70afbd7e83ec824b471ce109dc0dfdc",
+    "v2_hash": "507e6c40c1d6c951dfeee056332ed3f4c145c908",
+    "orig_commit_message": "refactor: changing add to assign as per agreement",
+    "improved_commit_message": "refactor: changing add to assign as per agreement. AddMappingToGroupStep2 -> AssignMappingToGroupStep2\n",
+    "change_summary": "The rename from `AddMappingToGroupStep1` to `AssignMappingToGroupStep1` and its corresponding interface `AddMappingToGroupStep2` to `AssignMappingToGroupStep2` reflects a shift in terminology, clarifying the action from \"adding\" to \"assigning\" mappings to groups.",
+    "hints": [
+      "AddMappingToGroupStep2 -> AssignMappingToGroupStep2"
+    ],
+    "starting_file": "clients/java/src/main/java/io/camunda/client/api/command/AddMappingToGroupStep1.java",
+    "refactoring_changes": [
+      {
+        "type": "Move And Rename Class",
+        "description": "Move And Rename Class io.camunda.client.api.command.AddMappingToGroupStep1.AddMappingToGroupStep2 moved and renamed to io.camunda.client.api.command.AssignMappingToGroupStep1.AssignMappingToGroupStep2",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/api/command/AddMappingToGroupStep1.java",
+            "startLine": 30,
+            "endLine": 40,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "io.camunda.client.api.command.AddMappingToGroupStep1.AddMappingToGroupStep2"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/api/command/AssignMappingToGroupStep1.java",
+            "startLine": 30,
+            "endLine": 40,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "moved and renamed type declaration",
+            "codeElement": "io.camunda.client.api.command.AssignMappingToGroupStep1.AssignMappingToGroupStep2"
+          }
+        ]
+      },
+      {
+        "type": "Rename Class",
+        "description": "Rename Class io.camunda.client.api.command.AddMappingToGroupStep1 renamed to io.camunda.client.api.command.AssignMappingToGroupStep1",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/api/command/AddMappingToGroupStep1.java",
+            "startLine": 20,
+            "endLine": 41,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "io.camunda.client.api.command.AddMappingToGroupStep1"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/api/command/AssignMappingToGroupStep1.java",
+            "startLine": 20,
+            "endLine": 41,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "io.camunda.client.api.command.AssignMappingToGroupStep1"
+          }
+        ]
+      },
+      {
+        "type": "Rename Class",
+        "description": "Rename Class io.camunda.client.impl.command.AddMappingToGroupCommandImpl renamed to io.camunda.client.impl.command.AssignMappingToGroupCommandImpl",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/impl/command/AddMappingToGroupCommandImpl.java",
+            "startLine": 29,
+            "endLine": 72,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "io.camunda.client.impl.command.AddMappingToGroupCommandImpl"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/impl/command/AssignMappingToGroupCommandImpl.java",
+            "startLine": 29,
+            "endLine": 73,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "io.camunda.client.impl.command.AssignMappingToGroupCommandImpl"
+          }
+        ]
+      },
+      {
+        "type": "Rename Class",
+        "description": "Rename Class io.camunda.client.api.response.AddMappingToGroupResponse renamed to io.camunda.client.api.response.AssignMappingToGroupResponse",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/api/response/AddMappingToGroupResponse.java",
+            "startLine": 18,
+            "endLine": 18,
+            "startColumn": 0,
+            "endColumn": 46,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "io.camunda.client.api.response.AddMappingToGroupResponse"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/api/response/AssignMappingToGroupResponse.java",
+            "startLine": 18,
+            "endLine": 18,
+            "startColumn": 0,
+            "endColumn": 49,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "io.camunda.client.api.response.AssignMappingToGroupResponse"
+          }
+        ]
+      },
+      {
+        "type": "Rename Class",
+        "description": "Rename Class io.camunda.zeebe.it.client.command.AddMappingToGroupTest renamed to io.camunda.zeebe.it.client.command.AssignMappingToGroupTest",
+        "leftSideLocations": [
+          {
+            "filePath": "zeebe/qa/integration-tests/src/test/java/io/camunda/zeebe/it/client/command/AddMappingToGroupTest.java",
+            "startLine": 26,
+            "endLine": 161,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "io.camunda.zeebe.it.client.command.AddMappingToGroupTest"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "zeebe/qa/integration-tests/src/test/java/io/camunda/zeebe/it/client/command/AssignMappingToGroupTest.java",
+            "startLine": 26,
+            "endLine": 177,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "io.camunda.zeebe.it.client.command.AssignMappingToGroupTest"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method package shouldAddMappingToGroup() : void renamed to package shouldAssignMappingToGroup() : void in class io.camunda.client.group.AssignMemberGroupTest",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 84,
+            "endLine": 92,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "package shouldAddMappingToGroup() : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 84,
+            "endLine": 92,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "package shouldAssignMappingToGroup() : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method package shouldRaiseExceptionOnNullMappingIdWhenAddingMappingToGroup() : void renamed to package shouldRaiseExceptionOnNullMappingIdWhenAssigningMappingToGroup() : void in class io.camunda.client.group.AssignMemberGroupTest",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 151,
+            "endLine": 164,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "package shouldRaiseExceptionOnNullMappingIdWhenAddingMappingToGroup() : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 151,
+            "endLine": 164,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "package shouldRaiseExceptionOnNullMappingIdWhenAssigningMappingToGroup() : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method package shouldRaiseExceptionOnEmptyMappingIdWhenAddingMappingToGroup() : void renamed to package shouldRaiseExceptionOnEmptyMappingIdWhenAssigningMappingToGroup() : void in class io.camunda.client.group.AssignMemberGroupTest",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 166,
+            "endLine": 174,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "package shouldRaiseExceptionOnEmptyMappingIdWhenAddingMappingToGroup() : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 166,
+            "endLine": 179,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "package shouldRaiseExceptionOnEmptyMappingIdWhenAssigningMappingToGroup() : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method package shouldRaiseExceptionOnNullGroupIdWhenAddingMappingToGroup() : void renamed to package shouldRaiseExceptionOnNullGroupIdWhenAssigningMappingToGroup() : void in class io.camunda.client.group.AssignMemberGroupTest",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 176,
+            "endLine": 189,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "package shouldRaiseExceptionOnNullGroupIdWhenAddingMappingToGroup() : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 181,
+            "endLine": 194,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "package shouldRaiseExceptionOnNullGroupIdWhenAssigningMappingToGroup() : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method package shouldRaiseExceptionOnEmptyGroupIdWhenAddingMappingToGroup() : void renamed to package shouldRaiseExceptionOnEmptyGroupIdWhenAssigningMappingToGroup() : void in class io.camunda.client.group.AssignMemberGroupTest",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 191,
+            "endLine": 204,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "package shouldRaiseExceptionOnEmptyGroupIdWhenAddingMappingToGroup() : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/test/java/io/camunda/client/group/AssignMemberGroupTest.java",
+            "startLine": 196,
+            "endLine": 209,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "package shouldRaiseExceptionOnEmptyGroupIdWhenAssigningMappingToGroup() : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method private addMappingToGroup(mappingId String, groupId String) : void renamed to private assignMappingToGroup(mappingId String, groupId String) : void in class io.camunda.it.client.MappingsByGroupSearchTest",
+        "leftSideLocations": [
+          {
+            "filePath": "qa/acceptance-tests/src/test/java/io/camunda/it/client/MappingsByGroupSearchTest.java",
+            "startLine": 119,
+            "endLine": 121,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "private addMappingToGroup(mappingId String, groupId String) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "qa/acceptance-tests/src/test/java/io/camunda/it/client/MappingsByGroupSearchTest.java",
+            "startLine": 119,
+            "endLine": 126,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "private assignMappingToGroup(mappingId String, groupId String) : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method private addMappingToGroup(groupId String, mappingId String) : void renamed to private assignMappingToGroup(groupId String, mappingId String) : void in class io.camunda.it.rdbms.db.mapping.MappingSpecificFilterIT",
+        "leftSideLocations": [
+          {
+            "filePath": "qa/acceptance-tests/src/test/java/io/camunda/it/rdbms/db/mapping/MappingSpecificFilterIT.java",
+            "startLine": 122,
+            "endLine": 125,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "private addMappingToGroup(groupId String, mappingId String) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "qa/acceptance-tests/src/test/java/io/camunda/it/rdbms/db/mapping/MappingSpecificFilterIT.java",
+            "startLine": 122,
+            "endLine": 125,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "private assignMappingToGroup(groupId String, mappingId String) : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public newAddMappingToGroupCommand() : AddMappingToGroupStep1 renamed to public newAssignMappingToGroupCommand() : AssignMappingToGroupStep1 in class io.camunda.client.impl.CamundaClientImpl",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/impl/CamundaClientImpl.java",
+            "startLine": 1140,
+            "endLine": 1143,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public newAddMappingToGroupCommand() : AddMappingToGroupStep1"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/impl/CamundaClientImpl.java",
+            "startLine": 1140,
+            "endLine": 1143,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public newAssignMappingToGroupCommand() : AssignMappingToGroupStep1"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method package shouldAddMappingToGroup() : void renamed to package shouldAssignMappingToGroup() : void in class io.camunda.zeebe.it.client.command.AssignMappingToGroupTest",
+        "leftSideLocations": [
+          {
+            "filePath": "zeebe/qa/integration-tests/src/test/java/io/camunda/zeebe/it/client/command/AddMappingToGroupTest.java",
+            "startLine": 62,
+            "endLine": 74,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "package shouldAddMappingToGroup() : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "zeebe/qa/integration-tests/src/test/java/io/camunda/zeebe/it/client/command/AssignMappingToGroupTest.java",
+            "startLine": 62,
+            "endLine": 74,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "package shouldAssignMappingToGroup() : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method package shouldRejectIfAlreadyAdded() : void renamed to package shouldRejectIfAlreadyAssigned() : void in class io.camunda.zeebe.it.client.command.AssignMappingToGroupTest",
+        "leftSideLocations": [
+          {
+            "filePath": "zeebe/qa/integration-tests/src/test/java/io/camunda/zeebe/it/client/command/AddMappingToGroupTest.java",
+            "startLine": 97,
+            "endLine": 116,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "package shouldRejectIfAlreadyAdded() : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "zeebe/qa/integration-tests/src/test/java/io/camunda/zeebe/it/client/command/AssignMappingToGroupTest.java",
+            "startLine": 97,
+            "endLine": 116,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "package shouldRejectIfAlreadyAssigned() : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public newAddMappingToGroupCommand() : AddMappingToGroupStep1 renamed to public newAssignMappingToGroupCommand() : AssignMappingToGroupStep1 in class io.camunda.client.CamundaClient",
+        "leftSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/CamundaClient.java",
+            "startLine": 2189,
+            "endLine": 2206,
+            "startColumn": 3,
+            "endColumn": 56,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public newAddMappingToGroupCommand() : AddMappingToGroupStep1"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "clients/java/src/main/java/io/camunda/client/CamundaClient.java",
+            "startLine": 2189,
+            "endLine": 2206,
+            "startColumn": 3,
+            "endColumn": 62,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public newAssignMappingToGroupCommand() : AssignMappingToGroupStep1"
+          }
+        ]
+      }
+    ],
+    "diffs": []
+  }
+]

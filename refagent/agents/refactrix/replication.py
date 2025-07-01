@@ -69,12 +69,14 @@ class Replication(BaseModel):
                             # if i!=self.starting_file
                             ]
 
-        print(f"files to inspect: {files_to_inspect}\n\n")
+        files_to_inspect = list(set(files_to_inspect))
+
+        # print(f"files to inspect: {files_to_inspect}\n\n")
 
         list_of_keywords = self.invokeLLM()
         files_to_inspect = self.filterFilesWithLCS(files_to_inspect, list_of_keywords)
 
-        print(f"files to inspect after filtering: {files_to_inspect}\n\n")
+        # print(f"files to inspect after filtering: {files_to_inspect}\n\n")
 
         with ContextThreadPoolExecutor(max_workers=4) as executor:
             futures = {executor.submit(self.handle_file, file_path): file_path for file_path in files_to_inspect}
@@ -140,7 +142,9 @@ class Replication(BaseModel):
 
     def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
         self.ide_server.open_file(Path(code_element.file_path))
-        linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+        # linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+        # linked_elements_json = self.ide_server.call_tool('get_linked_elements_hybrid', line_num=code_element.line_num)
+        linked_elements_json = self.ide_server.call_tool('get_linked_files_hybrid', line_num=code_element.line_num)
         try:
             linked_elements_json = json.loads(
                 linked_elements_json
@@ -358,7 +362,7 @@ class Replication(BaseModel):
                     dp[i + 1][j + 1] = max(dp[i][j + 1], dp[i + 1][j])
         return dp[-1][-1]
 
-    def is_similar(self, old_name, candidate, threshold=0.7):
+    def is_similar(self, old_name, candidate, threshold=0.9):
         # Normalize both identifiers before comparison
         normalized_old = self.normalize_identifier(old_name)
         normalized_candidate = self.normalize_identifier(candidate)
@@ -366,37 +370,106 @@ class Replication(BaseModel):
         lcs = self.lcs_length(normalized_old, normalized_candidate)
         return lcs / len(normalized_old) > threshold if normalized_old else False
 
-    def filterFilesWithLCS(self, files_to_inspect, rename_pairs, threshold=0.5):
-        if not rename_pairs:
-            return files_to_inspect
+    def is_generic_word(self, word):
+        """Check if a word is too generic to be useful for pattern matching."""
+        generic_words = {
+            'is', 'the', 'and', 'or', 'for', 'to', 'in', 'on', 'at', 'by', 'of', 'with',
+            'from', 'into', 'during', 'including', 'until', 'against', 'among', 'throughout',
+            'despite', 'towards', 'upon', 'concerning', 'about', 'between', 'through',
+            'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under',
+            'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how',
+            'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such',
+            'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
+            'can', 'will', 'just', 'don', 'should', 'now', 'get', 'go', 'come',
+            'made', 'may', 'make', 'like', 'has', 'had', 'him', 'his', 'how', 'her',
+            'my', 'me', 'more', 'she', 'an', 'do', 'did', 'we', 'would', 'you', 'your',
+            'am', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'having', 'does',
+            'doing', 'could', 'might', 'must', 'shall'
+        }
+        return word.lower() in generic_words
 
+    def filterFilesWithLCS(self, files_to_inspect, rename_pairs, threshold=0.9):
+        if not rename_pairs or len(rename_pairs) == 0:
+            if len(files_to_inspect) < 100:
+                return files_to_inspect
+            else:
+                return []
+
+        filtered_files = set()
+
+        # Strategy 1: Direct keyword matching (most precise)
+        direct_matches = self.filter_by_direct_keywords(files_to_inspect, rename_pairs)
+        filtered_files.update(direct_matches)
+        print(f"Direct keyword matches: {len(direct_matches)}")
+
+        # Strategy 2: LCSubstring with generic word filtering
+        if len(direct_matches) < len(
+                files_to_inspect) * 0.1:  # If direct matching found few files (if less than 10% got matched, maybe there are more candidate files
+            lcs_matches = self.filter_by_lcsubstring_filtered(files_to_inspect, rename_pairs, threshold)
+            filtered_files.update(lcs_matches)
+            print(f"LCSubstring matches: {len(lcs_matches)}")
+
+        result = list(filtered_files)
+        print(f"Total filtered files: {len(result)} raw files: {len(files_to_inspect)}")
+        return result
+
+    def filter_by_direct_keywords(self, files_to_inspect, rename_pairs):
+        """Filter files that contain the exact old identifiers from rename pairs."""
+        filtered_files = []
+        old_identifiers = {old_name for old_name, _ in rename_pairs}
+
+        for file in files_to_inspect:
+            try:
+                file_contents = self.project.get_file_contents(file)
+                # Check for exact matches of old identifiers
+                for old_identifier in old_identifiers:
+                    # Use word boundary to avoid partial matches
+                    pattern = r'\b' + re.escape(old_identifier) + r'\b'
+                    if re.search(pattern, file_contents, re.IGNORECASE):
+                        filtered_files.append(file)
+                        break
+            except Exception as e:
+                print(f"Error reading file {file}: {e}")
+                continue
+
+        return filtered_files
+
+    def filter_by_lcsubstring_filtered(self, files_to_inspect, rename_pairs, threshold=0.9):
+        """Filter files using LCSubstring but filter out generic patterns."""
         # Extract common patterns from rename pairs
         patterns = []
         for old_name, new_name in rename_pairs:
             pattern, lcs_score = self.extract_common_pattern(old_name, new_name)
-            if pattern and len(pattern) > 1:  # Only consider meaningful patterns
+            # Only consider meaningful patterns (not generic words and length > 3)
+            if pattern and len(pattern) > 3 and not self.is_generic_word(pattern):
                 patterns.append((pattern, lcs_score))
 
-        print(f"Extracted patterns from rename pairs: {patterns}")
+        print(f"Extracted meaningful patterns from rename pairs: {patterns}")
+
+        if not patterns:
+            return []
 
         filtered_files = []
         identifier_pattern = re.compile(r'\b\w+\b')
 
         for file in files_to_inspect:
-            file_contents = self.project.get_file_contents(file)
-            identifiers = set(identifier_pattern.findall(file_contents))
+            try:
+                file_contents = self.project.get_file_contents(file)
+                identifiers = set(identifier_pattern.findall(file_contents))
 
-            # Check if any identifier matches any of the patterns
-            for pattern, _ in patterns:
-                for candidate in identifiers:
-                    if self.calculate_pattern_similarity(candidate, pattern, threshold):
-                        filtered_files.append(file)
-                        break
-                else:
-                    continue
-                break
+                # Check if any identifier matches any of the patterns
+                for pattern, _ in patterns:
+                    for candidate in identifiers:
+                        if self.calculate_pattern_similarity(candidate, pattern, threshold):
+                            filtered_files.append(file)
+                            break
+                    else:
+                        continue
+                    break
+            except Exception as e:
+                print(f"Error reading file {file}: {e}")
+                continue
 
-        print(f"Filtered files: {len(filtered_files)} raw files: {len(files_to_inspect)}")
         return filtered_files
 
 
