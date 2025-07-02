@@ -1,0 +1,3006 @@
+[
+  {
+    "id": 501,
+    "project": "ratpack",
+    "v1_hash": "1e485baf0b60c1456b3a8c53b9bd5f55e941d810",
+    "v2_hash": "025e6366b349bae2ae3622026ff1938a9e418ee7",
+    "orig_commit_message": "Add Context.getPathBinding().\n",
+    "improved_commit_message": "Rename Method getAllPathTokens -> getPathBinding on line 148.",
+    "change_summary": "The rename from getAllPathTokens to getPathBinding reflects a shift towards more precise terminology that emphasizes the role of the method in providing a binding of path parameters rather than a collection of path tokens.",
+    "hints": [
+      "getAllPathTokens -> getPathBinding",
+      "getAllPathTokens -> getPathBinding"
+    ],
+    "starting_file": "ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyContext.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public getAllPathTokens() : PathTokens renamed to public getPathTokens() : PathTokens in class ratpack.handling.Context",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/handling/Context.java",
+            "startLine": 604,
+            "endLine": 612,
+            "startColumn": 3,
+            "endColumn": 63,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public getAllPathTokens() : PathTokens"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/handling/Context.java",
+            "startLine": 616,
+            "endLine": 626,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public getPathTokens() : PathTokens"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 1,
+    "seed_hash": "0dc7d678ff9345dd6076257d11008c29204c944e",
+    "seed_example": {
+      "type": "Rename Method",
+      "description": "Rename Method public getAllPathTokens() : PathTokens renamed to public getPathTokens() : PathTokens in class ratpack.handling.Context",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/handling/Context.java",
+          "startLine": 604,
+          "endLine": 612,
+          "startColumn": 3,
+          "endColumn": 63,
+          "codeElementType": "METHOD_DECLARATION",
+          "description": "original method declaration",
+          "codeElement": "public getAllPathTokens() : PathTokens"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/handling/Context.java",
+          "startLine": 616,
+          "endLine": 626,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "METHOD_DECLARATION",
+          "description": "renamed method declaration",
+          "codeElement": "public getPathTokens() : PathTokens"
+        }
+      ]
+    }
+  },
+  {
+    "id": 512,
+    "project": "ratpack",
+    "v1_hash": "72bddd865fc1c39377ff00124451c243ef8b62ba",
+    "v2_hash": "08abc8fe1453c91b5997e4fb5a7155799aefa54a",
+    "orig_commit_message": "Move Pac4j to the new session API, and improvements to that API.\n\nAlso had to upgrade to latest Netty along the way.\n",
+    "improved_commit_message": "Rename Parameter inputStream -> in on line 33.",
+    "change_summary": "The identifier rename from inputStream to in likely reflects a move towards a more concise and conventional naming style, where shorter variable names are preferred for brevity without sacrificing clarity.",
+    "hints": [
+      "inputStream -> in",
+      "inputStream -> in",
+      "inputStream -> in",
+      "inputStream -> in"
+    ],
+    "starting_file": "ratpack-session/src/main/java/ratpack/session/JavaSerializationSessionValueSerializer.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter inputStream : InputStream to in : InputStream in method public deserialize(type Class<T>, in InputStream) : T from class ratpack.session.SessionSerializer",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/SessionValueSerializer.java",
+            "startLine": 26,
+            "endLine": 26,
+            "startColumn": 36,
+            "endColumn": 59,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "inputStream : InputStream"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/SessionSerializer.java",
+            "startLine": 52,
+            "endLine": 52,
+            "startColumn": 36,
+            "endColumn": 50,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "in : InputStream"
+          }
+        ]
+      },
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter inputStream : InputStream to in : InputStream in method public deserialize(type Class<T>, in InputStream) : T from class ratpack.session.internal.JavaBuiltinSessionSerializer",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/JavaSerializationSessionValueSerializer.java",
+            "startLine": 33,
+            "endLine": 33,
+            "startColumn": 43,
+            "endColumn": 66,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "inputStream : InputStream"
+          },
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/JavaSerializationSessionValueSerializer.java",
+            "startLine": 35,
+            "endLine": 35,
+            "startColumn": 7,
+            "endColumn": 80,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/internal/JavaBuiltinSessionSerializer.java",
+            "startLine": 34,
+            "endLine": 34,
+            "startColumn": 43,
+            "endColumn": 57,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "in : InputStream"
+          },
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/internal/JavaBuiltinSessionSerializer.java",
+            "startLine": 36,
+            "endLine": 36,
+            "startColumn": 7,
+            "endColumn": 71,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 3,
+    "seed_hash": "bbcdf05f4a1b8f32e855a500c787bd8f147f19cb",
+    "seed_example": {
+      "type": "Rename Parameter",
+      "description": "Rename Parameter inputStream : InputStream to in : InputStream in method public deserialize(type Class<T>, in InputStream) : T from class ratpack.session.internal.JavaBuiltinSessionSerializer",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/JavaSerializationSessionValueSerializer.java",
+          "startLine": 33,
+          "endLine": 33,
+          "startColumn": 43,
+          "endColumn": 66,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "original variable declaration",
+          "codeElement": "inputStream : InputStream"
+        },
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/JavaSerializationSessionValueSerializer.java",
+          "startLine": 35,
+          "endLine": 35,
+          "startColumn": 7,
+          "endColumn": 80,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/internal/JavaBuiltinSessionSerializer.java",
+          "startLine": 34,
+          "endLine": 34,
+          "startColumn": 43,
+          "endColumn": 57,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "renamed variable declaration",
+          "codeElement": "in : InputStream"
+        },
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/internal/JavaBuiltinSessionSerializer.java",
+          "startLine": 36,
+          "endLine": 36,
+          "startColumn": 7,
+          "endColumn": 71,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        }
+      ]
+    }
+  },
+  {
+    "id": 515,
+    "project": "ratpack",
+    "v1_hash": "72bddd865fc1c39377ff00124451c243ef8b62ba",
+    "v2_hash": "08abc8fe1453c91b5997e4fb5a7155799aefa54a",
+    "orig_commit_message": "Move Pac4j to the new session API, and improvements to that API.\n\nAlso had to upgrade to latest Netty along the way.\n",
+    "improved_commit_message": "Rename Class SessionStoreAdapter -> SessionStore on line 25.",
+    "change_summary": "The rename from LocalMemorySessionStoreAdapter to LocalMemorySessionStore likely reflects a move towards a more concise and direct naming convention, emphasizing the role of the identifier as a specific implementation of a session store rather than an adapter.",
+    "hints": [
+      "LocalMemorySessionStoreAdapter -> LocalMemorySessionStore",
+      "SessionStoreAdapter -> SessionStore"
+    ],
+    "starting_file": "ratpack-session/src/main/java/ratpack/session/store/SessionStoreAdapter.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Class",
+        "description": "Rename Class ratpack.session.store.internal.LocalMemorySessionStoreAdapter renamed to ratpack.session.store.internal.LocalMemorySessionStore",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/store/internal/LocalMemorySessionStoreAdapter.java",
+            "startLine": 29,
+            "endLine": 76,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "ratpack.session.store.internal.LocalMemorySessionStoreAdapter"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/store/internal/LocalMemorySessionStore.java",
+            "startLine": 29,
+            "endLine": 83,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "ratpack.session.store.internal.LocalMemorySessionStore"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 6,
+    "seed_hash": "d36f5109554257f62659129a46287fab6de8ff39",
+    "seed_example": {
+      "type": "Rename Class",
+      "description": "Rename Class ratpack.session.store.internal.LocalMemorySessionStoreAdapter renamed to ratpack.session.store.internal.LocalMemorySessionStore",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/store/internal/LocalMemorySessionStoreAdapter.java",
+          "startLine": 29,
+          "endLine": 76,
+          "startColumn": 0,
+          "endColumn": 2,
+          "codeElementType": "TYPE_DECLARATION",
+          "description": "original type declaration",
+          "codeElement": "ratpack.session.store.internal.LocalMemorySessionStoreAdapter"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/store/internal/LocalMemorySessionStore.java",
+          "startLine": 29,
+          "endLine": 83,
+          "startColumn": 0,
+          "endColumn": 2,
+          "codeElementType": "TYPE_DECLARATION",
+          "description": "renamed type declaration",
+          "codeElement": "ratpack.session.store.internal.LocalMemorySessionStore"
+        }
+      ]
+    }
+  },
+  {
+    "id": 532,
+    "project": "ratpack",
+    "v1_hash": "a92bb945e7eecc66b227729464b1884aed27f847",
+    "v2_hash": "12fb5a9f3bb7a55e815180cebd7cdefcdd700151",
+    "orig_commit_message": "Rename to HttpUrlSpec\n\nHave RequestSpec depend on HttpUrlSpec for all paths remove all URLs\nfrom HttpClient.\n\nThis fixes #366\n",
+    "improved_commit_message": "Rename Method build -> getURL on line 160.",
+    "change_summary": "The identifier change from build to getURL reflects a shift in focus from constructing a URI to retrieving it, making the method\u2019s purpose clearer.",
+    "hints": [
+      "build -> getURL",
+      "build -> getURL",
+      "build -> getURL"
+    ],
+    "starting_file": "ratpack-core/src/main/java/ratpack/http/internal/DefaultHttpUriBuilder.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public build() : URI renamed to public getURL() : URI in class ratpack.http.internal.HttpUrlSpecBacking",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/http/internal/DefaultHttpUriBuilder.java",
+            "startLine": 160,
+            "endLine": 169,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public build() : URI"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/http/internal/HttpUrlSpecBacking.java",
+            "startLine": 166,
+            "endLine": 174,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public getURL() : URI"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public build() : URI renamed to public getURL() : URI in class ratpack.http.HttpUrlSpec",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/http/HttpUriBuilder.java",
+            "startLine": 42,
+            "endLine": 42,
+            "startColumn": 3,
+            "endColumn": 15,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public build() : URI"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/http/HttpUrlSpec.java",
+            "startLine": 44,
+            "endLine": 44,
+            "startColumn": 3,
+            "endColumn": 16,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public getURL() : URI"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 1,
+    "seed_hash": "50edae0f7f3c9ea159524bc25f1a7c334a5ebcd5",
+    "seed_example": {
+      "type": "Rename Method",
+      "description": "Rename Method public build() : URI renamed to public getURL() : URI in class ratpack.http.internal.HttpUrlSpecBacking",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/http/internal/DefaultHttpUriBuilder.java",
+          "startLine": 160,
+          "endLine": 169,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "METHOD_DECLARATION",
+          "description": "original method declaration",
+          "codeElement": "public build() : URI"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/http/internal/HttpUrlSpecBacking.java",
+          "startLine": 166,
+          "endLine": 174,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "METHOD_DECLARATION",
+          "description": "renamed method declaration",
+          "codeElement": "public getURL() : URI"
+        }
+      ]
+    }
+  },
+  {
+    "id": 551,
+    "project": "ratpack",
+    "v1_hash": "5a7b51328f3a157f712e9d6d7f59ca03c5ed78af",
+    "v2_hash": "2a41e57af534e574f95464130076415700527b56",
+    "orig_commit_message": "Fix race conditions in CachingUpstream\n\nCloses #1369\n",
+    "improved_commit_message": "Rename Variable cached -> loading on line 57.",
+    "change_summary": "The rename from `cached` to `loading` reflects a shift in focus from stored data to the current status of data retrieval.",
+    "hints": [
+      "cached -> loading",
+      "cached -> loading"
+    ],
+    "starting_file": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable cached : Cached<? extends T> to loading : Loading in method private tryDrain() : void from class ratpack.exec.internal.CachingUpstream",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 57,
+            "endLine": 57,
+            "startColumn": 29,
+            "endColumn": 47,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "cached : Cached<? extends T>"
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 57,
+            "endLine": 57,
+            "startColumn": 9,
+            "endColumn": 48,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 74,
+            "endLine": 74,
+            "startColumn": 13,
+            "endColumn": 46,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 55,
+            "endLine": 55,
+            "startColumn": 19,
+            "endColumn": 45,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "loading : Loading"
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 55,
+            "endLine": 55,
+            "startColumn": 11,
+            "endColumn": 46,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 66,
+            "endLine": 66,
+            "startColumn": 15,
+            "endColumn": 56,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable cached : Cached<? extends T> to loading : Loading in method public connect(downstream Downstream<? super T>) : void from class ratpack.exec.internal.CachingUpstream",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 112,
+            "endLine": 112,
+            "startColumn": 25,
+            "endColumn": 48,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "cached : Cached<? extends T>"
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 112,
+            "endLine": 112,
+            "startColumn": 5,
+            "endColumn": 49,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 119,
+            "endLine": 119,
+            "startColumn": 7,
+            "endColumn": 40,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 113,
+            "endLine": 120,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "IF_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 112,
+            "endLine": 112,
+            "startColumn": 13,
+            "endColumn": 44,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "loading : Loading"
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 112,
+            "endLine": 112,
+            "startColumn": 5,
+            "endColumn": 45,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 114,
+            "endLine": 114,
+            "startColumn": 7,
+            "endColumn": 48,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+            "startLine": 113,
+            "endLine": 120,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "IF_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "6215fb4c6c882711c3d858dd8db6e6150b0fc119",
+    "seed_example": {
+      "type": "Rename Variable",
+      "description": "Rename Variable cached : Cached<? extends T> to loading : Loading in method private tryDrain() : void from class ratpack.exec.internal.CachingUpstream",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+          "startLine": 57,
+          "endLine": 57,
+          "startColumn": 29,
+          "endColumn": 47,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "original variable declaration",
+          "codeElement": "cached : Cached<? extends T>"
+        },
+        {
+          "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+          "startLine": 57,
+          "endLine": 57,
+          "startColumn": 9,
+          "endColumn": 48,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+          "startLine": 74,
+          "endLine": 74,
+          "startColumn": 13,
+          "endColumn": 46,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+          "startLine": 55,
+          "endLine": 55,
+          "startColumn": 19,
+          "endColumn": 45,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "renamed variable declaration",
+          "codeElement": "loading : Loading"
+        },
+        {
+          "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+          "startLine": 55,
+          "endLine": 55,
+          "startColumn": 11,
+          "endColumn": 46,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-exec/src/main/java/ratpack/exec/internal/CachingUpstream.java",
+          "startLine": 66,
+          "endLine": 66,
+          "startColumn": 15,
+          "endColumn": 56,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        }
+      ]
+    }
+  },
+  {
+    "id": 612,
+    "project": "ratpack",
+    "v1_hash": "47e136bf75f18b70498632f7f6d0fe56a0393159",
+    "v2_hash": "5d18ea1b8be40318446ee74787f885050ba285b6",
+    "orig_commit_message": "Use Java 7's Path instead of File everywhere, to support running inside different file systems (such as a Jar).\n\n#210 & #214.\n",
+    "improved_commit_message": "Rename Class FileTemplateSource -> PathTemplateSource on line 25.",
+    "change_summary": "The rename from `file` to `path` reflects a shift in focus from a specific file representation to a more abstract path representation, which can encompass both files and directories in a filesystem context.",
+    "hints": [
+      "file -> path",
+      "file -> path",
+      "file -> path",
+      "FileTemplateSource -> PathTemplateSource"
+    ],
+    "starting_file": "ratpack-core/src/main/java/ratpack/file/internal/DefaultFileSystemBinding.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Class",
+        "description": "Rename Class ratpack.groovy.templating.internal.FileTemplateSource renamed to ratpack.groovy.templating.internal.PathTemplateSource",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/templating/internal/FileTemplateSource.java",
+            "startLine": 25,
+            "endLine": 67,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "ratpack.groovy.templating.internal.FileTemplateSource"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/templating/internal/PathTemplateSource.java",
+            "startLine": 25,
+            "endLine": 63,
+            "startColumn": 0,
+            "endColumn": 2,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "ratpack.groovy.templating.internal.PathTemplateSource"
+          }
+        ]
+      },
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter file : File to path : Path in method public binding(path Path) : FileSystemBinding from class ratpack.file.internal.DefaultFileSystemBinding",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/DefaultFileSystemBinding.java",
+            "startLine": 53,
+            "endLine": 53,
+            "startColumn": 36,
+            "endColumn": 45,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "file : File"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/DefaultFileSystemBinding.java",
+            "startLine": 54,
+            "endLine": 54,
+            "startColumn": 5,
+            "endColumn": 47,
+            "codeElementType": "RETURN_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/DefaultFileSystemBinding.java",
+            "startLine": 54,
+            "endLine": 54,
+            "startColumn": 36,
+            "endColumn": 45,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "path : Path"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/DefaultFileSystemBinding.java",
+            "startLine": 55,
+            "endLine": 55,
+            "startColumn": 5,
+            "endColumn": 47,
+            "codeElementType": "RETURN_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter file : File to path : String in method public FileSystemBindingHandler(path String, handler Handler) from class ratpack.file.internal.FileSystemBindingHandler",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/FileSystemBindingHandler.java",
+            "startLine": 32,
+            "endLine": 32,
+            "startColumn": 35,
+            "endColumn": 44,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "file : File"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/FileSystemBindingHandler.java",
+            "startLine": 33,
+            "endLine": 33,
+            "startColumn": 5,
+            "endColumn": 22,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/FileSystemBindingHandler.java",
+            "startLine": 28,
+            "endLine": 28,
+            "startColumn": 35,
+            "endColumn": 46,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "path : String"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/FileSystemBindingHandler.java",
+            "startLine": 29,
+            "endLine": 29,
+            "startColumn": 5,
+            "endColumn": 22,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Attribute",
+        "description": "Rename Attribute file : File to path : String in class ratpack.file.internal.FileSystemBindingHandler",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/FileSystemBindingHandler.java",
+            "startLine": 27,
+            "endLine": 27,
+            "startColumn": 22,
+            "endColumn": 26,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "original attribute declaration",
+            "codeElement": "file : File"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/internal/FileSystemBindingHandler.java",
+            "startLine": 25,
+            "endLine": 25,
+            "startColumn": 24,
+            "endColumn": 28,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "renamed attribute declaration",
+            "codeElement": "path : String"
+          }
+        ]
+      },
+      {
+        "type": "Rename Attribute",
+        "description": "Rename Attribute file : File to path : Path in class ratpack.groovy.templating.internal.PathTemplateSource",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/templating/internal/FileTemplateSource.java",
+            "startLine": 27,
+            "endLine": 27,
+            "startColumn": 22,
+            "endColumn": 26,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "original attribute declaration",
+            "codeElement": "file : File"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/templating/internal/PathTemplateSource.java",
+            "startLine": 28,
+            "endLine": 28,
+            "startColumn": 22,
+            "endColumn": 26,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "renamed attribute declaration",
+            "codeElement": "path : Path"
+          }
+        ]
+      },
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter file : File to path : Path in method public binding(path Path) : FileSystemBinding from class ratpack.file.FileSystemBinding",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/FileSystemBinding.java",
+            "startLine": 72,
+            "endLine": 72,
+            "startColumn": 29,
+            "endColumn": 38,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "file : File"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/file/FileSystemBinding.java",
+            "startLine": 74,
+            "endLine": 74,
+            "startColumn": 29,
+            "endColumn": 38,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "path : Path"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "5a1d047a065823e54bdbf4de76d51d071ff7522a",
+    "seed_example": {
+      "type": "Rename Class",
+      "description": "Rename Class ratpack.groovy.templating.internal.FileTemplateSource renamed to ratpack.groovy.templating.internal.PathTemplateSource",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/templating/internal/FileTemplateSource.java",
+          "startLine": 25,
+          "endLine": 67,
+          "startColumn": 0,
+          "endColumn": 2,
+          "codeElementType": "TYPE_DECLARATION",
+          "description": "original type declaration",
+          "codeElement": "ratpack.groovy.templating.internal.FileTemplateSource"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/templating/internal/PathTemplateSource.java",
+          "startLine": 25,
+          "endLine": 63,
+          "startColumn": 0,
+          "endColumn": 2,
+          "codeElementType": "TYPE_DECLARATION",
+          "description": "renamed type declaration",
+          "codeElement": "ratpack.groovy.templating.internal.PathTemplateSource"
+        }
+      ]
+    }
+  },
+  {
+    "id": 643,
+    "project": "ratpack",
+    "v1_hash": "2bfe1a967ce8e389ada73d478340d123e2bb4621",
+    "v2_hash": "7be8857d19feea74b8e3dac9e81178d803f04963",
+    "orig_commit_message": "introduce RegistryBacking interface and remove SpringBackedRegistry and GuiceBackedRegistry\n",
+    "improved_commit_message": "Rename Attribute suppliersForTypeFunction -> registryBacking on line 51.",
+    "change_summary": "The rename from suppliersForTypeFunction to registryBacking reflects a shift from a specific function-based approach to a more general backing interface that provides registry functionality.",
+    "hints": [
+      "suppliersForTypeFunction -> registryBacking",
+      "suppliersForTypeFunction -> registryBacking",
+      "suppliersForTypeFunction -> registryBacking"
+    ],
+    "starting_file": "ratpack-core/src/main/java/ratpack/registry/internal/CachingSupplierRegistry.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter suppliersForTypeFunction : Function<TypeToken<?>,List<? extends Supplier<?>>> to registryBacking : RegistryBacking in method public CachingBackedRegistry(registryBacking RegistryBacking) from class ratpack.registry.internal.CachingBackedRegistry",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/registry/internal/CachingSupplierRegistry.java",
+            "startLine": 53,
+            "endLine": 53,
+            "startColumn": 34,
+            "endColumn": 110,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "suppliersForTypeFunction : Function<TypeToken<?>,List<? extends Supplier<?>>>"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/registry/internal/CachingSupplierRegistry.java",
+            "startLine": 54,
+            "endLine": 54,
+            "startColumn": 5,
+            "endColumn": 62,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/registry/internal/CachingBackedRegistry.java",
+            "startLine": 54,
+            "endLine": 54,
+            "startColumn": 32,
+            "endColumn": 63,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "registryBacking : RegistryBacking"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/registry/internal/CachingBackedRegistry.java",
+            "startLine": 55,
+            "endLine": 55,
+            "startColumn": 5,
+            "endColumn": 44,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Attribute",
+        "description": "Rename Attribute suppliersForTypeFunction : Function<TypeToken<?>,List<? extends Supplier<?>>> to registryBacking : RegistryBacking in class ratpack.registry.internal.CachingBackedRegistry",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/registry/internal/CachingSupplierRegistry.java",
+            "startLine": 51,
+            "endLine": 51,
+            "startColumn": 69,
+            "endColumn": 93,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "original attribute declaration",
+            "codeElement": "suppliersForTypeFunction : Function<TypeToken<?>,List<? extends Supplier<?>>>"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/registry/internal/CachingBackedRegistry.java",
+            "startLine": 52,
+            "endLine": 52,
+            "startColumn": 33,
+            "endColumn": 48,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "renamed attribute declaration",
+            "codeElement": "registryBacking : RegistryBacking"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 1,
+    "seed_hash": "5b2eb8b5158c6d1a5e1b30919ec905283e55ebe8",
+    "seed_example": {
+      "type": "Rename Attribute",
+      "description": "Rename Attribute suppliersForTypeFunction : Function<TypeToken<?>,List<? extends Supplier<?>>> to registryBacking : RegistryBacking in class ratpack.registry.internal.CachingBackedRegistry",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/registry/internal/CachingSupplierRegistry.java",
+          "startLine": 51,
+          "endLine": 51,
+          "startColumn": 69,
+          "endColumn": 93,
+          "codeElementType": "FIELD_DECLARATION",
+          "description": "original attribute declaration",
+          "codeElement": "suppliersForTypeFunction : Function<TypeToken<?>,List<? extends Supplier<?>>>"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/registry/internal/CachingBackedRegistry.java",
+          "startLine": 52,
+          "endLine": 52,
+          "startColumn": 33,
+          "endColumn": 48,
+          "codeElementType": "FIELD_DECLARATION",
+          "description": "renamed attribute declaration",
+          "codeElement": "registryBacking : RegistryBacking"
+        }
+      ]
+    }
+  },
+  {
+    "id": 644,
+    "project": "ratpack",
+    "v1_hash": "29d42029529efb9b1ec62f4d7fe5f87ae5f83245",
+    "v2_hash": "7cd73ec8ba801956b5daac9acdb47333dafdcfcb",
+    "orig_commit_message": "Some renames.\n",
+    "improved_commit_message": "Rename Method renderFile -> compileFileTemplate on line 42.",
+    "change_summary": "The rename from renderFile to compileFileTemplate reflects a shift towards a more descriptive naming convention that clarifies the method's functionality and intent.",
+    "hints": [
+      "renderFile -> compileFileTemplate",
+      "innerRender -> innerCompiling"
+    ],
+    "starting_file": "ratpack-core/src/main/groovy/org/ratpackframework/templating/TemplateCompiler.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public renderFile(templateFileName String, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void renamed to public compileFileTemplate(templateFileName String, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void in class org.ratpackframework.templating.TemplateCompiler",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/templating/TemplateCompiler.java",
+            "startLine": 42,
+            "endLine": 53,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public renderFile(templateFileName String, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/templating/TemplateCompiler.java",
+            "startLine": 37,
+            "endLine": 48,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public compileFileTemplate(templateFileName String, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method protected innerRender(classLoader ClassLoader, template Buffer, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void renamed to protected innerCompiling(classLoader ClassLoader, template Buffer, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void in class org.ratpackframework.templating.TemplateCompiler",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/templating/TemplateCompiler.java",
+            "startLine": 63,
+            "endLine": 77,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "protected innerRender(classLoader ClassLoader, template Buffer, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/templating/TemplateCompiler.java",
+            "startLine": 58,
+            "endLine": 72,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "protected innerCompiling(classLoader ClassLoader, template Buffer, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "0a9424f4cbe4675e395e2dad0700648f1f52d4c3",
+    "seed_example": {
+      "type": "Rename Method",
+      "description": "Rename Method public renderFile(templateFileName String, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void renamed to public compileFileTemplate(templateFileName String, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void in class org.ratpackframework.templating.TemplateCompiler",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/templating/TemplateCompiler.java",
+          "startLine": 42,
+          "endLine": 53,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "METHOD_DECLARATION",
+          "description": "original method declaration",
+          "codeElement": "public renderFile(templateFileName String, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/templating/TemplateCompiler.java",
+          "startLine": 37,
+          "endLine": 48,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "METHOD_DECLARATION",
+          "description": "renamed method declaration",
+          "codeElement": "public compileFileTemplate(templateFileName String, model Map<Object,Object>, handler AsyncResultHandler<CompiledTemplate>) : void"
+        }
+      ]
+    }
+  },
+  {
+    "id": 646,
+    "project": "ratpack",
+    "v1_hash": "7c430b7fddb421082270283db04ddee74343d55c",
+    "v2_hash": "8084b64e4d8ab6a5a82fb4cd5c2c864d29f55562",
+    "orig_commit_message": "Some naming improvements and optimisations by way of flattening the handler graph.\n",
+    "improved_commit_message": "Rename Method handler -> prefix on line 52.",
+    "change_summary": "The rename from `handler` to `prefix` reflects a shift in focus from a general handling mechanism to a more specific function that denotes a path prefix for routing.",
+    "hints": [
+      "handler -> prefix",
+      "handler -> prefix"
+    ],
+    "starting_file": "ratpack-groovy/src/main/java/org/ratpackframework/groovy/handling/internal/DefaultChain.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public handler(path String, handler Closure<?>) : void renamed to public prefix(path String, handlers Closure<?>) : void in class org.ratpackframework.groovy.handling.internal.DefaultChain",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/org/ratpackframework/groovy/handling/internal/DefaultChain.java",
+            "startLine": 52,
+            "endLine": 54,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public handler(path String, handler Closure<?>) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/org/ratpackframework/groovy/handling/internal/DefaultChain.java",
+            "startLine": 46,
+            "endLine": 48,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public prefix(path String, handlers Closure<?>) : void"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method public handler(path String, handler Closure<?>) : void renamed to public prefix(path String, handler Closure<?>) : void in class org.ratpackframework.groovy.handling.Chain",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/org/ratpackframework/groovy/handling/Chain.java",
+            "startLine": 31,
+            "endLine": 31,
+            "startColumn": 3,
+            "endColumn": 121,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public handler(path String, handler Closure<?>) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/org/ratpackframework/groovy/handling/Chain.java",
+            "startLine": 27,
+            "endLine": 27,
+            "startColumn": 3,
+            "endColumn": 154,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "public prefix(path String, handler Closure<?>) : void"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 1,
+    "seed_hash": "ff1c090f1313974d1e0ab8e370a1d163f86dbb7a",
+    "seed_example": {
+      "type": "Rename Method",
+      "description": "Rename Method public handler(path String, handler Closure<?>) : void renamed to public prefix(path String, handlers Closure<?>) : void in class org.ratpackframework.groovy.handling.internal.DefaultChain",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-groovy/src/main/java/org/ratpackframework/groovy/handling/internal/DefaultChain.java",
+          "startLine": 52,
+          "endLine": 54,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "METHOD_DECLARATION",
+          "description": "original method declaration",
+          "codeElement": "public handler(path String, handler Closure<?>) : void"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-groovy/src/main/java/org/ratpackframework/groovy/handling/internal/DefaultChain.java",
+          "startLine": 46,
+          "endLine": 48,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "METHOD_DECLARATION",
+          "description": "renamed method declaration",
+          "codeElement": "public prefix(path String, handlers Closure<?>) : void"
+        }
+      ]
+    }
+  },
+  {
+    "id": 661,
+    "project": "ratpack",
+    "v1_hash": "b594ee7c1088588ba5e2ea139fcf62fa905b7efc",
+    "v2_hash": "87f76360b585beea920bf6eb14a93a0d4089fc70",
+    "orig_commit_message": "Move from Vert.x to Netty.\n",
+    "improved_commit_message": "Rename Class DecodedStackTrace -> StackTrace on line 98.",
+    "change_summary": "The rename from decodedStackTrace to stackTrace simplifies the identifier by removing the prefix \"decoded,\" which may be unnecessary given the context already implies that the variable holds a processed representation of the stack trace.",
+    "hints": [
+      "decodedStackTrace -> stackTrace",
+      "DecodedStackTrace -> StackTrace",
+      "decodedStackTrace -> stackTrace"
+    ],
+    "starting_file": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Class",
+        "description": "Rename Class org.ratpackframework.handler.ErrorHandler.DecodedStackTrace renamed to org.ratpackframework.handler.ErrorHandler.StackTrace",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 98,
+            "endLine": 106,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "org.ratpackframework.handler.ErrorHandler.DecodedStackTrace"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 73,
+            "endLine": 81,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "org.ratpackframework.handler.ErrorHandler.StackTrace"
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable decodedStackTrace : DecodedStackTrace to stackTrace : StackTrace in method package renderException(exception Exception, request HttpRequest, handler ResultHandler<ChannelBuffer>) : void from class org.ratpackframework.handler.ErrorHandler",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 82,
+            "endLine": 82,
+            "startColumn": 23,
+            "endColumn": 70,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "decodedStackTrace : DecodedStackTrace"
+          },
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 82,
+            "endLine": 82,
+            "startColumn": 5,
+            "endColumn": 71,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 86,
+            "endLine": 86,
+            "startColumn": 5,
+            "endColumn": 53,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 92,
+            "endLine": 92,
+            "startColumn": 5,
+            "endColumn": 141,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 57,
+            "endLine": 57,
+            "startColumn": 16,
+            "endColumn": 56,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "stackTrace : StackTrace"
+          },
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 57,
+            "endLine": 57,
+            "startColumn": 5,
+            "endColumn": 57,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 61,
+            "endLine": 61,
+            "startColumn": 5,
+            "endColumn": 46,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+            "startLine": 67,
+            "endLine": 67,
+            "startColumn": 5,
+            "endColumn": 127,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 2,
+    "seed_hash": "3ed6c03080a02602c219a52b1c697cb59e517e93",
+    "seed_example": {
+      "type": "Rename Class",
+      "description": "Rename Class org.ratpackframework.handler.ErrorHandler.DecodedStackTrace renamed to org.ratpackframework.handler.ErrorHandler.StackTrace",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+          "startLine": 98,
+          "endLine": 106,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "TYPE_DECLARATION",
+          "description": "original type declaration",
+          "codeElement": "org.ratpackframework.handler.ErrorHandler.DecodedStackTrace"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/groovy/org/ratpackframework/handler/ErrorHandler.java",
+          "startLine": 73,
+          "endLine": 81,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "TYPE_DECLARATION",
+          "description": "renamed type declaration",
+          "codeElement": "org.ratpackframework.handler.ErrorHandler.StackTrace"
+        }
+      ]
+    }
+  },
+  {
+    "id": 684,
+    "project": "ratpack",
+    "v1_hash": "c3bf0722c0805ab8fb87378843b60abd7f128860",
+    "v2_hash": "95ee68471e16cea70108178bc78f9ac4a07fdba0",
+    "orig_commit_message": "More spec fixing.\n",
+    "improved_commit_message": "Rename Parameter request -> sessionId on line 32.",
+    "change_summary": "The identifier rename from `request` to `sessionId` clarifies the purpose of the variable by explicitly indicating that it refers to the unique identifier of a session, rather than a generic request object.",
+    "hints": [
+      "request -> sessionId",
+      "request -> sessionId"
+    ],
+    "starting_file": "ratpack-core/src/main/java/org/ratpackframework/session/store/internal/DefaultMapSessionStore.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter request : Request to sessionId : String in method public get(sessionId String) : SessionStorage from class org.ratpackframework.session.store.MapSessionStore",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/session/store/MapSessionStore.java",
+            "startLine": 8,
+            "endLine": 8,
+            "startColumn": 37,
+            "endColumn": 52,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "request : Request"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/session/store/MapSessionStore.java",
+            "startLine": 9,
+            "endLine": 9,
+            "startColumn": 22,
+            "endColumn": 38,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "sessionId : String"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "828a53db385b656edbb83c4daa6dde454434d01a",
+    "seed_example": {
+      "type": "Rename Parameter",
+      "description": "Rename Parameter request : Request to sessionId : String in method public get(sessionId String) : SessionStorage from class org.ratpackframework.session.store.MapSessionStore",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/session/store/MapSessionStore.java",
+          "startLine": 8,
+          "endLine": 8,
+          "startColumn": 37,
+          "endColumn": 52,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "original variable declaration",
+          "codeElement": "request : Request"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/session/store/MapSessionStore.java",
+          "startLine": 9,
+          "endLine": 9,
+          "startColumn": 22,
+          "endColumn": 38,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "renamed variable declaration",
+          "codeElement": "sessionId : String"
+        }
+      ]
+    }
+  },
+  {
+    "id": 715,
+    "project": "ratpack",
+    "v1_hash": "f22e4e00bc169ebbfa51bf40b156a616e507dc75",
+    "v2_hash": "ae4adddda66513a814255f1dd9558f88e002d4f9",
+    "orig_commit_message": "Docs for ExecBuilder.\n",
+    "improved_commit_message": "Rename Parameter registry -> action on line 37.",
+    "change_summary": "The rename from `registry` to `action` reflects a shift in focus from a static collection of components to the dynamic process that modifies or utilizes those components during execution.",
+    "hints": [
+      "registry -> action",
+      "registry -> action"
+    ],
+    "starting_file": "ratpack-core/src/main/java/ratpack/exec/ExecBuilder.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter registry : Action<? super RegistrySpec> to action : Action<? super RegistrySpec> in method public register(action Action<? super RegistrySpec>) : ExecBuilder from class ratpack.exec.ExecBuilder",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/ExecBuilder.java",
+            "startLine": 37,
+            "endLine": 37,
+            "startColumn": 24,
+            "endColumn": 61,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "registry : Action<? super RegistrySpec>"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/ExecBuilder.java",
+            "startLine": 86,
+            "endLine": 86,
+            "startColumn": 24,
+            "endColumn": 59,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "action : Action<? super RegistrySpec>"
+          }
+        ]
+      },
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter registry : Action<? super RegistrySpec> to action : Action<? super RegistrySpec> in method public register(action Action<? super RegistrySpec>) : ExecBuilder from class ratpack.exec.internal.DefaultExecControl.fork.new ExecBuilder",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultExecControl.java",
+            "startLine": 120,
+            "endLine": 120,
+            "startColumn": 35,
+            "endColumn": 72,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "registry : Action<? super RegistrySpec>"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultExecControl.java",
+            "startLine": 121,
+            "endLine": 121,
+            "startColumn": 9,
+            "endColumn": 34,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultExecControl.java",
+            "startLine": 120,
+            "endLine": 120,
+            "startColumn": 35,
+            "endColumn": 70,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "action : Action<? super RegistrySpec>"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultExecControl.java",
+            "startLine": 121,
+            "endLine": 121,
+            "startColumn": 9,
+            "endColumn": 32,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "bde02ff044cfcb8fcb22bd07cd00909ee4836314",
+    "seed_example": {
+      "type": "Rename Parameter",
+      "description": "Rename Parameter registry : Action<? super RegistrySpec> to action : Action<? super RegistrySpec> in method public register(action Action<? super RegistrySpec>) : ExecBuilder from class ratpack.exec.ExecBuilder",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/ExecBuilder.java",
+          "startLine": 37,
+          "endLine": 37,
+          "startColumn": 24,
+          "endColumn": 61,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "original variable declaration",
+          "codeElement": "registry : Action<? super RegistrySpec>"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/ExecBuilder.java",
+          "startLine": 86,
+          "endLine": 86,
+          "startColumn": 24,
+          "endColumn": 59,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "renamed variable declaration",
+          "codeElement": "action : Action<? super RegistrySpec>"
+        }
+      ]
+    }
+  },
+  {
+    "id": 726,
+    "project": "ratpack",
+    "v1_hash": "8044a8781448be0ecae7c68f5df9189cfc8dbdc0",
+    "v2_hash": "b7556c7cb772a16c03d49df81ed59b56cc4fc58c",
+    "orig_commit_message": "#128 support setting SSL keystore file and password via properties\n",
+    "improved_commit_message": "Rename Variable publicAddress -> uri on line 219.",
+    "change_summary": "The rename from `publicAddress` to `uri` suggests a shift towards a more generic and standard representation of a resource locator that is not limited to just public addresses.",
+    "hints": [
+      "publicAddress -> uri",
+      "publicAddressString -> uriString"
+    ],
+    "starting_file": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable publicAddress : URI to uri : URI in method private getPropertyAsUri(properties Properties, key String) : URI from class org.ratpackframework.launch.LaunchConfigFactory",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 219,
+            "endLine": 219,
+            "startColumn": 11,
+            "endColumn": 31,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "publicAddress : URI"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 219,
+            "endLine": 219,
+            "startColumn": 7,
+            "endColumn": 32,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 224,
+            "endLine": 224,
+            "startColumn": 11,
+            "endColumn": 56,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 268,
+            "endLine": 268,
+            "startColumn": 9,
+            "endColumn": 19,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "uri : URI"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 268,
+            "endLine": 268,
+            "startColumn": 5,
+            "endColumn": 20,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 273,
+            "endLine": 273,
+            "startColumn": 9,
+            "endColumn": 34,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable publicAddressString : String to uriString : String in method private getPropertyAsUri(properties Properties, key String) : URI from class org.ratpackframework.launch.LaunchConfigFactory",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 220,
+            "endLine": 220,
+            "startColumn": 14,
+            "endColumn": 83,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "publicAddressString : String"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 220,
+            "endLine": 220,
+            "startColumn": 7,
+            "endColumn": 84,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 224,
+            "endLine": 224,
+            "startColumn": 11,
+            "endColumn": 56,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 226,
+            "endLine": 226,
+            "startColumn": 11,
+            "endColumn": 100,
+            "codeElementType": "THROW_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 222,
+            "endLine": 228,
+            "startColumn": 7,
+            "endColumn": 8,
+            "codeElementType": "IF_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 269,
+            "endLine": 269,
+            "startColumn": 12,
+            "endColumn": 51,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "uriString : String"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 269,
+            "endLine": 269,
+            "startColumn": 5,
+            "endColumn": 52,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 273,
+            "endLine": 273,
+            "startColumn": 9,
+            "endColumn": 34,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 275,
+            "endLine": 275,
+            "startColumn": 9,
+            "endColumn": 88,
+            "codeElementType": "THROW_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+            "startLine": 271,
+            "endLine": 277,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "IF_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "4d346681d60160ede8006fea276aefd548dced41",
+    "seed_example": {
+      "type": "Rename Variable",
+      "description": "Rename Variable publicAddress : URI to uri : URI in method private getPropertyAsUri(properties Properties, key String) : URI from class org.ratpackframework.launch.LaunchConfigFactory",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+          "startLine": 219,
+          "endLine": 219,
+          "startColumn": 11,
+          "endColumn": 31,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "original variable declaration",
+          "codeElement": "publicAddress : URI"
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+          "startLine": 219,
+          "endLine": 219,
+          "startColumn": 7,
+          "endColumn": 32,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+          "startLine": 224,
+          "endLine": 224,
+          "startColumn": 11,
+          "endColumn": 56,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+          "startLine": 268,
+          "endLine": 268,
+          "startColumn": 9,
+          "endColumn": 19,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "renamed variable declaration",
+          "codeElement": "uri : URI"
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+          "startLine": 268,
+          "endLine": 268,
+          "startColumn": 5,
+          "endColumn": 20,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/launch/LaunchConfigFactory.java",
+          "startLine": 273,
+          "endLine": 273,
+          "startColumn": 9,
+          "endColumn": 34,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        }
+      ]
+    }
+  },
+  {
+    "id": 737,
+    "project": "ratpack",
+    "v1_hash": "65844a72ff7db42b9582c4bc6fc70dca1ce44b67",
+    "v2_hash": "c13656290e7660365e7ef095ecd5cae6ec20365c",
+    "orig_commit_message": "Simplify the concurrency management of the health check handler.\n",
+    "improved_commit_message": "Rename Attribute concurrencyLevel -> throttle on line 133.",
+    "change_summary": "The rename from concurrencyLevel to throttle reflects a shift in focus from merely managing the number of concurrent executions to implementing a more nuanced control mechanism that governs the rate of execution.",
+    "hints": [
+      "concurrencyLevel -> throttle",
+      "concurrencyLevel -> throttle",
+      "concurrencyLevel -> throttle"
+    ],
+    "starting_file": "ratpack-core/src/main/java/ratpack/health/HealthCheckHandler.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter concurrencyLevel : int to throttle : Throttle in method protected HealthCheckHandler(pathTokenName String, throttle Throttle) from class ratpack.health.HealthCheckHandler",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/health/HealthCheckHandler.java",
+            "startLine": 183,
+            "endLine": 183,
+            "startColumn": 54,
+            "endColumn": 74,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "concurrencyLevel : int"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/health/HealthCheckHandler.java",
+            "startLine": 185,
+            "endLine": 185,
+            "startColumn": 5,
+            "endColumn": 46,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/health/HealthCheckHandler.java",
+            "startLine": 174,
+            "endLine": 174,
+            "startColumn": 54,
+            "endColumn": 71,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "throttle : Throttle"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/health/HealthCheckHandler.java",
+            "startLine": 176,
+            "endLine": 176,
+            "startColumn": 5,
+            "endColumn": 30,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Attribute",
+        "description": "Rename Attribute concurrencyLevel : int to throttle : Throttle in class ratpack.health.HealthCheckHandler",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/health/HealthCheckHandler.java",
+            "startLine": 133,
+            "endLine": 133,
+            "startColumn": 21,
+            "endColumn": 37,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "original attribute declaration",
+            "codeElement": "concurrencyLevel : int"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/health/HealthCheckHandler.java",
+            "startLine": 124,
+            "endLine": 124,
+            "startColumn": 26,
+            "endColumn": 34,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "renamed attribute declaration",
+            "codeElement": "throttle : Throttle"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "0b9a2f0b91f2f0f156271837671749a6431e04f6",
+    "seed_example": {
+      "type": "Rename Attribute",
+      "description": "Rename Attribute concurrencyLevel : int to throttle : Throttle in class ratpack.health.HealthCheckHandler",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/health/HealthCheckHandler.java",
+          "startLine": 133,
+          "endLine": 133,
+          "startColumn": 21,
+          "endColumn": 37,
+          "codeElementType": "FIELD_DECLARATION",
+          "description": "original attribute declaration",
+          "codeElement": "concurrencyLevel : int"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/health/HealthCheckHandler.java",
+          "startLine": 124,
+          "endLine": 124,
+          "startColumn": 26,
+          "endColumn": 34,
+          "codeElementType": "FIELD_DECLARATION",
+          "description": "renamed attribute declaration",
+          "codeElement": "throttle : Throttle"
+        }
+      ]
+    }
+  },
+  {
+    "id": 752,
+    "project": "ratpack",
+    "v1_hash": "82fb6805946f2cc52ae648cb4c52986dacf730c5",
+    "v2_hash": "ccb818e45f7af063c4a756c3506822bcbc35ea7e",
+    "orig_commit_message": "Collapse the background package and break out the nested interfaces on Background.\n",
+    "improved_commit_message": "Rename Class Success -> SuccessPromise on line 56.",
+    "change_summary": "The rename from SuccessOrError to SuccessOrErrorPromise likely reflects a desire to clarify that the handling of success and error states involves asynchronous behavior, specifically indicating that the result is promised to be available at a later time.",
+    "hints": [
+      "SuccessOrError -> SuccessOrErrorPromise",
+      "Success -> SuccessPromise",
+      "DefaultSuccessOrError -> DefaultSuccessOrErrorPromise",
+      "DefaultSuccess -> DefaultSuccessPromise"
+    ],
+    "starting_file": "ratpack-core/src/main/java/ratpack/background/Background.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Class",
+        "description": "Rename Class ratpack.background.internal.DefaultBackground.DefaultSuccessOrError renamed to ratpack.background.internal.DefaultBackground.DefaultSuccessOrErrorPromise",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/background/internal/DefaultBackground.java",
+            "startLine": 49,
+            "endLine": 83,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "ratpack.background.internal.DefaultBackground.DefaultSuccessOrError"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/background/internal/DefaultBackground.java",
+            "startLine": 51,
+            "endLine": 85,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "ratpack.background.internal.DefaultBackground.DefaultSuccessOrErrorPromise"
+          }
+        ]
+      },
+      {
+        "type": "Rename Class",
+        "description": "Rename Class ratpack.background.internal.DefaultBackground.DefaultSuccess renamed to ratpack.background.internal.DefaultBackground.DefaultSuccessPromise",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/background/internal/DefaultBackground.java",
+            "startLine": 85,
+            "endLine": 136,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "original type declaration",
+            "codeElement": "ratpack.background.internal.DefaultBackground.DefaultSuccess"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/background/internal/DefaultBackground.java",
+            "startLine": 87,
+            "endLine": 138,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "TYPE_DECLARATION",
+            "description": "renamed type declaration",
+            "codeElement": "ratpack.background.internal.DefaultBackground.DefaultSuccessPromise"
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "1a948cc399487c73778d4b9b0ee6f6fef2bc2e63",
+    "seed_example": {
+      "type": "Rename Class",
+      "description": "Rename Class ratpack.background.internal.DefaultBackground.DefaultSuccessOrError renamed to ratpack.background.internal.DefaultBackground.DefaultSuccessOrErrorPromise",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/background/internal/DefaultBackground.java",
+          "startLine": 49,
+          "endLine": 83,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "TYPE_DECLARATION",
+          "description": "original type declaration",
+          "codeElement": "ratpack.background.internal.DefaultBackground.DefaultSuccessOrError"
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/background/internal/DefaultBackground.java",
+          "startLine": 51,
+          "endLine": 85,
+          "startColumn": 3,
+          "endColumn": 4,
+          "codeElementType": "TYPE_DECLARATION",
+          "description": "renamed type declaration",
+          "codeElement": "ratpack.background.internal.DefaultBackground.DefaultSuccessOrErrorPromise"
+        }
+      ]
+    }
+  },
+  {
+    "id": 761,
+    "project": "ratpack",
+    "v1_hash": "a4f74acb37ed935688e59b4e4cec52190241c7c7",
+    "v2_hash": "d581cc7b9fe9038e62ea1463a8721bb32486c8a2",
+    "orig_commit_message": "Docs for MediaType, and some cleanup.\n\nCloses #35.\n",
+    "improved_commit_message": "Rename Parameter base -> value on line 31.",
+    "change_summary": "The rename from `base` to `value` reflects a shift towards clearer terminology, where \"value\" more accurately conveys the concept of a media type without parameters.",
+    "hints": [
+      "base -> value",
+      "headerValue -> value"
+    ],
+    "starting_file": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter headerValue : String to value : String in method public DefaultMediaType(value String, defaultCharset String) from class org.ratpackframework.http.internal.DefaultMediaType",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+            "startLine": 38,
+            "endLine": 38,
+            "startColumn": 20,
+            "endColumn": 38,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "headerValue : String"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+            "startLine": 44,
+            "endLine": 44,
+            "startColumn": 7,
+            "endColumn": 40,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+            "startLine": 50,
+            "endLine": 50,
+            "startColumn": 9,
+            "endColumn": 49,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+            "startLine": 45,
+            "endLine": 67,
+            "startColumn": 7,
+            "endColumn": 8,
+            "codeElementType": "IF_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+            "startLine": 40,
+            "endLine": 68,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "IF_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+            "startLine": 37,
+            "endLine": 37,
+            "startColumn": 27,
+            "endColumn": 39,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "value : String"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+            "startLine": 42,
+            "endLine": 42,
+            "startColumn": 7,
+            "endColumn": 28,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+            "startLine": 48,
+            "endLine": 48,
+            "startColumn": 9,
+            "endColumn": 43,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+            "startLine": 43,
+            "endLine": 62,
+            "startColumn": 7,
+            "endColumn": 8,
+            "codeElementType": "IF_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+            "startLine": 38,
+            "endLine": 63,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "IF_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "c86569a4d88abed675a1d1b537e9bab2192d1d0b",
+    "seed_example": {
+      "type": "Rename Parameter",
+      "description": "Rename Parameter headerValue : String to value : String in method public DefaultMediaType(value String, defaultCharset String) from class org.ratpackframework.http.internal.DefaultMediaType",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+          "startLine": 38,
+          "endLine": 38,
+          "startColumn": 20,
+          "endColumn": 38,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "original variable declaration",
+          "codeElement": "headerValue : String"
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+          "startLine": 44,
+          "endLine": 44,
+          "startColumn": 7,
+          "endColumn": 40,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+          "startLine": 50,
+          "endLine": 50,
+          "startColumn": 9,
+          "endColumn": 49,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+          "startLine": 45,
+          "endLine": 67,
+          "startColumn": 7,
+          "endColumn": 8,
+          "codeElementType": "IF_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/MediaType.java",
+          "startLine": 40,
+          "endLine": 68,
+          "startColumn": 5,
+          "endColumn": 6,
+          "codeElementType": "IF_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+          "startLine": 37,
+          "endLine": 37,
+          "startColumn": 27,
+          "endColumn": 39,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "renamed variable declaration",
+          "codeElement": "value : String"
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+          "startLine": 42,
+          "endLine": 42,
+          "startColumn": 7,
+          "endColumn": 28,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+          "startLine": 48,
+          "endLine": 48,
+          "startColumn": 9,
+          "endColumn": 43,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+          "startLine": 43,
+          "endLine": 62,
+          "startColumn": 7,
+          "endColumn": 8,
+          "codeElementType": "IF_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/org/ratpackframework/http/internal/DefaultMediaType.java",
+          "startLine": 38,
+          "endLine": 63,
+          "startColumn": 5,
+          "endColumn": 6,
+          "codeElementType": "IF_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        }
+      ]
+    }
+  },
+  {
+    "id": 763,
+    "project": "ratpack",
+    "v1_hash": "edcec84f8e71d8125fc8b99cfa78ee9890e78bb4",
+    "v2_hash": "d85ef2369e55ada3ad004193247fd7c33d6d786c",
+    "orig_commit_message": "Bust up DefaultExecController, and make the execution error and completion handlers immutable (i.e. specified at the start of the execution).\n",
+    "improved_commit_message": "Rename Variable Execution -> ExecutionBacking on line 235.",
+    "change_summary": "The rename from Execution to ExecutionBacking likely reflects a desire to clarify that this identifier represents a specific backing implementation of execution management, rather than the broader or more abstract concept of execution itself.",
+    "hints": [
+      "Execution -> ExecutionBacking",
+      "execution -> executionBacking"
+    ],
+    "starting_file": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultExecController.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable execution : Execution to executionBacking : ExecutionBacking in method public then(then Action<? super T>) : void from class ratpack.exec.internal.DefaultSuccessPromise",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+            "startLine": 49,
+            "endLine": 49,
+            "startColumn": 23,
+            "endColumn": 60,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "execution : Execution"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+            "startLine": 49,
+            "endLine": 49,
+            "startColumn": 7,
+            "endColumn": 61,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+            "startLine": 92,
+            "endLine": 97,
+            "startColumn": 15,
+            "endColumn": 18,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+            "startLine": 50,
+            "endLine": 101,
+            "startColumn": 7,
+            "endColumn": 10,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+            "startLine": 48,
+            "endLine": 48,
+            "startColumn": 30,
+            "endColumn": 75,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "executionBacking : ExecutionBacking"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+            "startLine": 48,
+            "endLine": 48,
+            "startColumn": 7,
+            "endColumn": 76,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+            "startLine": 91,
+            "endLine": 96,
+            "startColumn": 15,
+            "endColumn": 18,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+            "startLine": 49,
+            "endLine": 100,
+            "startColumn": 7,
+            "endColumn": 10,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "6506716aecca8b8d60a39081ea1b5423276e1e19",
+    "seed_example": {
+      "type": "Rename Variable",
+      "description": "Rename Variable execution : Execution to executionBacking : ExecutionBacking in method public then(then Action<? super T>) : void from class ratpack.exec.internal.DefaultSuccessPromise",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+          "startLine": 49,
+          "endLine": 49,
+          "startColumn": 23,
+          "endColumn": 60,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "original variable declaration",
+          "codeElement": "execution : Execution"
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+          "startLine": 49,
+          "endLine": 49,
+          "startColumn": 7,
+          "endColumn": 61,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+          "startLine": 92,
+          "endLine": 97,
+          "startColumn": 15,
+          "endColumn": 18,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+          "startLine": 50,
+          "endLine": 101,
+          "startColumn": 7,
+          "endColumn": 10,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+          "startLine": 48,
+          "endLine": 48,
+          "startColumn": 30,
+          "endColumn": 75,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "renamed variable declaration",
+          "codeElement": "executionBacking : ExecutionBacking"
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+          "startLine": 48,
+          "endLine": 48,
+          "startColumn": 7,
+          "endColumn": 76,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+          "startLine": 91,
+          "endLine": 96,
+          "startColumn": 15,
+          "endColumn": 18,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultSuccessPromise.java",
+          "startLine": 49,
+          "endLine": 100,
+          "startColumn": 7,
+          "endColumn": 10,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        }
+      ]
+    }
+  },
+  {
+    "id": 775,
+    "project": "ratpack",
+    "v1_hash": "0396f220199dcf68ac2c03cec32ae5610b3675f2",
+    "v2_hash": "ddf83547472750664c0ad8392b9dcfdbdfbbc370",
+    "orig_commit_message": "Cleanup of methods that deal with adding to the context registry.\n\nCloses #284.\n",
+    "improved_commit_message": "Rename Parameter action -> closure on line 323.",
+    "change_summary": "The rename from action to closure reflects a more accurate description of the role being played in the code, as the term \"closure\" is specifically used in Groovy to denote a block of code that can be executed later, often with a context.",
+    "hints": [
+      "action -> closure",
+      "action -> closure",
+      "action -> closure"
+    ],
+    "starting_file": "ratpack-groovy/src/main/java/ratpack/groovy/handling/GroovyChain.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter action : Closure<?> to closure : Closure<?> in method public register(closure Closure<?>) : GroovyChain from class ratpack.groovy.handling.GroovyChainAction",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyChain.java",
+            "startLine": 86,
+            "endLine": 86,
+            "startColumn": 31,
+            "endColumn": 124,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "action : Closure<?>"
+          },
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyChain.java",
+            "startLine": 87,
+            "endLine": 87,
+            "startColumn": 5,
+            "endColumn": 61,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/GroovyChainAction.java",
+            "startLine": 346,
+            "endLine": 346,
+            "startColumn": 31,
+            "endColumn": 125,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "closure : Closure<?>"
+          },
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/GroovyChainAction.java",
+            "startLine": 347,
+            "endLine": 347,
+            "startColumn": 5,
+            "endColumn": 41,
+            "codeElementType": "RETURN_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter action : Closure<?> to handler : Closure<?> in method public register(registryAction Action<? super RegistrySpec>, handler Closure<?>) : GroovyChain from class ratpack.groovy.handling.internal.DefaultGroovyChain",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/GroovyChainAction.java",
+            "startLine": 281,
+            "endLine": 281,
+            "startColumn": 31,
+            "endColumn": 124,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "action : Closure<?>"
+          },
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/GroovyChainAction.java",
+            "startLine": 282,
+            "endLine": 282,
+            "startColumn": 5,
+            "endColumn": 35,
+            "codeElementType": "RETURN_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyChain.java",
+            "startLine": 289,
+            "endLine": 289,
+            "startColumn": 76,
+            "endColumn": 169,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "handler : Closure<?>"
+          },
+          {
+            "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyChain.java",
+            "startLine": 290,
+            "endLine": 290,
+            "startColumn": 5,
+            "endColumn": 57,
+            "codeElementType": "RETURN_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 2,
+    "seed_hash": "2f862c7743812388ef9aba03e92db48d43f3c692",
+    "seed_example": {
+      "type": "Rename Parameter",
+      "description": "Rename Parameter action : Closure<?> to closure : Closure<?> in method public register(closure Closure<?>) : GroovyChain from class ratpack.groovy.handling.GroovyChainAction",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyChain.java",
+          "startLine": 86,
+          "endLine": 86,
+          "startColumn": 31,
+          "endColumn": 124,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "original variable declaration",
+          "codeElement": "action : Closure<?>"
+        },
+        {
+          "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyChain.java",
+          "startLine": 87,
+          "endLine": 87,
+          "startColumn": 5,
+          "endColumn": 61,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/GroovyChainAction.java",
+          "startLine": 346,
+          "endLine": 346,
+          "startColumn": 31,
+          "endColumn": 125,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "renamed variable declaration",
+          "codeElement": "closure : Closure<?>"
+        },
+        {
+          "filePath": "ratpack-groovy/src/main/java/ratpack/groovy/handling/GroovyChainAction.java",
+          "startLine": 347,
+          "endLine": 347,
+          "startColumn": 5,
+          "endColumn": 41,
+          "codeElementType": "RETURN_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        }
+      ]
+    }
+  },
+  {
+    "id": 793,
+    "project": "ratpack",
+    "v1_hash": "3debba17911ff13b90b13f31064a2cabaabf7986",
+    "v2_hash": "e65870a0e16d4e75758ca3b7e002a4d823fbfd94",
+    "orig_commit_message": "Some optimisations of buffer usage for the client request body.\n",
+    "improved_commit_message": "Rename Parameter body -> byteBufAllocator on line 35.",
+    "change_summary": "The rename from body to byteBufAllocator clarifies the identifier's purpose, shifting focus from a general data representation to specifically indicating an allocator responsible for managing byte buffers.",
+    "hints": [
+      "body -> byteBufAllocator",
+      "body -> byteBufAllocator"
+    ],
+    "starting_file": "ratpack-core/src/main/java/ratpack/http/client/internal/RequestSpecBacking.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Parameter",
+        "description": "Rename Parameter body : ByteBuf to byteBufAllocator : ByteBufAllocator in method public RequestSpecBacking(headers MutableHeaders, byteBufAllocator ByteBufAllocator) from class ratpack.http.client.internal.RequestSpecBacking",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/http/client/internal/RequestSpecBacking.java",
+            "startLine": 40,
+            "endLine": 40,
+            "startColumn": 53,
+            "endColumn": 65,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "original variable declaration",
+            "codeElement": "body : ByteBuf"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/http/client/internal/RequestSpecBacking.java",
+            "startLine": 42,
+            "endLine": 42,
+            "startColumn": 5,
+            "endColumn": 22,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/http/client/internal/RequestSpecBacking.java",
+            "startLine": 44,
+            "endLine": 44,
+            "startColumn": 53,
+            "endColumn": 86,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "renamed variable declaration",
+            "codeElement": "byteBufAllocator : ByteBufAllocator"
+          },
+          {
+            "filePath": "ratpack-core/src/main/java/ratpack/http/client/internal/RequestSpecBacking.java",
+            "startLine": 46,
+            "endLine": 46,
+            "startColumn": 5,
+            "endColumn": 46,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "73caac8d6457fbe4bad1fac38258608380695a69",
+    "seed_example": {
+      "type": "Rename Parameter",
+      "description": "Rename Parameter body : ByteBuf to byteBufAllocator : ByteBufAllocator in method public RequestSpecBacking(headers MutableHeaders, byteBufAllocator ByteBufAllocator) from class ratpack.http.client.internal.RequestSpecBacking",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/http/client/internal/RequestSpecBacking.java",
+          "startLine": 40,
+          "endLine": 40,
+          "startColumn": 53,
+          "endColumn": 65,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "original variable declaration",
+          "codeElement": "body : ByteBuf"
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/http/client/internal/RequestSpecBacking.java",
+          "startLine": 42,
+          "endLine": 42,
+          "startColumn": 5,
+          "endColumn": 22,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/http/client/internal/RequestSpecBacking.java",
+          "startLine": 44,
+          "endLine": 44,
+          "startColumn": 53,
+          "endColumn": 86,
+          "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+          "description": "renamed variable declaration",
+          "codeElement": "byteBufAllocator : ByteBufAllocator"
+        },
+        {
+          "filePath": "ratpack-core/src/main/java/ratpack/http/client/internal/RequestSpecBacking.java",
+          "startLine": 46,
+          "endLine": 46,
+          "startColumn": 5,
+          "endColumn": 46,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        }
+      ]
+    }
+  },
+  {
+    "id": 805,
+    "project": "ratpack",
+    "v1_hash": "adb3fb8db229a08be576b6067693af7f16816c21",
+    "v2_hash": "ed160af324779f6d7686cd45f260c6a4141b6b03",
+    "orig_commit_message": "Fix client side sessions after Guice 4 upgrade, plus some improvements and bug fixes.\n",
+    "improved_commit_message": "Rename Variable payloadBytes -> encrypted on line 88.",
+    "change_summary": "The rename from `payloadBytes` to `encrypted` clarifies that the variable specifically contains data that has been encrypted, enhancing readability and understanding of its purpose in the code.",
+    "hints": [
+      "payloadBytes -> encrypted",
+      "payloadString -> encryptedBase64",
+      "digestString -> digestBase64"
+    ],
+    "starting_file": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable payloadBytes : byte[] to encrypted : ByteBuf in method public serializeSession(entries Set<Map.Entry<String,Object>>) : String from class ratpack.session.clientside.internal.DefaultClientSessionService",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 88,
+            "endLine": 88,
+            "startColumn": 14,
+            "endColumn": 68,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "payloadBytes : byte[]"
+          },
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 91,
+            "endLine": 91,
+            "startColumn": 9,
+            "endColumn": 54,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 93,
+            "endLine": 93,
+            "startColumn": 15,
+            "endColumn": 73,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "encrypted : ByteBuf"
+          },
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 93,
+            "endLine": 93,
+            "startColumn": 7,
+            "endColumn": 74,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable payloadString : String to encryptedBase64 : String in method public serializeSession(entries Set<Map.Entry<String,Object>>) : String from class ratpack.session.clientside.internal.DefaultClientSessionService",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 95,
+            "endLine": 95,
+            "startColumn": 14,
+            "endColumn": 66,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "payloadString : String"
+          },
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 100,
+            "endLine": 100,
+            "startColumn": 7,
+            "endColumn": 63,
+            "codeElementType": "RETURN_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 94,
+            "endLine": 94,
+            "startColumn": 14,
+            "endColumn": 51,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "encryptedBase64 : String"
+          },
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 101,
+            "endLine": 101,
+            "startColumn": 7,
+            "endColumn": 65,
+            "codeElementType": "RETURN_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable digestString : String to digestBase64 : String in method public serializeSession(entries Set<Map.Entry<String,Object>>) : String from class ratpack.session.clientside.internal.DefaultClientSessionService",
+        "leftSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 98,
+            "endLine": 98,
+            "startColumn": 14,
+            "endColumn": 59,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "digestString : String"
+          },
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 100,
+            "endLine": 100,
+            "startColumn": 7,
+            "endColumn": 63,
+            "codeElementType": "RETURN_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 96,
+            "endLine": 96,
+            "startColumn": 14,
+            "endColumn": 45,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "digestBase64 : String"
+          },
+          {
+            "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+            "startLine": 101,
+            "endLine": 101,
+            "startColumn": 7,
+            "endColumn": 65,
+            "codeElementType": "RETURN_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      }
+    ],
+    "diffs": [],
+    "corename_id": 0,
+    "seed_hash": "3ed58adf17cc2c1e650122d3bb1903cd26383ace",
+    "seed_example": {
+      "type": "Rename Variable",
+      "description": "Rename Variable payloadBytes : byte[] to encrypted : ByteBuf in method public serializeSession(entries Set<Map.Entry<String,Object>>) : String from class ratpack.session.clientside.internal.DefaultClientSessionService",
+      "leftSideLocations": [
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+          "startLine": 88,
+          "endLine": 88,
+          "startColumn": 14,
+          "endColumn": 68,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "original variable declaration",
+          "codeElement": "payloadBytes : byte[]"
+        },
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+          "startLine": 91,
+          "endLine": 91,
+          "startColumn": 9,
+          "endColumn": 54,
+          "codeElementType": "EXPRESSION_STATEMENT",
+          "description": "statement referencing the original variable",
+          "codeElement": null
+        }
+      ],
+      "rightSideLocations": [
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+          "startLine": 93,
+          "endLine": 93,
+          "startColumn": 15,
+          "endColumn": 73,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "renamed variable declaration",
+          "codeElement": "encrypted : ByteBuf"
+        },
+        {
+          "filePath": "ratpack-session/src/main/java/ratpack/session/clientside/internal/DefaultClientSessionService.java",
+          "startLine": 93,
+          "endLine": 93,
+          "startColumn": 7,
+          "endColumn": 74,
+          "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+          "description": "statement referencing the renamed variable",
+          "codeElement": null
+        }
+      ]
+    }
+  }
+]

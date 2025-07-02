@@ -1,0 +1,30 @@
+[
+    {
+        "id": 11448,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the class `HttpServerMetricsTest` to `MpHttpServerMetricsTest` to clearly indicate it tests the MicroProfile integration of HTTP server metrics. Update the file name, class declaration, import statements, test registration and all references. Apply the same `Mp` prefix convention to other generic test classes when they are specialized for MicroProfile, ensuring consistent naming, file paths, and references across the project."
+        }
+    },
+    {
+        "id": 11579,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Second developer should apply the same compatibility\u2010suffix convention everywhere OpenMetrics tests or references appear. Search for any method names, constants, annotations, REST-Assured header values, comments or documentation containing \u201cOpenMetrics\u201d and append \u201cCompatibility\u201d to each identifier. Update the test definition, test runner registrations, related assertions, example code, README entries and any config keys so they all consistently refer to the OpenMetrics compatibility mode."
+        }
+    },
+    {
+        "id": 11698,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Unify all debugger stepping operations by renaming the existing `stepOut(Object thread, RequestFilter filter)` method to a more generic `step(Object thread, RequestFilter filter, DebuggerCommand.Kind kind)`. Update the Commands interface and its implementation in DebuggerConnection (line 70) to accept a step\u2010kind parameter instead of separate methods. Replace all calls to `stepInto`, `stepOver`, and the old `stepOut` with calls to the new `step` method passing the appropriate DebuggerCommand.Kind (e.g., STEP_INTO, STEP_OVER, STEP_OUT). Refactor DebuggerController.setCommandRequestId invocations, update documentation and JDWP spec references, add deprecation annotations or overloads for backward compatibility, and adjust unit tests and code comments to reflect the consolidated API."
+        }
+    },
+    {
+        "id": 11627,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Propagate the renaming of the debug timing filter from \u2018timerFilter\u2019 to \u2018timeFilter\u2019 throughout this class and any related codebases to align with the DebugOptions.Time option name and established naming conventions. This includes updating constructor parameters, field declarations, method implementations (e.g., isTimeEnabled, getLevel calls), parsing logic, toString output, and any comments or documentation referencing the old name."
+        }
+    }
+]

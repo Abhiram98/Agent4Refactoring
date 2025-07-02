@@ -1,0 +1,49 @@
+### Open the target file in editor
+POST http://0.0.0.0:8082/open-file
+Content-Type: application/json
+
+{
+  "rel_file_path": "ratpack-groovy/src/main/java/ratpack/groovy/guice/internal/DefaultGroovyBindingsSpec.java"
+}
+
+### Test get_linked_elements_hybrid at line number 27
+#POST http://0.0.0.0:8082/get_linked_elements_hybrid
+#Content-Type: application/json
+#
+#{
+#   "method_name": "init",
+#  "line_num": 27
+#}
+#
+#
+#### Test get_links_from_method  at line number 27
+#POST http://0.0.0.0:8082/get_links_from_method
+#Content-Type: application/json
+#
+#{
+#  "line_num": 27
+#}
+
+
+POST http://0.0.0.0:8082/open-file
+Content-Type: application/json
+
+{
+  "rel_file_path": "flink-connectors/flink-hadoop-compatibility/src/test/java/org/apache/flink/api/java/typeutils/runtime/WritableSerializerUpgradeTest.java"
+}
+
+### test
+POST http://0.0.0.0:8082/get_linked_files_hybrid
+Content-Type: application/json
+
+{
+  "line_num": 74
+}
+
+###
+#POST http://0.0.0.0:8082/get_links_from_method
+#Content-Type: application/json
+#
+#{
+#  "line_num": 131
+#}
