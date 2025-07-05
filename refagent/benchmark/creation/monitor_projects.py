@@ -46,6 +46,7 @@ class Monitor(BaseModel):
     def process_project(self, project: pm.EvalProject) -> List[bm_load.BenchmarkItem]:
         monitoring_data = []
         print("pulling repo")
+        project.checkout_main()
         project.pull_project()
         print("done pulling repo")
 
@@ -54,7 +55,7 @@ class Monitor(BaseModel):
                 print(f"commit {commit.hexsha} was previously analysed. skipping")
                 continue
 
-            if commit.authored_datetime < self.cutoff_date:
+            if commit.committed_datetime < self.cutoff_date:
                 print(f"commit {commit.hexsha} is older than cutoff date. skipping")
                 print("Stopping loop.")
                 break

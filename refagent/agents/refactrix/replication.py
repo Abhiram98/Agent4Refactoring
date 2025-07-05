@@ -17,7 +17,7 @@ import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_ref
-
+import refagent.agents.refactrix.get_linked_elements_using_jar as jar_links
 
 class CodeElement(BaseModel):
     file_path: str = Field(description="The file that was edited.")
@@ -64,7 +64,9 @@ class Replication(BaseModel):
             # the developer did not ask for it.
             return []
 
-        files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect) if i!=self.starting_file]
+        files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect)
+                            # if i!=self.starting_file
+                            ]
 
 
         with ContextThreadPoolExecutor(max_workers=4) as executor:
@@ -169,6 +171,7 @@ class Replication(BaseModel):
         """Compile the langgraph."""
 
         def ask_replicate(state: MessagesState):
+            file_name = file_to_inspect.split('/')[-1]
             try:
                 file_contents = self.project.get_file_contents(file_to_inspect)
             except FileNotFoundError:
@@ -184,19 +187,20 @@ class Replication(BaseModel):
                     SystemMessage("You are an expert developer who decides whether a "
                                   "refactoring needs to be replicated in a certain file, "
                                   "for the sake of consistency. "),
-                    HumanMessage(f"Here are the contents of the file: {file_contents}"),
                     HumanMessage(
                                 f"Here is the intent of the developer: "
                                  f"{self.initial_intent}"
-                                 f"Here are the kinds of refactorings that "
-                                 f"need to be replicated. These refactorings were already performed:\n"
-                                 f"{examples}"),
+                                 # f"Here are the kinds of refactorings that "
+                                 # f"need to be replicated. These refactorings were already performed:\n"
+                                 # f"{examples}"
+                    ),
+                    HumanMessage(f"Here are the contents of the file: {file_contents}"),
                     HumanMessage("Answer the following question: "
-                                 f"Are there any code elements in {file_to_inspect}, "
-                                 f"that could this exact change? "
-                                 f"Then, add a YES/NO at the end of your reply,"
+                                 f"Are there ANY code elements in {file_name}, "
+                                 f"that could change? "
+                                 f"Then, say YES/NO at the end of your reply,"
                                  f" indicating whether to "
-                                 f"replicate the refactoring concept in this file.")
+                                 f"there are any code elements that should change.")
                  ]
             )
 
@@ -225,7 +229,7 @@ class SimpleReplication(Replication):
                             final_code="",
                             refactoring_type=sup_ref.SupportedRefactorings.RENAME,
                             file_path=file_path,
-                            execution_details=""
+                            execution_details=should_replicate.content, # save the should replicate's response
                         )
                     ]
                 )
@@ -234,3 +238,15 @@ class SimpleReplication(Replication):
             print(f"Error compiling and running replication for file {file_path}: {e}")
             traceback.print_exc()
         return None
+
+class JarBasedReplication(SimpleReplication):
+    def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
+        # TODO: Call the jar here
+        linked_elements = jar_links.get_linked_elements_from_project(
+            project=self.project,
+            file_path=code_element.file_path,
+            line_number=code_element.line_num
+        )
+
+        return [CodeElement(file_path=i['file_path'], line_num=i['line_num']) for i in linked_elements]
+

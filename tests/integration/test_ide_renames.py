@@ -355,3 +355,103 @@ def test_argouml_921():
                                          line_num=237,
                                          code_element_type='variable')
     assert response == 'success'
+
+
+def test_argouml_962_param():
+    """There are multiple classes in this file, that's why the tool is failing"""
+
+    project = pm.EvalProject("argouml")
+    project.checkout('804aaf9d327fa004acd673467bc2e72256dc8f26', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('src/uci/uml/ui/Actions.java'))
+    _json = {'code_element_type': 'parameter', 'line_num': 629, 'new_name': 'ae', 'old_name': 'e'}
+
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
+
+def test_argouml_999_param():
+    project = pm.EvalProject("argouml")
+    project.checkout('54d2a049e5f6cd5fc8baccf25c58f888deb47a90', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('src_new/org/argouml/uml/ui/UMLModelElementListModel2.java'))
+    _json = {'code_element_type': 'parameter', 'line_num': 250, 'new_name': 'theNewTarget', 'old_name': 'target'}
+
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
+def test_argouml_1009_variable():
+    project = pm.EvalProject("argouml")
+    project.checkout('956c16de8e38b8090012db4c4c2b90a9b6a7e3db', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('src/uci/uml/critics/ClClassName.java'))
+    _json = {'code_element_type': 'variable', 'line_num': 51, 'new_name': 'fnme', 'old_name': 'fc'}
+
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
+
+def test_flink_method():
+    project = pm.EvalProject("flink")
+    project.checkout('32aa7973daaf70e097f247eaf5a3869b47d8e3e0', force=True)
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java'))
+    _json = {'code_element_type': 'method', 'line_num': 265, 'new_name': 'deserializeStreamStateHandle2', 'old_name': 'deserializeStreamStateHandle'}
+    intellij_server.reset_project_reload_counters()
+    intellij_server.reload_project()
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
+
+def test_flink_test_method():
+    project = pm.EvalProject("flink")
+    project.checkout("afe4c79efa15902369d41ef5a6e73d79a2e7d525")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java'))
+    _json = {
+      "old_name": "testDataMatcher",
+      "new_name": "testDataMatcherRaihan",
+      "line_num": 102,
+      "code_element_type": "method"
+    }
+    intellij_server.reset_project_reload_counters()
+    intellij_server.reload_project()
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
+
+
+def test_flink_test_method2():
+    project = pm.EvalProject("flink")
+    project.checkout("afe4c79efa15902369d41ef5a6e73d79a2e7d525")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java'))
+    _json = {
+      "old_name": "testDataMatcher",
+      "new_name": "testDataMatcherRaihan",
+      "line_num": 179,
+      "code_element_type": "method"
+    }
+    intellij_server.reset_project_reload_counters()
+    intellij_server.reload_project()
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+

@@ -159,9 +159,9 @@ class Agent(BaseModel):
         self._starting_file = starting_file
         self.update_starting_file(self._starting_file)
         self._original_starting_file = starting_file
-        self._original_source_code = self.project.get_file_contents(self._starting_file)
         model = self.create_model(self.model_name)
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
+        self._original_source_code = self.project.get_file_contents(self._starting_file)
         return model
 
     def run_agentic_loop(self, current_intent, model, starting_file):
@@ -263,7 +263,7 @@ class Agent(BaseModel):
         final_state = self.execute_plan(initial_intent, model, ref_plan)
         return final_state
 
-    def execute_plan(self, initial_intent, model, ref_plan,
+    def execute_plan(self, initial_intent, model, ref_plan: planning.RefactoringPlan,
                      ask_finished_first_iteration=False, open_file=False):
         last_file_opened = None
 
