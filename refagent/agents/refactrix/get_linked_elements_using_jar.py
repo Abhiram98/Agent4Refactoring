@@ -55,9 +55,11 @@ def get_linked_elements_using_jar(src_path: str, file_path: str, line_number: in
         result = subprocess.run(command, check=True, capture_output=True, text=True)
         parsed_output = parse_source_references(result.stdout)
         if parsed_output:
+            linked_files += [i['file_path'] for i in parsed_output['source_references']]
             print("Parsed output:", json.dumps(parsed_output, indent=2))
         else:
             print("Raw output:", result.stdout)
+        return list(set(linked_files))
     except subprocess.CalledProcessError as e:
         print("Error running JAR file:", e.stderr)
 
@@ -66,7 +68,7 @@ def get_linked_elements_from_project(project: pm.EvalProject, file_path: str, li
     linked_files = []
     for src_dir in project.get_src_directories():
         linked_files += get_linked_elements_using_jar(src_dir, file_path, line_number)
-    return linked_files
+    return list(set(linked_files))
 
 # Example usage:
 if __name__ == "__main__":
@@ -78,17 +80,17 @@ if __name__ == "__main__":
 
     project = pm.EvalProject('flink')
 
-    get_linked_elements_using_jar(
-        str(project.get_project_path().joinpath("flink-core/src")),
-        str(project.get_project_path().joinpath(
-            "flink-core/src/main/java/org/apache/flink/util/ChildFirstClassLoader.java")),
-            84
-    )
-
-    # linked_files = get_linked_elements_from_project(
-    #     project,
-    #     str(project.get_project_path().joinpath("flink-core/src/main/java/org/apache/flink/util/ChildFirstClassLoader.java")),
-    #     84
+    # get_linked_elements_using_jar(
+    #     str(project.get_project_path().joinpath("flink-core/src")),
+    #     str(project.get_project_path().joinpath(
+    #         "flink-core/src/main/java/org/apache/flink/util/ChildFirstClassLoader.java")),
+    #         84
     # )
+
+    linked_files = get_linked_elements_from_project(
+        project,
+        str(project.get_project_path().joinpath("flink-core/src/main/java/org/apache/flink/util/ChildFirstClassLoader.java")),
+        84
+    )
     #
     # print(linked_files)
