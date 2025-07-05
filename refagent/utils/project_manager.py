@@ -1,6 +1,6 @@
 import pathlib
 import git
-from typing import Dict
+from typing import Dict, List
 from pathlib import Path
 import re
 from itertools import groupby
@@ -279,3 +279,11 @@ class EvalProject:
 
     def checkout_main(self):
         return self.checkout(self.get_master_branch_name(), force=True)
+
+    def get_src_directories(self) -> List[str]:
+        src_directories = []
+        for root, dirs, files in os.walk(self.get_project_path()):
+            if 'src' in dirs:
+                src_directories.append(os.path.join(root, 'src'))
+        return src_directories
+

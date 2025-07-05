@@ -69,3 +69,8 @@ def test_commit_time():
     print(commit.authored_datetime)
     assert not should_send_message
 
+
+def test_get_src_directories():
+    project = pm.EvalProject('flink')
+    src_directories = project.get_src_directories()
+    print(src_directories)
