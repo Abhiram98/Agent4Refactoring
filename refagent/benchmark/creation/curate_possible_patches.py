@@ -1,4 +1,7 @@
 import json
+
+from slack_sdk import WebClient
+
 import refagent
 import sys
 import refagent.benchmark.load as bm_load
@@ -13,6 +16,8 @@ from pydantic import BaseModel, Field
 
 class PatchCurator(BaseModel):
     data_file_path: str= Field(description="path to the data file to look at")
+    should_run_agent: bool = Field(description="whether to run the agent")
+
     previously_analysed: List[str] = []
     cache_path: Path = refagent.data_folder.joinpath("monitoring/previously_analysed_for_patches.json")
 
@@ -29,7 +34,11 @@ class PatchCurator(BaseModel):
         # monitor_results.jsonl
         self.load_previously_analysed()
         new_renames = self.find_new_data()
-        self.run_agent(new_renames)
+        print(f"New patch opportunities found: {len(new_renames)=}")
+        if self.should_run_agent:
+            possible_patches = self.run_agent(new_renames)
+            if len(possible_patches) > 0:
+                self.send_slack_notification(possible_patches)
 
     def find_new_data(self):
         LAST_X = 300  # only analyse the last 300 entries in the
@@ -112,5 +121,18 @@ class PatchCurator(BaseModel):
             with open(self.cache_path, 'w') as f:
                 json.dump(self.previously_analysed, f, indent=4)
 
+    def send_slack_notification(self, possible_patches: List[bm_load.BenchmarkItem]):
+
+        message_content = ""
+        patch_details = ""
+
+        client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
+        response = client.chat_postMessage(channel=os.getenv('SLACK_CHANNEL_ID'),
+                                           text=f"Found a possible patch! \n\n {message_content}")
+        thread_ts = response.data['ts']
+        client.chat_postMessage(channel=os.getenv('SLACK_CHANNEL_ID'), text=f"Details: \n\n {patch_details}",
+                                thread_ts=thread_ts)
+
 if __name__ == '__main__':
-    PatchCurator(data_file_path=sys.argv[1]).main()
+    PatchCurator(data_file_path=sys.argv[1],
+                 should_run_agent=sys.argv[2]=='true').main()
