@@ -49,3 +49,5 @@ def test_patch_agent():
     agent.initialize_agent(starting_file=starting_file)
     agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:gpt-4o-mini'),
                               agent.generate_initial_plan(augmented_intent))
+    print(agent.augmented_intent)
+    print(agent.files_and_planning)

@@ -1,5 +1,6 @@
 import json
 
+from langchain_openai import ChatOpenAI
 from slack_sdk import WebClient
 
 import refagent
@@ -7,6 +8,9 @@ import sys
 import refagent.benchmark.load as bm_load
 import refagent.refactoring_types.refactorings as refactorings
 import refagent.agents.refactrix.patch_curation_agent as patch_curation_agent
+import refagent.agents.refactrix.analysis as analysis
+import refagent.agents.refactrix.planning as planning
+import refagent.utils.intellij_server as ij
 from typing import List
 import refagent.utils.project_manager as pm
 from datetime import datetime, UTC, timedelta
@@ -42,8 +46,6 @@ class PatchCurator(BaseModel):
         print(f"New patch opportunities found: {len(new_renames)=}")
         if self.should_run_agent:
             possible_patches = self.run_agent(new_renames)
-            if len(possible_patches) > 0:
-                self.send_slack_notification(possible_patches)
 
     def find_new_data(self):
         LAST_X = 300  # only analyse the last 300 entries in the
@@ -116,8 +118,7 @@ class PatchCurator(BaseModel):
 
                 try:
                     # TODO: Run the agent, minus the IDE parts here
-                    agent = patch_curation_agent.PatchAgent()
-                    agent.run()
+                    agent = self._run_agent(i)
                 except:
                     print("Failed to run agent")
                     continue
@@ -129,6 +130,8 @@ class PatchCurator(BaseModel):
                         "recommendations": agent.files_and_planning
                     }
                 )
+                if len(agent.files_and_planning) > 0:
+                    self.send_slack_notification(agent, i)
 
             with open(self.cache_path, 'w') as f:
                 json.dump(self.previously_analysed, f, indent=4)
@@ -136,10 +139,63 @@ class PatchCurator(BaseModel):
             with open(self.agent_output_path, 'w') as f:
                 json.dump(self.agent_output, f, indent=4)
 
-    def send_slack_notification(self, possible_patches: List[bm_load.BenchmarkItem]):
+    def _run_agent(self, bench_item: bm_load.BenchmarkItem):
 
-        message_content = ""
-        patch_details = ""
+        project = pm.EvalProject(bench_item.project_name)
+        v2_hash = bench_item.v2_hash
+        project.checkout(v2_hash, force=True)
+
+        vendor = 'openai'
+
+        improved_commit_message = bench_item.improved_commit_message
+        starting_file = bench_item.starting_file
+
+        old_name = improved_commit_message.split(" -> ")[0].split(" ")[-1]
+        new_name = improved_commit_message.split(" -> ")[1].split(" ")[0]
+        model = ChatOpenAI(model="o4-mini",
+                           temperature=1)
+
+        augmented_intent = analysis.AnalysisComponent(
+            model=model,
+            source_file_path=starting_file,
+            source_code=project.get_file_contents(starting_file),
+            initial_intent=improved_commit_message,
+            old_name=old_name,
+            new_name=new_name
+        ).run().augmented_intent
+
+        agent = patch_curation_agent.PatchAgent(
+            ide_server=ij.IntellijServer.create_default(),
+            model_name=f'{vendor}:gpt-4o-mini',
+            reasoning_model_name=f'{vendor}:o4-mini',
+            project=project,
+            plan_component=planning.PlanningComponent,
+            augmented_intent=augmented_intent,
+            do_replication=True
+        )
+        agent.add_internal_commit(project.git_repo.commit(v2_hash))
+        agent.initialize_agent(starting_file=starting_file)
+        agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:gpt-4o-mini'),
+                                  agent.generate_initial_plan(augmented_intent))
+        print(agent.augmented_intent)
+        print(agent.files_and_planning)
+        return agent
+
+    def send_slack_notification(self, agent, bench_item: bm_load.BenchmarkItem):
+        project = pm.EvalProject(bench_item.project_name)
+        message_content = f"Found a possible patch for {bench_item.ref_id}. See details in the thread."
+        commit_time = project.git_repo.commit(bench_item.v2_hash).committed_datetime
+        count = len(bench_item.refactoring_changes)
+        message_content += f"Ref id: {bench_item.ref_id} \n" \
+                           f"Project: {bench_item.project_name} \n" \
+                           f"Commit: {project.get_remote_url()}/commit/{bench_item.v2_hash[:7]} \n" \
+                           f"Commit date: {commit_time} \n" \
+                           f"Number of renames: {count} \n"
+
+        patch_details = f"Augmented intent: {agent.augmented_intent}. \n"
+        for file, plan in agent.files_and_planning:
+            patch_details += f"File: {file} \n"
+            patch_details += f"Possible refactorings: \n ```{plan}``` \n\n"
 
         client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
         response = client.chat_postMessage(channel=os.getenv('SLACK_CHANNEL_ID'),
