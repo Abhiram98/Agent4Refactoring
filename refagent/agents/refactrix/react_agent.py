@@ -1,3 +1,5 @@
+from typing import Type
+
 import refagent.agents.refactrix.refactoring_agent as ra
 import refagent.agents.refactrix.perform_refactoring as perform_refactoring
 import refagent.agents.refactrix.planning as planning
@@ -14,6 +16,7 @@ class ReactPerformer(perform_refactoring.PerformRefactoring):
 class ReactAgent(ra.Agent):
     MAX_GRAPH_ITERATION: int = 10
     MAX_FAILING_TOOL_CALLS: int = 3
+    replication_strategy_class: Type[replication.Replication] = replication.SimpleReplication
 
     def execute_plan(self, initial_intent, model, ref_plan,
                      ask_finished_first_iteration=False,
@@ -66,7 +69,7 @@ class ReactAgent(ra.Agent):
         )
 
     def perform_replication(self, current_intent, model, ref_plan):
-        replicator = replication.SimpleReplication(
+        replicator = self.replication_strategy_class(
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,

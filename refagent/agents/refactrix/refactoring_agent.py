@@ -263,7 +263,7 @@ class Agent(BaseModel):
         final_state = self.execute_plan(initial_intent, model, ref_plan)
         return final_state
 
-    def execute_plan(self, initial_intent, model, ref_plan,
+    def execute_plan(self, initial_intent, model, ref_plan: planning.RefactoringPlan,
                      ask_finished_first_iteration=False, open_file=False):
         last_file_opened = None
 

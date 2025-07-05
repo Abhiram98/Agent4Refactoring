@@ -17,7 +17,7 @@ import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_ref
-
+import refagent.agents.refactrix.get_linked_elements_using_jar as jar_links
 
 class CodeElement(BaseModel):
     file_path: str = Field(description="The file that was edited.")
@@ -229,7 +229,7 @@ class SimpleReplication(Replication):
                             final_code="",
                             refactoring_type=sup_ref.SupportedRefactorings.RENAME,
                             file_path=file_path,
-                            execution_details=""
+                            execution_details=should_replicate.content, # save the should replicate's response
                         )
                     ]
                 )
@@ -238,3 +238,15 @@ class SimpleReplication(Replication):
             print(f"Error compiling and running replication for file {file_path}: {e}")
             traceback.print_exc()
         return None
+
+class JarBasedReplication(SimpleReplication):
+    def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
+        # TODO: Call the jar here
+        linked_elements = jar_links.get_linked_elements_from_project(
+            project=self.project,
+            file_path=code_element.file_path,
+            line_number=code_element.line_num
+        )
+
+        return linked_elements
+
