@@ -23,8 +23,14 @@ def run_planning(bench_point: bm_load.BenchmarkItem,
     project = pm.EvalProject(bench_point.project_name)
     project.checkout(bench_point.v1_hash, force=True)
 
-    model = ChatOpenAI(model="o4-mini",
-                       temperature=1)
+    # model = ChatOpenAI(model="o4-mini",
+    #                    temperature=1)
+    model = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+                              client_auth_type=AuthType.APPLICATION,
+                              client_url=GrazieApiGatewayUrls.STAGING,
+                              profile='openai-gpt-4o-mini',
+                              client_agent_name='ref-agent',
+                              client_agent_version='0.1')
 
     old_name = bench_point.improved_commit_message.split(" -> ")[0].split(" ")[-1]
     new_name = bench_point.improved_commit_message.split(" -> ")[1].split(" ")[0]

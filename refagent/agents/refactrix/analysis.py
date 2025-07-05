@@ -87,15 +87,21 @@ class AnalysisComponent(BaseModel):
                 f"{fmt}"
             )
             messages = state['messages']
-            messages[0] = system_msg # update the system message to have formatting instructions
+            messages[0] = SystemMessage(content=system_msg)  # update the system message to have formatting instructions
             response = self.model.invoke(messages +
                  [HumanMessage(
                      "Now imagine that a second developer would need to perform similar changes in this file and in other locations. "
                      "Provide them the concept/idea of what needs to change. "
-                     "Please summarise in the required format."
+                     "Please summarise in the required format with 'original_intent' and 'augmented_intent' fields."
                  )])
-            augmented_obj = parser.parse(response.content)
-            self._augmented_intent = augmented_obj
+            
+            try:
+                augmented_obj = parser.parse(response.content)
+                self._augmented_intent = augmented_obj
+            except Exception as e:
+                # If parsing fails, try to extract the content and create a fallback
+                print(f"Warning: Failed to parse response as AugmentedIntent: {e}")
+                print(f"Response content: {response.content}")
 
         workflow = StateGraph(MessagesState)
         workflow.add_node("augment_intent", augment_intent_node)
