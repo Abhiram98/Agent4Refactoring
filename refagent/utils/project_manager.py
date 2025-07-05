@@ -276,3 +276,6 @@ class EvalProject:
              'origin', branch_name], capture_output=True, text=True, check=True
         )
         return result.stdout
+
+    def checkout_main(self):
+        return self.checkout(self.get_master_branch_name(), force=True)
