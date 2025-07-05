@@ -1,3 +1,5 @@
+import os
+
 from pydantic.v1 import BaseModel, Field
 import requests
 from pathlib import Path
@@ -59,3 +61,7 @@ class IntellijServer(BaseModel):
             else:
                 return response.text
         return "[]" # code inspection failed.
+
+    @classmethod
+    def create_default(cls):
+        return IntellijServer(server_url=os.getenv('IJ_SERVER_URL'))

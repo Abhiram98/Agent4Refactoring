@@ -248,5 +248,5 @@ class JarBasedReplication(SimpleReplication):
             line_number=code_element.line_num
         )
 
-        return linked_elements
+        return [CodeElement(file_path=i['file_path'], line_num=i['line_num']) for i in linked_elements]
 

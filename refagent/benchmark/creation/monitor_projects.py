@@ -46,6 +46,7 @@ class Monitor(BaseModel):
     def process_project(self, project: pm.EvalProject) -> List[bm_load.BenchmarkItem]:
         monitoring_data = []
         print("pulling repo")
+        project.checkout_main()
         project.pull_project()
         print("done pulling repo")
 

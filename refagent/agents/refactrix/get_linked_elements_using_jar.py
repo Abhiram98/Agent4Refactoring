@@ -5,7 +5,6 @@ import os
 from typing import List
 
 import refagent.utils.project_manager as pm
-import refagent.agents.refactrix.replication as replication
 
 def parse_source_references(output: str) -> dict:
     """
@@ -30,7 +29,7 @@ def parse_source_references(output: str) -> dict:
         print("Error parsing JSON from output")
         return None
 
-def get_linked_elements_using_jar(src_path: str, file_path: str, line_number: int) -> List[replication.CodeElement]:
+def get_linked_elements_using_jar(src_path: str, file_path: str, line_number: int) -> List:
     """
     Run the DataGeneration.jar with specified parameters.
     
@@ -56,7 +55,8 @@ def get_linked_elements_using_jar(src_path: str, file_path: str, line_number: in
         result = subprocess.run(command, check=True, capture_output=True, text=True)
         parsed_output = parse_source_references(result.stdout)
         if parsed_output:
-            linked_files += [replication.CodeElement(file_path=i['file_path'], line_num=i['line_num'])
+            linked_files += [
+                {"file_path":i['file_path'], "line_num": i['line_num']}
                              for i in parsed_output['source_references']]
             print("Parsed output:", json.dumps(parsed_output, indent=2))
         else:
@@ -67,7 +67,7 @@ def get_linked_elements_using_jar(src_path: str, file_path: str, line_number: in
         return []
 
 
-def get_linked_elements_from_project(project: pm.EvalProject, file_path: str, line_number: int) -> List[replication.CodeElement]:
+def get_linked_elements_from_project(project: pm.EvalProject, file_path: str, line_number: int) -> List:
     linked_files = []
     for src_dir in project.get_src_directories():
         linked_files += get_linked_elements_using_jar(src_dir, file_path, line_number)
