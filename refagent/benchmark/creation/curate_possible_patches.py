@@ -6,6 +6,7 @@ import refagent
 import sys
 import refagent.benchmark.load as bm_load
 import refagent.refactoring_types.refactorings as refactorings
+import refagent.agents.refactrix.patch_curation_agent as patch_curation_agent
 from typing import List
 import refagent.utils.project_manager as pm
 from datetime import datetime, UTC, timedelta
@@ -19,13 +20,17 @@ class PatchCurator(BaseModel):
     should_run_agent: bool = Field(description="whether to run the agent")
 
     previously_analysed: List[str] = []
+    agent_output: List = []
     cache_path: Path = refagent.data_folder.joinpath("monitoring/previously_analysed_for_patches.json")
+    agent_output_path: Path = refagent.data_folder.joinpath("monitoring/agent_output.json")
 
     def load_previously_analysed(self):
         if os.path.exists(self.cache_path):
             with open(self.cache_path) as f:
                 self.previously_analysed += json.load(f)
-
+        if os.path.exists(self.agent_output_path):
+            with open(self.agent_output_path) as f:
+                self.agent_output += json.load(f)
 
 
     def main(self):
@@ -111,15 +116,25 @@ class PatchCurator(BaseModel):
 
                 try:
                     # TODO: Run the agent, minus the IDE parts here
-                    pass
+                    agent = patch_curation_agent.PatchAgent()
+                    agent.run()
                 except:
                     print("Failed to run agent")
-
-
+                    continue
                 self.previously_analysed.append(i.v2_hash)
+                self.agent_output.append(
+                    {
+                        "ref_id": i.ref_id,
+                        "augmented_intent": agent.augmented_intent,
+                        "recommendations": agent.files_and_planning
+                    }
+                )
 
             with open(self.cache_path, 'w') as f:
                 json.dump(self.previously_analysed, f, indent=4)
+
+            with open(self.agent_output_path, 'w') as f:
+                json.dump(self.agent_output, f, indent=4)
 
     def send_slack_notification(self, possible_patches: List[bm_load.BenchmarkItem]):
 
