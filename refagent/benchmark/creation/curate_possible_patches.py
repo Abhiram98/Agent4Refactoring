@@ -107,7 +107,7 @@ class PatchCurator(BaseModel):
         for i in renames:
             project = pm.EvalProject(i.project_name)
             commit = project.git_repo.commit(i.v2_hash)
-            if commit.committed_datetime > datetime.now(UTC) - timedelta(days=7):
+            if commit.committed_datetime > datetime.now(UTC) - timedelta(days=3):
                 filtered_renames.append(i)
         return filtered_renames
 
