@@ -69,7 +69,7 @@ def get_linked_elements_using_jar(src_path: str, file_path: str, line_number: in
 
 def get_linked_elements_from_project(project: pm.EvalProject, file_path: str, line_number: int) -> List:
     linked_files = []
-    for src_dir in project.get_src_directories():
+    for src_dir in project.get_src_directories()[:10]:
         linked_files += get_linked_elements_using_jar(src_dir, file_path, line_number)
     return list(set(linked_files))
 
