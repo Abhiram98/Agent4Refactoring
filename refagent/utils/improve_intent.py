@@ -30,7 +30,7 @@ def get_chat_openai_client():
     return ChatOpenAI(model="gpt-4o-mini", temperature=1)
 
 def _get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
-    project = EvalProject('ratpack')
+    project = EvalProject(project_name)
     return project.get_commit_diff(
         file_path_1=file_path_1,
         file_path_2=file_path_2,
@@ -64,29 +64,8 @@ def process_ratpack_json(json_file_path, project_name='ratpack'):
             print(f"{'='*80}")
             
             try:
-                diff_output = _get_git_diff(project_name, file_1, file_2, v1_hash, v2_hash)
-                ex_left = hint.split(" -> ")[0]
-                ex_right = hint.split(" -> ")[1]
-
-                if "deleted file mode" in diff_output:
-                    for refactoring_change in entry['refactoring_changes']:
-                        if refactoring_change['type'] != 'Rename Class' and ex_left in refactoring_change['description'] and ex_right in refactoring_change['description']:
-                            file_1 = refactoring_change['leftSideLocations'][0]['filePath']
-                            file_2 = refactoring_change['rightSideLocations'][0]['filePath']
-                            v1_hash = entry['v1_hash']
-                            v2_hash = entry['v2_hash']
-                            diff_output = _get_git_diff(project_name, file_1, file_2, v1_hash, v2_hash)
-                            if "deleted file mode" not in diff_output:
-                                entry['starting_file'] = file_1
-                                break
-
-                prompt = construct_prompt(hint, diff_output)
-
-                print("\nSending prompt to LLM...")
-                response = chat_client.invoke(prompt)
-                llm_response = response.content
-
-                print(f"LLM Response: {llm_response}")
+                llm_response = get_change_summary(chat_client, entry, file_1, file_2, hint, project_name, v1_hash,
+                                                  v2_hash)
 
                 first_sentence = llm_response.split('.')[0].strip() + '.'
                 entry['change_summary'] = first_sentence
@@ -115,6 +94,35 @@ def process_ratpack_json(json_file_path, project_name='ratpack'):
         print(f"{'='*80}")
     else:
         print("No updates made to JSON file.")
+
+
+def get_change_summary(chat_client,
+                       entry, # This is a single json from with the benchmark's schema.
+                       file_1, file_2,
+                       hint, # String containing `old_name -> new_name` transition
+                       project_name, v1_hash, v2_hash):
+    diff_output = _get_git_diff(project_name, file_1, file_2, v1_hash, v2_hash)
+    ex_left = hint.split(" -> ")[0]
+    ex_right = hint.split(" -> ")[1]
+    if "deleted file mode" in diff_output:
+        for refactoring_change in entry['refactoring_changes']:
+            if refactoring_change['type'] != 'Rename Class' and ex_left in refactoring_change[
+                'description'] and ex_right in refactoring_change['description']:
+                file_1 = refactoring_change['leftSideLocations'][0]['filePath']
+                file_2 = refactoring_change['rightSideLocations'][0]['filePath']
+                v1_hash = entry['v1_hash']
+                v2_hash = entry['v2_hash']
+                diff_output = _get_git_diff(project_name, file_1, file_2, v1_hash, v2_hash)
+                if "deleted file mode" not in diff_output:
+                    entry['starting_file'] = file_1
+                    break
+    prompt = construct_prompt(hint, diff_output)
+    print("\nSending prompt to LLM...")
+    response = chat_client.invoke(prompt)
+    llm_response = response.content
+    print(f"LLM Response: {llm_response}")
+    return llm_response
+
 
 def construct_prompt(hint, git_diff):
     
