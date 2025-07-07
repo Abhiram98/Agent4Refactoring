@@ -11,6 +11,7 @@ import refagent.agents.refactrix.patch_curation_agent as patch_curation_agent
 import refagent.agents.refactrix.analysis as analysis
 import refagent.agents.refactrix.planning as planning
 import refagent.utils.intellij_server as ij
+import refagent.utils.improve_intent as improve_intent
 from typing import List
 import refagent.utils.project_manager as pm
 from datetime import datetime, UTC, timedelta
@@ -147,22 +148,19 @@ class PatchCurator(BaseModel):
 
         vendor = 'openai'
 
-        improved_commit_message = bench_item.improved_commit_message
         starting_file = bench_item.starting_file
-
-        old_name = improved_commit_message.split(" -> ")[0].split(" ")[-1]
-        new_name = improved_commit_message.split(" -> ")[1].split(" ")[0]
         model = ChatOpenAI(model="o4-mini",
                            temperature=1)
-
-        augmented_intent = analysis.AnalysisComponent(
-            model=model,
-            source_file_path=starting_file,
-            source_code=project.get_file_contents(starting_file),
-            initial_intent=improved_commit_message,
-            old_name=old_name,
-            new_name=new_name
-        ).run().augmented_intent
+        augmented_intent = improve_intent.get_change_summary(
+            model,
+            bench_item.model_dump(),
+            bench_item.starting_file,
+            bench_item.starting_file,
+            bench_item.improved_commit_message,
+            bench_item.project_name,
+            bench_item.v1_hash,
+            bench_item.v2_hash
+        )
 
         agent = patch_curation_agent.PatchAgent(
             ide_server=ij.IntellijServer.create_default(),
