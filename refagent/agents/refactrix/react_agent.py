@@ -1,9 +1,10 @@
+from concurrent.futures import thread
 import refagent.agents.refactrix.refactoring_agent as ra
 import refagent.agents.refactrix.perform_refactoring as perform_refactoring
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.replication as replication
-
+import time
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, BaseMessage
 import traceback
@@ -26,7 +27,6 @@ class ReactAgent(ra.Agent):
         step = ref_plan.steps[0]
         if len(ref_plan.steps) > 0 and open_file:
             self.try_open_file(step.file_path)
-
         try:
             graph = self.compile_graph(model=model,
                                        initial_intent=self.augmented_intent,

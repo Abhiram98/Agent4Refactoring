@@ -53,8 +53,8 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     # vendor = 'openai'
 
     agent = react_agent.ReactAgent(ide_server=ij_server,
-                     reasoning_model_name=f'{vendor}:openai-o4-mini',
-                     model_name=f'{vendor}:openai-gpt-4o-mini',
+                     reasoning_model_name=f'{vendor}:openai-o4-mini' if vendor == 'grazie' else f'{vendor}:o4-mini',
+                     model_name=f'{vendor}:openai-gpt-4o-mini' if vendor == 'grazie' else f'{vendor}:gpt-4o-mini',
                      project=project,
                      plan_component=plan_type,
                      augmented_intent=augmented_intent,
@@ -67,7 +67,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
             assert initial_commit is not None, "initial commit must be provided for replication"
             agent.add_internal_commit(project.git_repo.commit(initial_commit))
             agent.initialize_agent(starting_file=bench_point.starting_file)
-            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
+            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini' if vendor == 'grazie' else f'{vendor}:gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
         traceback.print_exc()

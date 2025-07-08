@@ -68,6 +68,7 @@ class RefactoringToolProvider(BaseModel):
                                              "the same name"]):
             """Renames occurrences of an entity (variable, field, class) within the scope of a method/class.
             Please provide a line number to identify the entity at."""
+            print("tools called with these parameters: ", old_name, new_name, code_element_type, line_num)
             return self.ide_server.call_tool("rename", old_name=old_name, new_name=new_name, line_num=line_num, code_element_type=code_element_type.value)
 
         @tool

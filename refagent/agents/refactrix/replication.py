@@ -71,10 +71,12 @@ class Replication(BaseModel):
 
         files_to_inspect = list(set(files_to_inspect))
 
-        # print(f"files to inspect: {files_to_inspect}\n\n")
+        print(f"files to inspect: {files_to_inspect}\n\n")
+        print(f"length of files to inspect: {len(files_to_inspect)}")
 
-        list_of_keywords = self.invokeLLM()
-        files_to_inspect = self.filterFilesWithLCS(files_to_inspect, list_of_keywords)
+        # list_of_keywords = self.invokeLLM()
+        # files_to_inspect = self.filterFilesWithDirectKeywordAndLCSubstring(files_to_inspect, list_of_keywords)
+        # files_to_inspect = self.filterFilesWithLCS(files_to_inspect, list_of_keywords, 0.7)
 
         # print(f"files to inspect after filtering: {files_to_inspect}\n\n")
 
@@ -142,9 +144,9 @@ class Replication(BaseModel):
 
     def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
         self.ide_server.open_file(Path(code_element.file_path))
-        # linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+        linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
         # linked_elements_json = self.ide_server.call_tool('get_linked_elements_hybrid', line_num=code_element.line_num)
-        linked_elements_json = self.ide_server.call_tool('get_linked_files_hybrid', line_num=code_element.line_num)
+        # linked_elements_json = self.ide_server.call_tool('get_linked_files_hybrid', line_num=code_element.line_num)
         try:
             linked_elements_json = json.loads(
                 linked_elements_json
@@ -373,22 +375,18 @@ class Replication(BaseModel):
     def is_generic_word(self, word):
         """Check if a word is too generic to be useful for pattern matching."""
         generic_words = {
-            'is', 'the', 'and', 'or', 'for', 'to', 'in', 'on', 'at', 'by', 'of', 'with',
-            'from', 'into', 'during', 'including', 'until', 'against', 'among', 'throughout',
-            'despite', 'towards', 'upon', 'concerning', 'about', 'between', 'through',
-            'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under',
-            'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how',
-            'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such',
-            'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
-            'can', 'will', 'just', 'don', 'should', 'now', 'get', 'go', 'come',
-            'made', 'may', 'make', 'like', 'has', 'had', 'him', 'his', 'how', 'her',
-            'my', 'me', 'more', 'she', 'an', 'do', 'did', 'we', 'would', 'you', 'your',
-            'am', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'having', 'does',
-            'doing', 'could', 'might', 'must', 'shall'
+            'adapter', 'builder', 'cache', 'config', 'context', 'controller',
+            'data', 'entry', 'error', 'exception', 'executor', 'factory',
+            'formatter', 'handler', 'helper', 'item', 'iterator', 'listener',
+            'logger', 'map', 'node', 'option', 'operator', 'processor', 'queue',
+            'repository', 'request', 'response', 'result', 'service', 'session',
+            'stack', 'strategy', 'user', 'validator', 'value' 'json', 'buffer', 'min', 'max', 'buffer', 'join',
+            'path', 'invalid', 'select', 'sql', 'expected', 'track', 'duration', 'real', 'has', 'create',
+            'file', 'type', 'test', 'format', 'long', 'short', 'table', 'name', 'function'
         }
         return word.lower() in generic_words
 
-    def filterFilesWithLCS(self, files_to_inspect, rename_pairs, threshold=0.9):
+    def filterFilesWithDirectKeywordAndLCSubstring(self, files_to_inspect, rename_pairs, threshold=0.9):
         if not rename_pairs or len(rename_pairs) == 0:
             if len(files_to_inspect) < 100:
                 return files_to_inspect
@@ -412,16 +410,60 @@ class Replication(BaseModel):
         print(f"Total filtered files: {len(result)} raw files: {len(files_to_inspect)}")
         return result
 
+    def filterFilesWithLCS(self, files_to_inspect, rename_pairs, threshold=0.9):
+        if len(rename_pairs) == 0:
+            return files_to_inspect
+
+        filtered_files = []
+        old_identifiers = {old_name for old_name, _ in rename_pairs}
+        
+        # Extract identifiers from files using regex pattern
+        identifier_pattern = re.compile(r'\b\w+\b')
+
+        for file in files_to_inspect:
+            try:
+                file_contents = self.project.get_file_contents(file)
+                identifiers = set(identifier_pattern.findall(file_contents))
+
+                # Check if any identifier in the file is similar to any old identifier
+                for old_identifier in old_identifiers:
+                    # Skip generic words as they're not useful for matching
+                    # if self.is_generic_word(old_identifier):
+                    #     continue
+                        
+                    for candidate in identifiers:
+                        # Skip generic words and very short identifiers
+                        # if self.is_generic_word(candidate) or len(candidate) < 3:
+                        #     continue
+                            
+                        # Check if the candidate is similar to the old identifier using LCS
+                        if self.is_similar(old_identifier, candidate, threshold):
+                            filtered_files.append(file)
+                            break
+                    else:
+                        continue
+                    break
+                    
+            except Exception as e:
+                print(f"Error reading file {file}: {e}")
+                continue
+
+        print(f"LCS filtered files: {len(filtered_files)} from {len(files_to_inspect)} total files")
+        return filtered_files
+
     def filter_by_direct_keywords(self, files_to_inspect, rename_pairs):
         """Filter files that contain the exact old identifiers from rename pairs."""
         filtered_files = []
         old_identifiers = {old_name for old_name, _ in rename_pairs}
+
 
         for file in files_to_inspect:
             try:
                 file_contents = self.project.get_file_contents(file)
                 # Check for exact matches of old identifiers
                 for old_identifier in old_identifiers:
+                    if self.is_generic_word(old_identifier):
+                        continue
                     # Use word boundary to avoid partial matches
                     pattern = r'\b' + re.escape(old_identifier) + r'\b'
                     if re.search(pattern, file_contents, re.IGNORECASE):

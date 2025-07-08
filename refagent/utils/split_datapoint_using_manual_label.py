@@ -112,9 +112,9 @@ def main():
     project_root = os.path.dirname(os.path.dirname(project_root))  # Go up two levels to reach project root
 
     # Default paths
-    csv_file_path = os.path.join(project_root, 'data', "ref_miner", "rename", "split-data2.csv")
+    csv_file_path = os.path.join(project_root, 'data', "ref_miner", "rename", "split-data3.csv")
     json_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "flink-clean.json")
-    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "flink-clean-split-manual2.json")
+    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "flink-clean-split-manual3.json")
 
     # Check if JSON file exists
     if not os.path.exists(json_file_path):
@@ -123,6 +123,10 @@ def main():
 
     print(f"Converting {json_file_path} to {save_file_path}...")
     split_data(json_file_path, save_file_path, csv_file_path)
+
+    # with open(save_file_path, 'r') as f:
+    #     data_list = json.load(f)
+    # print(len(data_list))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 import json
 import traceback
-
 from git import Commit
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
@@ -110,7 +109,7 @@ class Agent(BaseModel):
             # create grazie model
             return ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
                               client_auth_type=AuthType.APPLICATION,
-                              client_url=GrazieApiGatewayUrls.STAGING,
+                              client_url=GrazieApiGatewayUrls.PRODUCTION,
                               profile=model_name,
                               client_agent_name='ref-agent',
                               client_agent_version='0.1')
