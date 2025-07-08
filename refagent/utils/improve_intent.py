@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from project_manager import EvalProject
+import refagent.utils.project_manager as pm
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
@@ -30,7 +30,7 @@ def get_chat_openai_client():
     return ChatOpenAI(model="gpt-4o-mini", temperature=1)
 
 def _get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
-    project = EvalProject(project_name)
+    project = pm.EvalProject(project_name)
     return project.get_commit_diff(
         file_path_1=file_path_1,
         file_path_2=file_path_2,
@@ -40,7 +40,7 @@ def _get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
 
 def process_ratpack_json(json_file_path, project_name='ratpack'):
     
-    project = EvalProject(project_name)
+    project = pm.EvalProject(project_name)
     # chat_client = get_chat_grazie_client()
     chat_client = get_chat_openai_client()
     
