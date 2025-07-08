@@ -68,7 +68,7 @@ def filter_jsonl_by_project(input_file):
     
     # Save each project's data to separate files
     for project, records in projects_data.items():
-        output_file = f"temp_{project}.jsonl"
+        output_file = f"projects/temp_{project}.jsonl"
         
         try:
             with open(output_file, 'w', encoding='utf-8') as f:

@@ -13,8 +13,49 @@ PYTHON_SCRIPT="check_entry_from_jsonl.py"
 
 # Default list of JSONL files (modify as needed)
 DEFAULT_FILES=(
-    "temp_liferay-portal.jsonl"
-    # Add more files here as needed
+  "projects/temp_kafka.jsonl"
+  "projects/temp_flink.jsonl"
+  "projects/temp_spring-integration.jsonl"
+  "projects/temp_liferay-portal.jsonl"
+  "projects/temp_jetbrainsruntime.jsonl"
+  "projects/temp_intellij-community.jsonl"
+  "projects/temp_camunda.jsonl"
+  "projects/temp_jans.jsonl"
+  "projects/temp_eo.jsonl"
+  "projects/temp_osmand.jsonl"
+  "projects/temp_mekhq.jsonl"
+  "projects/temp_quarkus.jsonl"
+  "projects/temp_vespa.jsonl"
+  "projects/temp_dataease.jsonl"
+  "projects/temp_graal.jsonl"
+  "projects/temp_spring-boot.jsonl"
+  "projects/temp_google-api-java-client-services.jsonl"
+  "projects/temp_bytechef.jsonl"
+  "projects/temp_megamek.jsonl"
+  "projects/temp_thingsboard.jsonl"
+  "projects/temp_loom.jsonl"
+  "projects/temp_datahub.jsonl"
+  "projects/temp_midpoint.jsonl"
+  "projects/temp_theworldavatar.jsonl"
+  "projects/temp_keycloak.jsonl"
+  "projects/temp_opentripplanner.jsonl"
+  "projects/temp_azure-sdk-for-java.jsonl"
+  "projects/temp_openolat.jsonl"
+  "projects/temp_dataverse.jsonl"
+  "projects/temp_corretto-jdk.jsonl"
+  "projects/temp_mage.jsonl"
+  "projects/temp_shardingsphere.jsonl"
+  "projects/temp_bazel.jsonl"
+  "projects/temp_gt5-unofficial.jsonl"
+  "projects/temp_jmri.jsonl"
+  "projects/temp_valhalla.jsonl"
+  "projects/temp_forge.jsonl"
+  "projects/temp_languagetool.jsonl"
+  "projects/temp_cas.jsonl"
+  "projects/temp_product-is.jsonl"
+  "projects/temp_tutorials.jsonl"
+  "projects/temp_gravitee-api-management.jsonl"
+  "projects/temp_metersphere.jsonl"
 )
 
 # Function to activate conda environment
@@ -57,9 +98,9 @@ run_analysis() {
     echo "================================================"
     
     if check_file_exists "$jsonl_file"; then
-        echo "Running: python $PYTHON_SCRIPT $jsonl_file $ANALYZED_REPO_FILE"
+        echo "Running: python $PYTHON_SCRIPT $jsonl_file $ANALYZED_REPO_FILE --skip-old-commits"
         
-        if python "$PYTHON_SCRIPT" "$jsonl_file" "$ANALYZED_REPO_FILE"; then
+        if python "$PYTHON_SCRIPT" "$jsonl_file" "$ANALYZED_REPO_FILE" --skip-old-commits; then
             echo "✓ Successfully processed: $jsonl_file"
         else
             echo "✗ Failed to process: $jsonl_file"

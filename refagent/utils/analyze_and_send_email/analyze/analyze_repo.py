@@ -69,7 +69,7 @@ def analyze_repo_with_new_commits(res, filepath_to_analyzed_repo, renamed_attrib
     total_commits_count = len(total_commits_initial)
     print(f"Final commits after timestamp verification: {total_commits_count}")
     
-    json_data = create_json_analysis(df, res['local_repo_path'], f'{output_dir}/developer_analysis', target_commit_hash=res['json_data_from_jsonl']['v2_hash'], project_name=res['json_data_from_jsonl']['project'], developer_name=first_name, original_commit_count=total_commits_count, renamed_attributes=renamed_attributes)
+    json_data = create_json_analysis(df, res['local_repo_path'], f'{output_dir}/{datetime.now().strftime("%Y-%m-%d")}/developer_analysis', target_commit_hash=res['json_data_from_jsonl']['v2_hash'], project_name=res['json_data_from_jsonl']['project'], developer_name=first_name, original_commit_count=total_commits_count, renamed_attributes=renamed_attributes)
 
     if len(res['new_commits']) != 0:
         update_analyzed_repo_info(df, filepath_to_analyzed_repo, res, actual_batch_count, len(res['new_commits']), already_analyzed=True)
@@ -117,7 +117,7 @@ def analyze_repo_from_beginning(res, filepath_to_analyzed_repo, renamed_attribut
     # Handle names with various separators (spaces, dots, underscores, hyphens)
     # Split by common separators and take the first part
     first_name = re.split(r'[ .\-_]+', developer_name.strip())[0]
-    json_data = create_json_analysis(df, res['local_repo_path'], f'{output_dir}/developer_analysis', target_commit_hash=res['json_data_from_jsonl']['v2_hash'], project_name=res['json_data_from_jsonl']['project'], developer_name=first_name, original_commit_count=total_commits_count, renamed_attributes=renamed_attributes)
+    json_data = create_json_analysis(df, res['local_repo_path'], f'{output_dir}/{datetime.now().strftime("%Y-%m-%d")}/developer_analysis', target_commit_hash=res['json_data_from_jsonl']['v2_hash'], project_name=res['json_data_from_jsonl']['project'], developer_name=first_name, original_commit_count=total_commits_count, renamed_attributes=renamed_attributes)
 
     print(f"Actual batch count: {actual_batch_count}")
     print(f"Successful batches: {successful_batches}")

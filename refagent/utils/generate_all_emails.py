@@ -3,14 +3,26 @@ from pathlib import Path
 import json
 from email.message import EmailMessage
 from email.utils import make_msgid
+from datetime import datetime
 
 # Import your existing helpers
 from email_template import attach_inline_image, generate_html_email
 
-def generate_emails_for_all_projects(analyze_dir):
+def generate_emails_for_all_projects(analyze_dir, analysis_date=None):
+    """
+    Generate emails for all projects
+    
+    Args:
+        analyze_dir (str): Directory containing analysis results
+        analysis_date (str, optional): Date in YYYY-MM-DD format. If None, uses today's date
+    """
+    if analysis_date is None:
+        analysis_date = datetime.now().strftime("%Y-%m-%d")
+    
     analyze_dir = Path(analyze_dir)
     analyzed_repo = None
     repo_url = None
+    dev_analysis_dir=""
     with open("/Users/moul7361/Desktop/AI-Agents/Agent4Refactoring/refagent/utils/analyze_and_send_email/analyze/analyzed_repo.json", "r") as f:
         analyzed_repo = json.load(f)
     for project_dir in analyze_dir.iterdir():
@@ -18,9 +30,15 @@ def generate_emails_for_all_projects(analyze_dir):
         if not project_dir.is_dir() or not project_dir.name.startswith("refactoring_results_"):
             continue
 
-        dev_analysis_dir = project_dir / "developer_analysis"
+        dev_analysis_dir = project_dir / analysis_date / "developer_analysis"
         plots_dir = project_dir / "plots"
+        print(f'Looking for analysis in: {dev_analysis_dir}')
         print(f'plots_dir: {plots_dir}')
+        
+        if not dev_analysis_dir.exists():
+            print(f"Skipping {project_dir}: No developer_analysis directory found for date {analysis_date}")
+            continue
+            
         json_files = list(dev_analysis_dir.glob("*.json"))
         if not json_files:
             print(f"Skipping {project_dir}: No developer_analysis JSON found.")
@@ -53,8 +71,6 @@ def generate_emails_for_all_projects(analyze_dir):
             # Construct commit URL if possible
             project = stats.get("analysis_metadata", {}).get("project_name", "project")
             commit_hash = stats.get("target_commit_analysis", {}).get("commit_hash", "EXAMPLE")
-            org_or_user = "yourorg"  # <-- Set this to your actual org/user
-            # commit_url = f"https://github.com/{org_or_user}/{project}/commit/{commit_hash}"
             commit_url = f"{repo_url.split('.git')[0]}/commit/{commit_hash}"
 
             # Prepare email
@@ -79,15 +95,18 @@ def generate_emails_for_all_projects(analyze_dir):
             attach_inline_image(msg, heatmap_img, heatmap_img_cid)
 
             # Ensure the email_drafts directory exists in the project directory
-            drafts_dir = project_dir / "email_drafts"
+            drafts_dir = dev_analysis_dir / "email_drafts"
             drafts_dir.mkdir(parents=True, exist_ok=True)
             # Save as .eml draft in the email_drafts directory, use developer name/email for uniqueness
             safe_name = developer_name.replace('@', '_').replace('.', '_')
-            eml_path = drafts_dir / f"email_draft_{safe_name}.eml"
+            eml_path = drafts_dir / f"email_draft_{safe_name}_{analysis_date}.eml"
             with open(eml_path, "wb") as f:
                 f.write(bytes(msg))
             print(f"Email draft with inline images saved as {eml_path}")
 
 if __name__ == "__main__":
+    import sys
+    
     analyze_dir = "/Users/moul7361/Desktop/AI-Agents/Agent4Refactoring/refagent/utils/analyze_and_send_email/analyze"
-    generate_emails_for_all_projects(analyze_dir)
+    analysis_date = sys.argv[1] if len(sys.argv) > 1 else None
+    generate_emails_for_all_projects(analyze_dir, analysis_date)
