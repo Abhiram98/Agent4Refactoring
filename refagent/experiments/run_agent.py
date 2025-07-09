@@ -155,7 +155,12 @@ if __name__ == '__main__':
     benchmark = load_benchmark(args.benchmark_file, "rename")
     results_saver = rm.ResultsManager(run_identifier=args.run_identifier, save_file=results_file)
 
+    test = 0
     for bench_point in benchmark:
+        # if test > 50:
+        #     break
+        #
+        # test += 1
 
         if (selected_ref_ids is not None and
                 bench_point.ref_id not in selected_ref_ids):

@@ -16,7 +16,7 @@ class RminerError(Exception):
 class RefminerRunner(BaseModel):
     refminer_path: str = Field(..., description="path of refactoringminer, to execute")
 
-    def run(self, project_path, commit_hash, timeout=15) -> list[refactoring_types.RefminerOut]:
+    def run(self, project_path, commit_hash, timeout=300) -> list[refactoring_types.RefminerOut]:
         """Run refactoring miner on the specific commit
         in the specified project"""
         tmp = tempfile.NamedTemporaryFile()
