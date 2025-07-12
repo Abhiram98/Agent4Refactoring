@@ -118,8 +118,7 @@ def process_single_item(item_data, intellij_server, model):
         else:
             print(f"Invalid hint format: {first_hint}")
             return False
-            
-        # Create prompt for LLM
+
         system_message = SystemMessage(content="""
 You are a code refactoring assistant. Your task is to rename variables in the given code.
 You will be given the current code and instructions to rename a specific variable.
@@ -132,7 +131,7 @@ Please rename the variable '{old_name}' to '{new_name}' in the following code:
 
 {file_content}
 
-Return only the modified code with the variable renamed.
+Return only the whole modified code file.
 """)
         
         # Get LLM response
@@ -140,6 +139,7 @@ Return only the modified code with the variable renamed.
         modified_code = response.content.strip()
         
         print(f"LLM successfully renamed '{old_name}' to '{new_name}'")
+        # print(f"Modified code: {modified_code}")
         
     except Exception as e:
         print(f"Error invoking LLM: {e}")
@@ -248,7 +248,7 @@ def main():
                         help='IntelliJ server URL (default: http://localhost:8082)')
     parser.add_argument('--max-items', type=int, default=5,
                         help='Maximum number of items to process (default: 5)')
-    parser.add_argument('--output-file', type=str, default='refactoring_results.json',
+    parser.add_argument('--output-file', type=str, default='refactoring_results_argouml.json',
                         help='Output JSON file to save results with RefactoringMiner analysis (default: refactoring_results.json)')
     
     args = parser.parse_args()
@@ -266,8 +266,32 @@ def main():
     print(f"Max items to process: {max_items}")
     print(f"Output file: {output_file}")
     
+    # Load existing results to skip already processed items
+    existing_results = []
+    processed_ids = set()
+    
+    if os.path.exists(output_file):
+        print(f"Loading existing results from: {output_file}")
+        try:
+            with open(output_file, 'r') as f:
+                existing_results = json.load(f)
+                processed_ids = {item.get('id') for item in existing_results if item.get('id')}
+                print(f"Found {len(processed_ids)} already processed items")
+        except Exception as e:
+            print(f"Error loading existing results: {e}")
+            existing_results = []
+            processed_ids = set()
+    else:
+        print(f"Output file does not exist yet, will create new one")
+    
     # Load JSON data directly (not using benchmark loader)
     json_data = load_json_data(json_file_path)
+    
+    # Filter out already processed items
+    unprocessed_items = [item for item in json_data if item.get('id') not in processed_ids]
+    print(f"Total items in JSON: {len(json_data)}")
+    print(f"Already processed: {len(json_data) - len(unprocessed_items)}")
+    print(f"Remaining to process: {len(unprocessed_items)}")
     
     # Create Grazie model
     model = create_grazie_model()
@@ -277,23 +301,26 @@ def main():
     
     # Process items (limit to specified max_items for testing)
     success_count = 0
-    total_count = min(max_items, len(json_data))
-    results = []  # Store successful results
+    total_count = min(max_items, len(unprocessed_items))
+    new_results = []  # Store new successful results
     
-    for i, item in enumerate(json_data[:total_count]):
-        print(f"\n--- Processing item {i+1}/{total_count} ---")
+    for i, item in enumerate(unprocessed_items[:total_count]):
+        print(f"\n--- Processing item {i+1}/{total_count} (ID: {item.get('id', 'unknown')}) ---")
         
         # Process the item
         result = process_single_item(item, intellij_server, model)
         if result:  # result is now a dict with commit data or False on failure
             success_count += 1
-            results.append(result)
+            new_results.append(result)
             print(f"✓ Successfully processed item {item.get('id', 'unknown')}")
         else:
             print(f"✗ Failed to process item {item.get('id', 'unknown')}")
     
     print(f"\n=== Summary ===")
     print(f"Successfully processed: {success_count}/{total_count} items")
+    
+    # Combine existing and new results
+    all_results = existing_results + new_results
     
     # Create output JSON file with results
     # Output format: array of results with fields:
@@ -304,13 +331,13 @@ def main():
     #   },
     #   ...
     # ]
-    if results:
+    if all_results:
         with open(output_file, 'w') as f:
-            json.dump(results, f, indent=4)
+            json.dump(all_results, f, indent=4)
         print(f"Results saved to: {output_file}")
-        print(f"Total results: {len(results)} items")
+        print(f"Total results: {len(all_results)} items ({len(existing_results)} existing + {len(new_results)} new)")
     else:
-        print("No successful results to save.")
+        print("No results to save.")
 
 
 if __name__ == "__main__":

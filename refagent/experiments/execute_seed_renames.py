@@ -27,7 +27,7 @@ def setup_project(project: pm.EvalProject):
 def main():
     print("creating seed renames for renas dataset")
 
-    with open(refagent.data_folder.joinpath('renas/renas_oracle.json')) as f:
+    with open(refagent.data_folder.joinpath('renas/renas_oracle_argouml_temp.json')) as f:
         data = json.load(f)
     rename_data = benchmark_load.load_benchmark(data, bench_type=benchmark_load.RenameItem)
     ij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
@@ -84,6 +84,7 @@ def main():
 
         setup_project(project) # create intellij files if missing.
         ij_server.open_project(project_path=project.get_project_path())
+        print(f"open project")
 
         ij_server.reset_project_reload_counters()
         project.checkout(r.v1_hash, force=True)
@@ -112,6 +113,7 @@ def main():
             #                                        new_name=concept['newName'])
             print("too call failed.")
             continue
+        print(f"tool_call_status: {tool_call_status}")
         assert tool_call_status == 'success'
         commit_and_write(project, r, rename_data, seed_hashes)
 
@@ -122,7 +124,7 @@ def commit_and_write(project, r, rename_data, seed_hashes):
     new_hash = project.git_repo.index.commit(f"seed rename for {r.ref_id}")
     seed_hashes[r.ref_id] = str(new_hash)
     r.seed_hash = str(new_hash)
-    with open(refagent.data_folder.joinpath('renas/renas_oracle.json'), 'w') as f:
+    with open(refagent.data_folder.joinpath('renas/renas_oracle_argouml_temp.json'), 'w') as f:
         final_data = [i.to_json() for i in rename_data]
         json.dump(final_data, f, indent=4)
 
