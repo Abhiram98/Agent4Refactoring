@@ -27,7 +27,7 @@ def run_planning(bench_point: bm_load.BenchmarkItem,
     #                    temperature=1)
     model = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
                               client_auth_type=AuthType.APPLICATION,
-                              client_url=GrazieApiGatewayUrls.STAGING,
+                              client_url=GrazieApiGatewayUrls.PRODUCTION,
                               profile='openai-gpt-4o-mini',
                               client_agent_name='ref-agent',
                               client_agent_version='0.1')
