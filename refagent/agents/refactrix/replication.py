@@ -71,6 +71,11 @@ class Replication(BaseModel):
 
         files_to_inspect = list(set(files_to_inspect))
 
+        # Limit to first 60 files if there are more than 60
+        if len(files_to_inspect) > 50:
+            files_to_inspect = files_to_inspect[:50]
+            print(f"Limited files to inspect to first 50 due to large number of files")
+
         print(f"files to inspect: {files_to_inspect}\n\n")
         print(f"length of files to inspect: {len(files_to_inspect)}")
 

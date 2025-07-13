@@ -32,7 +32,10 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     if initial_commit is None:
         if use_seed:
             # In this case, we would like to start the agent from the seed changes.
-            project.checkout(bench_point.seed_hash, force=True)
+            if bench_point.seed_hash is not None:
+                project.checkout(bench_point.seed_hash, force=True)
+            else :
+                project.checkout(bench_point.v1_hash, force=True)
             project.reset_head(1)
         else:
             project.checkout(bench_point.v1_hash, force=True)
@@ -188,6 +191,7 @@ if __name__ == '__main__':
             print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
             continue
 
+        print(f"Running ref id {bench_point.ref_id}")
         with ls.trace(name=f"refactoring agent - {args.run_identifier}. bench point {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:
             setup_and_run(bench_point, ij_server, results_saver, do_replication,

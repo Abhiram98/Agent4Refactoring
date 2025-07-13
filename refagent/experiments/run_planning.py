@@ -6,7 +6,8 @@ try:
 except ImportError:
     print("Error: Could not import ChatGrazie. Please ensure the 'grazie_langchain_utils' package is installed.")
 from pydantic.v1 import SecretStr
-from grazie.api.client.gateway import GrazieApiGatewayUrls, AuthType
+from grazie.api.client.endpoints import GrazieApiGatewayUrls
+from grazie.api.client.gateway import AuthType
 import os
 import json
 import refagent
@@ -23,11 +24,24 @@ def run_planning(bench_point: bm_load.BenchmarkItem,
     project = pm.EvalProject(bench_point.project_name)
     project.checkout(bench_point.v1_hash, force=True)
 
-    model = ChatOpenAI(model="o4-mini",
-                       temperature=1)
+    # model = ChatOpenAI(model="o4-mini",
+    #                    temperature=1)
 
-    old_name = bench_point.improved_commit_message.split(" -> ")[0].split(" ")[-1]
-    new_name = bench_point.improved_commit_message.split(" -> ")[1].split(" ")[0]
+    grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
+    if not grazie_token:
+        raise ValueError("GRAZIE_JWT_TOKEN environment variable is not set")
+    
+    model = ChatGrazie(grazie_jwt_token=SecretStr(grazie_token),
+                       client_auth_type=AuthType.APPLICATION,
+                       client_url=GrazieApiGatewayUrls.PRODUCTION,
+                       profile='openai-gpt-4o-mini',
+                       client_agent_name='ref-agent',
+                       client_agent_version='0.1')
+
+    # old_name = bench_point.improved_commit_message.split(" -> ")[0].split(" ")[-1]
+    # new_name = bench_point.improved_commit_message.split(" -> ")[1].split(" ")[0]
+    old_name = bench_point.hints[0].split(" -> ")[0].strip(" ")
+    new_name = bench_point.hints[0].split(" -> ")[1].strip(" ")
 
     augmented_intent = analysis.AnalysisComponent(
         model=model,
