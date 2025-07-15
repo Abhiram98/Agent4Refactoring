@@ -23,7 +23,7 @@ def get_chat_grazie_client():
     """Initialize ChatGrazie client"""
     return ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
                       client_auth_type=AuthType.APPLICATION,
-                      client_url=GrazieApiGatewayUrls.STAGING,
+                      client_url=GrazieApiGatewayUrls.PRODUCTION,
                       profile="openai-gpt-4o-mini",
                       client_agent_name='fix-agent',
                       client_agent_version='0.1',

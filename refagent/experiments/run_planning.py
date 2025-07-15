@@ -26,8 +26,10 @@ def run_planning(bench_point: bm_load.BenchmarkItem,
     model = ChatOpenAI(model="o4-mini",
                        temperature=1)
 
-    old_name = bench_point.improved_commit_message.split(" -> ")[0].split(" ")[-1]
-    new_name = bench_point.improved_commit_message.split(" -> ")[1].split(" ")[0]
+    # old_name = bench_point.improved_commit_message.split(" -> ")[0].split(" ")[-1]
+    # new_name = bench_point.improved_commit_message.split(" -> ")[1].split(" ")[0]
+    old_name = bench_point.hints[0].split(" -> ")[0].strip(" ")
+    new_name = bench_point.hints[0].split(" -> ")[1].strip(" ")
 
     augmented_intent = analysis.AnalysisComponent(
         model=model,

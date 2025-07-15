@@ -1,0 +1,506 @@
+[
+    {
+        "id": 100601,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename all local variables representing numeric partition identifiers from \"partition\" to \"partitionId\" throughout this file and in other code locations to match the getPartitionId() API and avoid ambiguity with Partition objects; apply the same naming convention to other identifier primitives (e.g., rename user \u2192 userId, order \u2192 orderId) for clarity and consistency, while preserving the original name when the variable is an actual Partition object or when following existing method signatures."
+        }
+    },
+    {
+        "id": 100781,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Extend the refactoring to cover all \u2018pause\u2019 references in the batch\u2010operation feature: rename methods (isPaused\u2192isSuspended, canPause\u2192canSuspend, pause\u2192suspend), enum values (PAUSED\u2192SUSPENDED), properties, configuration keys, database columns, public API calls, documentation, tests and message types so that the entire engine consistently uses the BPMN-aligned \u2018suspend\u2019/\u2018resume\u2019 terminology."
+        }
+    },
+    {
+        "id": 100801,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When applying similar changes elsewhere, introduce dedicated business and DTO classes suffixed with 'Request' for all API payloads (e.g., ProcessInstanceMigrationBatchOperationRequest, ProcessInstanceModifyBatchOperationRequest), rename local variables to match the API field or setter names exactly (e.g., use migrationPlan instead of migrationInstruction, modifyBatchPlan instead of modificationInstruction), update mappers, builders, and tests to use the new classes and variable names consistently, and ensure method parameters, field names, and variables align to improve clarity and maintainability."
+        }
+    },
+    {
+        "id": 100802,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Create dedicated migration business objects (BOs) and enforce the \"Request\" suffix on all DTOs and variables representing incoming API payloads. Rename any element currently suffixed with \"Instruction\" that models a REST payload (e.g., migrationInstruction, modificationInstruction) to end with \"Request\". Apply this consistently across files and modules\u2014class names, variables, method parameters\u2014while preserving \"Instruction\" suffix for internal engine or builder APIs."
+        }
+    },
+    {
+        "id": 100831,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Scan the Camunda client API, tests, helpers, filters and response models for any identifier names ending in \u201cKey\u201d (e.g. batchOperationKey, processInstanceKey, deploymentKey). For each occurrence: rename the variable, method parameter, getter/setter, filter builder (filter(f -> f.batchOperationKey(\u2026))), response field and JSON property to use the \u201cId\u201d suffix (batchOperationId), update its type if needed to String, adjust documentation and examples. Apply the same pattern to other resources (processInstanceKey \u2192 processInstanceId, processDefinitionKey \u2192 processDefinitionId, etc.). Use regex-based search and replace, deprecate old APIs if backward compatibility is required, and update all integration tests, helper methods, request builders, and assertions to the new naming and types."
+        }
+    },
+    {
+        "id": 103391,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When a single container-based Camunda runtime is in scope, drop the redundant \u201ccontainer\u201d prefix in variable and builder names: rename containerRuntime\u2192runtime, containerRuntimeBuilder\u2192runtimeBuilder, update all usages (start(), close(), store.put, etc.). Apply the same pattern in other classes and modules (e.g. remoteContainerRuntime\u2192remoteRuntime, testContainerRuntime\u2192testRuntime). Only retain the qualifier when multiple runtime types coexist in the same context."
+        }
+    },
+    {
+        "id": 103392,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every occurrence of the container-specific runtime builder in code, tests, configuration and documentation; drop the redundant 'Container' qualifier when the builder is now generic (managing both local container and remote runtimes); rename field names, constructor parameters, method signatures, DI annotations, config keys and comments consistently. Advise to apply the same pattern wherever a class or API has become more general (e.g. httpClientJettyBuilder \u2192 httpClientBuilder) and to preserve or deprecate the old qualifier only when multiple distinct implementations still coexist or backward compatibility must be maintained."
+        }
+    },
+    {
+        "id": 103501,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor all occurrences of the AddMappingToGroup command and related methods to use the verb \u2018assign\u2019 instead of \u2018add\u2019. This includes renaming the implementation class (AddMappingToGroupCommandImpl \u2192 AssignMappingToGroupCommandImpl), the public DSL method (newAddMappingToGroupCommand() \u2192 newAssignMappingToGroupCommand()), any variables or parameters named addMappingToGroup, and updating tests and documentation. Apply the same pattern to other linking commands (e.g., AddUserToGroupCommandImpl \u2192 AssignUserToGroupCommandImpl, AddPermissionToRoleCommandImpl \u2192 AssignPermissionToRoleCommandImpl) to maintain a consistent API naming convention for actions that link existing resources without creating new ones."
+        }
+    },
+    {
+        "id": 103801,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce advanced filtering for batch operations by renaming generic parameters like 'values' to domain-specific names (batchOperationIds, operationTypes, state), updating builder methods and record fields to use these terms consistently, and apply the same pattern in other filters to improve code clarity and maintainability."
+        }
+    },
+    {
+        "id": 103802,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Enhance batch operation filters to support advanced operations on filter fields by renaming the property \u2018state\u2019 to \u2018stateOperations\u2019 throughout the codebase. Update the record definition, the Builder methods, JSON serialization keys, API documentation, and any import or usage sites. Apply the same naming convention to other enum-based or list-based filters (e.g., priority \u2192 priorityOperations, status \u2192 statusOperations) to maintain consistency in the advanced-operations design. Where backwards compatibility is required, provide mapping layers or deprecation warnings rather than breaking existing clients."
+        }
+    },
+    {
+        "id": 103803,
+        "response": {
+            "plan": null,
+            "augmented_intent": "For each filter field currently defined as List<SomeType> (e.g. batchOperationIds, operationTypes, state), rename the field and related methods to append Operations (e.g. batchOperationIdOperations, operationTypeOperations, stateOperations), change the field type from List<SomeType> to List<FilterOperation<SomeType>>, update the record constructor parameters and Builder methods to accept and accumulate FilterOperation<SomeType> instances, adjust collectValues/addValuesToList calls to work with FilterOperation<T>, import the FilterOperation class, rename all variable, getter and builder method references accordingly, and apply the same pattern in other filter classes to maintain a consistent advanced\u2010filter naming and API across the codebase."
+        }
+    },
+    {
+        "id": 103804,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide guidelines for a follow-up refactoring: any filter or API field that holds multiple values should use a plural name (e.g. rename state \u2192 states). Update the record field, builder methods, variable names, JSON property names, query parameters, and documentation to match existing pluralized fields (batchOperationIds, operationTypes) and clearly communicate collection semantics, while preserving backward compatibility where necessary."
+        }
+    },
+    {
+        "id": 103805,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce a naming convention and implementation pattern for operator-based filters across all batch operation DTOs and related code. For every existing simple List<T> field used for filtering IDs or enums (e.g. batchOperationIds, itemKeys, processInstanceKeys, state), rename the field to append \u201cOperations\u201d (e.g. batchOperationIdOperations, itemKeyOperations, processInstanceKeyOperations, stateOperations), change the item type to the new Operation<T> or enum-operation wrapper, update the record components, Builder fields and methods (including collectValues overloads), JSON property annotations, API documentation, serialization/deserialization logic, FilterBase implementations, and all unit/integration tests. Deprecate the old plain List<T> properties or maintain backwards compatibility via JSON aliases if needed. Ensure this pattern is consistently applied in this file and every other filter or DTO that gains advanced operator semantics."
+        }
+    },
+    {
+        "id": 103806,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce a consistent pattern for converting simple list-of-values filters into rich operation-based filters across the codebase: rename fields like itemKeys \u2192 itemKeyOperations (and similarly processInstanceKeys \u2192 processInstanceKeyOperations, state \u2192 stateOperations, etc.), update builder methods, JSON property names, serializers, tests, and documentation to match the new FilterOperation<T> type semantics and preserve backward compatibility where needed."
+        }
+    },
+    {
+        "id": 103807,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename each simple-value list field (e.g. batchOperationIds, itemKeys, processInstanceKeys, state) to indicate it holds filter operations (e.g. batchOperationIdOperations, itemKeyOperations, processInstanceKeyOperations, stateOperations). Update builder methods to accept operation descriptors (operator + values), adjust constructors to initialize empty operation lists, revise any query\u2010building or serialization code to use the new operation types, and update documentation and compatibility notes accordingly."
+        }
+    },
+    {
+        "id": 103861,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update all enum-based filter fields and builders to use an Operations suffix and Operation<T> types instead of raw value lists. For each filter (e.g. state, status, priority, date), rename the field and builder methods to stateOperations (statusOperations, etc.), change their types to List<Operation<EnumType>>, adjust method names and parameters for collection and replacement, update imports and documentation, and apply the same comparison-predicate support pattern used by batchOperationIdOperations across the codebase for API consistency."
+        }
+    },
+    {
+        "id": 103862,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename generic 'values' parameters and variables in builder APIs to a specific plural noun matching the element type (e.g., change 'values' to 'operations' for List<Operation<T>>). Apply this consistently across method signatures, varargs overloads, builder fields, and documentation in BatchOperationFilter and all similar filter or builder classes to align names with domain semantics and types."
+        }
+    },
+    {
+        "id": 103863,
+        "response": {
+            "plan": null,
+            "augmented_intent": "When converting any raw\u2010value list field (e.g. operationTypes) to use Operation<T> wrappers, rename the plural field name to its singular form plus \u201cOperations\u201d (operationTypeOperations). Update the record components, constructor parameters, builder methods (including overloaded and replace methods), variable names, method signatures, and any JSON/serialization property names accordingly. Apply this same pattern across other filters\u2014e.g. statuses \u2192 statusOperations, createdDates \u2192 createdDateOperations, priorities \u2192 priorityOperations\u2014to keep naming consistent whenever a filter field moves from a List<T> to a List<Operation<T>>."
+        }
+    },
+    {
+        "id": 103864,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Ensure that all collection-typed fields are named in the plural and that enum filters are supported consistently across the codebase. In practice this means: rename any List<String> field declared as \u2018state\u2019 to \u2018states\u2019 (and mirror that in builder methods, constructor parameters, record fields, and usages); apply the same pluralization to other collection fields (e.g., tag\u2192tags, category\u2192categories, batchOperationId\u2192batchOperationIds); add builder overloads and filter mappings for enum fields (Operation<EnumType>), extending FilterUtil.mapDefaultToOperation; update tests, documentation, and API contracts to use the new plural names and to cover enum-based filter operations."
+        }
+    },
+    {
+        "id": 104061,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the IncidentFilter and related API to support a single tree path prefix filter instead of multiple exact-match paths: rename the treePaths field, builder methods, and DTO properties to treePath; update the POST /search endpoint request schema and parsing logic; adjust service query construction to accept and apply a single prefix; update tests, documentation, examples, and client code to use treePath; and remove or deprecate legacy treePaths support across all affected modules."
+        }
+    },
+    {
+        "id": 104151,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Describe a general refactoring strategy for replacing vendor-specific identifiers (like getEntraCertificatePath) with generic SSL/TLS names (like getSslClientCertPath) across the codebase. Include: 1) identifying and renaming all method and variable declarations and references, 2) updating environment variable constants and their mappings, 3) adjusting builder methods, Javadoc, comments, sample configs, and tests, 4) deprecating old names for backward compatibility, and 5) applying the same pattern to other brand-tied elements (e.g., azureKeyVaultUri \u2192 keyStoreUri) to ensure consistent, technology-agnostic API naming."
+        }
+    },
+    {
+        "id": 104152,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename Entra-specific certificate properties to generic SSL client certificate naming across OAuthCredentialsProviderBuilder and all related modules. Specifically, change field names 'entraCertificatePassword'\u2192'sslClientCertPassword' and 'entraCertificatePath'\u2192'sslClientCertPath'; update corresponding getters, setters, environment variable constants (ENTRA_ENV_* \u2192 SSL_ENV_*), and applyEnvironmentOverrides calls; adjust documentation, tests, and configuration examples; deprecate old Entra-named methods with backward-compatible aliases until the next major version."
+        }
+    },
+    {
+        "id": 104153,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor all occurrences of ENTRA_KEYSTORE_PATH and other vendor-specific certificate or keystore identifiers to a generic OAUTH_SSL_CLIENT_CERT_PATH (and equivalent generic names) throughout the codebase. This includes updating variable names, builder method parameters, configuration keys, environment variable names, test fixtures, documentation comments, and samples. Ensure consistency with existing patterns (e.g. truststorePath, keystorePath), adjust imports and usage sites, and verify that all tests, examples, and docs are updated to use the new naming convention before merging."
+        }
+    },
+    {
+        "id": 104154,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Standardize OAuth environment variable naming across the codebase: rename ENTRA_ENV_CERTIFICATE_PATH to OAUTH_ENV_SSL_CLIENT_CERT_PATH in CamundaClientEnvironmentVariables and any other modules, update all references in source code, documentation, configuration files, and tests; provide the old variable as a deprecated alias for backward-compatibility; audit and apply the same OAUTH_ENV_SSL_CLIENT_<TYPE>_<PROPERTY> naming pattern to other SSL/keystore/truststore variables where needed."
+        }
+    },
+    {
+        "id": 112051,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Standardize naming of applier classes to singular for single-entity handlers. For each event or record that processes exactly one partition, job, or topology, rename its applier from plural to singular (e.g. PartitionsBootstrappedApplier \u2192 PartitionBootstrappedApplier). Ensure names reflect processing semantics: use plural only when the handler truly processes multiple entities in one event. Apply the same refactoring across code, tests, documentation, and references to maintain consistency."
+        }
+    },
+    {
+        "id": 112921,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify variables named with a \u201cRecord\u201d suffix that actually reference only the record\u2019s payload (via getValue()) and remove the \u201cRecord\u201d suffix to reflect the true type (e.g., createdUserTask instead of createdUserTaskRecord). Maintain the \u201cRecord\u201d suffix only when the Record<T> wrapper itself is used for metadata assertions (intent, type, key). Apply this naming convention consistently across all tests and code locations where Record<T> values are extracted."
+        }
+    },
+    {
+        "id": 112922,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Developers should locate any method or module that handles more than one \u2018intent\u2019 variable\u2014such as both the incoming command intent and the intent being emitted or written\u2014and disambiguate them by renaming one to a descriptive name (e.g. \u2018intentToWrite\u2019, \u2018incomingIntent\u2019 vs. \u2018outgoingIntent\u2019, \u2018userTaskIntent\u2019 vs. \u2018asyncRequestIntent\u2019). Apply this pattern in all files where UserTaskIntent and AsyncRequestIntent (or any distinct intent types) coexist in the same scope. If only a single intent is present and there is no risk of confusion, retain the simple name \u2018intent.\u2019"
+        }
+    },
+    {
+        "id": 112923,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Summarize the refactoring steps needed to migrate feature-specific request metadata into the new AsyncRequest abstraction consistently across the codebase: 1) Rename any state variable or class tied to UserTaskTransitionTriggerRequestMetadata (e.g., userTaskState) to asyncRequestState (or AsyncRequestRecord/AsyncRequestState) 2) Replace all reads and writes of UserTaskTransitionTriggerRequestMetadata with calls to the AsyncRequest API (append RECEIVED/PROCESSED events via stateWriter) 3) Update command and response writers to emit and handle AsyncRequest events instead of user-task-only events 4) Adjust onFinalizeCommand logic to retrieve request metadata from AsyncRequestState when metadata is missing in the command 5) Refactor tests and utilities (e.g., assertUserTaskTransitionRelatedIntentsSequence) to expect AsyncRequest events in the intent sequence 6) Apply the same pattern to other subsystems (timer triggers, variable update flows, audit logs) by extracting their metadata handling into AsyncRequest and renaming references accordingly."
+        }
+    },
+    {
+        "id": 112924,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every use of *Metadata (e.g., UserTaskTransitionTriggerRequestMetadata) and replace it with the new AsyncRequest model: rename metadata classes and records to AsyncRequestRecord, update intent names in event emissions to AsyncRequest:RECEIVED and AsyncRequest:PROCESSED, change state lookups from recordRequestMetadata to AsyncRequestState APIs, adjust responseWriter calls to write on AsyncRequest events rather than metadata, update test utilities and assertions to assert AsyncRequest lifecycle, and remove any legacy metadata storage or methods across all affected command processors and utilities."
+        }
+    },
+    {
+        "id": 112925,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply the new AsyncRequest framework across all affected code: rename local variables (e.g., `recordRequestMetadata`) to `asyncRequest`; swap out calls to the old metadata API (`userTaskState.findRecordRequestMetadata`) for the new async request API (`asyncRequestState.findAsyncRequest` or similar); update event writing to use `AsyncRequestIntent.RECEIVED` and `AsyncRequestIntent.PROCESSED` instead of user-task-specific intents; adjust responseWriter calls to pass the generic request ID and stream ID from the AsyncRequestRecord; remove any residual references to the legacy UserTaskTransitionTriggerRequestMetadata; and update tests (such as `assertUserTaskTransitionRelatedIntentsSequence`) and other processors handling variable document or other async-triggered flows to follow the unified async request model."
+        }
+    },
+    {
+        "id": 112926,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce a naming convention to replace ambiguous variable names like `key` with descriptive, context-specific names across this file and others\u2014for example, rename the generated variable-document event ID from `key` to `variableDocKey`. Apply the same pattern for all entities that produce or handle multiple IDs in the same scope (e.g. `timerKey`, `subscriptionKey`, `messageKey`). Retain a plain `key` only in single-ID contexts or when constrained by an external interface. Update all methods, lambdas, and record-writer calls to follow the `{entity}Key` suffix for clarity, consistency, and to avoid confusion between coexisting identifiers."
+        }
+    },
+    {
+        "id": 112927,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Describe a refactoring pattern that identifies and removes references to the old UserTaskTransitionTriggerRequestMetadata, replaces them with the generic AsyncRequest model, and updates tests and state appliers accordingly. This includes: renaming test methods to drop \u2018AndRequestMetadataPresent\u2019 when metadata is no longer in state; updating or deleting any findRecordRequestMetadata calls; adjusting assertions to verify only intermediate state or user task state; importing the new AsyncRequestRecord and AsyncRequestState where needed; ensuring all UserTaskIntent handlers (e.g., CREATING, UPDATING, CANCELLED) and VariableDocument handlers emit AsyncRequest:RECEIVED and PROCESSED events; refactoring helper utilities like assertUserTaskTransitionRelatedIntentsSequence to include AsyncRequest events; removing legacy metadata storage classes; and propagating these changes consistently across all applier classes, tests, and import statements in the codebase."
+        }
+    },
+    {
+        "id": 112928,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Summarise the refactoring pattern: identify any domain-specific EnumProperty<ValueType> fields (e.g., triggerType, jobType) and rename them and their getters/setters to use the generic ValueType name (getValueType/setValueType). Update the property declaration strings, Javadoc, and comments to reference ValueType instead of domain terms. Deprecate or alias old methods if needed for backward compatibility. Adjust tests and assertion helpers to use the new names. Apply this pattern consistently across all metadata/record classes (UserTaskTransitionTriggerRequestMetadata, VariableDocument metadata, JobExecutionMetadata, etc.) moved to the AsyncRequest/ValueType model, ensuring imports and record-stream logic align with the updated naming."
+        }
+    },
+    {
+        "id": 112929,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Guide the second developer to generalize domain-specific property names to match the new generic enum types: rename methods and fields from setTriggerType/getTriggerType and triggerTypeProperty to setValueType/getValueType and valueTypeProperty, update all usages in declarations, constructors, serializers, and Javadoc, adjust tests and utility assertions accordingly, propagate the change across other classes referencing ValueType, and ensure backward compatibility by deprecating the old names or providing migration helpers while updating documentation and schema definitions to reflect the new naming convention."
+        }
+    },
+    {
+        "id": 112930,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Developers should apply the same renaming pattern consistently across all affected code: replace any domain-specific triggerType properties and methods with generic valueType naming. Specifically, update EnumProperty declarations (triggerTypeProperty \u2192 valueTypeProperty), change getter/setter signatures (getTriggerType()/setTriggerType \u2192 getValueType()/setValueType), adjust serialization keys, modify all record classes and AsyncRequestRecord to use valueType, refactor related tests, asserts, and documentation, and provide deprecation aliases or migration logic to preserve backward compatibility."
+        }
+    },
+    {
+        "id": 112931,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Explain that any field or property originally named for a domain-specific trigger (e.g., triggerTypeProperty) must be renamed to its new generic counterpart (e.g., valueTypeProperty) whenever the model is generalized. Instruct the developer to:\n1. Search for all occurrences of triggerTypeProperty (fields, getters, setters, docs, tests).\n2. Rename the field and its accessors to valueTypeProperty, updating enum types and string keys accordingly.\n3. Update Javadoc/comments to reflect the new generic \u2018value type\u2019 concept instead of user-task triggers.\n4. Adjust serialization or MsgPack keys (e.g., \u2018triggerType\u2019 \u2192 \u2018valueType\u2019) to maintain consistency in the record stream API.\n5. Update any related AsyncRequestRecord, event definitions (RECEIVED/PROCESSED), and test utilities to use the new property name.\n6. Run and update tests, ensuring backward compatibility paths or migration logic are handled where old names are persisted.\n7. Apply the same pattern in other classes or modules where domain-specific trigger properties were generalized to generic types. Ensure naming conventions across the codebase remain aligned and clear."
+        }
+    },
+    {
+        "id": 113011,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a concise guideline for a second developer: rename all AsyncRequestMetadata references\u2014types, enums, configuration flags\u2014from AsyncRequestMetadataIntent to AsyncRequestIntent, AsyncRequestMetadataRecord to AsyncRequestRecord, ValueType.ASYNC_REQUEST_METADATA to ValueType.ASYNC_REQUEST, and the requestKey field to scopeKey; update all usages in code, configuration, tests, documentation, serialization, and index mappings; apply the same pattern to other '*Metadata' suffixed elements (e.g., userTaskMetadata \u2192 userTask) to enforce naming consistency and clarity while deprecating old names for backward compatibility."
+        }
+    },
+    {
+        "id": 113012,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide guidelines for a second developer to apply the same refactoring across the codebase: rename AsyncRequestMetadataIntent to AsyncRequestIntent, AsyncRequestMetadataRecord to AsyncRequestRecord, and ValueType.ASYNC_REQUEST_METADATA to ValueType.ASYNC_REQUEST; change requestKey to scopeKey in property names, getters, setters, wrap() calls, annotations, serialization keys, and documentation; update tests and client APIs to use the new names; ensure consistency with domain terminology (scopeKey as the element instance key) and maintain backward compatibility by deprecating old identifiers if necessary."
+        }
+    },
+    {
+        "id": 114311,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Outline the refactoring pattern: when a generic MigrationRunner gains a sibling implementation, rename it to a domain-specific class (e.g. ProcessMigrator) and rename the new one accordingly (e.g. IdentityMigrator). Then update every reference\u2014class declaration, imports, constructor calls, interface implementations (getName()), tests, configuration keys, log messages, metrics and telemetry tags, documentation, and CI scripts\u2014to use the new names consistently. Apply this same approach in other modules: identify generic or colliding class names, choose clear, context-driven names, and perform a project-wide rename across code, tests, configs, docs, and telemetry to ensure uniqueness and clarity."
+        }
+    },
+    {
+        "id": 114921,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor code across modules to group usage metrics into rolling time-span buckets, encapsulate internal Map<String,List<Long>> structures behind a bucket abstraction, rename methods leaking implementation details (e.g., getTenantIdPIsMapByEventTime() \u2192 getActiveBucket()), apply the same bucket-centric renaming pattern to other time-indexed metric methods, and deprecate legacy names where backward compatibility is required."
+        }
+    },
+    {
+        "id": 114922,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename all metric and event\u2010logging methods that currently use the prefix create* to record* to better convey that they append or log data rather than instantiate objects (e.g., createRPIMetric \u2192 recordRPIMetric). Apply this naming change consistently across the codebase\u2014updating method declarations, callers, documentation, and tests\u2014while leaving true factory or constructor methods and public APIs (where create* signifies real instantiation) unchanged to preserve clarity and backward compatibility."
+        }
+    },
+    {
+        "id": 114941,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update all occurrences of the term \u201crolling bucket\u201d to \u201cactive bucket\u201d to make it clear this is the current live metrics container. Rename methods (e.g. getRollingBucket() \u2192 getActiveBucket(), deleteRollingBucket() \u2192 deleteActiveBucket()), variables (rollingBucket \u2192 activeBucket), comments, and any related class or enum names across all modules that handle time-based metric buckets. Only apply this where \u201crolling\u201d refers to the single active interval; skip renames if \u201crolling\u201d truly denotes a sliding/overlapping window or is part of a stable public API."
+        }
+    },
+    {
+        "id": 114951,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor methods that return maps keyed by event time (for example, getTenantIdPIsMapByEventTime) into a generic rolling-bucket abstraction. Rename those methods to getRollingBucket or getTimeBucket, remove the domain-specific \u201cMapByEventTime\u201d suffix, and apply the same pattern consistently in this file and across the codebase. Update interfaces, implementations, call sites, and documentation to use the new bucket naming. When working on public APIs, maintain backward compatibility or introduce deprecated aliases before removing old methods."
+        }
+    },
+    {
+        "id": 114952,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor usage metric APIs to use consistent 'record' terminology: rename createRPIMetric to recordRPIMetric in MutableUsageMetricState and apply the same pattern to other create*Metric methods across the codebase. Update all references, tests, and documentation to reflect the new naming for clarity and consistency in how metrics are recorded."
+        }
+    },
+    {
+        "id": 115121,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Extend the incident search API to accept filter operations instead of raw values. Rename all variables, method parameters, and builder methods named values to operations; update types to operation wrappers where needed; adjust internal usages and documentation to reflect filter semantics. Apply the same renaming pattern in other filter classes and endpoints to ensure consistency and readiness for advanced search features."
+        }
+    },
+    {
+        "id": 115122,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply the same operation-based filter pattern across other fields in this file and related modules. For each raw List<T> filter attribute and its builder methods (e.g. incidentKeys, processInstanceKeys, jobKeys, tenantIds, errorMessageHashes, etc.), change the type to List<Operation<T>> (or the domain-specific operation type), rename the field and methods from XKeys/XIds to XKeyOperations/XIdOperations, update constructors, builders, getters, tests, API DTOs, and documentation, and deprecate old raw methods in public APIs if backward compatibility is required."
+        }
+    },
+    {
+        "id": 115123,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Enable operation\u2010based filtering for incident search by converting all plain list filters into operation filters. For each filter field that currently holds a List of values (e.g. processDefinitionIds, incidentKeys, flowNodeIds), rename it to end with Operations (e.g. processDefinitionIdOperations) and change its type to List<Operation<T>> or a suitable operation wrapper. Update the Builder methods to accept operation objects and rename methods accordingly, adjust filter processing logic to evaluate operator + value criteria, and propagate the same renaming and type changes to all related filters and endpoints while preserving backward compatibility where simple equality\u2010only APIs remain."
+        }
+    },
+    {
+        "id": 115124,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Whenever a simple List<T> filter field is replaced by operation-based filtering, rename the field from plural \u2018Keys\u2019 or \u2018Ids\u2019 to singular \u2018KeyOperations\u2019 or \u2018IdOperations\u2019, update its type from List<T> to List<ValueOperation<T>> (or the appropriate operation type), adjust the builder methods (both varargs and list overloads) to collect and add operations instead of raw values, update the record/class field declarations and constructor, update imports and any utility calls, add deprecation of the old field if needed for backwards compatibility, and ensure tests and API documentation reflect the new naming and behavior consistently across all similar filter fields (e.g., incidentKeys \u2192 incidentKeyOperations, processDefinitionIds \u2192 processDefinitionIdOperations, jobKeys \u2192 jobKeyOperations)."
+        }
+    },
+    {
+        "id": 115125,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce a consistent pattern for all incident filter fields to use operation-based filters rather than simple value lists. For each existing List<T> property (errorTypes, errorMessages, processDefinitionKeys, etc.), rename the field to <fieldName>Operations, update its type to List<Operation<T>> or a dedicated OperationFilter<T>, and adjust builder methods accordingly (e.g. errorTypes(...) \u2192 errorTypeOperations(...)). Propagate the renaming across the record, builder, API layer, query construction, documentation, and tests to ensure consumers see the new semantics (equals, notEquals, in, etc.) while maintaining backward compatibility via deprecation if needed."
+        }
+    },
+    {
+        "id": 115126,
+        "response": {
+            "plan": null,
+            "augmented_intent": "For each raw-value filter field (e.g. errorMessages, flowNodeIds, states, jobKeys), rename the property by appending 'Operations', change its type from List<RawType> to List<FilterOperation<RawType>> (or a specific Operation<T>), update builder methods to accept and store operation descriptors instead of raw values, adjust serialization and API field names, update documentation and tests, and handle backward compatibility or deprecation of the old raw-value properties."
+        }
+    },
+    {
+        "id": 115127,
+        "response": {
+            "plan": null,
+            "augmented_intent": "For each filter class and field currently defined as a List of values (e.g. incidentKeys, processInstanceKeys, errorMessages, errorMessageHashes, tenantIds):\n1. Replace the raw List<T> type with a List of operation wrappers (e.g. ValueFilterOperation<T> or DateValueFilterOperation) that capture operator plus operand.\n2. Rename the field and all related builder methods to include the suffix \u201cOperations\u201d (e.g. errorMessageHashOperations, processInstanceKeyOperations).\n3. Update the constructor, build() method, and default initialization (using Objects.requireNonNullElse) to handle the new operation lists.\n4. Adjust JSON serialization, API models, and documentation to reflect the new field names and types.\n5. Update unit and integration tests, client code, and examples to use the new operations fields.\n6. Repeat this process for all similar List-based filters (errorTypes, flowNodeIds, jobKeys, etc.) across the codebase to ensure consistency."
+        }
+    },
+    {
+        "id": 115128,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Introduce operation-based filters throughout the incident search API: rename plain list filter fields and builder methods to operation-aware names (e.g., flowNodeIds -> flowNodeIdOperations, incidentKeys -> incidentKeyOperations), update field types to support operations, adjust the Builder to accept operation filter objects, apply the same pattern to all similar fields, and update documentation while preserving backward compatibility as needed."
+        }
+    },
+    {
+        "id": 115129,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply the same operations\u2010based filter pattern across all List<T> filter fields: rename each List<T> field to end with \u201cOperations\u201d (e.g. flowNodeInstanceKeys \u2192 flowNodeInstanceKeyOperations), change its type to List<FilterOperation<T>>, update builder methods and constructor parameters to accept and collect FilterOperation<T> instances, and mirror this renaming and type change for every similar filter field (incidentKeys, processDefinitionKeys, processDefinitionIds, processInstanceKeys, errorTypes, errorMessages, errorMessageHashes, flowNodeIds, states, jobKeys, tenantIds). Ensure naming and behavior are consistent across all search filter classes."
+        }
+    },
+    {
+        "id": 115130,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Adopt operation-based filtering across IncidentFilter and its Builder. For each existing plain List field (tenantIds, incidentKeys, processDefinitionKeys, processDefinitionIds, processInstanceKeys, errorTypes, errorMessages, errorMessageHashes, flowNodeIds, flowNodeInstanceKeys, creationTime, states, jobKeys) introduce a corresponding '*Operations' field (e.g. tenantIdOperations of type List<Operation<String>>), rename constructor parameters and builder methods accordingly, update method names and parameter types to accept Operation<T> descriptors, and adjust filter application logic to apply operations instead of simple equality checks."
+        }
+    },
+    {
+        "id": 115671,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor all fields named elementName to name across TaskEntity and related classes: update field declarations, getters/setters, JSON annotations, API parameters, queries, and documentation to drop the redundant prefix and align with existing naming conventions, adding deprecation shims if needed for backward compatibility."
+        }
+    },
+    {
+        "id": 115691,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor all occurrences of the redundant \u2018element\u2019 prefix by renaming \u2018elementName\u2019 to \u2018name\u2019 across the codebase: update the UserTaskSearchColumn enum entry, its property reader and sort converter logic, any findByProperty calls, related API models, database mappings, tests and documentation. Apply the same naming pattern to other similarly scoped search columns\u2014drop domain-level prefixes when the context already implies the entity type\u2014to keep property names concise and consistent with underlying entity fields and external contracts."
+        }
+    },
+    {
+        "id": 115692,
+        "response": {
+            "plan": null,
+            "augmented_intent": "In any filter or builder class where a field\u2019s name repeats the enclosing entity context, drop the redundant qualifier. For UserTaskFilter specifically, rename elementNames to names in the record definition, constructor, Builder fields and methods, JSON property, documentation, and tests. Then apply the same pattern elsewhere (e.g., processInstanceVariableFilters \u2192 variables, elementInstanceKeys \u2192 keys) to keep the API concise and consistent across the codebase."
+        }
+    },
+    {
+        "id": 115693,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Propagate the rename of the user\u2010task search filter from elementName to name throughout the codebase. Update all calls to .elementName(\u2026) to .name(\u2026), rename test methods (e.g. shouldRetrieveTaskByElementName \u2192 shouldRetrieveTaskByName), adjust variable names, assertions, JavaDoc, comments, and any examples in this file and in other modules that reference the old filter, ensuring consistency with the revised public API signature."
+        }
+    },
+    {
+        "id": 116371,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor all occurrences of cursor-boundary identifiers that use directional terms 'before' and 'after' into the standardized naming 'startCursor' and 'endCursor' throughout the codebase. This includes renaming fields, constructor parameters, getters, interface methods, REST DTO properties, GraphQL PageInfo fields, API request arguments, serialization keys, unit tests, and relevant documentation. Update import statements, test assertions, Javadoc comments, API schemas, and examples accordingly. Where breaking changes affect public APIs, provide deprecation shims or adapter methods to maintain backward compatibility until clients can migrate to the new names."
+        }
+    },
+    {
+        "id": 116372,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Locate every field, parameter, method and documentation entry that refers to searchAfterCursor and searchBeforeCursor and rename them to endCursor and startCursor respectively. Drop the redundant \u201csearch\u201d prefix in classes already scoped to search, adopt noun-style names matching GraphQL\u2019s startCursor/endCursor convention, and update constructors, getters, builder APIs, tests and docs accordingly. Apply the same pattern to other cursor-based fields (e.g. nextPageCursor \u2192 endCursor, prevPageCursor \u2192 startCursor) to standardize pagination naming across the codebase, while preserving backwards compatibility only where necessary."
+        }
+    },
+    {
+        "id": 116373,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the SearchQueryPage record, its Builder, API endpoints, documentation, tests, and any dependent modules to replace implementation-specific parameter names searchAfter and searchBefore with generic cursor names after and before. Update field names, method signatures, serialization annotations, and examples. Add deprecation wrappers or annotations for backward compatibility where necessary, and ensure all code comments and external docs reflect the new cursor-based pagination naming convention."
+        }
+    },
+    {
+        "id": 116374,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Standardize field and method names by removing redundant domain prefixes when the class or context already implies them. For symmetrical pairs like before/after or start/end, drop the prefix and use concise names. For example, rename searchBefore to before and searchAfter to after in SearchQueryPage, and apply the same pattern in other classes (e.g., timeRangeStart/timeRangeEnd \u2192 start/end, filterByStatus/filterByDate \u2192 status/date). Only perform these renames if they do not introduce ambiguity, and preserve API stability by deprecating old names when necessary."
+        }
+    },
+    {
+        "id": 116375,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor pagination APIs across the codebase by renaming parameters that represent pagination tokens from generic names like 'values' to 'cursor', update method names to reflect before/after or start/end semantics (e.g., searchBeforeCursor/searchAfterCursor or startCursor/endCursor), revise Javadoc comments to match the new names, and apply these changes consistently in this file and all similar interfaces and implementations."
+        }
+    },
+    {
+        "id": 116391,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor API pagination parameters throughout the codebase to use simple 'after'/'before' cursor strings instead of raw sort value arrays. Rename variables, method parameters, and builder properties from 'sortValues' to 'searchAfter' in page fetchers, update query builders and client calls, and apply analogous renames (e.g., 'scrollId' -> 'pageToken', 'endCursorValues' -> 'afterCursor'), ensuring documentation and tests are updated accordingly, while retaining 'sortValues' names in low-level sort utilities."
+        }
+    },
+    {
+        "id": 116392,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide guidance for renaming all pagination cursor fields and related code across the client library: rename firstSortValues to searchBeforeCursor and lastSortValues to searchAfterCursor; update constructors, getters, interface methods, request\u2010parameter names (before=<cursor>, after=<cursor>), DTO and model field names, tests, documentation and examples; ensure method signatures, JSON serialization keys, and API docs reflect the single opaque cursor string approach consistently in all affected packages and modules."
+        }
+    },
+    {
+        "id": 117401,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a naming guideline: remove redundant type prefixes from variable names when the class or method signature already conveys the type. Rename 'operationRequest' to 'request' in validators and apply the same pattern elsewhere (e.g. 'userEntity'\u2192'user', 'addUserRequest'\u2192'request', 'httpServletRequest'\u2192'request'). Apply this refactoring consistently across code, but retain longer names where multiple similar types coexist or dropping them would hurt clarity."
+        }
+    },
+    {
+        "id": 118241,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor and stabilize the feature flag naming across code, tests, and configs by renaming all occurrences of internalGroupsEnabled to groupsClaimEnabled. In RoleAddEntityProcessor and other modules, update variable names, authorization-key lookups, method signatures, configuration entries, and documentation to align with JWT groups\u2010claim terminology. Adjust unit and integration tests to use the new flag name and ensure backward compatibility for any flags that truly control the internal group store or public API. Ensure consistency in naming, comments, and error messages wherever the internal groups toggle was referenced."
+        }
+    },
+    {
+        "id": 119851,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Describe that they must systematically rename all metric elements from \u2018Latency\u2019 to \u2018Duration\u2019 to align with Micrometer terminology. That includes method names (startXLatencyMeasure/stopXLatencyMeasure \u2192 startXDurationMeasure/stopXDurationMeasure), metric document keys and names, tags (Latency \u2192 Duration), variable names, and any related constants or usage across all files to maintain consistent API naming and avoid mixed terminology."
+        }
+    },
+    {
+        "id": 120871,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the startDates and endDates filter fields to use Operation<String> instead of raw strings and rename them to startDateOperations and endDateOperations. Update builder methods to accept lists of Operation<String> (dateTime operations like \u2265/\u2264/range) rather than List<String>. Apply this same pattern\u2014renaming field to include \u201cOperations\u201d and changing its type\u2014to all similar date/time filters in this class and across related filter classes to ensure consistent naming and semantics for comparison and range queries."
+        }
+    },
+    {
+        "id": 120872,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a reusable refactoring pattern: replace raw List<T> filter fields with List<Operation<T>>, append \u201cOperations\u201d to the field name (e.g. startDates \u2192 startDateOperations, endDates \u2192 endDateOperations), update record signatures and builder methods to accept and collect Operation<T> instances instead of raw values, adjust FilterUtil usage accordingly, and apply the same rename+pattern consistently to other value-based filters (e.g. dueDates, priorityList, statusValues) across the codebase for clarity and consistency."
+        }
+    },
+    {
+        "id": 120873,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide guidelines to systematically replace generic identifiers like \u201cvalues\u201d with specific domain-appropriate names (e.g. \u201coperations,\u201d \u201ccommands,\u201d \u201cfilters\u201d) wherever a collection or parameter holds a specialized type. Identify method parameters, builder fields, and local variables typed as List<Operation>, List<Command>, List<Predicate>, etc., then rename the parameter, method name, and documentation to match the element type. Ensure method names and usages stay consistent, update call sites, and preserve backward compatibility by deprecating old names only when necessary. Skip renames when \u201cvalues\u201d is the correct domain term or when breaking changes would outweigh clarity gains."
+        }
+    },
+    {
+        "id": 122201,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor variable names in these and related tests to clarify temporal context: for any variable named `<entity>To<Action>` that actually holds the state *before* the action, rename it to `<entity>Before<Action>` (e.g., `elementToSuspend` \u2192 `elementBeforeSuspension`), and apply the same pattern for migrate, delete, complete, etc."
+        }
+    }
+]

@@ -32,7 +32,10 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     if initial_commit is None:
         if use_seed:
             # In this case, we would like to start the agent from the seed changes.
-            project.checkout(bench_point.seed_hash, force=True)
+            if bench_point.seed_hash is not None:
+                project.checkout(bench_point.seed_hash, force=True)
+            else:
+                project.checkout(bench_point.v1_hash, force=True)
             project.reset_head(1)
         else:
             project.checkout(bench_point.v1_hash, force=True)

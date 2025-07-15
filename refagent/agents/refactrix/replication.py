@@ -71,10 +71,14 @@ class Replication(BaseModel):
 
         files_to_inspect = list(set(files_to_inspect))
 
+        if len(files_to_inspect) > 50:
+            print(f"Limiting files to first 50 due to large number of files: {len(files_to_inspect)}")
+            files_to_inspect = files_to_inspect[:50]
+
         # print(f"files to inspect: {files_to_inspect}\n\n")
 
-        list_of_keywords = self.invokeLLM()
-        files_to_inspect = self.filterFilesWithLCS(files_to_inspect, list_of_keywords)
+        # list_of_keywords = self.invokeLLM()
+        # files_to_inspect = self.filterFilesWithLCS(files_to_inspect, list_of_keywords)
 
         # print(f"files to inspect after filtering: {files_to_inspect}\n\n")
 
@@ -142,9 +146,9 @@ class Replication(BaseModel):
 
     def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
         self.ide_server.open_file(Path(code_element.file_path))
-        # linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+        linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
         # linked_elements_json = self.ide_server.call_tool('get_linked_elements_hybrid', line_num=code_element.line_num)
-        linked_elements_json = self.ide_server.call_tool('get_linked_files_hybrid', line_num=code_element.line_num)
+        # linked_elements_json = self.ide_server.call_tool('get_linked_files_hybrid', line_num=code_element.line_num)
         try:
             linked_elements_json = json.loads(
                 linked_elements_json

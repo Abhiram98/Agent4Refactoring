@@ -74,7 +74,8 @@ def main():
             compute_from_trajectory(id, oracle_refactorings, report, result)
             continue
 
-        if not IGNORE_SEED:
+        if IGNORE_SEED:
+            print(f"Ignoring seed: {id}")
             seed_example = bench_point.seed_example
             assert seed_example is not None
             oracle_refactorings = [i for i in bench_point.refactoring_changes if i!=seed_example]
