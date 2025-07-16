@@ -28,7 +28,7 @@ def setup_project(project: pm.EvalProject):
 def main():
     print("creating seed renames")
 
-    with open(refagent.data_folder.joinpath('ref_miner/rename/flink_seed_no_seed.json')) as f:
+    with open(refagent.data_folder.joinpath('ref_miner/rename/bytechef-clean.json')) as f:
         data = json.load(f)
     rename_data = benchmark_load.load_benchmark(data, bench_type=benchmark_load.RenameItem)
     ij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
@@ -134,7 +134,7 @@ def commit_and_write(project, r, rename_data, seed_hashes):
     new_hash = project.git_repo.index.commit(f"seed rename for {r.ref_id}")
     seed_hashes[r.ref_id] = str(new_hash)
     r.seed_hash = str(new_hash)
-    with open(refagent.data_folder.joinpath('ref_miner/rename/flink_seed_no_seed.json'), 'w') as f:
+    with open(refagent.data_folder.joinpath('ref_miner/rename/bytechef_seed.json'), 'w') as f:
         final_data = [i.to_json() for i in rename_data]
         json.dump(final_data, f, indent=4)
 
