@@ -114,7 +114,7 @@ def main():
     # Default paths
     csv_file_path = os.path.join(project_root, 'data', "ref_miner", "rename", "split-data3.csv")
     json_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "flink-clean.json")
-    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "flink-clean-split-manual3.json")
+    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "flink-clean-split-manual4.json")
 
     # Check if JSON file exists
     if not os.path.exists(json_file_path):

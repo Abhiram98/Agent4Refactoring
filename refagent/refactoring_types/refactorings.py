@@ -276,10 +276,11 @@ class RenameParameter(Rename):
         return self.old_type != self.new_type
 
     def __eq__(self, other):
-        return (super().__eq__(other) and
+        res = (super().__eq__(other) and
                 (self.start_line == other.start_line
                  and self.old_param_name == other.old_param_name)
                 )
+        return res
 
 
 class RenameClass(Rename):
@@ -333,6 +334,13 @@ class RenameAttribute(Rename):
                 != self.rightSideLocations[0].codeElement.split(" : ")[1])
 
     TYPE: ClassVar[str] = 'Rename Attribute'
+
+    def __eq__(self, other):
+        res = (super().__eq__(other) and
+                (self.start_line == other.start_line
+                 and self.old_name == other.old_name)
+                )
+        return res
 
 
 class ExtractMethod(RefminerOut):

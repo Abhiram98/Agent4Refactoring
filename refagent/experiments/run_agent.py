@@ -33,6 +33,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
         if use_seed:
             # In this case, we would like to start the agent from the seed changes.
             if bench_point.seed_hash is not None:
+                print(f"Using seed hash {bench_point.seed_hash} for {bench_point.ref_id}")
                 project.checkout(bench_point.seed_hash, force=True)
             else :
                 project.checkout(bench_point.v1_hash, force=True)
