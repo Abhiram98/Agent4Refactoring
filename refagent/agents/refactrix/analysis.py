@@ -83,19 +83,35 @@ class AnalysisComponent(BaseModel):
             fmt = parser.get_format_instructions()
             system_msg = (
                 f"{self.generation_system_message}\n\n"
-                f"Return ONLY the JSON—no markdown or commentary.\n"
+                f"You must return ONLY a JSON object with exactly these two fields:\n"
+                f"- original_intent: The original intent/reason for the rename\n"
+                f"- augmented_intent: A detailed explanation of when and why to perform similar renames\n"
+                f"Do not include any other fields, nested objects, or markdown formatting.\n"
+                f"Example format: {{\"original_intent\": \"...\", \"augmented_intent\": \"...\"}}\n"
                 f"{fmt}"
             )
             messages = state['messages']
-            messages[0] = system_msg # update the system message to have formatting instructions
+            # Update the system message to have formatting instructions
+            messages[0] = SystemMessage(content=system_msg)
             response = self.model.invoke(messages +
                  [HumanMessage(
                      "Now imagine that a second developer would need to perform similar changes in this file and in other locations. "
                      "Provide them the concept/idea of what needs to change. "
-                     "Please summarise in the required format."
+                     "Return a JSON object with exactly these two fields:\n"
+                     "- original_intent: The original intent/reason for the rename\n"
+                     "- augmented_intent: A detailed explanation of when and why to perform similar renames\n"
+                     "Do not include any other fields or nested objects. Return only the JSON."
                  )])
-            augmented_obj = parser.parse(response.content)
-            self._augmented_intent = augmented_obj
+            # Ensure content is a string for parsing
+            content = response.content if isinstance(response.content, str) else str(response.content)
+            print(f"DEBUG: LLM Response content: {content}")
+            try:
+                augmented_obj = parser.parse(content)
+                self._augmented_intent = augmented_obj
+            except Exception as e:
+                print(f"DEBUG: Parser error: {e}")
+                print(f"DEBUG: Response content was: {content}")
+                raise
 
         workflow = StateGraph(MessagesState)
         workflow.add_node("augment_intent", augment_intent_node)

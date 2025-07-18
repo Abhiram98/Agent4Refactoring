@@ -114,7 +114,7 @@ def main():
     # Default paths
     csv_file_path = os.path.join(project_root, 'data', "ref_miner", "rename", "camunda.csv")
     json_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "camunda_updated.json")
-    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "camunda-clean.json")
+    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "camunda-clean2.json")
 
     # Check if JSON file exists
     if not os.path.exists(json_file_path):

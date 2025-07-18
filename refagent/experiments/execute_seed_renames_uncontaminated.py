@@ -28,7 +28,7 @@ def setup_project(project: pm.EvalProject):
 def main():
     print("creating seed renames")
 
-    with open(refagent.data_folder.joinpath('ref_miner/rename/camunda-clean.json')) as f:
+    with open(refagent.data_folder.joinpath('ref_miner/rename/camunda-clean2.json')) as f:
         data = json.load(f)
     rename_data = benchmark_load.load_benchmark(data, bench_type=benchmark_load.RenameItem)
     ij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
@@ -106,19 +106,19 @@ def main():
         print(f"seed rename json: {seed_rename_json}")
 
         tool_call_status = ij_server.call_tool('rename', **seed_rename_json)
-        # if tool_call_status != 'success':
-        #     if r.refactoring_changes[0].type.lower() == 'class':
-        #         tool_call_status = ij_server.call_tool('rename', old_name=r.hints[0].split('->')[0].strip(''),
-        #                                                new_name=r.hints[0].split('->')[1].strip(''))
-        #     else:
-        #         for line in range(r.refactoring_changes[0].leftSideLocations[0].startLine, r.refactoring_changes[0].leftSideLocations[0].startLine + 20):
-        #             tool_call_status = ij_server.call_tool('rename', old_name=r.hints[0].split('->')[0].strip(''),
-        #                                                    new_name=r.hints[0].split('->')[1].strip(' '), line_num=line)
-        #             print(f'tool call status: {tool_call_status} for line {line}')
-        #             if tool_call_status == 'success':
-        #                 break
-                # tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
-                #                                        new_name=concept['newName'], line_num=concept['line'] +1)
+        if tool_call_status != 'success':
+            if r.refactoring_changes[0].type.lower() == 'class':
+                tool_call_status = ij_server.call_tool('rename', old_name=r.hints[0].split('->')[0].strip(' '),
+                                                       new_name=r.hints[0].split('->')[1].strip(' '))
+            else:
+                for line in range(r.refactoring_changes[0].leftSideLocations[0].startLine, r.refactoring_changes[0].leftSideLocations[0].startLine + 20):
+                    tool_call_status = ij_server.call_tool('rename', old_name=r.hints[0].split('->')[0].strip(' '),
+                                                           new_name=r.hints[0].split('->')[1].strip(' '), line_num=line)
+                    print(f'tool call status: {tool_call_status} for line {line}')
+                    if tool_call_status == 'success':
+                        break
+                # tool_call_status = ij_server.call_tool('rename', old_name=r.hints[0].split('->')[0].strip(''),
+                #                                        new_name=r.hints[0].split('->')[1].strip(''), line_num=concept['line'] +1)
         if tool_call_status != 'success':
             # tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
             #                                        new_name=concept['newName'])
@@ -134,7 +134,7 @@ def commit_and_write(project, r, rename_data, seed_hashes):
     new_hash = project.git_repo.index.commit(f"seed rename for {r.ref_id}")
     seed_hashes[r.ref_id] = str(new_hash)
     r.seed_hash = str(new_hash)
-    with open(refagent.data_folder.joinpath('ref_miner/rename/camunda_seed.json'), 'w') as f:
+    with open(refagent.data_folder.joinpath('ref_miner/rename/camunda-clean2.json'), 'w') as f:
         final_data = [i.to_json() for i in rename_data]
         json.dump(final_data, f, indent=4)
 

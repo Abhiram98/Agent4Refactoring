@@ -6,7 +6,8 @@ try:
 except ImportError:
     print("Error: Could not import ChatGrazie. Please ensure the 'grazie_langchain_utils' package is installed.")
 from pydantic.v1 import SecretStr
-from grazie.api.client.gateway import GrazieApiGatewayUrls, AuthType
+from grazie.api.client.endpoints import GrazieApiGatewayUrls
+from grazie.api.client.gateway import AuthType
 import os
 import json
 import refagent
@@ -18,13 +19,25 @@ import refagent.utils.project_manager as pm
 
 import refagent.agents.refactrix.analysis as analysis
 
+
 def run_planning(bench_point: bm_load.BenchmarkItem,
                  results_saver: rm.ResultsManager):
     project = pm.EvalProject(bench_point.project_name)
     project.checkout(bench_point.v1_hash, force=True)
 
-    model = ChatOpenAI(model="o4-mini",
-                       temperature=1)
+    # model = ChatOpenAI(model="o4-mini",
+    #                    temperature=1)
+
+    grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
+    if not grazie_token:
+        raise ValueError("GRAZIE_JWT_TOKEN environment variable is not set")
+
+    model = ChatGrazie(grazie_jwt_token=SecretStr(grazie_token),
+                       client_auth_type=AuthType.APPLICATION,
+                       client_url=GrazieApiGatewayUrls.PRODUCTION,
+                       profile='openai-gpt-4o-mini',
+                       client_agent_name='ref-agent',
+                       client_agent_version='0.1')
 
     # old_name = bench_point.improved_commit_message.split(" -> ")[0].split(" ")[-1]
     # new_name = bench_point.improved_commit_message.split(" -> ")[1].split(" ")[0]
@@ -65,7 +78,8 @@ if __name__ == '__main__':
     parser.add_argument('-run_identifier', type=str, help='An identifier to '
                                                           'checkpoint the performance of the agent',
                         default="default")
-    parser.add_argument('--benchmark_file', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
+    parser.add_argument('--benchmark_file', type=str, help='Path to benchmark file',
+                        default=str(refagent.benchmark_full_file))
     args = parser.parse_args()
 
     selected_ref_ids = [int(i) for i in args.ref_ids.split(',')] if args.ref_ids is not None else None
