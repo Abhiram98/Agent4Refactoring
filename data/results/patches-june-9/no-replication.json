@@ -889,5 +889,280 @@
             "trajectory": [],
             "performed_refactorings": {}
         }
+    },
+    {
+        "id": 13274,
+        "response": {
+            "changes": [],
+            "commit_hash": "eb0c0b770f11ebe744ba80f584625cac63affdef",
+            "trajectory": [],
+            "performed_refactorings": {}
+        }
+    },
+    {
+        "id": 13423,
+        "response": {
+            "changes": [
+                {
+                    "a_filename": "MekHQ/src/mekhq/campaign/Campaign.java",
+                    "b_filename": "MekHQ/src/mekhq/campaign/Campaign.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 2112,
+                            "old_lines": 8,
+                            "new_start": 2112,
+                            "new_lines": 8,
+                            "content": "@@ -2112,8 +2112,8 @@ public class Campaign implements ITechManager {\n      * @deprecated use {@link #recruitPerson(Person, PrisonerStatus, boolean)} instead\n      */\n     @Deprecated(since = \"0.50.06\", forRemoval = true)\n-    public boolean recruitPerson(Person p, PrisonerStatus prisonerStatus) {\n-        return recruitPerson(p, prisonerStatus, false, true);\n+    public boolean recruitPerson(Person person, PrisonerStatus prisonerStatus) {\n+        return recruitPerson(person, prisonerStatus, false, true);\n     }\n \n     /**"
+                        },
+                        {
+                            "old_start": 9740,
+                            "old_lines": 48,
+                            "new_start": 9740,
+                            "new_lines": 56,
+                            "content": "@@ -9740,48 +9740,56 @@ public class Campaign implements ITechManager {\n         return partReport;\n     }\n \n+    /**\n+     * No longer in use\n+     */\n+    @Deprecated(since = \"0.50.07\", forRemoval = true)\n     public void initTimeInService() {\n-        for (Person p : getPersonnel()) {\n-            if (!p.getPrimaryRole().isDependent() && p.getPrisonerStatus().isFree()) {\n+        for (Person person : getPersonnel()) {\n+            if (!person.getPrimaryRole().isDependent() && person.getPrisonerStatus().isFree()) {\n                 LocalDate join = null;\n-                for (LogEntry e : p.getPersonalLog()) {\n+                for (LogEntry logEntry : person.getPersonalLog()) {\n                     if (join == null) {\n                         // If by some nightmare there is no Joined date just use the first entry.\n-                        join = e.getDate();\n+                        join = logEntry.getDate();\n                     }\n-                    if (e.getDesc().startsWith(\"Joined \") || e.getDesc().startsWith(\"Freed \")) {\n-                        join = e.getDate();\n+                    if (logEntry.getDesc().startsWith(\"Joined \") || logEntry.getDesc().startsWith(\"Freed \")) {\n+                        join = logEntry.getDate();\n                         break;\n                     }\n                 }\n \n-                p.setRecruitment((join != null) ? join : getLocalDate().minusYears(1));\n+                person.setRecruitment((join != null) ? join : getLocalDate().minusYears(1));\n             }\n         }\n     }\n \n+    /**\n+     * No longer in use\n+     */\n+    @Deprecated(since = \"0.50.07\", forRemoval = true)\n     public void initTimeInRank() {\n-        for (Person p : getPersonnel()) {\n-            if (!p.getPrimaryRole().isDependent() && p.getPrisonerStatus().isFree()) {\n+        for (Person person : getPersonnel()) {\n+            if (!person.getPrimaryRole().isDependent() && person.getPrisonerStatus().isFree()) {\n                 LocalDate join = null;\n-                for (LogEntry e : p.getPersonalLog()) {\n+                for (LogEntry logEntry : person.getPersonalLog()) {\n                     if (join == null) {\n                         // If by some nightmare there is no date from the below, just use the first\n                         // entry.\n-                        join = e.getDate();\n+                        join = logEntry.getDate();\n                     }\n \n-                    if (e.getDesc().startsWith(\"Joined \") ||\n-                              e.getDesc().startsWith(\"Freed \") ||\n-                              e.getDesc().startsWith(\"Promoted \") ||\n-                              e.getDesc().startsWith(\"Demoted \")) {\n-                        join = e.getDate();\n+                    if (logEntry.getDesc().startsWith(\"Joined \") ||\n+                              logEntry.getDesc().startsWith(\"Freed \") ||\n+                              logEntry.getDesc().startsWith(\"Promoted \") ||\n+                              logEntry.getDesc().startsWith(\"Demoted \")) {\n+                        join = logEntry.getDate();\n                     }\n                 }\n \n                 // For that one in a billion chance the log is empty. Clone today's date and\n                 // subtract a year\n-                p.setLastRankChangeDate((join != null) ? join : getLocalDate().minusYears(1));\n+                person.setLastRankChangeDate((join != null) ? join : getLocalDate().minusYears(1));\n             }\n         }\n     }"
+                        }
+                    ],
+                    "patch": "@@ -2112,8 +2112,8 @@ public class Campaign implements ITechManager {\n      * @deprecated use {@link #recruitPerson(Person, PrisonerStatus, boolean)} instead\n      */\n     @Deprecated(since = \"0.50.06\", forRemoval = true)\n-    public boolean recruitPerson(Person p, PrisonerStatus prisonerStatus) {\n-        return recruitPerson(p, prisonerStatus, false, true);\n+    public boolean recruitPerson(Person person, PrisonerStatus prisonerStatus) {\n+        return recruitPerson(person, prisonerStatus, false, true);\n     }\n \n     /**\n@@ -9740,48 +9740,56 @@ public class Campaign implements ITechManager {\n         return partReport;\n     }\n \n+    /**\n+     * No longer in use\n+     */\n+    @Deprecated(since = \"0.50.07\", forRemoval = true)\n     public void initTimeInService() {\n-        for (Person p : getPersonnel()) {\n-            if (!p.getPrimaryRole().isDependent() && p.getPrisonerStatus().isFree()) {\n+        for (Person person : getPersonnel()) {\n+            if (!person.getPrimaryRole().isDependent() && person.getPrisonerStatus().isFree()) {\n                 LocalDate join = null;\n-                for (LogEntry e : p.getPersonalLog()) {\n+                for (LogEntry logEntry : person.getPersonalLog()) {\n                     if (join == null) {\n                         // If by some nightmare there is no Joined date just use the first entry.\n-                        join = e.getDate();\n+                        join = logEntry.getDate();\n                     }\n-                    if (e.getDesc().startsWith(\"Joined \") || e.getDesc().startsWith(\"Freed \")) {\n-                        join = e.getDate();\n+                    if (logEntry.getDesc().startsWith(\"Joined \") || logEntry.getDesc().startsWith(\"Freed \")) {\n+                        join = logEntry.getDate();\n                         break;\n                     }\n                 }\n \n-                p.setRecruitment((join != null) ? join : getLocalDate().minusYears(1));\n+                person.setRecruitment((join != null) ? join : getLocalDate().minusYears(1));\n             }\n         }\n     }\n \n+    /**\n+     * No longer in use\n+     */\n+    @Deprecated(since = \"0.50.07\", forRemoval = true)\n     public void initTimeInRank() {\n-        for (Person p : getPersonnel()) {\n-            if (!p.getPrimaryRole().isDependent() && p.getPrisonerStatus().isFree()) {\n+        for (Person person : getPersonnel()) {\n+            if (!person.getPrimaryRole().isDependent() && person.getPrisonerStatus().isFree()) {\n                 LocalDate join = null;\n-                for (LogEntry e : p.getPersonalLog()) {\n+                for (LogEntry logEntry : person.getPersonalLog()) {\n                     if (join == null) {\n                         // If by some nightmare there is no date from the below, just use the first\n                         // entry.\n-                        join = e.getDate();\n+                        join = logEntry.getDate();\n                     }\n \n-                    if (e.getDesc().startsWith(\"Joined \") ||\n-                              e.getDesc().startsWith(\"Freed \") ||\n-                              e.getDesc().startsWith(\"Promoted \") ||\n-                              e.getDesc().startsWith(\"Demoted \")) {\n-                        join = e.getDate();\n+                    if (logEntry.getDesc().startsWith(\"Joined \") ||\n+                              logEntry.getDesc().startsWith(\"Freed \") ||\n+                              logEntry.getDesc().startsWith(\"Promoted \") ||\n+                              logEntry.getDesc().startsWith(\"Demoted \")) {\n+                        join = logEntry.getDate();\n                     }\n                 }\n \n                 // For that one in a billion chance the log is empty. Clone today's date and\n                 // subtract a year\n-                p.setLastRankChangeDate((join != null) ? join : getLocalDate().minusYears(1));\n+                person.setLastRankChangeDate((join != null) ? join : getLocalDate().minusYears(1));\n             }\n         }\n     }\n"
+                },
+                {
+                    "a_filename": "MekHQ/src/mekhq/campaign/personnel/Person.java",
+                    "b_filename": "MekHQ/src/mekhq/campaign/personnel/Person.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 624,
+                            "old_lines": 12,
+                            "new_start": 624,
+                            "new_lines": 8,
+                            "content": "@@ -624,12 +624,8 @@ public class Person {\n                 break;\n             case FREE:\n                 if (!getPrimaryRole().isDependent()) {\n-                    if (campaign.getCampaignOptions().isUseTimeInService()) {\n-                        setRecruitment(campaign.getLocalDate());\n-                    }\n-                    if (campaign.getCampaignOptions().isUseTimeInRank()) {\n-                        setLastRankChangeDate(campaign.getLocalDate());\n-                    }\n+                    setRecruitment(campaign.getLocalDate());\n+                    setLastRankChangeDate(campaign.getLocalDate());\n                 }\n \n                 if (log) {"
+                        },
+                        {
+                            "old_start": 907,
+                            "old_lines": 28,
+                            "new_start": 903,
+                            "new_lines": 56,
+                            "content": "@@ -907,28 +903,56 @@ public class Person {\n     }\n \n     /**\n-     * Sets the primary role for this person within the specified {@link Campaign}.\n+     * Use {@link #setPrimaryRole(LocalDate, PersonnelRole)} instead\n+     */\n+    @Deprecated(since = \"0.50.07\", forRemoval = false) // we need to remove the uses before removal\n+    public void setPrimaryRole(final Campaign campaign, final PersonnelRole primaryRole) {\n+        // don't need to do any processing for no changes\n+        if (primaryRole == getPrimaryRole()) {\n+            return;\n+        }\n+\n+        // Now, we can perform the time in service and last rank change tracking change for dependents\n+        if (!primaryRole.isCivilian() && recruitment == null) {\n+            setRecruitment(campaign.getLocalDate());\n+            setLastRankChangeDate(campaign.getLocalDate());\n+        }\n+\n+        // Finally, we can set the primary role\n+        setPrimaryRoleDirect(primaryRole);\n+\n+        // and trigger the update event\n+        MekHQ.triggerEvent(new PersonChangedEvent(this));\n+    }\n+\n+    /**\n+     * Sets the primary role for this person as of the given date.\n      *\n-     * <p>If the new primary role is different from the current one, this method performs any necessary updates, such\n-     * as adjusting recruitment-related dates for non-civilian roles, updating the primary role, and triggering a\n-     * {@link PersonChangedEvent}.</p>\n+     * <p>If the new primary role differs from the current primary role, this method updates internal state as\n+     * follows:</p>\n+     * <ul>\n+     *     <li>If the new role is not civilian and this person does not already have a recruitment date, assigns\n+     *     the provided date as both recruitment and last-rank-change dates.</li>\n+     *     <li>Updates the person's primary role to the provided value.</li>\n+     *     <li>Triggers a {@link PersonChangedEvent} so that relevant systems are notified of the change.</li>\n+     * </ul>\n      *\n-     * <p><b>Usage:</b> if there is any uncertainty as to whether the character is eligible for the role they are\n-     * being assigned, make sure to call {@link #canPerformRole(LocalDate, PersonnelRole, boolean)} prior to this\n-     * method.</p>\n+     * <p><b>Usage tip:</b> If it\u2019s unclear whether this person is eligible for the new role, call\n+     * {@code canPerformRole(LocalDate, PersonnelRole, boolean)} before this method.</p>\n      *\n-     * @param campaign    the {@link Campaign} context, used for date retrieval and event tracking\n+     * @param today       the current in-game date, used for setting recruitment and rank-change dates if required\n      * @param primaryRole the new {@link PersonnelRole} to be set as primary for this person\n      */\n-    public void setPrimaryRole(final Campaign campaign, final PersonnelRole primaryRole) {\n+    public void setPrimaryRole(final LocalDate today, final PersonnelRole primaryRole) {\n         // don't need to do any processing for no changes\n         if (primaryRole == getPrimaryRole()) {\n             return;\n         }\n \n         // Now, we can perform the time in service and last rank change tracking change for dependents\n-        if (!primaryRole.isCivilian() && recruitment != null) {\n-            setRecruitment(campaign.getLocalDate());\n+        if (!primaryRole.isCivilian() && recruitment == null) {\n+            setRecruitment(today);\n+            setLastRankChangeDate(today);\n         }\n \n         // Finally, we can set the primary role"
+                        },
+                        {
+                            "old_start": 938,
+                            "old_lines": 6,
+                            "new_start": 962,
+                            "new_lines": 8,
+                            "content": "@@ -938,6 +962,8 @@ public class Person {\n         MekHQ.triggerEvent(new PersonChangedEvent(this));\n     }\n \n+\n+\n     public void setPrimaryRoleDirect(final PersonnelRole primaryRole) {\n         this.primaryRole = primaryRole;\n     }"
+                        },
+                        {
+                            "old_start": 1662,
+                            "old_lines": 6,
+                            "new_start": 1688,
+                            "new_lines": 7,
+                            "content": "@@ -1662,6 +1688,7 @@ public class Person {\n     }\n \n     public @Nullable LocalDate getRecruitment() {\n+\n         return recruitment;\n     }\n "
+                        },
+                        {
+                            "old_start": 3335,
+                            "old_lines": 7,
+                            "new_start": 3362,
+                            "new_lines": 12,
+                            "content": "@@ -3335,7 +3362,12 @@ public class Person {\n                 } else if (nodeName.equalsIgnoreCase(\"immortal\")) {\n                     person.setImmortal(Boolean.parseBoolean(wn2.getTextContent().trim()));\n                 } else if (nodeName.equalsIgnoreCase(\"employed\")) {\n-                    person.setEmployed(Boolean.parseBoolean(wn2.getTextContent().trim()));\n+                    // Fixes a <50.07 bug\n+                    if (!person.isCivilian()) { // Non-civilians are always employed\n+                        person.setEmployed(true);\n+                    } else {\n+                        person.setEmployed(Boolean.parseBoolean(wn2.getTextContent().trim()));\n+                    }\n                 } else if (nodeName.equalsIgnoreCase(\"marriageable\")) {\n                     person.setMarriageable(Boolean.parseBoolean(wn2.getTextContent().trim()));\n                 } else if (nodeName.equalsIgnoreCase(\"tryingToConceive\")) {"
+                        },
+                        {
+                            "old_start": 3671,
+                            "old_lines": 12,
+                            "new_start": 3703,
+                            "new_lines": 10,
+                            "content": "@@ -3671,12 +3703,10 @@ public class Person {\n         setRank(rankNumeric);\n         setRankLevel(rankLevel);\n \n-        if (campaign.getCampaignOptions().isUseTimeInRank()) {\n-            if (getPrisonerStatus().isFree() && !getPrimaryRole().isDependent()) {\n-                setLastRankChangeDate(campaign.getLocalDate());\n-            } else {\n-                setLastRankChangeDate(null);\n-            }\n+        if (getPrisonerStatus().isFree() && !getPrimaryRole().isDependent()) {\n+            setLastRankChangeDate(campaign.getLocalDate());\n+        } else {\n+            setLastRankChangeDate(null);\n         }\n \n         campaign.personUpdated(this);"
+                        },
+                        {
+                            "old_start": 5184,
+                            "old_lines": 7,
+                            "new_start": 5214,
+                            "new_lines": 7,
+                            "content": "@@ -5184,7 +5214,7 @@ public class Person {\n     }\n \n     public boolean isCivilian() {\n-        return (getPrimaryRole().isCivilian() || getSecondaryRole().isCivilian());\n+        return (getPrimaryRole().isCivilian() && getSecondaryRole().isCivilian());\n     }\n \n     public boolean isTaskOvertime(final IPartWork partWork) {"
+                        },
+                        {
+                            "old_start": 6116,
+                            "old_lines": 4,
+                            "new_start": 6146,
+                            "new_lines": 54,
+                            "content": "@@ -6116,4 +6146,54 @@ public class Person {\n             }\n         }\n     }\n+\n+    public void updateTimeData(LocalDate today) {\n+        boolean updateRecruitment = recruitment == null;\n+        boolean updateLastRankChange = lastRankChangeDate == null;\n+\n+        // Nothing to update\n+        if (!updateRecruitment && !updateLastRankChange) {\n+            return;\n+        }\n+\n+        if (employed) {\n+            LocalDate estimatedJoinDate = null;\n+            for (LogEntry logEntry : getPersonalLog()) {\n+                if (estimatedJoinDate == null) {\n+                    // If by some nightmare there is no Joined date just use the first entry.\n+                    estimatedJoinDate = logEntry.getDate();\n+                }\n+                if (logEntry.getDesc().startsWith(\"Joined \") ||\n+                          logEntry.getDesc().startsWith(\"Freed \") ||\n+                          logEntry.getDesc().startsWith(\"Promoted \") ||\n+                          logEntry.getDesc().startsWith(\"Demoted \")) {\n+                    estimatedJoinDate = logEntry.getDate();\n+                    break;\n+                }\n+            }\n+\n+            if (estimatedJoinDate != null) {\n+                if (updateRecruitment) {\n+                    recruitment = estimatedJoinDate;\n+                }\n+                if (updateLastRankChange) {\n+                    lastRankChangeDate = estimatedJoinDate;\n+                }\n+                return;\n+            }\n+\n+            if (joinedCampaign != null) {\n+                if (updateRecruitment) {\n+                    recruitment = estimatedJoinDate;\n+                }\n+                if (updateLastRankChange) {\n+                    lastRankChangeDate = estimatedJoinDate;\n+                }\n+                recruitment = joinedCampaign;\n+                return;\n+            }\n+\n+            recruitment = today;\n+        }\n+    }\n }"
+                        }
+                    ],
+                    "patch": "@@ -624,12 +624,8 @@ public class Person {\n                 break;\n             case FREE:\n                 if (!getPrimaryRole().isDependent()) {\n-                    if (campaign.getCampaignOptions().isUseTimeInService()) {\n-                        setRecruitment(campaign.getLocalDate());\n-                    }\n-                    if (campaign.getCampaignOptions().isUseTimeInRank()) {\n-                        setLastRankChangeDate(campaign.getLocalDate());\n-                    }\n+                    setRecruitment(campaign.getLocalDate());\n+                    setLastRankChangeDate(campaign.getLocalDate());\n                 }\n \n                 if (log) {\n@@ -907,28 +903,56 @@ public class Person {\n     }\n \n     /**\n-     * Sets the primary role for this person within the specified {@link Campaign}.\n+     * Use {@link #setPrimaryRole(LocalDate, PersonnelRole)} instead\n+     */\n+    @Deprecated(since = \"0.50.07\", forRemoval = false) // we need to remove the uses before removal\n+    public void setPrimaryRole(final Campaign campaign, final PersonnelRole primaryRole) {\n+        // don't need to do any processing for no changes\n+        if (primaryRole == getPrimaryRole()) {\n+            return;\n+        }\n+\n+        // Now, we can perform the time in service and last rank change tracking change for dependents\n+        if (!primaryRole.isCivilian() && recruitment == null) {\n+            setRecruitment(campaign.getLocalDate());\n+            setLastRankChangeDate(campaign.getLocalDate());\n+        }\n+\n+        // Finally, we can set the primary role\n+        setPrimaryRoleDirect(primaryRole);\n+\n+        // and trigger the update event\n+        MekHQ.triggerEvent(new PersonChangedEvent(this));\n+    }\n+\n+    /**\n+     * Sets the primary role for this person as of the given date.\n      *\n-     * <p>If the new primary role is different from the current one, this method performs any necessary updates, such\n-     * as adjusting recruitment-related dates for non-civilian roles, updating the primary role, and triggering a\n-     * {@link PersonChangedEvent}.</p>\n+     * <p>If the new primary role differs from the current primary role, this method updates internal state as\n+     * follows:</p>\n+     * <ul>\n+     *     <li>If the new role is not civilian and this person does not already have a recruitment date, assigns\n+     *     the provided date as both recruitment and last-rank-change dates.</li>\n+     *     <li>Updates the person's primary role to the provided value.</li>\n+     *     <li>Triggers a {@link PersonChangedEvent} so that relevant systems are notified of the change.</li>\n+     * </ul>\n      *\n-     * <p><b>Usage:</b> if there is any uncertainty as to whether the character is eligible for the role they are\n-     * being assigned, make sure to call {@link #canPerformRole(LocalDate, PersonnelRole, boolean)} prior to this\n-     * method.</p>\n+     * <p><b>Usage tip:</b> If it\u2019s unclear whether this person is eligible for the new role, call\n+     * {@code canPerformRole(LocalDate, PersonnelRole, boolean)} before this method.</p>\n      *\n-     * @param campaign    the {@link Campaign} context, used for date retrieval and event tracking\n+     * @param today       the current in-game date, used for setting recruitment and rank-change dates if required\n      * @param primaryRole the new {@link PersonnelRole} to be set as primary for this person\n      */\n-    public void setPrimaryRole(final Campaign campaign, final PersonnelRole primaryRole) {\n+    public void setPrimaryRole(final LocalDate today, final PersonnelRole primaryRole) {\n         // don't need to do any processing for no changes\n         if (primaryRole == getPrimaryRole()) {\n             return;\n         }\n \n         // Now, we can perform the time in service and last rank change tracking change for dependents\n-        if (!primaryRole.isCivilian() && recruitment != null) {\n-            setRecruitment(campaign.getLocalDate());\n+        if (!primaryRole.isCivilian() && recruitment == null) {\n+            setRecruitment(today);\n+            setLastRankChangeDate(today);\n         }\n \n         // Finally, we can set the primary role\n@@ -938,6 +962,8 @@ public class Person {\n         MekHQ.triggerEvent(new PersonChangedEvent(this));\n     }\n \n+\n+\n     public void setPrimaryRoleDirect(final PersonnelRole primaryRole) {\n         this.primaryRole = primaryRole;\n     }\n@@ -1662,6 +1688,7 @@ public class Person {\n     }\n \n     public @Nullable LocalDate getRecruitment() {\n+\n         return recruitment;\n     }\n \n@@ -3335,7 +3362,12 @@ public class Person {\n                 } else if (nodeName.equalsIgnoreCase(\"immortal\")) {\n                     person.setImmortal(Boolean.parseBoolean(wn2.getTextContent().trim()));\n                 } else if (nodeName.equalsIgnoreCase(\"employed\")) {\n-                    person.setEmployed(Boolean.parseBoolean(wn2.getTextContent().trim()));\n+                    // Fixes a <50.07 bug\n+                    if (!person.isCivilian()) { // Non-civilians are always employed\n+                        person.setEmployed(true);\n+                    } else {\n+                        person.setEmployed(Boolean.parseBoolean(wn2.getTextContent().trim()));\n+                    }\n                 } else if (nodeName.equalsIgnoreCase(\"marriageable\")) {\n                     person.setMarriageable(Boolean.parseBoolean(wn2.getTextContent().trim()));\n                 } else if (nodeName.equalsIgnoreCase(\"tryingToConceive\")) {\n@@ -3671,12 +3703,10 @@ public class Person {\n         setRank(rankNumeric);\n         setRankLevel(rankLevel);\n \n-        if (campaign.getCampaignOptions().isUseTimeInRank()) {\n-            if (getPrisonerStatus().isFree() && !getPrimaryRole().isDependent()) {\n-                setLastRankChangeDate(campaign.getLocalDate());\n-            } else {\n-                setLastRankChangeDate(null);\n-            }\n+        if (getPrisonerStatus().isFree() && !getPrimaryRole().isDependent()) {\n+            setLastRankChangeDate(campaign.getLocalDate());\n+        } else {\n+            setLastRankChangeDate(null);\n         }\n \n         campaign.personUpdated(this);\n@@ -5184,7 +5214,7 @@ public class Person {\n     }\n \n     public boolean isCivilian() {\n-        return (getPrimaryRole().isCivilian() || getSecondaryRole().isCivilian());\n+        return (getPrimaryRole().isCivilian() && getSecondaryRole().isCivilian());\n     }\n \n     public boolean isTaskOvertime(final IPartWork partWork) {\n@@ -6116,4 +6146,54 @@ public class Person {\n             }\n         }\n     }\n+\n+    public void updateTimeData(LocalDate today) {\n+        boolean updateRecruitment = recruitment == null;\n+        boolean updateLastRankChange = lastRankChangeDate == null;\n+\n+        // Nothing to update\n+        if (!updateRecruitment && !updateLastRankChange) {\n+            return;\n+        }\n+\n+        if (employed) {\n+            LocalDate estimatedJoinDate = null;\n+            for (LogEntry logEntry : getPersonalLog()) {\n+                if (estimatedJoinDate == null) {\n+                    // If by some nightmare there is no Joined date just use the first entry.\n+                    estimatedJoinDate = logEntry.getDate();\n+                }\n+                if (logEntry.getDesc().startsWith(\"Joined \") ||\n+                          logEntry.getDesc().startsWith(\"Freed \") ||\n+                          logEntry.getDesc().startsWith(\"Promoted \") ||\n+                          logEntry.getDesc().startsWith(\"Demoted \")) {\n+                    estimatedJoinDate = logEntry.getDate();\n+                    break;\n+                }\n+            }\n+\n+            if (estimatedJoinDate != null) {\n+                if (updateRecruitment) {\n+                    recruitment = estimatedJoinDate;\n+                }\n+                if (updateLastRankChange) {\n+                    lastRankChangeDate = estimatedJoinDate;\n+                }\n+                return;\n+            }\n+\n+            if (joinedCampaign != null) {\n+                if (updateRecruitment) {\n+                    recruitment = estimatedJoinDate;\n+                }\n+                if (updateLastRankChange) {\n+                    lastRankChangeDate = estimatedJoinDate;\n+                }\n+                recruitment = joinedCampaign;\n+                return;\n+            }\n+\n+            recruitment = today;\n+        }\n+    }\n }\n"
+                },
+                {
+                    "a_filename": "MekHQ/src/mekhq/campaign/rating/CamOpsReputation/SupportRating.java",
+                    "b_filename": "MekHQ/src/mekhq/campaign/rating/CamOpsReputation/SupportRating.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 117,
+                            "old_lines": 7,
+                            "new_start": 117,
+                            "new_lines": 7,
+                            "content": "@@ -117,7 +117,7 @@ public class SupportRating {\n \n             if (isAdult &&\n                       (person.isAdministrator() ||\n-                             (person.isCivilian() && !person.isDependent()) ||\n+                             (person.isCivilian() && person.isEmployed() && !person.isDependent()) ||\n                              person.isDoctor())) {\n                 administratorCount++;\n             }"
+                        }
+                    ],
+                    "patch": "@@ -117,7 +117,7 @@ public class SupportRating {\n \n             if (isAdult &&\n                       (person.isAdministrator() ||\n-                             (person.isCivilian() && !person.isDependent()) ||\n+                             (person.isCivilian() && person.isEmployed() && !person.isDependent()) ||\n                              person.isDoctor())) {\n                 administratorCount++;\n             }\n"
+                },
+                {
+                    "a_filename": "MekHQ/src/mekhq/gui/CampaignGUI.java",
+                    "b_filename": "MekHQ/src/mekhq/gui/CampaignGUI.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 1847,
+                            "old_lines": 8,
+                            "new_start": 1847,
+                            "new_lines": 6,
+                            "content": "@@ -1847,8 +1847,6 @@ public class CampaignGUI extends JPanel {\n         // We need to handle it like this for now, as the options above get written to\n         // currently\n         boolean atb = oldOptions.isUseAtB();\n-        boolean timeIn = oldOptions.isUseTimeInService();\n-        boolean rankIn = oldOptions.isUseTimeInRank();\n         boolean staticRATs = oldOptions.isUseStaticRATs();\n         boolean factionIntroDate = oldOptions.isFactionIntroDate();\n         final RandomDivorceMethod randomDivorceMethod = oldOptions.getRandomDivorceMethod();"
+                        },
+                        {
+                            "old_start": 1860,
+                            "old_lines": 26,
+                            "new_start": 1858,
+                            "new_lines": 6,
+                            "content": "@@ -1860,26 +1858,6 @@ public class CampaignGUI extends JPanel {\n \n         final CampaignOptions newOptions = getCampaign().getCampaignOptions();\n \n-        if (timeIn != newOptions.isUseTimeInService()) {\n-            if (newOptions.isUseTimeInService()) {\n-                getCampaign().initTimeInService();\n-            } else {\n-                for (Person person : getCampaign().getPersonnel()) {\n-                    person.setRecruitment(null);\n-                }\n-            }\n-        }\n-\n-        if (rankIn != newOptions.isUseTimeInRank()) {\n-            if (newOptions.isUseTimeInRank()) {\n-                getCampaign().initTimeInRank();\n-            } else {\n-                for (Person person : getCampaign().getPersonnel()) {\n-                    person.setLastRankChangeDate(null);\n-                }\n-            }\n-        }\n-\n         if (randomDivorceMethod != newOptions.getRandomDivorceMethod()) {\n             getCampaign().setDivorce(newOptions.getRandomDivorceMethod().getMethod(newOptions));\n         } else {"
+                        }
+                    ],
+                    "patch": "@@ -1847,8 +1847,6 @@ public class CampaignGUI extends JPanel {\n         // We need to handle it like this for now, as the options above get written to\n         // currently\n         boolean atb = oldOptions.isUseAtB();\n-        boolean timeIn = oldOptions.isUseTimeInService();\n-        boolean rankIn = oldOptions.isUseTimeInRank();\n         boolean staticRATs = oldOptions.isUseStaticRATs();\n         boolean factionIntroDate = oldOptions.isFactionIntroDate();\n         final RandomDivorceMethod randomDivorceMethod = oldOptions.getRandomDivorceMethod();\n@@ -1860,26 +1858,6 @@ public class CampaignGUI extends JPanel {\n \n         final CampaignOptions newOptions = getCampaign().getCampaignOptions();\n \n-        if (timeIn != newOptions.isUseTimeInService()) {\n-            if (newOptions.isUseTimeInService()) {\n-                getCampaign().initTimeInService();\n-            } else {\n-                for (Person person : getCampaign().getPersonnel()) {\n-                    person.setRecruitment(null);\n-                }\n-            }\n-        }\n-\n-        if (rankIn != newOptions.isUseTimeInRank()) {\n-            if (newOptions.isUseTimeInRank()) {\n-                getCampaign().initTimeInRank();\n-            } else {\n-                for (Person person : getCampaign().getPersonnel()) {\n-                    person.setLastRankChangeDate(null);\n-                }\n-            }\n-        }\n-\n         if (randomDivorceMethod != newOptions.getRandomDivorceMethod()) {\n             getCampaign().setDivorce(newOptions.getRandomDivorceMethod().getMethod(newOptions));\n         } else {\n"
+                }
+            ],
+            "commit_hash": "925dd6acfcab6187649d73817e0a4a67816de41d",
+            "trajectory": [
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "[PlanningStep(reason='Expand the rename Person p -> person and LogEntry e-> logEntry where applicable', final_code='', execution_details='', refactoring_type=<SupportedRefactorings.RENAME: 'rename'>, file_path='MekHQ/src/mekhq/campaign/Campaign.java')]",
+                        "type": "ai",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                }
+            ],
+            "performed_refactorings": {
+                "MekHQ/src/mekhq/campaign/Campaign.java": [
+                    {
+                        "tool_call": {
+                            "name": "rename",
+                            "args": {
+                                "old_name": "p",
+                                "new_name": "person",
+                                "code_element_type": "parameter",
+                                "line_num": 115
+                            },
+                            "id": "call_6zEW7ow9T1VKAFPZZLVyXMWp",
+                            "type": "tool_call"
+                        },
+                        "response": "tool call failed - 400: The rename has already been performed. Variable person exists in this file. Variable p does not exist."
+                    },
+                    {
+                        "tool_call": {
+                            "name": "rename",
+                            "args": {
+                                "old_name": "p",
+                                "new_name": "person",
+                                "code_element_type": "parameter",
+                                "line_num": 1465
+                            },
+                            "id": "call_CUt31AMyDx5W2hQyCQihwNHD",
+                            "type": "tool_call"
+                        },
+                        "response": "tool call failed - 400: The rename has already been performed. Variable person exists in this file. Variable p does not exist."
+                    },
+                    {
+                        "tool_call": {
+                            "name": "rename",
+                            "args": {
+                                "old_name": "p",
+                                "new_name": "person",
+                                "code_element_type": "parameter",
+                                "line_num": 2115
+                            },
+                            "id": "call_JoPPyKIQK7Cs8TotVjtBjmBL",
+                            "type": "tool_call"
+                        },
+                        "response": "success"
+                    },
+                    {
+                        "tool_call": {
+                            "name": "rename",
+                            "args": {
+                                "old_name": "e",
+                                "new_name": "logEntry",
+                                "code_element_type": "variable",
+                                "line_num": 6715
+                            },
+                            "id": "call_ojw98NOvwyOmiu2fL4NT9z6U",
+                            "type": "tool_call"
+                        },
+                        "response": "tool call failed - 400: The rename has already been performed. Variable logEntry exists in this file. Variable e does not exist."
+                    },
+                    {
+                        "tool_call": {
+                            "name": "rename",
+                            "args": {
+                                "old_name": "e",
+                                "new_name": "logEntry",
+                                "code_element_type": "variable",
+                                "line_num": 2369
+                            },
+                            "id": "call_7QmUw2eK3pJOg7A0BUkcJmpM",
+                            "type": "tool_call"
+                        },
+                        "response": "tool call failed - 400: The rename has already been performed. Variable logEntry exists in this file. Variable e does not exist."
+                    },
+                    {
+                        "tool_call": {
+                            "name": "rename",
+                            "args": {
+                                "old_name": "e",
+                                "new_name": "logEntry",
+                                "code_element_type": "parameter",
+                                "line_num": 1224
+                            },
+                            "id": "call_gpgOm3REcFJDlawKHRChr4Ei",
+                            "type": "tool_call"
+                        },
+                        "response": "tool call failed - 400: The rename has already been performed. Variable logEntry exists in this file. Variable e does not exist."
+                    },
+                    {
+                        "tool_call": {
+                            "name": "rename",
+                            "args": {
+                                "old_name": "e",
+                                "new_name": "logEntry",
+                                "code_element_type": "parameter",
+                                "line_num": 2118
+                            },
+                            "id": "call_eseK1TbwZDOr06XHF5l8xvid",
+                            "type": "tool_call"
+                        },
+                        "response": "tool call failed - 400: The rename has already been performed. Variable logEntry exists in this file. Variable e does not exist."
+                    }
+                ]
+            },
+            "internal_commits": [
+                "38e42e64c6cc40f114a4b00d038394fd55855491"
+            ]
+        }
     }
 ]

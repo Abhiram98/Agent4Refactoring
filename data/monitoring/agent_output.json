@@ -1,0 +1,40 @@
+[
+    {
+        "ref_id": 11693,
+        "augmented_intent": "Refactor all terse, ambiguous abbreviations like `loc` into full, descriptive names (e.g. `location`) across this file and similar modules. This includes method parameters, local variables, and fields that represent geographic or position objects. Follow Java naming conventions by avoiding one- or two-letter names except for conventional loop counters, preserve public API compatibility, and update all references and tests to maintain consistency.",
+        "recommendations": [
+            [
+                "OsmAnd/src/net/osmand/plus/views/mapwidgets/widgets/AlarmWidget.java",
+                "The following abbreviations/terse names stand out and could be made more descriptive:\n\n\u2022 Field \u201cwh\u201d for the WaypointHelper  \n\u2022 Field/parameter \u201clocImgId\u201d (and local \u201clocImg\u201d)  \n\u2022 Local flags \u201ccams\u201d and \u201cpeds\u201d in createWidgetInfo  \n\u2022 Possibly \u201crouteObject\u201d (could be routeSegment)  \n\nThese should be renamed to full, self-documenting names (e.g. waypointHelper, alarmIconResId, cameraWarningsEnabled, pedestrianWarningsEnabled, routeSegment).  \n\nYES"
+            ]
+        ]
+    },
+    {
+        "ref_id": 11459,
+        "augmented_intent": "Standardise generic `helper` variables to descriptive names reflecting their specific role: rename `helper` to `historyHelper` for the SearchHistoryHelper instance, and apply the same pattern elsewhere by renaming other generic helpers (e.g. `helper` \u2192 `mapMarkersHelper`, `targetPointsHelper`) so variable names are self-documenting and unambiguous.",
+        "recommendations": [
+            [
+                "OsmAnd/src/net/osmand/plus/settings/fragments/MarkersHistorySettingsFragment.java",
+                "In this file the only \u201chelper\u201d\u2010named variable that stands out is the local\n\n  ItineraryDataHelper dataHelper = app.getMapMarkersHelper().getDataHelper();\n\nTo follow the pattern of using a descriptive name rather than the generic `dataHelper`, you could rename it to\n\n  ItineraryDataHelper itineraryDataHelper = app.getMapMarkersHelper().getDataHelper();\n\nNo other generic `helper` variables remain here, so those are the only changes.  \nYES"
+            ],
+            [
+                "OsmAnd/src/net/osmand/plus/helpers/SearchHistoryHelper.java",
+                "Here are the spots in SearchHistoryHelper.java that use too-generic names and could be made more self-documenting:\n\n1. Local variables named \u201chelper\u201d  \n   \u2022 In removeAll(), updateEntriesList(), addNewItemToHistory(), addItemToHistoryWithReplacement():  \n     `HistoryItemDBHelper helper = checkLoadedEntries();`  \n   \u2192 Rename to something like `dbHelper` or `historyItemDbHelper`\n\n2. The private nested class name \u201cHistoryItemDBHelper\u201d  \n   \u2192 Consider renaming to `SearchHistoryDbHelper` or `HistoryDatabaseHelper` for clarity\n\n3. The Map field \u201cmp\u201d  \n   \u2022 `private final Map<PointDescription, HistoryEntry> mp = new ConcurrentHashMap<>();`  \n   \u2192 Rename to `historyEntryMap` or `entryLookup`\n\n4. The List field \u201cloadedEntries\u201d  \n   \u2022 `private List<HistoryEntry> loadedEntries;`  \n   \u2192 Rename to `cachedEntries` or `loadedHistoryEntries`\n\n5. The method name \u201ccheckLoadedEntries\u201d  \n   \u2022 It initializes the DB helper and loadedEntries cache but returns the helper  \n   \u2192 Rename to `getOrInitDbHelper()` or `ensureEntriesLoaded()`\n\n6. Temporary Map in getEntries() called \u201cst\u201d  \n   \u2022 `Map<PointDescription, HistoryEntry> st = new HashMap<>();`  \n   \u2192 Rename to `uniqueEntries` or `reinsertMap`\n\nAll of these renames would make the code more descriptive and reduce ambiguity.  \n\nYES"
+            ]
+        ]
+    },
+    {
+        "ref_id": 11478,
+        "augmented_intent": "Define a clear naming guideline: whenever you encounter a generic variable named locale or lang in a context that actually manages more than one language/locale value, rename it to a purpose-specific identifier (e.g. mapLang, appLang, sourceLang, targetLang, contentLocale, currencyLocale) so its role is unambiguous. Scan for all occurrences of locale/lang in modules handling multiple language settings, update each to a name reflecting its precise use, and leave unchanged those cases where only a single java.util.Locale is used or where the API signature expects a variable called locale.",
+        "recommendations": [
+            [
+                "OsmAnd-java/src/main/java/net/osmand/search/core/SearchSettings.java",
+                "In this file we already distinguish between two different \u201clanguages\u201d \u2013 appLang and mapLang \u2013 but we still expose a generic getLang()/setLang(\u2026) pair that in fact only reads/writes the mapLang value. To make its purpose unambiguous you should:\n\n  * Rename getLang() \u2192 getMapLang()\n  * Rename setLang(String lang, \u2026) \u2192 setMapLang(String mapLang, \u2026)\n  * (Optionally) Rename the JSON field \u201clang\u201d to \u201cmapLang\u201d (and mirror that in toJSON()/parseJSON()), unless you need to preserve the existing external API.\n\nAll other uses of \u201clang\u201d or java.util.Locale here are either single\u2010Locale formatting (Locale.US) or already purpose\u2010specific (appLang, regionLang), so they can stay as is.  \n\nAnswer: YES"
+            ],
+            [
+                "OsmAnd-java/src/main/java/net/osmand/search/core/SearchCoreFactory.java",
+                "The short answer is: YES.  \n\nSearchCoreFactory.java still contains lots of generic \u201clang\u201d and \u201clocale\u2026\u201d identifiers in places where more than one language/locale is in play (for example:  \n \u2022 the `String lang = phrase.getSettings().getLang()` local variable in SearchLocationAndUrlAPI.matchTopIndex  \n \u2022 the repeated calls to `phrase.getSettings().getLang()` when fetching a name from a MapObject  \n \u2022 fields like `localeName` on SearchResult, which is really a \u201clocalized display name\u201d rather than a generic \u201clocale\u201d object  \n\nAccording to our guideline, any time you\u2019re juggling multiple languages or locales (map-language vs. app-language vs. original search-language, etc.) you should give your variables purpose-specific names (e.g. `mapLang`, `appLang`, `searchLang`, `displayLocaleName`, etc.). All of the generic `lang` and `locale\u2026` identifiers listed above could be renamed to something more precise.  \n\nYES"
+            ]
+        ]
+    }
+]
