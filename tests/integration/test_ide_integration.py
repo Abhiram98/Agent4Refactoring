@@ -504,3 +504,11 @@ def test_code_inspection():
     inspection_results = server.call_tool('run_code_inspection')
     print(inspection_results)
     print(json.loads(inspection_results))
+
+
+def test_get_open_file():
+    server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    response = server.call_tool_get("get_open_file")
+    assert response is not None
+    print(response)
+
