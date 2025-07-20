@@ -1,3 +1,4 @@
+import os
 from typing import Type
 
 import refagent.agents.refactrix.refactoring_agent as ra
@@ -92,5 +93,41 @@ class ReactAgent(ra.Agent):
                 print(f"Execution of replication for file {plan.steps[0].file_path} failed.")
                 break
             self.update_changed_files()
+
+if __name__ == '__main__':
+    import argparse
+    import refagent.utils.intellij_server as ij
+    import refagent.agents.refactrix.planning as planning
+
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--project", help="Project name", required=True)
+    parser.add_argument("-ij", "--ide-server", help="IdeServer address", default=os.getenv('IJ_SERVER_URL'))
+    parser.add_argument("-s", "--starting-file", help="Starting file", required=True)
+    parser.add_argument("-i", "--intent", help="Intent/prompt from the developer", required=True)
+
+    args = parser.parse_args()
+    vendor = 'grazie'
+    ide_server = ij.IntellijServer(server_url=args.ide_server)
+
+    agent = ReactAgent(
+        ide_server=args.ide_server,
+        model_name=f'{vendor}:gpt-4o-mini',
+        reasoning_model_name = f'{vendor}:o4-mini',
+        project = args.project,
+        plan_component = planning.PlanningComponent,
+        augmented_intent = args.intent,
+        do_replication = True
+    )
+    # start session with the ide
+    ide_server.call_tool("start_refactoring_session")
+
+    try:
+        agent.run(
+            initial_intent=args.intent,
+            starting_file=args.starting_file,
+        )
+    finally:
+        ide_server.call_tool("end_refactoring_session")
 
 

@@ -64,8 +64,8 @@ class Replication(BaseModel):
             # the developer did not ask for it.
             return []
 
-        files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect)
-                            # if i!=self.starting_file
+        files_to_inspect = [self.starting_file] + [i for i in set(i[0].file_path for i in elements_to_inspect)
+                            if i!=self.starting_file
                             ]
 
 
