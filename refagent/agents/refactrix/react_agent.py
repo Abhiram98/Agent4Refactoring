@@ -98,29 +98,32 @@ if __name__ == '__main__':
     import argparse
     import refagent.utils.intellij_server as ij
     import refagent.agents.refactrix.planning as planning
+    import refagent.utils.project_manager as pm
 
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--project", help="Project name", required=True)
     parser.add_argument("-ij", "--ide-server", help="IdeServer address", default=os.getenv('IJ_SERVER_URL'))
-    parser.add_argument("-s", "--starting-file", help="Starting file", required=True)
+    parser.add_argument("-s", "--starting-file", help="relative path to the Starting file in the project", required=True)
     parser.add_argument("-i", "--intent", help="Intent/prompt from the developer", required=True)
 
     args = parser.parse_args()
     vendor = 'grazie'
     ide_server = ij.IntellijServer(server_url=args.ide_server)
+    project = pm.EvalProject(args.project)
 
     agent = ReactAgent(
-        ide_server=args.ide_server,
+        ide_server=ide_server,
         model_name=f'{vendor}:gpt-4o-mini',
         reasoning_model_name = f'{vendor}:o4-mini',
-        project = args.project,
+        project = project,
         plan_component = planning.PlanningComponent,
         augmented_intent = args.intent,
         do_replication = True
     )
     # start session with the ide
-    ide_server.call_tool("start_refactoring_session")
+    response = ide_server.call_tool("start_refactoring_session")
+    assert response == 'success'
 
     try:
         agent.run(
