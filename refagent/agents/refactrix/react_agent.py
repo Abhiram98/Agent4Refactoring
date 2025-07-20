@@ -104,13 +104,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--project", help="Project name", required=True)
     parser.add_argument("-ij", "--ide-server", help="IdeServer address", default=os.getenv('IJ_SERVER_URL'))
-    parser.add_argument("-s", "--starting-file", help="relative path to the Starting file in the project", required=True)
+    parser.add_argument("-s", "--starting-file", help="relative path to the Starting file in the project. "
+                                                      "If not provided, will ask the IDE server")
     parser.add_argument("-i", "--intent", help="Intent/prompt from the developer", required=True)
 
     args = parser.parse_args()
     vendor = 'grazie'
     ide_server = ij.IntellijServer(server_url=args.ide_server)
     project = pm.EvalProject(args.project)
+    starting_file = args.starting_file
+    if starting_file is None:
+        starting_file = ide_server.call_tool_get("get_open_file")
 
     agent = ReactAgent(
         ide_server=ide_server,
@@ -128,7 +132,7 @@ if __name__ == '__main__':
     try:
         agent.run(
             initial_intent=args.intent,
-            starting_file=args.starting_file,
+            starting_file=starting_file,
         )
     finally:
         ide_server.call_tool("end_refactoring_session")
