@@ -118,8 +118,8 @@ if __name__ == '__main__':
 
     agent = ReactAgent(
         ide_server=ide_server,
-        model_name=f'{vendor}:gpt-4o-mini',
-        reasoning_model_name = f'{vendor}:o4-mini',
+        model_name=f'{vendor}:openai-gpt-4o-mini',
+        reasoning_model_name = f'{vendor}openai-o4-mini',
         project = project,
         plan_component = planning.PlanningComponent,
         augmented_intent = args.intent,
