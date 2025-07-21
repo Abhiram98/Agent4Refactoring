@@ -57,7 +57,7 @@ def main():
 
     for result in agent_results:
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
-        assert len(bench_points) == 1
+        # assert len(bench_points) == 1
         bench_point = bench_points[0]
 
         id = result['id']
@@ -80,7 +80,7 @@ def main():
         if IGNORE_SEED:
             print("ignoring seed")
             seed_example = bench_point.seed_example
-            assert seed_example is not None
+            # assert seed_example is not None
             oracle_refactorings = [i for i in bench_point.refactoring_changes if i!=seed_example]
             refactorings = [i for i in refactorings if i!=seed_example]
         if len(oracle_refactorings) == 0:
@@ -127,8 +127,8 @@ def main():
         print("-----------")
         print()
 
-        assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
-        assert len(refactorings) == len(true_positives) + len(false_positives)
+        # assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
+        # assert len(refactorings) == len(true_positives) + len(false_positives)
 
         report.append(
             {

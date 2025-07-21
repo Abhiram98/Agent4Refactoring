@@ -2747,40 +2747,12 @@
         ],
         "agent_refactoring_count": 2,
         "recall": 1.0,
-        "precision": 2.0,
+        "precision": 1.0,
         "false_negatives": [],
         "false_positives": [],
         "true_positives": [
             {
                 "type": "Rename Attribute",
-                "description": "Rename Attribute isStreamingMode : boolean to streamingMode : boolean in class org.apache.flink.table.planner.catalog.JavaCatalogTableTest",
-                "leftSideLocations": [
-                    {
-                        "filePath": "flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/catalog/JavaCatalogTableTest.java",
-                        "startLine": 61,
-                        "endLine": 61,
-                        "startColumn": 32,
-                        "endColumn": 47,
-                        "codeElementType": "FIELD_DECLARATION",
-                        "description": "original attribute declaration",
-                        "codeElement": "isStreamingMode : boolean"
-                    }
-                ],
-                "rightSideLocations": [
-                    {
-                        "filePath": "flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/catalog/JavaCatalogTableTest.java",
-                        "startLine": 61,
-                        "endLine": 61,
-                        "startColumn": 32,
-                        "endColumn": 45,
-                        "codeElementType": "FIELD_DECLARATION",
-                        "description": "renamed attribute declaration",
-                        "codeElement": "streamingMode : boolean"
-                    }
-                ]
-            },
-            {
-                "type": "Rename Attribute",
                 "description": "Rename Attribute isStreamingMode : boolean to streamingMode : boolean in class org.apache.flink.table.planner.catalog.JavaCatalogTableTest.CustomCatalogTable",
                 "leftSideLocations": [
                     {
@@ -2829,34 +2801,6 @@
                         "endLine": 61,
                         "startColumn": 32,
                         "endColumn": 45,
-                        "codeElementType": "FIELD_DECLARATION",
-                        "description": "renamed attribute declaration",
-                        "codeElement": "streamingMode : boolean"
-                    }
-                ]
-            },
-            {
-                "type": "Rename Attribute",
-                "description": "Rename Attribute isStreamingMode : boolean to streamingMode : boolean in class org.apache.flink.table.planner.catalog.JavaCatalogTableTest.CustomCatalogTable",
-                "leftSideLocations": [
-                    {
-                        "filePath": "flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/catalog/JavaCatalogTableTest.java",
-                        "startLine": 154,
-                        "endLine": 154,
-                        "startColumn": 31,
-                        "endColumn": 46,
-                        "codeElementType": "FIELD_DECLARATION",
-                        "description": "original attribute declaration",
-                        "codeElement": "isStreamingMode : boolean"
-                    }
-                ],
-                "rightSideLocations": [
-                    {
-                        "filePath": "flink-table/flink-table-planner/src/test/java/org/apache/flink/table/planner/catalog/JavaCatalogTableTest.java",
-                        "startLine": 154,
-                        "endLine": 154,
-                        "startColumn": 31,
-                        "endColumn": 44,
                         "codeElementType": "FIELD_DECLARATION",
                         "description": "renamed attribute declaration",
                         "codeElement": "streamingMode : boolean"
@@ -27509,10 +27453,9 @@
         ],
         "agent_refactoring_count": 2,
         "recall": 1.0,
-        "precision": 1.0,
+        "precision": 0.5,
         "false_negatives": [],
-        "false_positives": [],
-        "true_positives": [
+        "false_positives": [
             {
                 "type": "Rename Attribute",
                 "description": "Rename Attribute plan : Plan to streamGraph : Plan in class org.apache.flink.client.program.ClientTest",
@@ -27540,7 +27483,9 @@
                         "codeElement": "streamGraph : Plan"
                     }
                 ]
-            },
+            }
+        ],
+        "true_positives": [
             {
                 "type": "Rename Attribute",
                 "description": "Rename Attribute plan : Plan to streamGraph : Plan in class org.apache.flink.client.program.ClientTest.TestExecutorServiceLoader",
@@ -33127,7 +33072,7 @@
         ],
         "agent_refactoring_count": 4,
         "recall": 1.0,
-        "precision": 0.75,
+        "precision": 0.5,
         "false_negatives": [],
         "false_positives": [
             {
@@ -33197,9 +33142,7 @@
                         "codeElement": null
                     }
                 ]
-            }
-        ],
-        "true_positives": [
+            },
             {
                 "type": "Rename Attribute",
                 "description": "Rename Attribute resourceStabilizationTimeout : Duration to stateTransitionManagerFactory : Duration in class org.apache.flink.runtime.scheduler.adaptive.WaitingForResources",
@@ -33227,7 +33170,9 @@
                         "codeElement": "stateTransitionManagerFactory : Duration"
                     }
                 ]
-            },
+            }
+        ],
+        "true_positives": [
             {
                 "type": "Rename Attribute",
                 "description": "Rename Attribute resourceStabilizationTimeout : Duration to stateTransitionManagerFactory : Duration in class org.apache.flink.runtime.scheduler.adaptive.WaitingForResources.Factory",
@@ -37167,9 +37112,37 @@
             }
         ],
         "agent_refactoring_count": 1,
-        "recall": 0.5,
-        "precision": 1.0,
+        "recall": 0.0,
+        "precision": 0.0,
         "false_negatives": [
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute scalingIntervalMin : Duration to cooldownTimeout : Duration in class org.apache.flink.runtime.scheduler.adaptive.DefaultStateTransitionManager.Factory",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/DefaultRescaleManager.java",
+                        "startLine": 196,
+                        "endLine": 196,
+                        "startColumn": 32,
+                        "endColumn": 50,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/DefaultStateTransitionManager.java",
+                        "startLine": 182,
+                        "endLine": 182,
+                        "startColumn": 32,
+                        "endColumn": 47,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "cooldownTimeout : Duration"
+                    }
+                ]
+            },
             {
                 "type": "Rename Parameter",
                 "description": "Rename Parameter scalingIntervalMin : Duration to cooldownTimeout : Duration in method package DefaultStateTransitionManager(initializationTime Temporal, transitionContext StateTransitionManager.Context, cooldownTimeout Duration, resourceStabilizationTimeout Duration, maxTriggerDelay Duration) from class org.apache.flink.runtime.scheduler.adaptive.DefaultStateTransitionManager",
@@ -37219,8 +37192,7 @@
                 ]
             }
         ],
-        "false_positives": [],
-        "true_positives": [
+        "false_positives": [
             {
                 "type": "Rename Attribute",
                 "description": "Rename Attribute scalingIntervalMin : Duration to cooldownTimeout : Duration in class org.apache.flink.runtime.scheduler.adaptive.DefaultRescaleManager",
@@ -37250,6 +37222,7 @@
                 ]
             }
         ],
+        "true_positives": [],
         "agent_recommendations_str": "['scalingIntervalMin']"
     },
     {
@@ -55923,38 +55896,10 @@
         ],
         "agent_refactoring_count": 4,
         "recall": 1.0,
-        "precision": 1.5,
+        "precision": 1.0,
         "false_negatives": [],
         "false_positives": [],
         "true_positives": [
-            {
-                "type": "Rename Attribute",
-                "description": "Rename Attribute tmpPath : Path to stagingPath : Path in class org.apache.flink.connector.file.table.FileSystemOutputFormat",
-                "leftSideLocations": [
-                    {
-                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
-                        "startLine": 59,
-                        "endLine": 59,
-                        "startColumn": 24,
-                        "endColumn": 31,
-                        "codeElementType": "FIELD_DECLARATION",
-                        "description": "original attribute declaration",
-                        "codeElement": "tmpPath : Path"
-                    }
-                ],
-                "rightSideLocations": [
-                    {
-                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
-                        "startLine": 59,
-                        "endLine": 59,
-                        "startColumn": 24,
-                        "endColumn": 35,
-                        "codeElementType": "FIELD_DECLARATION",
-                        "description": "renamed attribute declaration",
-                        "codeElement": "stagingPath : Path"
-                    }
-                ]
-            },
             {
                 "type": "Rename Attribute",
                 "description": "Rename Attribute tmpPath : Path to stagingPath : Path in class org.apache.flink.connector.file.table.FileSystemOutputFormat.Builder",
@@ -56053,34 +55998,6 @@
                         "endLine": 59,
                         "startColumn": 24,
                         "endColumn": 35,
-                        "codeElementType": "FIELD_DECLARATION",
-                        "description": "renamed attribute declaration",
-                        "codeElement": "stagingPath : Path"
-                    }
-                ]
-            },
-            {
-                "type": "Rename Attribute",
-                "description": "Rename Attribute tmpPath : Path to stagingPath : Path in class org.apache.flink.connector.file.table.FileSystemOutputFormat.Builder",
-                "leftSideLocations": [
-                    {
-                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
-                        "startLine": 206,
-                        "endLine": 206,
-                        "startColumn": 22,
-                        "endColumn": 29,
-                        "codeElementType": "FIELD_DECLARATION",
-                        "description": "original attribute declaration",
-                        "codeElement": "tmpPath : Path"
-                    }
-                ],
-                "rightSideLocations": [
-                    {
-                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
-                        "startLine": 206,
-                        "endLine": 206,
-                        "startColumn": 22,
-                        "endColumn": 33,
                         "codeElementType": "FIELD_DECLARATION",
                         "description": "renamed attribute declaration",
                         "codeElement": "stagingPath : Path"
