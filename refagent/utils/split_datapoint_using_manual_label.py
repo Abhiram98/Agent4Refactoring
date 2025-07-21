@@ -112,9 +112,9 @@ def main():
     project_root = os.path.dirname(os.path.dirname(project_root))  # Go up two levels to reach project root
 
     # Default paths
-    csv_file_path = os.path.join(project_root, 'data', "ref_miner", "rename", "camunda.csv")
-    json_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "camunda_updated.json")
-    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "camunda-clean2.json")
+    csv_file_path = os.path.join(project_root, 'data', "ref_miner", "rename", "bytechef.csv")
+    json_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "bytechef.json")
+    save_file_path = os.path.join(project_root, "data", "ref_miner", "rename", "bytechef-clean2.json")
 
     # Check if JSON file exists
     if not os.path.exists(json_file_path):

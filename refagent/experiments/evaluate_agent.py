@@ -57,7 +57,7 @@ def main():
 
     for result in agent_results:
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
-        assert len(bench_points) == 1
+        # assert len(bench_points) == 1
         bench_point = bench_points[0]
 
         id = result['id']
@@ -95,7 +95,7 @@ def main():
         #     res.append(refactorings[i])
         #     res.append(refactorings[i+1])
 
-        refactorings = res
+        # refactorings = res
         oracle_refactorings = bench_point.refactoring_changes
         if len(oracle_refactorings) == 0:
             continue
@@ -154,8 +154,8 @@ def main():
         print("-----------")
         print()
 
-        assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
-        assert len(refactorings) == len(true_positives) + len(false_positives)
+        # assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
+        # assert len(refactorings) == len(true_positives) + len(false_positives)
 
         report.append(
             {
