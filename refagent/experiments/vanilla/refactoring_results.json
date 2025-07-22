@@ -1,0 +1,541 @@
+[
+    {
+        "id": 2052,
+        "v1_hash": "ffd05220ffe829337ac12a49f1bbc822fa11f8fe",
+        "starting_file": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable scalingIntervalMin : Duration to executingCooldownTimeout : Duration in method public of(configuration Configuration, checkpointingConfiguration JobCheckpointingSettings) : Settings from class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 233,
+                        "endLine": 234,
+                        "startColumn": 28,
+                        "endColumn": 88,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 233,
+                        "endLine": 234,
+                        "startColumn": 13,
+                        "endColumn": 89,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 280,
+                        "endLine": 294,
+                        "startColumn": 13,
+                        "endColumn": 54,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 234,
+                        "endLine": 236,
+                        "startColumn": 28,
+                        "endColumn": 92,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "executingCooldownTimeout : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 234,
+                        "endLine": 236,
+                        "startColumn": 13,
+                        "endColumn": 93,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 283,
+                        "endLine": 301,
+                        "startColumn": 13,
+                        "endColumn": 54,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter scalingIntervalMin : Duration to executingCooldownTimeout : Duration in method private Settings(executionMode SchedulerExecutionMode, submissionResourceWaitTimeout Duration, submissionResourceStabilizationTimeout Duration, slotIdleTimeout Duration, executingCooldownTimeout Duration, executingResourceStabilizationTimeout Duration, maximumDelayForTriggeringRescale Duration, rescaleOnFailedCheckpointCount int) from class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 311,
+                        "endLine": 311,
+                        "startColumn": 17,
+                        "endColumn": 44,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 319,
+                        "endLine": 319,
+                        "startColumn": 13,
+                        "endColumn": 58,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 318,
+                        "endLine": 318,
+                        "startColumn": 17,
+                        "endColumn": 50,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "executingCooldownTimeout : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 326,
+                        "endLine": 326,
+                        "startColumn": 13,
+                        "endColumn": 70,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute scalingIntervalMin : Duration to executingCooldownTimeout : Duration in class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 301,
+                        "endLine": 301,
+                        "startColumn": 32,
+                        "endColumn": 50,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 308,
+                        "endLine": 308,
+                        "startColumn": 32,
+                        "endColumn": 56,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "executingCooldownTimeout : Duration"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable scalingIntervalMin : Duration to executingCooldownTimeout : Duration in method package testScalingIntervalConfigurationIsRespected() : void from class org.apache.flink.runtime.scheduler.adaptive.AdaptiveSchedulerTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2202,
+                        "endLine": 2202,
+                        "startColumn": 24,
+                        "endColumn": 68,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2202,
+                        "endLine": 2202,
+                        "startColumn": 9,
+                        "endColumn": 69,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2205,
+                        "endLine": 2205,
+                        "startColumn": 9,
+                        "endColumn": 97,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2211,
+                        "endLine": 2211,
+                        "startColumn": 9,
+                        "endColumn": 84,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2220,
+                        "endLine": 2220,
+                        "startColumn": 24,
+                        "endColumn": 74,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "executingCooldownTimeout : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2220,
+                        "endLine": 2220,
+                        "startColumn": 9,
+                        "endColumn": 75,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2223,
+                        "endLine": 2225,
+                        "startColumn": 9,
+                        "endColumn": 43,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2231,
+                        "endLine": 2231,
+                        "startColumn": 9,
+                        "endColumn": 96,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable scalingIntervalMin : Duration to executingCooldownTimeout : Duration in method package testGoToExecutingConfiguresStateTransitionManagerFactory() : void from class org.apache.flink.runtime.scheduler.adaptive.AdaptiveSchedulerTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2332,
+                        "endLine": 2332,
+                        "startColumn": 24,
+                        "endColumn": 66,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2332,
+                        "endLine": 2332,
+                        "startColumn": 9,
+                        "endColumn": 67,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2336,
+                        "endLine": 2336,
+                        "startColumn": 9,
+                        "endColumn": 97,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2359,
+                        "endLine": 2359,
+                        "startColumn": 9,
+                        "endColumn": 75,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2353,
+                        "endLine": 2353,
+                        "startColumn": 24,
+                        "endColumn": 72,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "executingCooldownTimeout : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2353,
+                        "endLine": 2353,
+                        "startColumn": 9,
+                        "endColumn": 73,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2357,
+                        "endLine": 2359,
+                        "startColumn": 9,
+                        "endColumn": 43,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/test/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveSchedulerTest.java",
+                        "startLine": 2383,
+                        "endLine": 2383,
+                        "startColumn": 9,
+                        "endColumn": 81,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public getScalingIntervalMin() : Duration renamed to public getExecutingCooldownTimeout() : Duration in class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 341,
+                        "endLine": 343,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public getScalingIntervalMin() : Duration"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 348,
+                        "endLine": 350,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public getExecutingCooldownTimeout() : Duration"
+                    }
+                ]
+            }
+        ],
+        "new_commit_hash": "8eae10886b030cb9fba7429ce26ba618bb2efc60",
+        "detected_refactorings": [],
+        "recall": 0.0,
+        "precision": 0.0
+    },
+    {
+        "id": 2236,
+        "v1_hash": "a6a5ee64d57a881392eadc504b4e8d989c5fc6b6",
+        "starting_file": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+        "refactoring_changes": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private getDataSet(env ExecutionEnvironment, numberOfElements int, keyRange int) : DataSet<Tuple2<IntValue,IntValue>> renamed to private getDataStream(env StreamExecutionEnvironment, numberOfElements int, keyRange int) : DataStream<Tuple2<IntValue,IntValue>> in class org.apache.flink.test.manual.OverwriteObjects",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 368,
+                        "endLine": 374,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private getDataSet(env ExecutionEnvironment, numberOfElements int, keyRange int) : DataSet<Tuple2<IntValue,IntValue>>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 251,
+                        "endLine": 257,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private getDataStream(env StreamExecutionEnvironment, numberOfElements int, keyRange int) : DataStream<Tuple2<IntValue,IntValue>>"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private getDataSet(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>> renamed to private getDataStream(env StreamExecutionEnvironment) : DataStream<Tuple2<IntValue,IntValue>> in class org.apache.flink.test.manual.OverwriteObjects",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 376,
+                        "endLine": 378,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private getDataSet(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 259,
+                        "endLine": 261,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private getDataStream(env StreamExecutionEnvironment) : DataStream<Tuple2<IntValue,IntValue>>"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private getFilteredDataSet(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>> renamed to private getFilteredDataStream(env StreamExecutionEnvironment) : DataStream<Tuple2<IntValue,IntValue>> in class org.apache.flink.test.manual.OverwriteObjects",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 380,
+                        "endLine": 390,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private getFilteredDataSet(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 263,
+                        "endLine": 274,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private getFilteredDataStream(env StreamExecutionEnvironment) : DataStream<Tuple2<IntValue,IntValue>>"
+                    }
+                ]
+            }
+        ],
+        "new_commit_hash": "e3071a159f168315b5923625b77e6d864ba7f029",
+        "detected_refactorings": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private getDataSet(env ExecutionEnvironment, numberOfElements int, keyRange int) : DataSet<Tuple2<IntValue,IntValue>> renamed to private getDataStream(env ExecutionEnvironment, numberOfElements int, keyRange int) : DataSet<Tuple2<IntValue,IntValue>> in class org.apache.flink.test.manual.OverwriteObjects",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 368,
+                        "endLine": 374,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private getDataSet(env ExecutionEnvironment, numberOfElements int, keyRange int) : DataSet<Tuple2<IntValue,IntValue>>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 368,
+                        "endLine": 374,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private getDataStream(env ExecutionEnvironment, numberOfElements int, keyRange int) : DataSet<Tuple2<IntValue,IntValue>>"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private getDataSet(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>> renamed to private getDataStream(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>> in class org.apache.flink.test.manual.OverwriteObjects",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 376,
+                        "endLine": 378,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private getDataSet(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 376,
+                        "endLine": 378,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private getDataStream(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>>"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private getFilteredDataSet(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>> renamed to private getFilteredDataStream(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>> in class org.apache.flink.test.manual.OverwriteObjects",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 380,
+                        "endLine": 390,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private getFilteredDataSet(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/manual/OverwriteObjects.java",
+                        "startLine": 380,
+                        "endLine": 390,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private getFilteredDataStream(env ExecutionEnvironment) : DataSet<Tuple2<IntValue,IntValue>>"
+                    }
+                ]
+            }
+        ],
+        "recall": 1.0,
+        "precision": 1.0
+    }
+]
