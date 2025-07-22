@@ -52399,6 +52399,63 @@
       {
         "a_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/runtime/metadata/OperatorStateSpecV2.java",
         "b_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/runtime/metadata/OperatorStateSpecV2.java",
+        " 7,
+            "new_start": 182,
+            "new_lines": 7,
+            "content": "@@ -173,7 +182,7 @@ public class StateBootstrapTransformation<T> {\n \n         SingleOutputStreamOperator<TaggedOperatorSubtaskState> subtaskStates =\n                 input.transform(\n-                                operatorID.toHexString(),\n+                                operatorIdentifier.getOperatorId().toHexString(),\n                                 TypeInformation.of(TaggedOperatorSubtaskState.class),\n                                 operatorRunner)\n                         .setMaxParallelism(localMaxParallelism);"
+          },
+          {
+            "old_start": 191,
+            "old_lines": 7,
+            "new_start": 200,
+            "new_lines": 7,
+            "content": "@@ -191,7 +200,7 @@ public class StateBootstrapTransformation<T> {\n \n     @VisibleForTesting\n     StreamConfig getConfig(\n-            OperatorID operatorID,\n+            OperatorIdentifier operatorIdentifier,\n             StateBackend stateBackend,\n             Configuration additionalConfig,\n             StreamOperator<TaggedOperatorSubtaskState> operator) {"
+          },
+          {
+            "old_start": 217,
+            "old_lines": 8,
+            "new_start": 226,
+            "new_lines": 8,
+            "content": "@@ -217,8 +226,8 @@ public class StateBootstrapTransformation<T> {\n         }\n \n         config.setStreamOperator(operator);\n-        config.setOperatorName(operatorID.toHexString());\n-        config.setOperatorID(operatorID);\n+        config.setOperatorName(operatorIdentifier.getOperatorId().toHexString());\n+        config.setOperatorID(operatorIdentifier.getOperatorId());\n         config.setStateBackend(stateBackend);\n         config.setManagedMemoryFractionOperatorOfUseCase(ManagedMemoryUseCase.STATE_BACKEND, 1.0);\n         config.serializeAllConfigs();"
+          }
+        ],
+        "patch": "@@ -29,7 +29,6 @@ import org.apache.flink.core.execution.CheckpointingMode;\n import org.apache.flink.core.fs.Path;\n import org.apache.flink.core.memory.ManagedMemoryUseCase;\n import org.apache.flink.runtime.checkpoint.OperatorState;\n-import org.apache.flink.runtime.jobgraph.OperatorID;\n import org.apache.flink.runtime.state.StateBackend;\n import org.apache.flink.state.api.output.BootstrapStreamTaskRunner;\n import org.apache.flink.state.api.output.OperatorSubtaskStateReducer;\n@@ -115,7 +114,7 @@ public class StateBootstrapTransformation<T> {\n     }\n \n     /**\n-     * @param operatorID The operator id for the stream operator.\n+     * @param operatorIdentifier The operator identifier for the stream operator.\n      * @param stateBackend The state backend for the job.\n      * @param config Additional configurations applied to the bootstrap stream tasks.\n      * @param globalMaxParallelism Global max parallelism set for the savepoint.\n@@ -123,7 +122,7 @@ public class StateBootstrapTransformation<T> {\n      * @return The operator subtask states for this bootstrap transformation.\n      */\n     DataStream<OperatorState> writeOperatorState(\n-            OperatorID operatorID,\n+            OperatorIdentifier operatorIdentifier,\n             StateBackend stateBackend,\n             Configuration config,\n             int globalMaxParallelism,\n@@ -131,27 +130,36 @@ public class StateBootstrapTransformation<T> {\n         int localMaxParallelism = getMaxParallelism(globalMaxParallelism);\n \n         return writeOperatorSubtaskStates(\n-                        operatorID, stateBackend, config, savepointPath, localMaxParallelism)\n+                        operatorIdentifier,\n+                        stateBackend,\n+                        config,\n+                        savepointPath,\n+                        localMaxParallelism)\n                 .transform(\n                         \"reduce(OperatorSubtaskState)\",\n                         TypeInformation.of(OperatorState.class),\n                         new GroupReduceOperator<>(\n-                                new OperatorSubtaskStateReducer(operatorID, localMaxParallelism)))\n+                                new OperatorSubtaskStateReducer(\n+                                        operatorIdentifier, localMaxParallelism)))\n                 .forceNonParallel();\n     }\n \n     @VisibleForTesting\n     SingleOutputStreamOperator<TaggedOperatorSubtaskState> writeOperatorSubtaskStates(\n-            OperatorID operatorID,\n+            OperatorIdentifier operatorIdentifier,\n             StateBackend stateBackend,\n             Path savepointPath,\n             int localMaxParallelism) {\n         return writeOperatorSubtaskStates(\n-                operatorID, stateBackend, new Configuration(), savepointPath, localMaxParallelism);\n+                operatorIdentifier,\n+                stateBackend,\n+                new Configuration(),\n+                savepointPath,\n+                localMaxParallelism);\n     }\n \n     private SingleOutputStreamOperator<TaggedOperatorSubtaskState> writeOperatorSubtaskStates(\n-            OperatorID operatorID,\n+            OperatorIdentifier operatorIdentifier,\n             StateBackend stateBackend,\n             Configuration additionalConfig,\n             Path savepointPath,\n@@ -161,7 +169,8 @@ public class StateBootstrapTransformation<T> {\n \n         operator = stream.getExecutionEnvironment().clean(operator);\n \n-        final StreamConfig config = getConfig(operatorID, stateBackend, additionalConfig, operator);\n+        final StreamConfig config =\n+                getConfig(operatorIdentifier, stateBackend, additionalConfig, operator);\n \n         BootstrapStreamTaskRunner<T> operatorRunner =\n                 new BootstrapStreamTaskRunner<>(config, localMaxParallelism);\n@@ -173,7 +182,7 @@ public class StateBootstrapTransformation<T> {\n \n         SingleOutputStreamOperator<TaggedOperatorSubtaskState> subtaskStates =\n                 input.transform(\n-                                operatorID.toHexString(),\n+                                operatorIdentifier.getOperatorId().toHexString(),\n                                 TypeInformation.of(TaggedOperatorSubtaskState.class),\n                                 operatorRunner)\n                         .setMaxParallelism(localMaxParallelism);\n@@ -191,7 +200,7 @@ public class StateBootstrapTransformation<T> {\n \n     @VisibleForTesting\n     StreamConfig getConfig(\n-            OperatorID operatorID,\n+            OperatorIdentifier operatorIdentifier,\n             StateBackend stateBackend,\n             Configuration additionalConfig,\n             StreamOperator<TaggedOperatorSubtaskState> operator) {\n@@ -217,8 +226,8 @@ public class StateBootstrapTransformation<T> {\n         }\n \n         config.setStreamOperator(operator);\n-        config.setOperatorName(operatorID.toHexString());\n-        config.setOperatorID(operatorID);\n+        config.setOperatorName(operatorIdentifier.getOperatorId().toHexString());\n+        config.setOperatorID(operatorIdentifier.getOperatorId());\n         config.setStateBackend(stateBackend);\n         config.setManagedMemoryFractionOperatorOfUseCase(ManagedMemoryUseCase.STATE_BACKEND, 1.0);\n         config.serializeAllConfigs();\n"
+      },
+      {
+        "a_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/output/OperatorSubtaskStateReducer.java",
+        "b_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/output/OperatorSubtaskStateReducer.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 23,
+            "old_lines": 7,
+            "new_start": 23,
+            "new_lines": 7,
+            "content": "@@ -23,7 +23,7 @@ import org.apache.flink.api.common.functions.OpenContext;\n import org.apache.flink.api.common.functions.RichGroupReduceFunction;\n import org.apache.flink.runtime.checkpoint.OperatorState;\n import org.apache.flink.runtime.checkpoint.OperatorSubtaskState;\n-import org.apache.flink.runtime.jobgraph.OperatorID;\n+import org.apache.flink.state.api.OperatorIdentifier;\n import org.apache.flink.util.Collector;\n import org.apache.flink.util.Preconditions;\n "
+          },
+          {
+            "old_start": 41,
+            "old_lines": 15,
+            "new_start": 41,
+            "new_lines": 15,
+            "content": "@@ -41,15 +41,15 @@ public class OperatorSubtaskStateReducer\n \n     private static final long serialVersionUID = 1L;\n \n-    private final OperatorID operatorID;\n+    private final OperatorIdentifier operatorIdentifier;\n \n     private final int maxParallelism;\n \n-    public OperatorSubtaskStateReducer(OperatorID operatorID, int maxParallelism) {\n-        Preconditions.checkNotNull(operatorID, \"Operator id must not be null.\");\n+    public OperatorSubtaskStateReducer(OperatorIdentifier operatorIdentifier, int maxParallelism) {\n+        Preconditions.checkNotNull(operatorIdentifier, \"Operator identifier must not be null.\");\n         Preconditions.checkState(maxParallelism > 1);\n \n-        this.operatorID = operatorID;\n+        this.operatorIdentifier = operatorIdentifier;\n         this.maxParallelism = maxParallelism;\n     }\n "
+          },
+          {
+            "old_start": 64,
+            "old_lines": 7,
+            "new_start": 64,
+            "new_lines": 12,
+            "content": "@@ -64,7 +64,12 @@ public class OperatorSubtaskStateReducer\n                 StreamSupport.stream(values.spliterator(), false).collect(Collectors.toList());\n \n         OperatorState operatorState =\n-                new OperatorState(operatorID, subtasks.size(), maxParallelism);\n+                new OperatorState(\n+                        \"ReducedOperatorState\",\n+                        operatorIdentifier.getUid().orElse(null),\n+                        operatorIdentifier.getOperatorId(),\n+                        subtasks.size(),\n+                        maxParallelism);\n \n         for (TaggedOperatorSubtaskState value : subtasks) {\n             operatorState.putState(value.index, value.state);"
+          }
+        ],
+        "patch": "@@ -23,7 +23,7 @@ import org.apache.flink.api.common.functions.OpenContext;\n import org.apache.flink.api.common.functions.RichGroupReduceFunction;\n import org.apache.flink.runtime.checkpoint.OperatorState;\n import org.apache.flink.runtime.checkpoint.OperatorSubtaskState;\n-import org.apache.flink.runtime.jobgraph.OperatorID;\n+import org.apache.flink.state.api.OperatorIdentifier;\n import org.apache.flink.util.Collector;\n import org.apache.flink.util.Preconditions;\n \n@@ -41,15 +41,15 @@ public class OperatorSubtaskStateReducer\n \n     private static final long serialVersionUID = 1L;\n \n-    private final OperatorID operatorID;\n+    private final OperatorIdentifier operatorIdentifier;\n \n     private final int maxParallelism;\n \n-    public OperatorSubtaskStateReducer(OperatorID operatorID, int maxParallelism) {\n-        Preconditions.checkNotNull(operatorID, \"Operator id must not be null.\");\n+    public OperatorSubtaskStateReducer(OperatorIdentifier operatorIdentifier, int maxParallelism) {\n+        Preconditions.checkNotNull(operatorIdentifier, \"Operator identifier must not be null.\");\n         Preconditions.checkState(maxParallelism > 1);\n \n-        this.operatorID = operatorID;\n+        this.operatorIdentifier = operatorIdentifier;\n         this.maxParallelism = maxParallelism;\n     }\n \n@@ -64,7 +64,12 @@ public class OperatorSubtaskStateReducer\n                 StreamSupport.stream(values.spliterator(), false).collect(Collectors.toList());\n \n         OperatorState operatorState =\n-                new OperatorState(operatorID, subtasks.size(), maxParallelism);\n+                new OperatorState(\n+                        \"ReducedOperatorState\",\n+                        operatorIdentifier.getUid().orElse(null),\n+                        operatorIdentifier.getOperatorId(),\n+                        subtasks.size(),\n+                        maxParallelism);\n \n         for (TaggedOperatorSubtaskState value : subtasks) {\n             operatorState.putState(value.index, value.state);\n"
+      },
+      {
+        "a_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/runtime/StateBootstrapTransformationWithID.java",
+        "b_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/runtime/StateBootstrapTransformationWithID.java",
         "renamed": false,
         "copied": false,
         "deleted": false,
@@ -52406,116 +52463,25 @@
         "hunks": [
           {
             "old_start": 20,
-            "old_lines": 7,
+            "old_lines": 6,
             "new_start": 20,
             "new_lines": 7,
-            "content": "@@ -20,7 +20,7 @@ package org.apache.flink.state.api.runtime.metadata;\n \n import org.apache.flink.annotation.Internal;\n import org.apache.flink.runtime.checkpoint.OperatorState;\n-import org.apache.flink.runtime.jobgraph.OperatorID;\n+import org.apache.flink.state.api.OperatorIdentifier;\n import org.apache.flink.state.api.runtime.StateBootstrapTransformationWithID;\n import org.apache.flink.util.Preconditions;\n "
+            "content": "@@ -20,6 +20,7 @@ package org.apache.flink.state.api.runtime;\n \n import org.apache.flink.annotation.Internal;\n import org.apache.flink.runtime.jobgraph.OperatorID;\n+import org.apache.flink.state.api.OperatorIdentifier;\n import org.apache.flink.state.api.StateBootstrapTransformation;\n import org.apache.flink.util.Preconditions;\n "
           },
           {
-            "old_start": 34,
-            "old_lines": 7,
-            "new_start": 34,
-            "new_lines": 7,
-            "content": "@@ -34,7 +34,7 @@ import javax.annotation.Nullable;\n @Internal\n class OperatorStateSpecV2 {\n \n-    private final OperatorID id;\n+    private final OperatorIdentifier identifier;\n \n     @Nullable private final OperatorState existingState;\n "
-          },
-          {
-            "old_start": 50,
-            "old_lines": 13,
-            "new_start": 50,
+            "old_start": 31,
+            "old_lines": 17,
+            "new_start": 32,
             "new_lines": 18,
-            "content": "@@ -50,13 +50,18 @@ class OperatorStateSpecV2 {\n     }\n \n     private OperatorStateSpecV2(OperatorState existingState) {\n-        this.id = existingState.getOperatorID();\n+        if (existingState.getOperatorUid().isPresent()) {\n+            this.identifier = OperatorIdentifier.forUid(existingState.getOperatorUid().get());\n+        } else {\n+            this.identifier =\n+                    OperatorIdentifier.forUidHash(existingState.getOperatorID().toHexString());\n+        }\n         this.existingState = existingState;\n         this.newOperatorStateTransformation = null;\n     }\n \n     private OperatorStateSpecV2(StateBootstrapTransformationWithID<?> transformation) {\n-        this.id = transformation.getOperatorID();\n+        this.identifier = transformation.getOperatorIdentifier();\n         this.newOperatorStateTransformation = transformation;\n         this.existingState = null;\n     }"
-          },
-          {
-            "old_start": 71,
-            "old_lines": 7,
-            "new_start": 76,
-            "new_lines": 7,
-            "content": "@@ -71,7 +76,7 @@ class OperatorStateSpecV2 {\n \n     OperatorState asExistingState() {\n         Preconditions.checkState(\n-                isExistingState(), \"OperatorState %s is not an existing state.\", id);\n+                isExistingState(), \"OperatorState %s is not an existing state.\", identifier);\n         return existingState;\n     }\n "
-          },
-          {
-            "old_start": 80,
-            "old_lines": 7,
-            "new_start": 85,
-            "new_lines": 7,
-            "content": "@@ -80,7 +85,7 @@ class OperatorStateSpecV2 {\n         Preconditions.checkState(\n                 isNewStateTransformation(),\n                 \"OperatorState %s is not a new state defined with BootstrapTransformation\",\n-                id);\n+                identifier);\n         return (StateBootstrapTransformationWithID<T>) newOperatorStateTransformation;\n     }\n }"
+            "content": "@@ -31,17 +32,18 @@ import org.apache.flink.util.Preconditions;\n @Internal\n public class StateBootstrapTransformationWithID<T> {\n \n-    private final OperatorID operatorID;\n+    private final OperatorIdentifier operatorIdentifier;\n     private final StateBootstrapTransformation<T> bootstrapTransformation;\n \n     public StateBootstrapTransformationWithID(\n-            OperatorID operatorID, StateBootstrapTransformation<T> bootstrapTransformation) {\n-        this.operatorID = Preconditions.checkNotNull(operatorID);\n+            OperatorIdentifier operatorIdentifier,\n+            StateBootstrapTransformation<T> bootstrapTransformation) {\n+        this.operatorIdentifier = Preconditions.checkNotNull(operatorIdentifier);\n         this.bootstrapTransformation = Preconditions.checkNotNull(bootstrapTransformation);\n     }\n \n-    public OperatorID getOperatorID() {\n-        return operatorID;\n+    public OperatorIdentifier getOperatorIdentifier() {\n+        return operatorIdentifier;\n     }\n \n     public StateBootstrapTransformation<T> getBootstrapTransformation() {"
           }
         ],
-        "patch": "@@ -20,7 +20,7 @@ package org.apache.flink.state.api.runtime.metadata;\n \n import org.apache.flink.annotation.Internal;\n import org.apache.flink.runtime.checkpoint.OperatorState;\n-import org.apache.flink.runtime.jobgraph.OperatorID;\n+import org.apache.flink.state.api.OperatorIdentifier;\n import org.apache.flink.state.api.runtime.StateBootstrapTransformationWithID;\n import org.apache.flink.util.Preconditions;\n \n@@ -34,7 +34,7 @@ import javax.annotation.Nullable;\n @Internal\n class OperatorStateSpecV2 {\n \n-    private final OperatorID id;\n+    private final OperatorIdentifier identifier;\n \n     @Nullable private final OperatorState existingState;\n \n@@ -50,13 +50,18 @@ class OperatorStateSpecV2 {\n     }\n \n     private OperatorStateSpecV2(OperatorState existingState) {\n-        this.id = existingState.getOperatorID();\n+        if (existingState.getOperatorUid().isPresent()) {\n+            this.identifier = OperatorIdentifier.forUid(existingState.getOperatorUid().get());\n+        } else {\n+            this.identifier =\n+                    OperatorIdentifier.forUidHash(existingState.getOperatorID().toHexString());\n+        }\n         this.existingState = existingState;\n         this.newOperatorStateTransformation = null;\n     }\n \n     private OperatorStateSpecV2(StateBootstrapTransformationWithID<?> transformation) {\n-        this.id = transformation.getOperatorID();\n+        this.identifier = transformation.getOperatorIdentifier();\n         this.newOperatorStateTransformation = transformation;\n         this.existingState = null;\n     }\n@@ -71,7 +76,7 @@ class OperatorStateSpecV2 {\n \n     OperatorState asExistingState() {\n         Preconditions.checkState(\n-                isExistingState(), \"OperatorState %s is not an existing state.\", id);\n+                isExistingState(), \"OperatorState %s is not an existing state.\", identifier);\n         return existingState;\n     }\n \n@@ -80,7 +85,7 @@ class OperatorStateSpecV2 {\n         Preconditions.checkState(\n                 isNewStateTransformation(),\n                 \"OperatorState %s is not a new state defined with BootstrapTransformation\",\n-                id);\n+                identifier);\n         return (StateBootstrapTransformationWithID<T>) newOperatorStateTransformation;\n     }\n }\n"
+        "patch": "@@ -20,6 +20,7 @@ package org.apache.flink.state.api.runtime;\n \n import org.apache.flink.annotation.Internal;\n import org.apache.flink.runtime.jobgraph.OperatorID;\n+import org.apache.flink.state.api.OperatorIdentifier;\n import org.apache.flink.state.api.StateBootstrapTransformation;\n import org.apache.flink.util.Preconditions;\n \n@@ -31,17 +32,18 @@ import org.apache.flink.util.Preconditions;\n @Internal\n public class StateBootstrapTransformationWithID<T> {\n \n-    private final OperatorID operatorID;\n+    private final OperatorIdentifier operatorIdentifier;\n     private final StateBootstrapTransformation<T> bootstrapTransformation;\n \n     public StateBootstrapTransformationWithID(\n-            OperatorID operatorID, StateBootstrapTransformation<T> bootstrapTransformation) {\n-        this.operatorID = Preconditions.checkNotNull(operatorID);\n+            OperatorIdentifier operatorIdentifier,\n+            StateBootstrapTransformation<T> bootstrapTransformation) {\n+        this.operatorIdentifier = Preconditions.checkNotNull(operatorIdentifier);\n         this.bootstrapTransformation = Preconditions.checkNotNull(bootstrapTransformation);\n     }\n \n-    public OperatorID getOperatorID() {\n-        return operatorID;\n+    public OperatorIdentifier getOperatorIdentifier() {\n+        return operatorIdentifier;\n     }\n \n     public StateBootstrapTransformation<T> getBootstrapTransformation() {\n"
       },
       {
-        "a_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/runtime/metadata/SavepointMetadataV2.java",
-        "b_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/runtime/metadata/SavepointMetadataV2.java",
-        "renamed": false,
-        "copied": false,
-        "deleted": false,
-        "change_type": null,
-        "hunks": [
-          {
-            "old_start": 119,
-            "old_lines": 7,
-            "new_start": 119,
-            "new_lines": 7,
-            "content": "@@ -119,7 +119,7 @@ public class SavepointMetadataV2 {\n         operatorStateIndex.put(\n                 id,\n                 OperatorStateSpecV2.newWithTransformation(\n-                        new StateBootstrapTransformationWithID<>(id, transformation)));\n+                        new StateBootstrapTransformationWithID<>(identifier, transformation)));\n     }\n \n     /** @return List of {@link OperatorState} that already exists within the savepoint. */"
-          }
-        ],
-        "patch": "@@ -119,7 +119,7 @@ public class SavepointMetadataV2 {\n         operatorStateIndex.put(\n                 id,\n                 OperatorStateSpecV2.newWithTransformation(\n-                        new StateBootstrapTransformationWithID<>(id, transformation)));\n+                        new StateBootstrapTransformationWithID<>(identifier, transformation)));\n     }\n \n     /** @return List of {@link OperatorState} that already exists within the savepoint. */\n"
-      },
-      {
-        "a_filename": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterUidModificationITCase.java",
-        "b_filename": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterUidModificationITCase.java",
-        "renamed": false,
-        "copied": false,
-        "deleted": false,
-        "change_type": null,
-        "hunks": [
-          {
-            "old_start": 24,
-            "old_lines": 10,
-            "new_start": 24,
-            "new_lines": 13,
-            "content": "@@ -24,10 +24,13 @@ import org.apache.flink.api.common.functions.RichMapFunction;\n import org.apache.flink.api.common.state.ValueState;\n import org.apache.flink.api.common.state.ValueStateDescriptor;\n import org.apache.flink.api.common.typeinfo.Types;\n-import org.apache.flink.api.java.tuple.Tuple2;\n+import org.apache.flink.runtime.checkpoint.OperatorState;\n+import org.apache.flink.runtime.checkpoint.metadata.CheckpointMetadata;\n import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;\n import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;\n import org.apache.flink.state.api.functions.KeyedStateBootstrapFunction;\n+import org.apache.flink.state.api.runtime.SavepointLoader;\n+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;\n import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;\n import org.apache.flink.streaming.api.graph.StreamGraph;\n import org.apache.flink.test.junit5.MiniClusterExtension;"
-          },
-          {
-            "old_start": 43,
-            "old_lines": 8,
-            "new_start": 46,
-            "new_lines": 10,
-            "content": "@@ -43,8 +46,10 @@ import java.util.ArrayList;\n import java.util.Arrays;\n import java.util.Collection;\n import java.util.List;\n+import java.util.Set;\n import java.util.function.BiConsumer;\n import java.util.function.Consumer;\n+import java.util.stream.Collectors;\n \n import static org.assertj.core.api.Assertions.assertThat;\n "
-          },
-          {
-            "old_start": 85,
-            "old_lines": 7,
-            "new_start": 90,
-            "new_lines": 7,
-            "content": "@@ -85,7 +90,7 @@ public class SavepointWriterUidModificationITCase {\n                                         OperatorIdentifier.forUidHash(uidHash),\n                                         OperatorIdentifier.forUid(uid)));\n \n-        runAndValidate(newSavepoint, Tuple2.of(STATE_1, uid));\n+        runAndValidate(newSavepoint, ValidationParameters.of(STATE_1, uid, null));\n     }\n \n     @Test"
-          },
-          {
-            "old_start": 107,
-            "old_lines": 7,
-            "new_start": 112,
-            "new_lines": 29,
-            "content": "@@ -107,7 +112,29 @@ public class SavepointWriterUidModificationITCase {\n                                         OperatorIdentifier.forUid(uid),\n                                         OperatorIdentifier.forUid(newUid)));\n \n-        runAndValidate(newSavepoint, Tuple2.of(STATE_1, newUid));\n+        runAndValidate(newSavepoint, ValidationParameters.of(STATE_1, newUid, null));\n+    }\n+\n+    @Test\n+    public void testChangeUidHashOnly(@TempDir Path tmp) throws Exception {\n+        final String uid = \"uid\";\n+        final String newUidHash = new AbstractID().toHexString();\n+        final String originalSavepoint =\n+                bootstrapState(\n+                        tmp,\n+                        (env, writer) ->\n+                                writer.withOperator(\n+                                        OperatorIdentifier.forUid(uid), bootstrap(env, STATE_1)));\n+        final String newSavepoint =\n+                modifySavepoint(\n+                        tmp,\n+                        originalSavepoint,\n+                        writer ->\n+                                writer.changeOperatorIdentifier(\n+                                        OperatorIdentifier.forUid(uid),\n+                                        OperatorIdentifier.forUidHash(newUidHash)));\n+\n+        runAndValidate(newSavepoint, ValidationParameters.of(STATE_1, null, newUidHash));\n     }\n \n     @Test"
-          },
-          {
-            "old_start": 136,
-            "old_lines": 7,
-            "new_start": 163,
-            "new_lines": 10,
-            "content": "@@ -136,7 +163,10 @@ public class SavepointWriterUidModificationITCase {\n                                                 OperatorIdentifier.forUid(uid2),\n                                                 OperatorIdentifier.forUid(uid1)));\n \n-        runAndValidate(newSavepoint, Tuple2.of(STATE_1, uid2), Tuple2.of(STATE_2, uid1));\n+        runAndValidate(\n+                newSavepoint,\n+                ValidationParameters.of(STATE_1, uid2, null),\n+                ValidationParameters.of(STATE_2, uid1, null));\n     }\n \n     private static String bootstrapState("
-          },
-          {
-            "old_start": 184,
-            "old_lines": 21,
-            "new_start": 214,
-            "new_lines": 57,
-            "content": "@@ -184,21 +214,57 @@ public class SavepointWriterUidModificationITCase {\n         return newSavepointPath;\n     }\n \n-    @SafeVarargs\n     private static void runAndValidate(\n-            String savepointPath, Tuple2<Collection<Integer>, String>... assertions)\n-            throws Exception {\n+            String savepointPath, ValidationParameters... validationParameters) throws Exception {\n+        // validate metadata\n+        CheckpointMetadata metadata = SavepointLoader.loadSavepointMetadata(savepointPath);\n+        assertThat(metadata.getOperatorStates().size()).isEqualTo(validationParameters.length);\n+        for (ValidationParameters validationParameter : validationParameters) {\n+            if (validationParameter.getUid() != null) {\n+                Set<OperatorState> operators =\n+                        metadata.getOperatorStates().stream()\n+                                .filter(\n+                                        os ->\n+                                                os.getOperatorUid().isPresent()\n+                                                        && os.getOperatorUid()\n+                                                                .get()\n+                                                                .equals(\n+                                                                        validationParameter\n+                                                                                .getUid()))\n+                                .collect(Collectors.toSet());\n+                assertThat(operators.size()).isEqualTo(1);\n+                assertThat(operators.iterator().next().getOperatorID())\n+                        .isEqualTo(\n+                                OperatorIdentifier.forUid(validationParameter.getUid())\n+                                        .getOperatorId());\n+            } else {\n+                Set<OperatorState> operators =\n+                        metadata.getOperatorStates().stream()\n+                                .filter(\n+                                        os ->\n+                                                os.getOperatorID()\n+                                                        .toHexString()\n+                                                        .equals(validationParameter.getUidHash()))\n+                                .collect(Collectors.toSet());\n+                assertThat(operators.size()).isEqualTo(1);\n+                assertThat(operators.iterator().next().getOperatorUid()).isEmpty();\n+            }\n+        }\n+\n         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();\n \n         // prepare collection of state\n         final List<CloseableIterator<Integer>> iterators = new ArrayList<>();\n-        for (Tuple2<Collection<Integer>, String> assertion : assertions) {\n-            iterators.add(\n-                    env.fromData(assertion.f0)\n+        for (ValidationParameters validationParameter : validationParameters) {\n+            SingleOutputStreamOperator<Integer> stream =\n+                    env.fromData(validationParameter.getState())\n                             .keyBy(v -> v)\n-                            .map(new StateReader())\n-                            .uid(assertion.f1)\n-                            .collectAsync());\n+                            .map(new StateReader());\n+            if (validationParameter.getUid() != null) {\n+                iterators.add(stream.uid(validationParameter.getUid()).collectAsync());\n+            } else {\n+                iterators.add(stream.setUidHash(validationParameter.getUidHash()).collectAsync());\n+            }\n         }\n \n         // run job"
-          },
-          {
-            "old_start": 208,
-            "old_lines": 10,
-            "new_start": 274,
-            "new_lines": 10,
-            "content": "@@ -208,10 +274,10 @@ public class SavepointWriterUidModificationITCase {\n         env.executeAsync(streamGraph);\n \n         // validate state\n-        for (int i = 0; i < assertions.length; i++) {\n+        for (int i = 0; i < validationParameters.length; i++) {\n             assertThat(iterators.get(i))\n                     .toIterable()\n-                    .containsExactlyInAnyOrderElementsOf(assertions[i].f0);\n+                    .containsExactlyInAnyOrderElementsOf(validationParameters[i].getState());\n         }\n \n         for (CloseableIterator<Integer> iterator : iterators) {"
+        "a_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/runtime/metadata/OperatorStateSpecV2.java",
+        "b_filename": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/api/runtime/metadata/OperatorStateSpecV2.java",
+        ";\n \n         // validate state\n-        for (int i = 0; i < assertions.length; i++) {\n+        for (int i = 0; i < validationParameters.length; i++) {\n             assertThat(iterators.get(i))\n                     .toIterable()\n-                    .containsExactlyInAnyOrderElementsOf(assertions[i].f0);\n+                    .containsExactlyInAnyOrderElementsOf(validationParameters[i].getState());\n         }\n \n         for (CloseableIterator<Integer> iterator : iterators) {"
           },
           {
             "old_start": 219,
