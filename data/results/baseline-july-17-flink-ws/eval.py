@@ -2,7 +2,7 @@ import json
 import csv
 
 if __name__ == '__main__':
-    file_name = "report-no-replication"
+    file_name = "report-post-replication"
     with open(f"{file_name}.json", "r") as f:
         data = json.load(f)
 
