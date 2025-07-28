@@ -205,27 +205,33 @@ def create_summary_report(df, output_dir, project_name, total_commits_count, sin
 def analyze_repo_from_checkpoint(analyzed_repo_info, json_data_of_a_repo, local_repo_path, since_date, output_dir_base, skip_old_commits=True):
     print(f"Analyzing already existed repository at {local_repo_path}")
     batch_output_dir = f'{output_dir_base}/batch_results'
+    git_pull(local_repo_path)
+    print(f"Pulled repo: {local_repo_path} to get the latest commits")
 
     new_commits = get_commits_since_date(local_repo_path, since_date=analyzed_repo_info["last_analyzed_time"].split(' ')[0])
     if len(new_commits) != 0:
         print(f"New commits found: {len(new_commits)}")
         save_commits_to_file(new_commits, f'{output_dir_base}/commits.txt')
-        actual_batch_count, successful_batches, failed_batches = process_commits_with_refactoringminer(
+        result = process_commits_with_refactoringminer(
             repo_path=str(local_repo_path),
             commits=new_commits,
             output_dir=batch_output_dir,
             max_batch_size=500,
             start_batch_index=analyzed_repo_info['batch_analyzed']
         )
-        print(f"Processed {actual_batch_count} batches")
-        print(f"Successful batches: {successful_batches}")
-        print(f"Failed batches: {failed_batches}")
+        project_name = json_data_of_a_repo[0]['project']
+        actual_batch_count = None
+        if result is not None:
+            actual_batch_count, successful_batches, failed_batches = result
+
+            print(f"Processed {actual_batch_count} batches")
+            print(f"Successful batches: {successful_batches}")
+            print(f"Failed batches: {failed_batches}")
 
         # Process rename analysis results
         print("Processing rename analysis results...")
         df = process_rename_analysis_results(batch_output_dir, output_dir_base, local_repo_path)
 
-        project_name = json_data_of_a_repo[0]['project']
         # Create plots
         print("Creating visualizations...")
         create_plots(df, output_dir_base, project_name, since_date)
@@ -241,7 +247,7 @@ def analyze_repo_from_checkpoint(analyzed_repo_info, json_data_of_a_repo, local_
 
         saved_developer_info = []
         for data in json_data_of_a_repo:
-            if skip_old_commits and exclude_commits(project_name, data):
+            if skip_old_commits and exclude_commits(local_repo_path, data):
                 continue
             developer_name, developer_email = get_commit_author_info(data["v2_hash"], local_repo_path)
             if developer_already_analyzed(local_repo_path, data, analyzed_repo_info, developer_name, developer_email):
@@ -258,7 +264,7 @@ def analyze_repo_from_checkpoint(analyzed_repo_info, json_data_of_a_repo, local_
             print(f"Created analysis data for developer: {developer_name}")
             saved_developer_info.append(json_data)
 
-        update_analyzed_repo_info(project_name=project_name, actual_batch_count=actual_batch_count,
+        update_analyzed_repo_info(project_name=project_name, actual_batch_count=actual_batch_count if actual_batch_count else analyzed_repo_info['batch_analyzed'],
                                   total_commits_count=total_commits_count, saved_developer_info=saved_developer_info, already_analyzed=True)
 
 def analyze_repo_from_beginning(analyzed_repo_info, json_data_of_a_repo, local_repo_path, since_date, output_dir_base, skip_old_commits= True):
@@ -308,7 +314,7 @@ def analyze_repo_from_beginning(analyzed_repo_info, json_data_of_a_repo, local_r
 
     saved_developer_info = []
     for data in json_data_of_a_repo:
-        if skip_old_commits and exclude_commits(project_name, data):
+        if skip_old_commits and exclude_commits(local_repo_path, data):
             continue
         developer_name, developer_email = get_commit_author_info(data["v2_hash"], local_repo_path)
         if developer_already_analyzed(local_repo_path, data, analyzed_repo_info, developer_name, developer_email):
@@ -338,7 +344,7 @@ def update_analyzed_repo_info(project_name, actual_batch_count, total_commits_co
     for entry in data:
         if entry['project'] == project_name:
             entry['batch_analyzed'] = actual_batch_count if not already_analyzed else entry[
-                                                                                          'batch_anlayzed'] + actual_batch_count
+                                                                                          'batch_analyzed'] + actual_batch_count
             entry['total_commits_found'] = total_commits_count if not already_analyzed else entry[
                                                                                                 'total_commits_found'] + total_commits_count
             entry['last_analyzed_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") if already_analyzed else entry[

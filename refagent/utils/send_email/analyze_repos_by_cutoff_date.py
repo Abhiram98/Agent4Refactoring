@@ -91,7 +91,7 @@ def main():
 
         output_dir_base = f"analysis_result"
         analyzed_repo_info = find_project_and_developer_info(analyzed_repos_json_data, project_name)
-        if check_dir_exist(f"output_dir_base/{project_name}") and project_name in analyzed_repos_set:
+        if check_dir_exist(f"{output_dir_base}/{project_name}") and project_name in analyzed_repos_set:
             analyze_repo_from_checkpoint(analyzed_repo_info, json_data_of_a_repo, local_repo_path, get_since_date(), f"{output_dir_base}/{project_name}")
         else:
             analyze_repo_from_beginning(analyzed_repo_info, json_data_of_a_repo, local_repo_path, get_since_date(), f"{output_dir_base}/{project_name}")
