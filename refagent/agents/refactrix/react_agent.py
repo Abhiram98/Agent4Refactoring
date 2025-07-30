@@ -4,12 +4,13 @@ import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.replication as replication
 
-
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, BaseMessage
 import traceback
 
+
 class ReactPerformer(perform_refactoring.PerformRefactoring):
     pass
+
 
 class ReactAgent(ra.Agent):
     MAX_GRAPH_ITERATION: int = 10
@@ -90,4 +91,5 @@ class ReactAgent(ra.Agent):
                 break
             self.update_changed_files()
 
-
+        # Capture replication inspection data
+        self._replication_inspection_data = replicator.get_files_inspection_data()

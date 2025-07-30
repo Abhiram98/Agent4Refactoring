@@ -36,6 +36,12 @@ class Replication(BaseModel):
     starting_file: str = Field(description="The first file that was edited.")
     refactoring_commit: Commit = Field(description="The commit that was edited.")
 
+    # Add tracking fields for files_to_inspect data
+    _files_to_inspect_before_count: int = PrivateAttr(default=0)
+    _files_to_inspect_after_count: int = PrivateAttr(default=0)
+    _files_to_inspect_before_list: List[str] = PrivateAttr(default=[])
+    _files_to_inspect_after_list: List[str] = PrivateAttr(default=[])
+
     SUPPORTED_REPLICATIONS: ClassVar[List[sup_ref.SupportedRefactorings]] \
         = [sup_ref.SupportedRefactorings.RENAME,
            # sup_ref.SupportedRefactorings.CHANGE_SIGNATURE,
@@ -44,6 +50,15 @@ class Replication(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+    def get_files_inspection_data(self) -> dict:
+        """Return the files inspection data for saving to results"""
+        return {
+            "files_to_inspect_before_count": self._files_to_inspect_before_count,
+            "files_to_inspect_after_count": self._files_to_inspect_after_count,
+            "files_to_inspect_before_list": self._files_to_inspect_before_list,
+            "files_to_inspect_after_list": self._files_to_inspect_after_list,
+        }
 
     def compile_and_run(self) -> Iterable[planning.RefactoringPlan]:
         """Two phases of replication.
@@ -59,21 +74,30 @@ class Replication(BaseModel):
         elements_to_inspect += [(i, 1) for i in
                                 self.get_linked_elements(CodeElement(file_path=self.starting_file, line_num=1))]
 
-        should_replicate_msg = self.should_replicate()
-        if not should_replicate_msg:
-            # The change does not need replication to other files,
-            # the developer did not ask for it.
-            return []
-
+        # Always capture file inspection data, even if replication is skipped
         files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect)
                             # if i!=self.starting_file
                             ]
 
         files_to_inspect = list(set(files_to_inspect))
 
+        # Capture data before filtering
+        self._files_to_inspect_before_count = len(files_to_inspect)
+        self._files_to_inspect_before_list = files_to_inspect.copy()
+
         if len(files_to_inspect) > 50:
             print(f"Limiting files to first 50 due to large number of files: {len(files_to_inspect)}")
             files_to_inspect = files_to_inspect[:50]
+
+        # Capture data after filtering
+        self._files_to_inspect_after_count = len(files_to_inspect)
+        self._files_to_inspect_after_list = files_to_inspect.copy()
+
+        should_replicate_msg = self.should_replicate()
+        if not should_replicate_msg:
+            # The change does not need replication to other files,
+            # the developer did not ask for it.
+            return []
 
         # print(f"files to inspect: {files_to_inspect}\n\n")
 

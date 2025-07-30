@@ -263,8 +263,7 @@ class RenameVariable(Rename):
         return self.old_type != self.new_type
 
     def __eq__(self, other):
-        return (super().__eq__(other) and
-                self.parent_method_signature == other.parent_method_signature)
+        return (super().__eq__(other) and self.start_line == other.start_line)
 
 
 class RenameParameter(Rename):

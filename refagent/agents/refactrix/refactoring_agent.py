@@ -38,6 +38,7 @@ import refagent.agents.refactrix.replication as replication
 import refagent.agents.refactrix.error_fixing as error_fixing
 import refagent.agents.refactrix.quality_check as quality_check
 
+
 class SelectedRefactoring(BaseModel):
     """
     Select a refactoring action to perform and provide a reason.
@@ -46,14 +47,13 @@ class SelectedRefactoring(BaseModel):
     refactoring_type: sup_refs.SupportedRefactorings = Field(description=f"select the type of refactoring. ")
 
 
-
 class Agent(BaseModel):
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
     reasoning_model_name: str = Field(description="model name for reasoning", default=None)
     project: pm.EvalProject = Field(description="the evaluation project to run the agent on.")
     analysis_component: Type[analysis.AnalysisComponent] = Field(description="the kind of analysis component to use.",
-                                                             default=analysis.AnalysisComponent)
+                                                                 default=analysis.AnalysisComponent)
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
 
@@ -62,7 +62,8 @@ class Agent(BaseModel):
     do_replication: bool = Field(description="whether to run replication", default=True)
 
     MAX_GRAPH_ITERATION: int = Field(description="The maximum number of iterations to run the graph for.", default=5)
-    MAX_FAILING_TOOL_CALLS: int = Field(description="The maximum number of failing tool calls to allow before aborting.", default=1)
+    MAX_FAILING_TOOL_CALLS: int = Field(
+        description="The maximum number of failing tool calls to allow before aborting.", default=1)
 
     _files_changed: set[Path] = PrivateAttr(default=set())
     _directly_edited_files: set[Path] = PrivateAttr(default=set())
@@ -79,7 +80,7 @@ class Agent(BaseModel):
     _starting_file: str = PrivateAttr(default="")
     _original_starting_file: str = PrivateAttr(default="")
     _performed_refactorings: Dict = PrivateAttr(default=defaultdict(list))
-
+    _replication_inspection_data: Dict = PrivateAttr(default={})
 
     class Config:
         arbitrary_types_allowed = True
@@ -100,6 +101,9 @@ class Agent(BaseModel):
 
     def get_performed_refactorings(self):
         return self._performed_refactorings
+
+    def get_replication_inspection_data(self):
+        return self._replication_inspection_data
 
     def create_model(self, model_name) -> BaseChatModel:
         # Assumes that self.model_name looks like
@@ -214,6 +218,9 @@ class Agent(BaseModel):
             self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
             self.update_changed_files()
 
+        # Capture replication inspection data
+        self._replication_inspection_data = replicator.get_files_inspection_data()
+
     def get_important_files_diff(self):
         # important_files = [str(i) for i in
         #                    self.compute_most_important(self._files_changed)
@@ -268,7 +275,7 @@ class Agent(BaseModel):
         last_file_opened = None
 
         if len(ref_plan.steps) > 0 and open_file:
-            self.try_open_file(ref_plan.steps[0].file_path) # open the file. The edits should happen in only one file.
+            self.try_open_file(ref_plan.steps[0].file_path)  # open the file. The edits should happen in only one file.
 
         for i, step in enumerate(ref_plan.steps):
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
@@ -295,9 +302,9 @@ class Agent(BaseModel):
                 self._trajectory += final_state['messages']
                 print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
             except:
-                print(f"Execution of step {i+1} failed.")
+                print(f"Execution of step {i + 1} failed.")
                 traceback.print_exc()
-                final_state = {'messages': [HumanMessage(f"Execution of step {i+1} failed.")]}
+                final_state = {'messages': [HumanMessage(f"Execution of step {i + 1} failed.")]}
 
         return final_state
 
@@ -340,7 +347,7 @@ class Agent(BaseModel):
             if file_contents == "":
                 raise Exception("File is empty.")
             source = code_utils.add_line_numbers(
-                "// This file is empty." if file_contents=="" else file_contents)
+                "// This file is empty." if file_contents == "" else file_contents)
             current_source_code += f"{self._starting_file}: \n{source}"
         except FileNotFoundError:
             raise Exception(f"File {self._starting_file} not found.")
@@ -402,7 +409,7 @@ class Agent(BaseModel):
             self._directly_edited_files.add(Path(self._rel_file_path))
             return [self._tools.get('replace_file_contents')]
 
-        tools = [self._tools.get('no_op')] # Always include the no-op tool. To allow the agent to do nothing.
+        tools = [self._tools.get('no_op')]  # Always include the no-op tool. To allow the agent to do nothing.
 
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
             return GENERIC_EDITING_TOOLS
@@ -501,7 +508,8 @@ class Agent(BaseModel):
                 return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
 
             if self._failing_tool_call_count >= self.MAX_FAILING_TOOL_CALLS:
-                return {'messages': [AIMessage(f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
+                return {'messages': [AIMessage(
+                    f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
 
             if self.contains_tool_call_cycle():
                 return {'messages': [AIMessage('finished because tool calls are cycling. DONE')]}
@@ -510,23 +518,24 @@ class Agent(BaseModel):
                 return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
 
             response = self._reasoning_model.invoke(state['messages'] +
-                         [HumanMessage('Please reflect whether the original ask has been completed successfully (for the given file)'
-                                       f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
-                                       f'{self.get_changed_file_contents().content}'
-                                       f'Please reflect whether the task is complete, '
-                                       f'by answering the following questions: '
-                                       'Has the original ask been met? '
-                                       'If the answer is no, please specify what needs to be changed (provide details including line numbers). '
-                                       # f'2. Have all appropriate locations within the file {self._rel_file_path} '
-                                       # f'been updated? '
-                                       'Finally, say whether the task is complete '
-                                       'by using the following sentence: "The task is <Status>." '
-                                       'Use the word DONE/INCOMPLETE in place of <Status>. ')])
+                                                    [HumanMessage(
+                                                        'Please reflect whether the original ask has been completed successfully (for the given file)'
+                                                        f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
+                                                        f'{self.get_changed_file_contents().content}'
+                                                        f'Please reflect whether the task is complete, '
+                                                        f'by answering the following questions: '
+                                                        'Has the original ask been met? '
+                                                        'If the answer is no, please specify what needs to be changed (provide details including line numbers). '
+                                                        # f'2. Have all appropriate locations within the file {self._rel_file_path} '
+                                                        # f'been updated? '
+                                                        'Finally, say whether the task is complete '
+                                                        'by using the following sentence: "The task is <Status>." '
+                                                        'Use the word DONE/INCOMPLETE in place of <Status>. ')])
             return {'messages': [response]}
 
         def has_finished_refactoring(state: MessagesState) -> bool:
             finished = (state['messages'][-1].content.endswith('DONE') or
-                    'INCOMPLETE' not in state['messages'][-1].content)
+                        'INCOMPLETE' not in state['messages'][-1].content)
             return finished
 
         workflow = StateGraph(MessagesState)
@@ -537,8 +546,9 @@ class Agent(BaseModel):
         workflow.add_node("finished_refactoring", finished_refactoring)
         # Add edges to connect nodes
         workflow.add_edge(START, "finished_refactoring")
+
         def has_tool_call(state: MessagesState) -> bool:
-            return self._selected_refactoring.refactoring_type!=sup_refs.SupportedRefactorings.UNSUPPORTED
+            return self._selected_refactoring.refactoring_type != sup_refs.SupportedRefactorings.UNSUPPORTED
 
         workflow.add_conditional_edges("finished_refactoring", has_finished_refactoring,
                                        {True: END, False: "select_refactoring"})
@@ -546,7 +556,6 @@ class Agent(BaseModel):
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
         )
         workflow.add_edge("perform_refactoring", "finished_refactoring")
-
 
         # Compile
         graph = workflow.compile()
@@ -561,17 +570,17 @@ class Agent(BaseModel):
         if len(self._internal_commits) > 0:
             changes += self.project.get_changes(str(self._internal_commits[-1]))
         uncommited_changes = (self.project.get_unstaged_changes() +
-                    self.project.get_staged_changes())
+                              self.project.get_staged_changes())
         if len(uncommited_changes) > 0:
             self.commit_changes("commit changes for analysis")
             changes += self.project.get_changes(str(self._internal_commits[-1]))
 
-        for c in changes[::-1]: # reverse order, so that the staged changes are considered first.
+        for c in changes[::-1]:  # reverse order, so that the staged changes are considered first.
             if c.git_diff.a_path == starting_file:
                 self._starting_file = c.git_diff.b_path
                 if len(uncommited_changes) > 0:
                     self._internal_commits.pop()
-                    self.project.reset_head(1) # reset the uncommited changes.
+                    self.project.reset_head(1)  # reset the uncommited changes.
                 return c.git_diff.b_path
         return starting_file
 
@@ -584,7 +593,7 @@ class Agent(BaseModel):
 
         try:
             tool_calls_args = [tc['tool_call']['args'] for tc in self._performed_refactorings[self._starting_file]
-                          if tc['tool_call']['name']=='rename' and tc['result']=='success']
+                               if tc['tool_call']['name'] == 'rename' and tc['result'] == 'success']
 
             args_map = defaultdict(int)
             for arg in tool_calls_args:
@@ -600,6 +609,6 @@ class Agent(BaseModel):
                     return True
 
         except:
-            return  False
+            return False
 
 

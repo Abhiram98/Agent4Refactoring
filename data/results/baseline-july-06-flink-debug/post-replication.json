@@ -1,0 +1,56 @@
+[
+    {
+        "id": 2341,
+        "response": {
+            "changes": [
+                {
+                    "a_filename": "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/DataTypeFactoryImpl.java",
+                    "b_filename": "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/DataTypeFactoryImpl.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 60,
+                            "old_lines": 7,
+                            "new_start": 60,
+                            "new_lines": 7,
+                            "content": "@@ -60,7 +60,7 @@ final class DataTypeFactoryImpl implements DataTypeFactory {\n             @Nullable ExecutionConfig executionConfig) {\n         this.classLoader = classLoader;\n         this.executionConfig =\n-                createSerializerExecutionConfig(classLoader, config, executionConfig);\n+                createSerializerConfig(classLoader, config, executionConfig);\n     }\n \n     @Override"
+                        },
+                        {
+                            "old_start": 127,
+                            "old_lines": 7,
+                            "new_start": 127,
+                            "new_lines": 7,
+                            "content": "@@ -127,7 +127,7 @@ final class DataTypeFactoryImpl implements DataTypeFactory {\n      * information from existing {@link ExecutionConfig} (if available) enriched with table {@link\n      * ReadableConfig}.\n      */\n-    private static Supplier<ExecutionConfig> createSerializerExecutionConfig(\n+    private static Supplier<ExecutionConfig> createSerializerConfig(\n             ClassLoader classLoader, ReadableConfig config, ExecutionConfig executionConfig) {\n         return () -> {\n             final ExecutionConfig newExecutionConfig = new ExecutionConfig();"
+                        }
+                    ],
+                    "patch": "@@ -60,7 +60,7 @@ final class DataTypeFactoryImpl implements DataTypeFactory {\n             @Nullable ExecutionConfig executionConfig) {\n         this.classLoader = classLoader;\n         this.executionConfig =\n-                createSerializerExecutionConfig(classLoader, config, executionConfig);\n+                createSerializerConfig(classLoader, config, executionConfig);\n     }\n \n     @Override\n@@ -127,7 +127,7 @@ final class DataTypeFactoryImpl implements DataTypeFactory {\n      * information from existing {@link ExecutionConfig} (if available) enriched with table {@link\n      * ReadableConfig}.\n      */\n-    private static Supplier<ExecutionConfig> createSerializerExecutionConfig(\n+    private static Supplier<ExecutionConfig> createSerializerConfig(\n             ClassLoader classLoader, ReadableConfig config, ExecutionConfig executionConfig) {\n         return () -> {\n             final ExecutionConfig newExecutionConfig = new ExecutionConfig();\n"
+                }
+            ],
+            "commit_hash": "9a8aff3fc0a5e778d1fb1897a9bdedf2feaac348",
+            "trajectory": [],
+            "performed_refactorings": {},
+            "internal_commits": [
+                "dd0376f8863cbdf576b0334b63c898548266b01d"
+            ],
+            "replication_inspection_data": {
+                "files_to_inspect_before_count": 4,
+                "files_to_inspect_after_count": 4,
+                "files_to_inspect_before_list": [
+                    "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/DataTypeFactoryImpl.java",
+                    "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/CatalogManager.java",
+                    "flink-core/src/main/java/org/apache/flink/configuration/ReadableConfig.java",
+                    "flink-core/src/main/java/org/apache/flink/api/common/ExecutionConfig.java"
+                ],
+                "files_to_inspect_after_list": [
+                    "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/DataTypeFactoryImpl.java",
+                    "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/CatalogManager.java",
+                    "flink-core/src/main/java/org/apache/flink/configuration/ReadableConfig.java",
+                    "flink-core/src/main/java/org/apache/flink/api/common/ExecutionConfig.java"
+                ]
+            }
+        }
+    }
+]
