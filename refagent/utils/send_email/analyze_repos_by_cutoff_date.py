@@ -2,7 +2,7 @@ import json
 import json
 import os
 import argparse
-from analyze_repo import analyze_repo_from_beginning, analyze_repo_from_checkpoint
+from analyze_repo_service import analyze_repo_from_beginning, analyze_repo_from_checkpoint
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -57,9 +57,13 @@ def load_already_analyzed_repos(analyzed_repo_file='analyzed_repo.json'):
 def main():
     parser = argparse.ArgumentParser(description="Analyze repositories from JSONL files by cutoff date")
     parser.add_argument("jsonl_files", nargs='+', help="Path(s) to JSONL files to process")
-    parser.add_argument("analyzed_repo_file", nargs='?', help="Path to analyzed repo JSON file")
+    parser.add_argument("--analyzed-repo-file", default="analyzed_repo.json", 
+                       help="Path to analyzed repo JSON file (default: analyzed_repo.json)")
 
     args = parser.parse_args()
+    
+    print(f"JSONL files to process: {args.jsonl_files}")
+    print(f"Analyzed repo file: {args.analyzed_repo_file}")
 
     if args.analyzed_repo_file:
         analyzed_repos_json_data, analyzed_repos_set = load_already_analyzed_repos(args.analyzed_repo_file)
@@ -69,21 +73,48 @@ def main():
     for jsonl_file in args.jsonl_files:
         print(f"Processing JSONL file: {jsonl_file}")
         json_data_of_a_repo = []
+        line_number = 0
+        
         with open(jsonl_file, 'r', encoding='utf-8') as file:
             for line in file:
-                if line.strip():  # skip empty lines
-                    try:
-                        loaded_json = json.loads(line)
-                        json_data_of_a_repo.append(loaded_json)
-                    except Exception as e:
-                        print(e)
+                line_number += 1
+                line = line.strip()
+                
+                if not line:  # skip empty lines
+                    continue
+                    
+                try:
+                    loaded_json = json.loads(line)
+                    json_data_of_a_repo.append(loaded_json)
+                except json.JSONDecodeError as e:
+                    print(f"⚠ JSON parsing error on line {line_number}: {e}")
+                    print(f"   Problematic line: {line[:100]}{'...' if len(line) > 100 else ''}")
+                    continue
+                except Exception as e:
+                    print(f"⚠ Unexpected error on line {line_number}: {e}")
+                    print(f"   Line content: {line[:100]}{'...' if len(line) > 100 else ''}")
+                    continue
+        
+        # Check if we have valid JSON data
+        if not json_data_of_a_repo:
+            print(f"✗ No valid JSON records found in {jsonl_file}. Skipping...")
+            continue
+            
+        print(f"✓ Successfully parsed {len(json_data_of_a_repo)} valid JSON records from {jsonl_file}")
         project_name = json_data_of_a_repo[0]['project']
 
         projects_base_path = os.getenv('PROJECTS_BASE_PATH')
         if projects_base_path:
             local_repo_path = os.path.join(projects_base_path, project_name)
         else:
-            local_repo_path = loaded_json.get("repo_path", "")
+            local_repo_path = json_data_of_a_repo[0].get("repo_path", "")
+
+        # Check if repository directory exists, skip if not
+        if not local_repo_path or not os.path.exists(local_repo_path):
+            print(f"⚠ Skipping {project_name}: Repository directory not found at '{local_repo_path}'")
+            continue
+
+        print(f"✓ Processing {project_name} at: {local_repo_path}")
 
         # 1-> if project is in analyzed json and batch result exist : just get the recent commit and process those batch
         # 2-> if project is in (not in) analyzed json and/or batch result doesn't exist : start from beginning

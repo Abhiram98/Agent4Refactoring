@@ -9,6 +9,17 @@ import json
 import re
 import pandas as pd
 
+RENAME_TYPES = {
+    'Rename Class',
+    'Rename Method',
+    'Rename Variable',
+    'Rename Parameter',
+    'Rename Attribute',
+    'Rename Package'
+}
+
+def get_rename_elements(json_data):
+    return [refactoring_change for refactoring_change in json_data['refactoring_changes'] if refactoring_change['type'] in RENAME_TYPES]
 
 def get_renamed_attributes(json_data):
     codeElements = set()
@@ -253,6 +264,10 @@ def analyze_repo_from_checkpoint(analyzed_repo_info, json_data_of_a_repo, local_
             if developer_already_analyzed(local_repo_path, data, analyzed_repo_info, developer_name, developer_email):
                 continue
 
+            if len(get_rename_elements(data)) <= 3:
+                print(f'Skipping {data["v2_hash"]} with {len(get_rename_elements(data))} rename elements as it is less than 4 renames.')
+                continue
+
             json_data = create_json_analysis(df, local_repo_path,
                                              f'{output_dir_base}/{datetime.now().strftime("%Y-%m-%d")}/developer_analysis',
                                              target_commit_hash=data['v2_hash'],
@@ -313,11 +328,16 @@ def analyze_repo_from_beginning(analyzed_repo_info, json_data_of_a_repo, local_r
     print("Start checking entry by entry to create meta data for emails")
 
     saved_developer_info = []
+    analyzed_datapoints = []
     for data in json_data_of_a_repo:
         if skip_old_commits and exclude_commits(local_repo_path, data):
             continue
         developer_name, developer_email = get_commit_author_info(data["v2_hash"], local_repo_path)
         if developer_already_analyzed(local_repo_path, data, analyzed_repo_info, developer_name, developer_email):
+            continue
+
+        if len(get_rename_elements(data)) <= 3:
+            print(f'Skipping {data["v2_hash"]} with {len(get_rename_elements(data))} rename elements as it is less than 4 renames.')
             continue
 
         json_data = create_json_analysis(df, local_repo_path,
@@ -330,6 +350,8 @@ def analyze_repo_from_beginning(analyzed_repo_info, json_data_of_a_repo, local_r
 
         print(f"Created analysis data for developer: {developer_name}")
         saved_developer_info.append(json_data)
+        analyzed_datapoints.append(json_data)
+    save_analyzed_datapoint(analyzed_datapoints, project_name)
 
     update_analyzed_repo_info(project_name=project_name,actual_batch_count=actual_batch_count, total_commits_count=total_commits_count, saved_developer_info=saved_developer_info)
 
@@ -354,8 +376,8 @@ def update_analyzed_repo_info(project_name, actual_batch_count, total_commits_co
 
             for developer_info in saved_developer_info:
                 temp = {
-                "developer_name": developer_info['author_info']['name'],
-                "developer_email": developer_info['author_info']['email'],
+                "developer_name": developer_info['target_commit_analysis']['author_info']['name'],
+                "developer_email": developer_info['target_commit_analysis']['author_info']['email'],
                 "mail_sent_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "v2_hash": developer_info['target_commit_analysis']['commit_hash'],
                 "total_renames_count": developer_info['target_commit_analysis']['target_commit_info']['total_rename_in_author_commit']
@@ -367,6 +389,42 @@ def update_analyzed_repo_info(project_name, actual_batch_count, total_commits_co
     # Write updated data back
     with open(filepath_to_analyzed_repo, 'w', encoding='utf-8') as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
+
+
+def save_analyzed_datapoint(analyzed_datapoints, project_name):
+    """Save analyzed datapoints to analysis_result directory, appending if file exists"""
+    if not analyzed_datapoints:
+        print("No analyzed datapoints to save")
+        return
+    
+    # Create analysis_result/saved_datapoints directory if it doesn't exist
+    analysis_result_dir = "analysis_result/saved_datapoints"
+    os.makedirs(analysis_result_dir, exist_ok=True)
+    
+    filename = f"{analysis_result_dir}/{project_name}_analyzed_datapoints.json"
+    
+    existing_data = []
+    
+    # Load existing data if file exists
+    if os.path.exists(filename):
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                existing_data = json.load(f)
+            print(f"Loaded {len(existing_data)} existing datapoints from {filename}")
+        except (json.JSONDecodeError, FileNotFoundError):
+            print(f"Could not load existing data from {filename}, starting fresh")
+            existing_data = []
+    
+    # Append new datapoints to existing data
+    existing_data.extend(analyzed_datapoints)
+    
+    # Save all data back to file
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(existing_data, f, indent=2, ensure_ascii=False)
+    
+    print(f"Saved {len(analyzed_datapoints)} new datapoints to {filename}")
+    print(f"Total datapoints in file: {len(existing_data)}")
+
 
 
 
