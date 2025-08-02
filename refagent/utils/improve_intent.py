@@ -144,8 +144,9 @@ def process_json(json_file_path, project_name, selected_ids):
 
                 print(f"LLM Response: {llm_response}")
 
-                first_sentence = llm_response.split('.')[0].strip() + '.'
-                entry['change_summary'] = first_sentence
+                # first_sentence = llm_response.split('.')[0].strip() + '.'
+                # entry['change_summary'] = first_sentence
+                entry['change_summary'] = llm_response
                 updated = True
                 
                 print(f"Updated change_summary for entry {i+1}")
@@ -173,16 +174,16 @@ def process_json(json_file_path, project_name, selected_ids):
         print("No updates made to JSON file.")
 
 def construct_prompt(hint, git_diff):
-    prompt = f"""
-    A developer renamed the identifier {hint} in this commit. Another developer now needs to perform a similar rename elsewhere. Think carefully about what naming convention or reasoning may have motivated this change. Then, summarize the rationale behind the rename in two sentences.
+    # prompt = f"""
+    # A developer renamed the identifier {hint} in this commit. Another developer now needs to perform a similar rename elsewhere. Think carefully about what naming convention or reasoning may have motivated this change. Then, summarize the rationale behind the rename in two sentences.
 
-    Do not comment on type changes or type correctness. Focus only on the identifier rename, its meaning, and the role it plays in the code. Include surrounding code context and concrete examples if relevant.
+    # Do not comment on type changes or type correctness. Focus only on the identifier rename, its meaning, and the role it plays in the code. Include surrounding code context and concrete examples if relevant.
 
-    Git Diff:
-    {git_diff}
+    # Git Diff:
+    # {git_diff}
 
-    Write a concise summary within 2 sentences of the reasoning behind this identifier rename. Focus only on the identifier change—not the type. Do not mention type names or type correctness. Preserve the exact letter casing of the identifiers as shown in the hint: {hint}. Avoid phrases like "In this commit" or "The developer should."
-    """
+    # Write a concise summary within 2 sentences of the reasoning behind this identifier rename. Focus only on the identifier change—not the type. Do not mention type names or type correctness. Preserve the exact letter casing of the identifiers as shown in the hint: {hint}. Avoid phrases like "In this commit" or "The developer should."
+    # """
     
 #     prompt = f"""
 # A developer renamed {hint} in this commit. Then, imagine a second developer needs to apply the same change elsewhere. Now think what are the steps they should follow to perform the rename consistently. Finally, provide a concise summary of the reasoning behind this rename based on the provided diff.
@@ -193,7 +194,24 @@ def construct_prompt(hint, git_diff):
 # Write the summary within 2 sentences. Include surrounding code context and concrete examples to illustrate the changes. Don't start with "The developer should" or "The developer should" or "In this commit" or "In this diff" etc. Just write the a concise summary of the reasoning behind this rename based on the provided diff.
 # """
 
+    old_name, new_name = hint.split(" -> ")
+    prompt = f"""
+Analyze this identifier transformation: {old_name} → {new_name}
 
+Git Diff:
+{git_diff}
+
+Create actionable transformation instructions by completing this template:
+
+"Transform identifiers that [PATTERN TO MATCH] by [TRANSFORMATION RULE]. Apply this to [SCOPE/CONTEXT]."
+
+Guidelines:
+- [PATTERN TO MATCH]: Describe what identifiers to look for
+- [TRANSFORMATION RULE]: Specify how to change them  
+- [SCOPE/CONTEXT]: Define where this applies
+
+Write exactly 1-2 sentences using this template structure. Focus on what to change, not why it was changed. Use action verbs and be specific about the pattern.
+"""
     
     return prompt
 

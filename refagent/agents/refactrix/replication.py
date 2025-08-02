@@ -85,9 +85,9 @@ class Replication(BaseModel):
         self._files_to_inspect_before_count = len(files_to_inspect)
         self._files_to_inspect_before_list = files_to_inspect.copy()
 
-        if len(files_to_inspect) > 50:
-            print(f"Limiting files to first 50 due to large number of files: {len(files_to_inspect)}")
-            files_to_inspect = files_to_inspect[:50]
+        # if len(files_to_inspect) > 50:
+        #     print(f"Limiting files to first 50 due to large number of files: {len(files_to_inspect)}")
+        #     files_to_inspect = files_to_inspect[:50]
 
         # Capture data after filtering
         self._files_to_inspect_after_count = len(files_to_inspect)
