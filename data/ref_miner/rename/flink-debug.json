@@ -2335,7 +2335,7 @@
       }
     ]
   },
-   {
+  {
     "id": 2121,
     "project": "flink",
     "v1_hash": "d14c2d589433bc27d7b90ffdaa5ab5a19cc3842e",
@@ -2393,7 +2393,6 @@
       "createLatencyTrackingState -> createMetricsTrackingState",
       "LatencyTrackingValueState -> MetricsTrackingValueState",
       "LatencyTrackingMapState -> MetricsTrackingMapState"
-    
     ],
     "starting_file": "flink-runtime/src/main/java/org/apache/flink/runtime/state/metrics/LatencyTrackingAggregatingState.java",
     "refactoring_changes": [
@@ -5300,6 +5299,754 @@
           }
         ],
         "patch": "@@ -35,6 +35,7 @@ import org.apache.flink.runtime.state.heap.HeapKeyedStateBackend;\n import org.apache.flink.runtime.state.heap.HeapKeyedStateBackendBuilder;\n import org.apache.flink.runtime.state.heap.HeapPriorityQueueSetFactory;\n import org.apache.flink.runtime.state.metrics.LatencyTrackingStateConfig;\n+import org.apache.flink.runtime.state.metrics.SizeTrackingStateConfig;\n import org.apache.flink.runtime.state.ttl.TtlTimeProvider;\n import org.apache.flink.state.rocksdb.EmbeddedRocksDBStateBackend;\n import org.apache.flink.state.rocksdb.EmbeddedRocksDBStateBackend.PriorityQueueStateType;\n@@ -111,6 +112,7 @@ public final class BackendSwitchSpecs {\n                             RocksDBPriorityQueueConfig.buildWithPriorityQueueType(queueStateType),\n                             TtlTimeProvider.DEFAULT,\n                             LatencyTrackingStateConfig.disabled(),\n+                            SizeTrackingStateConfig.disabled(),\n                             new UnregisteredMetricsGroup(),\n                             (key, value) -> {},\n                             stateHandles,\n@@ -148,6 +150,7 @@ public final class BackendSwitchSpecs {\n                             executionConfig,\n                             TtlTimeProvider.DEFAULT,\n                             LatencyTrackingStateConfig.disabled(),\n+                            SizeTrackingStateConfig.disabled(),\n                             stateHandles,\n                             AbstractStateBackend.getCompressionDecorator(executionConfig),\n                             TestLocalRecoveryConfig.disabled(),\n"
+      }
+    ]
+  },
+  {
+    "id": 2201,
+    "project": "flink",
+    "v1_hash": "80c748f7b7f3058a197e984208d0f02eb25bc2a9",
+    "v2_hash": "fafd86cd648e0b31e3dc78f6426616a9d2c671c5",
+    "orig_commit_message": "[FLINK-36850][runtime] Disable adaptive batch execution when batch job progress recovery is enabled.\n",
+    "improved_commit_message": "Refactor AdaptiveExecutionHandler to support batch job recovery.",
+    "change_summary": "\"Transform identifiers that contain 'JobGraph' by replacing it with 'StreamGraph'. Apply this to method return types, variable assignments, and method calls in the context of stream processing tests.\"",
+    "hints": [
+      "createJobGraphWithUnsupportedBatchSnapshotOperatorCoordinator -> createStreamGraphWithUnsupportedBatchSnapshotOperatorCoordinator",
+      "jobGraph -> streamGraph",
+      "prepareEnvAndGetJobGraph -> prepareEnvAndGetStreamGraph",
+      "createJobGraph -> createStreamGraph"
+    ],
+    "starting_file": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+    "refactoring_changes": [
+      {
+        "type": "Rename Method",
+        "description": "Rename Method private createJobGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env StreamExecutionEnvironment, jobName String) : JobGraph renamed to private createStreamGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env StreamExecutionEnvironment, jobName String) : StreamGraph in class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 474,
+            "endLine": 504,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "private createJobGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env StreamExecutionEnvironment, jobName String) : JobGraph"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 477,
+            "endLine": 507,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "private createStreamGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env StreamExecutionEnvironment, jobName String) : StreamGraph"
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable jobGraph : JobGraph to streamGraph : StreamGraph in method package testRecoverFromJMFailover() : void from class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 168,
+            "endLine": 168,
+            "startColumn": 18,
+            "endColumn": 55,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "jobGraph : JobGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 168,
+            "endLine": 168,
+            "startColumn": 9,
+            "endColumn": 56,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 173,
+            "endLine": 173,
+            "startColumn": 9,
+            "endColumn": 73,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 166,
+            "endLine": 166,
+            "startColumn": 21,
+            "endColumn": 64,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "streamGraph : StreamGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 166,
+            "endLine": 166,
+            "startColumn": 9,
+            "endColumn": 65,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 171,
+            "endLine": 171,
+            "startColumn": 9,
+            "endColumn": 76,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable jobGraph : JobGraph to streamGraph : StreamGraph in method package testSourceNotAllFinished() : void from class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 191,
+            "endLine": 191,
+            "startColumn": 18,
+            "endColumn": 55,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "jobGraph : JobGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 191,
+            "endLine": 191,
+            "startColumn": 9,
+            "endColumn": 56,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 196,
+            "endLine": 196,
+            "startColumn": 9,
+            "endColumn": 73,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 189,
+            "endLine": 189,
+            "startColumn": 21,
+            "endColumn": 64,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "streamGraph : StreamGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 189,
+            "endLine": 189,
+            "startColumn": 9,
+            "endColumn": 65,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 194,
+            "endLine": 194,
+            "startColumn": 9,
+            "endColumn": 76,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable jobGraph : JobGraph to streamGraph : StreamGraph in method package testTaskExecutorNotRegisterOnTime() : void from class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 231,
+            "endLine": 231,
+            "startColumn": 18,
+            "endColumn": 68,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "jobGraph : JobGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 231,
+            "endLine": 231,
+            "startColumn": 9,
+            "endColumn": 69,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 236,
+            "endLine": 236,
+            "startColumn": 9,
+            "endColumn": 73,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 233,
+            "endLine": 233,
+            "startColumn": 21,
+            "endColumn": 77,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "streamGraph : StreamGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 233,
+            "endLine": 233,
+            "startColumn": 9,
+            "endColumn": 78,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 238,
+            "endLine": 238,
+            "startColumn": 9,
+            "endColumn": 76,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable jobGraph : JobGraph to streamGraph : StreamGraph in method package testPartitionNotFoundTwice() : void from class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 254,
+            "endLine": 254,
+            "startColumn": 18,
+            "endColumn": 55,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "jobGraph : JobGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 254,
+            "endLine": 254,
+            "startColumn": 9,
+            "endColumn": 56,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 259,
+            "endLine": 259,
+            "startColumn": 9,
+            "endColumn": 73,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 256,
+            "endLine": 256,
+            "startColumn": 21,
+            "endColumn": 64,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "streamGraph : StreamGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 256,
+            "endLine": 256,
+            "startColumn": 9,
+            "endColumn": 65,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 261,
+            "endLine": 261,
+            "startColumn": 9,
+            "endColumn": 76,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable jobGraph : JobGraph to streamGraph : StreamGraph in method package testPartitionNotFoundAndOperatorCoordinatorNotSupportBatchSnapshot() : void from class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 289,
+            "endLine": 289,
+            "startColumn": 18,
+            "endColumn": 60,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "jobGraph : JobGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 289,
+            "endLine": 289,
+            "startColumn": 9,
+            "endColumn": 61,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 294,
+            "endLine": 294,
+            "startColumn": 9,
+            "endColumn": 73,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 291,
+            "endLine": 291,
+            "startColumn": 21,
+            "endColumn": 69,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "streamGraph : StreamGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 291,
+            "endLine": 291,
+            "startColumn": 9,
+            "endColumn": 70,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 296,
+            "endLine": 296,
+            "startColumn": 9,
+            "endColumn": 76,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Variable",
+        "description": "Rename Variable jobGraph : JobGraph to streamGraph : StreamGraph in method package testPartitionNotFoundAndOperatorCoordinatorSupportBatchSnapshot() : void from class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 315,
+            "endLine": 315,
+            "startColumn": 18,
+            "endColumn": 55,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "original variable declaration",
+            "codeElement": "jobGraph : JobGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 315,
+            "endLine": 315,
+            "startColumn": 9,
+            "endColumn": 56,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 320,
+            "endLine": 320,
+            "startColumn": 9,
+            "endColumn": 73,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the original variable",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 317,
+            "endLine": 317,
+            "startColumn": 21,
+            "endColumn": 64,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "renamed variable declaration",
+            "codeElement": "streamGraph : StreamGraph"
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 317,
+            "endLine": 317,
+            "startColumn": 9,
+            "endColumn": 65,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          },
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 322,
+            "endLine": 322,
+            "startColumn": 9,
+            "endColumn": 76,
+            "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+            "description": "statement referencing the renamed variable",
+            "codeElement": null
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method private prepareEnvAndGetJobGraph() : JobGraph renamed to private prepareEnvAndGetStreamGraph() : StreamGraph in class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 339,
+            "endLine": 345,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "private prepareEnvAndGetJobGraph() : JobGraph"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 341,
+            "endLine": 347,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "private prepareEnvAndGetStreamGraph() : StreamGraph"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method private prepareEnvAndGetJobGraph(config Configuration) : JobGraph renamed to private prepareEnvAndGetStreamGraph(config Configuration) : StreamGraph in class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 347,
+            "endLine": 349,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "private prepareEnvAndGetJobGraph(config Configuration) : JobGraph"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 349,
+            "endLine": 351,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "private prepareEnvAndGetStreamGraph(config Configuration) : StreamGraph"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method private prepareEnvAndGetJobGraph(operatorCoordinatorsSupportsBatchSnapshot boolean) : JobGraph renamed to private prepareEnvAndGetStreamGraph(operatorCoordinatorsSupportsBatchSnapshot boolean) : StreamGraph in class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 351,
+            "endLine": 358,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "private prepareEnvAndGetJobGraph(operatorCoordinatorsSupportsBatchSnapshot boolean) : JobGraph"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 353,
+            "endLine": 361,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "private prepareEnvAndGetStreamGraph(operatorCoordinatorsSupportsBatchSnapshot boolean) : StreamGraph"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method private prepareEnvAndGetJobGraph(config Configuration, operatorCoordinatorsSupportsBatchSnapshot boolean) : JobGraph renamed to private prepareEnvAndGetStreamGraph(config Configuration, operatorCoordinatorsSupportsBatchSnapshot boolean) : StreamGraph in class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 360,
+            "endLine": 376,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "private prepareEnvAndGetJobGraph(config Configuration, operatorCoordinatorsSupportsBatchSnapshot boolean) : JobGraph"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 363,
+            "endLine": 379,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "private prepareEnvAndGetStreamGraph(config Configuration, operatorCoordinatorsSupportsBatchSnapshot boolean) : StreamGraph"
+          }
+        ]
+      },
+      {
+        "type": "Rename Method",
+        "description": "Rename Method private createJobGraph(env StreamExecutionEnvironment, jobName String) : JobGraph renamed to private createStreamGraph(env StreamExecutionEnvironment, jobName String) : StreamGraph in class org.apache.flink.test.scheduling.JMFailoverITCase",
+        "leftSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 449,
+            "endLine": 472,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "private createJobGraph(env StreamExecutionEnvironment, jobName String) : JobGraph"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+            "startLine": 452,
+            "endLine": 475,
+            "startColumn": 5,
+            "endColumn": 6,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "renamed method declaration",
+            "codeElement": "private createStreamGraph(env StreamExecutionEnvironment, jobName String) : StreamGraph"
+          }
+        ]
+      }
+    ],
+    "diffs": [
+      {
+        "a_filename": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptivebatch/AdaptiveBatchSchedulerFactory.java",
+        "b_filename": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptivebatch/AdaptiveBatchSchedulerFactory.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 269,
+            "old_lines": 7,
+            "new_start": 269,
+            "new_lines": 10,
+            "content": "@@ -269,7 +269,10 @@ public class AdaptiveBatchSchedulerFactory implements SchedulerNGFactory {\n \n         AdaptiveExecutionHandler adaptiveExecutionHandler =\n                 AdaptiveExecutionHandlerFactory.create(\n-                        executionPlan, userCodeLoader, futureExecutor);\n+                        executionPlan,\n+                        jobRecoveryHandler instanceof DefaultBatchJobRecoveryHandler,\n+                        userCodeLoader,\n+                        futureExecutor);\n \n         return new AdaptiveBatchScheduler(\n                 log,"
+          }
+        ],
+        "patch": "@@ -269,7 +269,10 @@ public class AdaptiveBatchSchedulerFactory implements SchedulerNGFactory {\n \n         AdaptiveExecutionHandler adaptiveExecutionHandler =\n                 AdaptiveExecutionHandlerFactory.create(\n-                        executionPlan, userCodeLoader, futureExecutor);\n+                        executionPlan,\n+                        jobRecoveryHandler instanceof DefaultBatchJobRecoveryHandler,\n+                        userCodeLoader,\n+                        futureExecutor);\n \n         return new AdaptiveBatchScheduler(\n                 log,\n"
+      },
+      {
+        "a_filename": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptivebatch/AdaptiveExecutionHandlerFactory.java",
+        "b_filename": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptivebatch/AdaptiveExecutionHandlerFactory.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 36,
+            "old_lines": 8,
+            "new_start": 36,
+            "new_lines": 14,
+            "content": "@@ -36,8 +36,14 @@ public class AdaptiveExecutionHandlerFactory {\n     /**\n      * Creates an instance of {@link AdaptiveExecutionHandler} based on the provided execution plan.\n      *\n+     * <p>TODO: Currently, adaptive execution cannot work with batch job progress recovery, so we\n+     * always use {@link NonAdaptiveExecutionHandler} if batch job recovery is enabled. This\n+     * limitation will be removed in the future when we adapt adaptive batch execution to batch job\n+     * recovery.\n+     *\n      * @param executionPlan The execution plan, which can be either a {@link JobGraph} or a {@link\n      *     StreamGraph}.\n+     * @param enableBatchJobRecovery Whether to enable batch job recovery.\n      * @param userClassLoader The class loader for the user code.\n      * @param serializationExecutor The executor used for serialization tasks.\n      * @return An instance of {@link AdaptiveExecutionHandler}."
+          },
+          {
+            "old_start": 46,
+            "old_lines": 6,
+            "new_start": 52,
+            "new_lines": 7,
+            "content": "@@ -46,6 +52,7 @@ public class AdaptiveExecutionHandlerFactory {\n      */\n     public static AdaptiveExecutionHandler create(\n             ExecutionPlan executionPlan,\n+            boolean enableBatchJobRecovery,\n             ClassLoader userClassLoader,\n             Executor serializationExecutor)\n             throws DynamicCodeLoadingException {"
+          },
+          {
+            "old_start": 53,
+            "old_lines": 8,
+            "new_start": 60,
+            "new_lines": 13,
+            "content": "@@ -53,8 +60,13 @@ public class AdaptiveExecutionHandlerFactory {\n             return new NonAdaptiveExecutionHandler((JobGraph) executionPlan);\n         } else {\n             checkState(executionPlan instanceof StreamGraph, \"Unsupported execution plan.\");\n-            return new DefaultAdaptiveExecutionHandler(\n-                    userClassLoader, (StreamGraph) executionPlan, serializationExecutor);\n+            if (enableBatchJobRecovery) {\n+                StreamGraph streamGraph = (StreamGraph) executionPlan;\n+                return new NonAdaptiveExecutionHandler(streamGraph.getJobGraph(userClassLoader));\n+            } else {\n+                return new DefaultAdaptiveExecutionHandler(\n+                        userClassLoader, (StreamGraph) executionPlan, serializationExecutor);\n+            }\n         }\n     }\n }"
+          }
+        ],
+        "patch": "@@ -36,8 +36,14 @@ public class AdaptiveExecutionHandlerFactory {\n     /**\n      * Creates an instance of {@link AdaptiveExecutionHandler} based on the provided execution plan.\n      *\n+     * <p>TODO: Currently, adaptive execution cannot work with batch job progress recovery, so we\n+     * always use {@link NonAdaptiveExecutionHandler} if batch job recovery is enabled. This\n+     * limitation will be removed in the future when we adapt adaptive batch execution to batch job\n+     * recovery.\n+     *\n      * @param executionPlan The execution plan, which can be either a {@link JobGraph} or a {@link\n      *     StreamGraph}.\n+     * @param enableBatchJobRecovery Whether to enable batch job recovery.\n      * @param userClassLoader The class loader for the user code.\n      * @param serializationExecutor The executor used for serialization tasks.\n      * @return An instance of {@link AdaptiveExecutionHandler}.\n@@ -46,6 +52,7 @@ public class AdaptiveExecutionHandlerFactory {\n      */\n     public static AdaptiveExecutionHandler create(\n             ExecutionPlan executionPlan,\n+            boolean enableBatchJobRecovery,\n             ClassLoader userClassLoader,\n             Executor serializationExecutor)\n             throws DynamicCodeLoadingException {\n@@ -53,8 +60,13 @@ public class AdaptiveExecutionHandlerFactory {\n             return new NonAdaptiveExecutionHandler((JobGraph) executionPlan);\n         } else {\n             checkState(executionPlan instanceof StreamGraph, \"Unsupported execution plan.\");\n-            return new DefaultAdaptiveExecutionHandler(\n-                    userClassLoader, (StreamGraph) executionPlan, serializationExecutor);\n+            if (enableBatchJobRecovery) {\n+                StreamGraph streamGraph = (StreamGraph) executionPlan;\n+                return new NonAdaptiveExecutionHandler(streamGraph.getJobGraph(userClassLoader));\n+            } else {\n+                return new DefaultAdaptiveExecutionHandler(\n+                        userClassLoader, (StreamGraph) executionPlan, serializationExecutor);\n+            }\n         }\n     }\n }\n"
+      },
+      {
+        "a_filename": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+        "b_filename": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+        "renamed": false,
+        "copied": false,
+        "deleted": false,
+        "change_type": null,
+        "hunks": [
+          {
+            "old_start": 41,
+            "old_lines": 13,
+            "new_start": 41,
+            "new_lines": 12,
+            "content": "@@ -41,13 +41,12 @@ import org.apache.flink.core.fs.Path;\n import org.apache.flink.runtime.execution.Environment;\n import org.apache.flink.runtime.execution.ExecutionState;\n import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;\n+import org.apache.flink.runtime.executiongraph.AccessExecutionJobVertex;\n import org.apache.flink.runtime.highavailability.HighAvailabilityServices;\n import org.apache.flink.runtime.highavailability.nonha.embedded.EmbeddedHaServicesWithLeadershipControl;\n import org.apache.flink.runtime.io.network.partition.PartitionedFile;\n import org.apache.flink.runtime.io.network.partition.ResultPartitionID;\n-import org.apache.flink.runtime.jobgraph.JobGraph;\n import org.apache.flink.runtime.jobgraph.JobType;\n-import org.apache.flink.runtime.jobgraph.JobVertex;\n import org.apache.flink.runtime.jobmaster.JobResult;\n import org.apache.flink.runtime.minicluster.MiniCluster;\n import org.apache.flink.runtime.minicluster.TestingMiniCluster;"
+          },
+          {
+            "old_start": 57,
+            "old_lines": 7,
+            "new_start": 56,
+            "new_lines": 6,
+            "content": "@@ -57,7 +56,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;\n import org.apache.flink.streaming.api.graph.GlobalStreamExchangeMode;\n import org.apache.flink.streaming.api.graph.StreamConfig;\n import org.apache.flink.streaming.api.graph.StreamGraph;\n-import org.apache.flink.streaming.api.graph.StreamingJobGraphGenerator;\n import org.apache.flink.streaming.api.operators.AbstractStreamOperator;\n import org.apache.flink.streaming.api.operators.OneInputStreamOperator;\n import org.apache.flink.streaming.api.operators.Output;"
+          },
+          {
+            "old_start": 165,
+            "old_lines": 12,
+            "new_start": 163,
+            "new_lines": 12,
+            "content": "@@ -165,12 +163,12 @@ class JMFailoverITCase {\n \n     @Test\n     void testRecoverFromJMFailover() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph();\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph();\n \n         // blocking all sink\n         StubRecordSink.blockSubTasks(0, 1, 2, 3);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until sink is running.\n         tryWaitUntilCondition(() -> StubRecordSink.attemptIds.size() > 0);"
+          },
+          {
+            "old_start": 188,
+            "old_lines": 21,
+            "new_start": 186,
+            "new_lines": 25,
+            "content": "@@ -188,21 +186,25 @@ class JMFailoverITCase {\n \n     @Test\n     void testSourceNotAllFinished() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph();\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph();\n \n         // blocking source 0\n         SourceTail.blockSubTasks(0);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until source is running.\n         tryWaitUntilCondition(() -> SourceTail.attemptIds.size() == SOURCE_PARALLELISM);\n \n-        JobVertex source = jobGraph.getVerticesSortedTopologicallyFromSources().get(0);\n         while (true) {\n             AccessExecutionGraph executionGraph = flinkCluster.getExecutionGraph(jobId).get();\n+            AccessExecutionJobVertex source =\n+                    executionGraph.getAllVertices().values().stream()\n+                            .filter(jobVertex -> jobVertex.getName().contains(\"Source\"))\n+                            .findFirst()\n+                            .get();\n             long finishedTasks =\n-                    Arrays.stream(executionGraph.getJobVertex(source.getID()).getTaskVertices())\n+                    Arrays.stream(source.getTaskVertices())\n                             .filter(task -> task.getExecutionState() == ExecutionState.FINISHED)\n                             .count();\n             if (finishedTasks == SOURCE_PARALLELISM - 1) {"
+          },
+          {
+            "old_start": 228,
+            "old_lines": 12,
+            "new_start": 230,
+            "new_lines": 12,
+            "content": "@@ -228,12 +230,12 @@ class JMFailoverITCase {\n         Configuration configuration = new Configuration();\n         configuration.set(\n                 BatchExecutionOptions.JOB_RECOVERY_PREVIOUS_WORKER_RECOVERY_TIMEOUT, Duration.ZERO);\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph(configuration);\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph(configuration);\n \n         // blocking all sink\n         StubRecordSink.blockSubTasks(0, 1, 2, 3);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until sink is running.\n         tryWaitUntilCondition(() -> StubRecordSink.attemptIds.size() > 0);"
+          },
+          {
+            "old_start": 251,
+            "old_lines": 12,
+            "new_start": 253,
+            "new_lines": 12,
+            "content": "@@ -251,12 +253,12 @@ class JMFailoverITCase {\n \n     @Test\n     void testPartitionNotFoundTwice() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph();\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph();\n \n         // blocking map 0 and map 1.\n         StubMapFunction.blockSubTasks(0, 1);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until map deploying, which indicates all source finished.\n         tryWaitUntilCondition(() -> StubMapFunction.attemptIds.size() > 0);"
+          },
+          {
+            "old_start": 286,
+            "old_lines": 12,
+            "new_start": 288,
+            "new_lines": 12,
+            "content": "@@ -286,12 +288,12 @@ class JMFailoverITCase {\n \n     @Test\n     void testPartitionNotFoundAndOperatorCoordinatorNotSupportBatchSnapshot() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph(false);\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph(false);\n \n         // blocking all map task\n         StubMapFunction2.blockSubTasks(0, 1, 2, 3);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until map deploying, which indicates all source finished.\n         tryWaitUntilCondition(() -> StubMapFunction2.attemptIds.size() > 0);"
+          },
+          {
+            "old_start": 312,
+            "old_lines": 12,
+            "new_start": 314,
+            "new_lines": 12,
+            "content": "@@ -312,12 +314,12 @@ class JMFailoverITCase {\n \n     @Test\n     void testPartitionNotFoundAndOperatorCoordinatorSupportBatchSnapshot() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph();\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph();\n \n         // blocking map 0.\n         StubMapFunction.blockSubTasks(0);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until map deploying, which indicates all source finished.\n         tryWaitUntilCondition(() -> StubMapFunction.attemptIds.size() > 0);"
+          },
+          {
+            "old_start": 336,
+            "old_lines": 28,
+            "new_start": 338,
+            "new_lines": 29,
+            "content": "@@ -336,28 +338,29 @@ class JMFailoverITCase {\n         checkCountResults();\n     }\n \n-    private JobGraph prepareEnvAndGetJobGraph() throws Exception {\n+    private StreamGraph prepareEnvAndGetStreamGraph() throws Exception {\n         Configuration configuration = new Configuration();\n         configuration.set(\n                 BatchExecutionOptions.JOB_RECOVERY_PREVIOUS_WORKER_RECOVERY_TIMEOUT,\n                 previousWorkerRecoveryTimeout);\n-        return prepareEnvAndGetJobGraph(configuration, true);\n+        return prepareEnvAndGetStreamGraph(configuration, true);\n     }\n \n-    private JobGraph prepareEnvAndGetJobGraph(Configuration config) throws Exception {\n-        return prepareEnvAndGetJobGraph(config, true);\n+    private StreamGraph prepareEnvAndGetStreamGraph(Configuration config) throws Exception {\n+        return prepareEnvAndGetStreamGraph(config, true);\n     }\n \n-    private JobGraph prepareEnvAndGetJobGraph(boolean operatorCoordinatorsSupportsBatchSnapshot)\n-            throws Exception {\n+    private StreamGraph prepareEnvAndGetStreamGraph(\n+            boolean operatorCoordinatorsSupportsBatchSnapshot) throws Exception {\n         Configuration configuration = new Configuration();\n         configuration.set(\n                 BatchExecutionOptions.JOB_RECOVERY_PREVIOUS_WORKER_RECOVERY_TIMEOUT,\n                 previousWorkerRecoveryTimeout);\n-        return prepareEnvAndGetJobGraph(configuration, operatorCoordinatorsSupportsBatchSnapshot);\n+        return prepareEnvAndGetStreamGraph(\n+                configuration, operatorCoordinatorsSupportsBatchSnapshot);\n     }\n \n-    private JobGraph prepareEnvAndGetJobGraph(\n+    private StreamGraph prepareEnvAndGetStreamGraph(\n             Configuration config, boolean operatorCoordinatorsSupportsBatchSnapshot)\n             throws Exception {\n         flinkCluster ="
+          },
+          {
+            "old_start": 371,
+            "old_lines": 8,
+            "new_start": 374,
+            "new_lines": 8,
+            "content": "@@ -371,8 +374,8 @@ class JMFailoverITCase {\n         env.setRuntimeMode(RuntimeExecutionMode.BATCH);\n \n         return operatorCoordinatorsSupportsBatchSnapshot\n-                ? createJobGraph(env, methodName)\n-                : createJobGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env, methodName);\n+                ? createStreamGraph(env, methodName)\n+                : createStreamGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env, methodName);\n     }\n \n     private TestingMiniClusterConfiguration getMiniClusterConfiguration(Configuration config)"
+          },
+          {
+            "old_start": 446,
+            "old_lines": 7,
+            "new_start": 449,
+            "new_lines": 7,
+            "content": "@@ -446,7 +449,7 @@ class JMFailoverITCase {\n                 new File(flinkConfiguration.get(CoreOptions.TMP_DIRS)));\n     }\n \n-    private JobGraph createJobGraph(StreamExecutionEnvironment env, String jobName) {\n+    private StreamGraph createStreamGraph(StreamExecutionEnvironment env, String jobName) {\n         TupleTypeInfo<Tuple2<Integer, Integer>> typeInfo =\n                 new TupleTypeInfo<>(BasicTypeInfo.INT_TYPE_INFO, BasicTypeInfo.INT_TYPE_INFO);\n "
+          },
+          {
+            "old_start": 468,
+            "old_lines": 10,
+            "new_start": 471,
+            "new_lines": 10,
+            "content": "@@ -468,10 +471,10 @@ class JMFailoverITCase {\n         streamGraph.setGlobalStreamExchangeMode(GlobalStreamExchangeMode.ALL_EDGES_BLOCKING);\n         streamGraph.setJobType(JobType.BATCH);\n         streamGraph.setJobName(jobName);\n-        return StreamingJobGraphGenerator.createJobGraph(streamGraph);\n+        return streamGraph;\n     }\n \n-    private JobGraph createJobGraphWithUnsupportedBatchSnapshotOperatorCoordinator(\n+    private StreamGraph createStreamGraphWithUnsupportedBatchSnapshotOperatorCoordinator(\n             StreamExecutionEnvironment env, String jobName) throws Exception {\n \n         TupleTypeInfo<Tuple2<Integer, Integer>> typeInfo ="
+          },
+          {
+            "old_start": 500,
+            "old_lines": 7,
+            "new_start": 503,
+            "new_lines": 7,
+            "content": "@@ -500,7 +503,7 @@ class JMFailoverITCase {\n         streamGraph.setGlobalStreamExchangeMode(GlobalStreamExchangeMode.ALL_EDGES_BLOCKING);\n         streamGraph.setJobType(JobType.BATCH);\n         streamGraph.setJobName(jobName);\n-        return StreamingJobGraphGenerator.createJobGraph(streamGraph);\n+        return streamGraph;\n     }\n \n     private static void setSubtaskBlocked("
+          }
+        ],
+        "patch": "@@ -41,13 +41,12 @@ import org.apache.flink.core.fs.Path;\n import org.apache.flink.runtime.execution.Environment;\n import org.apache.flink.runtime.execution.ExecutionState;\n import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;\n+import org.apache.flink.runtime.executiongraph.AccessExecutionJobVertex;\n import org.apache.flink.runtime.highavailability.HighAvailabilityServices;\n import org.apache.flink.runtime.highavailability.nonha.embedded.EmbeddedHaServicesWithLeadershipControl;\n import org.apache.flink.runtime.io.network.partition.PartitionedFile;\n import org.apache.flink.runtime.io.network.partition.ResultPartitionID;\n-import org.apache.flink.runtime.jobgraph.JobGraph;\n import org.apache.flink.runtime.jobgraph.JobType;\n-import org.apache.flink.runtime.jobgraph.JobVertex;\n import org.apache.flink.runtime.jobmaster.JobResult;\n import org.apache.flink.runtime.minicluster.MiniCluster;\n import org.apache.flink.runtime.minicluster.TestingMiniCluster;\n@@ -57,7 +56,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;\n import org.apache.flink.streaming.api.graph.GlobalStreamExchangeMode;\n import org.apache.flink.streaming.api.graph.StreamConfig;\n import org.apache.flink.streaming.api.graph.StreamGraph;\n-import org.apache.flink.streaming.api.graph.StreamingJobGraphGenerator;\n import org.apache.flink.streaming.api.operators.AbstractStreamOperator;\n import org.apache.flink.streaming.api.operators.OneInputStreamOperator;\n import org.apache.flink.streaming.api.operators.Output;\n@@ -165,12 +163,12 @@ class JMFailoverITCase {\n \n     @Test\n     void testRecoverFromJMFailover() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph();\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph();\n \n         // blocking all sink\n         StubRecordSink.blockSubTasks(0, 1, 2, 3);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until sink is running.\n         tryWaitUntilCondition(() -> StubRecordSink.attemptIds.size() > 0);\n@@ -188,21 +186,25 @@ class JMFailoverITCase {\n \n     @Test\n     void testSourceNotAllFinished() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph();\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph();\n \n         // blocking source 0\n         SourceTail.blockSubTasks(0);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until source is running.\n         tryWaitUntilCondition(() -> SourceTail.attemptIds.size() == SOURCE_PARALLELISM);\n \n-        JobVertex source = jobGraph.getVerticesSortedTopologicallyFromSources().get(0);\n         while (true) {\n             AccessExecutionGraph executionGraph = flinkCluster.getExecutionGraph(jobId).get();\n+            AccessExecutionJobVertex source =\n+                    executionGraph.getAllVertices().values().stream()\n+                            .filter(jobVertex -> jobVertex.getName().contains(\"Source\"))\n+                            .findFirst()\n+                            .get();\n             long finishedTasks =\n-                    Arrays.stream(executionGraph.getJobVertex(source.getID()).getTaskVertices())\n+                    Arrays.stream(source.getTaskVertices())\n                             .filter(task -> task.getExecutionState() == ExecutionState.FINISHED)\n                             .count();\n             if (finishedTasks == SOURCE_PARALLELISM - 1) {\n@@ -228,12 +230,12 @@ class JMFailoverITCase {\n         Configuration configuration = new Configuration();\n         configuration.set(\n                 BatchExecutionOptions.JOB_RECOVERY_PREVIOUS_WORKER_RECOVERY_TIMEOUT, Duration.ZERO);\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph(configuration);\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph(configuration);\n \n         // blocking all sink\n         StubRecordSink.blockSubTasks(0, 1, 2, 3);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until sink is running.\n         tryWaitUntilCondition(() -> StubRecordSink.attemptIds.size() > 0);\n@@ -251,12 +253,12 @@ class JMFailoverITCase {\n \n     @Test\n     void testPartitionNotFoundTwice() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph();\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph();\n \n         // blocking map 0 and map 1.\n         StubMapFunction.blockSubTasks(0, 1);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until map deploying, which indicates all source finished.\n         tryWaitUntilCondition(() -> StubMapFunction.attemptIds.size() > 0);\n@@ -286,12 +288,12 @@ class JMFailoverITCase {\n \n     @Test\n     void testPartitionNotFoundAndOperatorCoordinatorNotSupportBatchSnapshot() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph(false);\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph(false);\n \n         // blocking all map task\n         StubMapFunction2.blockSubTasks(0, 1, 2, 3);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until map deploying, which indicates all source finished.\n         tryWaitUntilCondition(() -> StubMapFunction2.attemptIds.size() > 0);\n@@ -312,12 +314,12 @@ class JMFailoverITCase {\n \n     @Test\n     void testPartitionNotFoundAndOperatorCoordinatorSupportBatchSnapshot() throws Exception {\n-        JobGraph jobGraph = prepareEnvAndGetJobGraph();\n+        StreamGraph streamGraph = prepareEnvAndGetStreamGraph();\n \n         // blocking map 0.\n         StubMapFunction.blockSubTasks(0);\n \n-        JobID jobId = flinkCluster.submitJob(jobGraph).get().getJobID();\n+        JobID jobId = flinkCluster.submitJob(streamGraph).get().getJobID();\n \n         // wait until map deploying, which indicates all source finished.\n         tryWaitUntilCondition(() -> StubMapFunction.attemptIds.size() > 0);\n@@ -336,28 +338,29 @@ class JMFailoverITCase {\n         checkCountResults();\n     }\n \n-    private JobGraph prepareEnvAndGetJobGraph() throws Exception {\n+    private StreamGraph prepareEnvAndGetStreamGraph() throws Exception {\n         Configuration configuration = new Configuration();\n         configuration.set(\n                 BatchExecutionOptions.JOB_RECOVERY_PREVIOUS_WORKER_RECOVERY_TIMEOUT,\n                 previousWorkerRecoveryTimeout);\n-        return prepareEnvAndGetJobGraph(configuration, true);\n+        return prepareEnvAndGetStreamGraph(configuration, true);\n     }\n \n-    private JobGraph prepareEnvAndGetJobGraph(Configuration config) throws Exception {\n-        return prepareEnvAndGetJobGraph(config, true);\n+    private StreamGraph prepareEnvAndGetStreamGraph(Configuration config) throws Exception {\n+        return prepareEnvAndGetStreamGraph(config, true);\n     }\n \n-    private JobGraph prepareEnvAndGetJobGraph(boolean operatorCoordinatorsSupportsBatchSnapshot)\n-            throws Exception {\n+    private StreamGraph prepareEnvAndGetStreamGraph(\n+            boolean operatorCoordinatorsSupportsBatchSnapshot) throws Exception {\n         Configuration configuration = new Configuration();\n         configuration.set(\n                 BatchExecutionOptions.JOB_RECOVERY_PREVIOUS_WORKER_RECOVERY_TIMEOUT,\n                 previousWorkerRecoveryTimeout);\n-        return prepareEnvAndGetJobGraph(configuration, operatorCoordinatorsSupportsBatchSnapshot);\n+        return prepareEnvAndGetStreamGraph(\n+                configuration, operatorCoordinatorsSupportsBatchSnapshot);\n     }\n \n-    private JobGraph prepareEnvAndGetJobGraph(\n+    private StreamGraph prepareEnvAndGetStreamGraph(\n             Configuration config, boolean operatorCoordinatorsSupportsBatchSnapshot)\n             throws Exception {\n         flinkCluster =\n@@ -371,8 +374,8 @@ class JMFailoverITCase {\n         env.setRuntimeMode(RuntimeExecutionMode.BATCH);\n \n         return operatorCoordinatorsSupportsBatchSnapshot\n-                ? createJobGraph(env, methodName)\n-                : createJobGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env, methodName);\n+                ? createStreamGraph(env, methodName)\n+                : createStreamGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env, methodName);\n     }\n \n     private TestingMiniClusterConfiguration getMiniClusterConfiguration(Configuration config)\n@@ -446,7 +449,7 @@ class JMFailoverITCase {\n                 new File(flinkConfiguration.get(CoreOptions.TMP_DIRS)));\n     }\n \n-    private JobGraph createJobGraph(StreamExecutionEnvironment env, String jobName) {\n+    private StreamGraph createStreamGraph(StreamExecutionEnvironment env, String jobName) {\n         TupleTypeInfo<Tuple2<Integer, Integer>> typeInfo =\n                 new TupleTypeInfo<>(BasicTypeInfo.INT_TYPE_INFO, BasicTypeInfo.INT_TYPE_INFO);\n \n@@ -468,10 +471,10 @@ class JMFailoverITCase {\n         streamGraph.setGlobalStreamExchangeMode(GlobalStreamExchangeMode.ALL_EDGES_BLOCKING);\n         streamGraph.setJobType(JobType.BATCH);\n         streamGraph.setJobName(jobName);\n-        return StreamingJobGraphGenerator.createJobGraph(streamGraph);\n+        return streamGraph;\n     }\n \n-    private JobGraph createJobGraphWithUnsupportedBatchSnapshotOperatorCoordinator(\n+    private StreamGraph createStreamGraphWithUnsupportedBatchSnapshotOperatorCoordinator(\n             StreamExecutionEnvironment env, String jobName) throws Exception {\n \n         TupleTypeInfo<Tuple2<Integer, Integer>> typeInfo =\n@@ -500,7 +503,7 @@ class JMFailoverITCase {\n         streamGraph.setGlobalStreamExchangeMode(GlobalStreamExchangeMode.ALL_EDGES_BLOCKING);\n         streamGraph.setJobType(JobType.BATCH);\n         streamGraph.setJobName(jobName);\n-        return StreamingJobGraphGenerator.createJobGraph(streamGraph);\n+        return streamGraph;\n     }\n \n     private static void setSubtaskBlocked(\n"
       }
     ]
   }

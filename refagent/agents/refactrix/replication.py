@@ -85,9 +85,9 @@ class Replication(BaseModel):
         self._files_to_inspect_before_count = len(files_to_inspect)
         self._files_to_inspect_before_list = files_to_inspect.copy()
 
-        # if len(files_to_inspect) > 50:
-        #     print(f"Limiting files to first 50 due to large number of files: {len(files_to_inspect)}")
-        #     files_to_inspect = files_to_inspect[:50]
+        if len(files_to_inspect) > 50:
+            print(f"Limiting files to first 50 due to large number of files: {len(files_to_inspect)}")
+            files_to_inspect = files_to_inspect[:50]
 
         # Capture data after filtering
         self._files_to_inspect_after_count = len(files_to_inspect)
@@ -164,23 +164,69 @@ class Replication(BaseModel):
 
     def get_linked_files(self, starting_file: str) -> List[str]:
         self.ide_server.open_file(Path(starting_file))
-        linked_files = json.loads(self.ide_server.call_tool_get('get_linked_files'))
+        linked_files_response = self.ide_server.call_tool_get('get_linked_files')
+        
+        # Validate response before parsing JSON
+        if not linked_files_response:
+            print(f"Failed to get linked files: Empty response from server for file {starting_file}")
+            return []
+        
+        if linked_files_response.startswith("tool call failed"):
+            print(f"Failed to get linked files: {linked_files_response}")
+            return []
+        
+        try:
+            linked_files = json.loads(linked_files_response.strip())
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse linked files JSON: {e}")
+            print(f"Raw response: '{linked_files_response}'")
+            print(f"File: {starting_file}")
+            return []
+        except Exception as e:
+            print(f"Unexpected error parsing linked files: {e}")
+            traceback.print_exc()
+            return []
+        
+        # Validate that the response is a list
+        if not isinstance(linked_files, list):
+            print(f"Expected list response but got {type(linked_files)}: {linked_files}")
+            return []
+            
         unique_files = [i for i in set(linked_files) if i.endswith('.java')]
         return unique_files
 
     def get_linked_elements(self, code_element: CodeElement) -> List[CodeElement]:
         self.ide_server.open_file(Path(code_element.file_path))
-        linked_elements_json = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
-        # linked_elements_json = self.ide_server.call_tool('get_linked_elements_hybrid', line_num=code_element.line_num)
-        # linked_elements_json = self.ide_server.call_tool('get_linked_files_hybrid', line_num=code_element.line_num)
+        linked_elements_response = self.ide_server.call_tool('get_linked_elements', line_num=code_element.line_num)
+        # linked_elements_response = self.ide_server.call_tool('get_linked_elements_hybrid', line_num=code_element.line_num)
+        # linked_elements_response = self.ide_server.call_tool('get_linked_files_hybrid', line_num=code_element.line_num)
+        
+        # Validate response before parsing JSON
+        if not linked_elements_response:
+            print(f"Failed to get linked elements: Empty response from server for file {code_element.file_path}, line {code_element.line_num}")
+            return []
+        
+        if linked_elements_response.startswith("tool call failed"):
+            print(f"Failed to get linked elements: {linked_elements_response}")
+            return []
+        
         try:
-            linked_elements_json = json.loads(
-                linked_elements_json
-            )
-        except:
-            print("Failed to get linked element")
+            linked_elements_json = json.loads(linked_elements_response.strip())
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse linked elements JSON: {e}")
+            print(f"Raw response: '{linked_elements_response}'")
+            print(f"File: {code_element.file_path}, Line: {code_element.line_num}")
+            return []
+        except Exception as e:
+            print(f"Unexpected error parsing linked elements: {e}")
             traceback.print_exc()
             return []
+        
+        # Validate that the response is a list
+        if not isinstance(linked_elements_json, list):
+            print(f"Expected list response but got {type(linked_elements_json)}: {linked_elements_json}")
+            return []
+            
         return [CodeElement(**i) for i in linked_elements_json]
 
     def should_replicate(self) -> bool:

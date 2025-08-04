@@ -112,7 +112,6 @@ def load_benchmark(filepath, bench_type) -> List[bm_load.BenchmarkItem]:
     return benchmark
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser(description='Run the agent on the entire benchmark.')
     parser.add_argument('-ij_server_url', type=str, help='Url where IJ server is running.', default=refagent.IJ_SERVER_URL)
     parser.add_argument('-ref_ids', type=str, help='IDs to run the agent on. '
