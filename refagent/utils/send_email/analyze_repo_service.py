@@ -257,6 +257,7 @@ def analyze_repo_from_checkpoint(analyzed_repo_info, json_data_of_a_repo, local_
         print("Start checking entry by entry to create meta data for emails")
 
         saved_developer_info = []
+        analyzed_datapoints = []
         for data in json_data_of_a_repo:
             if skip_old_commits and exclude_commits(local_repo_path, data):
                 continue
@@ -278,7 +279,7 @@ def analyze_repo_from_checkpoint(analyzed_repo_info, json_data_of_a_repo, local_
 
             print(f"Created analysis data for developer: {developer_name}")
             saved_developer_info.append(json_data)
-
+        save_analyzed_datapoint(analyzed_datapoints, project_name)
         update_analyzed_repo_info(project_name=project_name, actual_batch_count=actual_batch_count if actual_batch_count else analyzed_repo_info['batch_analyzed'],
                                   total_commits_count=total_commits_count, saved_developer_info=saved_developer_info, already_analyzed=True)
 
@@ -352,7 +353,6 @@ def analyze_repo_from_beginning(analyzed_repo_info, json_data_of_a_repo, local_r
         saved_developer_info.append(json_data)
         analyzed_datapoints.append(json_data)
     save_analyzed_datapoint(analyzed_datapoints, project_name)
-
     update_analyzed_repo_info(project_name=project_name,actual_batch_count=actual_batch_count, total_commits_count=total_commits_count, saved_developer_info=saved_developer_info)
 
 def update_analyzed_repo_info(project_name, actual_batch_count, total_commits_count, saved_developer_info,
@@ -362,9 +362,11 @@ def update_analyzed_repo_info(project_name, actual_batch_count, total_commits_co
     with open(filepath_to_analyzed_repo, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
+    isNewProject = True
     # Update the entry
     for entry in data:
         if entry['project'] == project_name:
+            isNewProject = False
             entry['batch_analyzed'] = actual_batch_count if not already_analyzed else entry[
                                                                                           'batch_analyzed'] + actual_batch_count
             entry['total_commits_found'] = total_commits_count if not already_analyzed else entry[
@@ -385,6 +387,28 @@ def update_analyzed_repo_info(project_name, actual_batch_count, total_commits_co
                 email_sent_to_developer.append(temp)
 
             entry['mail_sent_to_developer'] = email_sent_to_developer
+
+    if isNewProject:
+        email_sent_to_developer = []
+        for developer_info in saved_developer_info:
+            temp = {
+                "developer_name": developer_info['target_commit_analysis']['author_info']['name'],
+                "developer_email": developer_info['target_commit_analysis']['author_info']['email'],
+                "mail_sent_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "v2_hash": developer_info['target_commit_analysis']['commit_hash'],
+                "total_renames_count": developer_info['target_commit_analysis']['target_commit_info'][
+                    'total_rename_in_author_commit']
+            }
+            email_sent_to_developer.append(temp)
+        new_project_info = {
+            "project_name": project_name,
+            "total_commits_found": total_commits_count,
+            "batch_analyzed": actual_batch_count,
+            "last_analyzed_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "repo_url": "",
+            "mail_sent_to_developer": email_sent_to_developer,
+        }
+        data.append(new_project_info)
 
     # Write updated data back
     with open(filepath_to_analyzed_repo, 'w', encoding='utf-8') as file:
