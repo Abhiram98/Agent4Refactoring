@@ -83,7 +83,8 @@ def setup_and_run(bench_point: bm_load.RenameItem,
         project.reset_head(len(internal_commits))
     agent.update_changed_files()
     project.safe_add(agent.files_changed())
-    new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id} \n\n {previous_commits}")
+    # new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id} \n\n {previous_commits}")
+    new_hash = project.git_repo.commit_all(f"changes to solve benchmark id {bench_point.ref_id} \n\n {previous_commits}")
 
     results_saver.add(
         bench_point.ref_id,
