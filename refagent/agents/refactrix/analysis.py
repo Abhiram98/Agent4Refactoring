@@ -4,11 +4,12 @@ from langchain_core.language_models import BaseChatModel
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END, MessagesState
 from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_core.output_parsers import PydanticOutputParser
+
 
 class AugmentedIntent(BaseModel):
     original_intent: str = Field(description="The original intent provided by the user.")
     augmented_intent: str = Field(description="The enriched intent with extra details.")
+
 
 class AnalysisComponent(BaseModel):
     """An agent that takes an initial intent and augments it with additional details."""
@@ -37,88 +38,56 @@ class AnalysisComponent(BaseModel):
     _augmented_intent: Optional[AugmentedIntent] = PrivateAttr(default=None)
 
     def compile(self) -> CompiledStateGraph:
-        def augment_intent_node(state: MessagesState):
-            parser = PydanticOutputParser(pydantic_object=AugmentedIntent)
-            fmt = parser.get_format_instructions()
-
+        def generate_transformation_rule(state: MessagesState):
             system_msg = (
                 f"{self.generation_system_message}\n\n"
-                # f"Return ONLY the JSON—no markdown or commentary.\n"
-                # f"{fmt}"
+                f"You must return ONLY the transformation rule using the specified template format. "
+                f"Do not include any other text, explanations, or formatting."
             )
 
             llm_messages = [
                 SystemMessage(content=system_msg),
                 HumanMessage(content=f"Initial intent: {self.initial_intent}")
             ]
+
+            print(f"old name: {self.old_name} new name: {self.new_name}")
+            # Provide both diff and source code when available for complete context
             if self.context_information:
-                llm_messages.append(
-                    HumanMessage(content=f"Context: {self.context_information}")
-                )
-            llm_messages.append(
-                HumanMessage(content=f"Source code:\n{self.source_code}")
-            )
+                code_context = f"Code Diff:\n{self.context_information}\n\nSource Code:\n{self.source_code}"
+            else:
+                code_context = f"Source Code:\n{self.source_code}"
 
             llm_messages.append(
-                HumanMessage(content=f"Given the example rename, come up with a reason for why the rename was applied. "
-                                     f"In order to do so, answer the following questions: \n"
-                                     f"1. Why was the variable {self.old_name} renamed to {self.new_name}? \n"
-                                     f"2. In what other situations would a developer perform a similar rename? Where would they rename an element that looks similar to {self.old_name}? \n"
-                                     f"3. In what other situations would a developer choose to not "
-                                     f"perform a rename where an element {self.old_name} was present? \n"
-                                     f"Consider the context of this rename ({self.old_name} -> {self.new_name}) when answering these questions. "
-                                     f"Your answers should be specific to this kind of scenario (renaming {self.old_name} -> {self.new_name})\n"
+                HumanMessage(content=f"Analyze this identifier transformation: {self.old_name} → {self.new_name}\n\n"
+                                     f"{code_context}\n\n"
+                                     f"Create actionable transformation instructions by completing this template:\n\n"
+                                     f'"Transform identifiers that [PATTERN TO MATCH] by [TRANSFORMATION RULE]. Apply this to [SCOPE/CONTEXT]."\n\n'
+                                     f"Guidelines:\n"
+                                     f"- [PATTERN TO MATCH]: Focus on SEMANTIC PATTERNS (e.g., 'identifiers with verbose suffixes', 'methods containing redundant prefixes') rather than exact identifier names\n"
+                                     f"- [TRANSFORMATION RULE]: Describe changes to word parts/suffixes/prefixes (e.g., 'replacing verbose suffixes with concise equivalents')\n"
+                                     f"- [SCOPE/CONTEXT]: Define the type of code context where this applies using code element terms - avoid specific class or method names\n\n"
+                                     f"CRITICAL: Think about WORD PARTS and SEMANTIC CONCEPTS, not exact identifiers. Focus on what part of the identifier changed (prefix, suffix, middle word) and why that change would apply to similar identifiers.\n\n"
+                                     f"Write exactly 1-2 sentences using this template structure, then provide a concrete example using the given transformation: 'Example: {self.old_name} → {self.new_name}'."
                              )
             )
 
             response = self.model.invoke(llm_messages)
-            # augmented_obj = parser.parse(response.content)
-            # save for retrieval
-            # self._augmented_intent = augmented_obj
-            # update only messages in state
+            # Get the transformation rule from LLM response
+            transformation_rule = response.content if isinstance(response.content, str) else str(response.content)
+            print(f"DEBUG: LLM Response content: {transformation_rule}")
+
+            # Create AugmentedIntent using existing initial_intent and new transformation rule
+            self._augmented_intent = AugmentedIntent(
+                original_intent=self.initial_intent,
+                augmented_intent=transformation_rule.strip()
+            )
+
             return {'messages': llm_messages + [response]}
 
-        def summarize_intent_node(state: MessagesState):
-            parser = PydanticOutputParser(pydantic_object=AugmentedIntent)
-            fmt = parser.get_format_instructions()
-            system_msg = (
-                f"{self.generation_system_message}\n\n"
-                f"You must return ONLY a JSON object with exactly these two fields:\n"
-                f"- original_intent: The original intent/reason for the rename\n"
-                f"- augmented_intent: A detailed explanation of when and why to perform similar renames\n"
-                f"Do not include any other fields, nested objects, or markdown formatting.\n"
-                f"Example format: {{\"original_intent\": \"...\", \"augmented_intent\": \"...\"}}\n"
-                f"{fmt}"
-            )
-            messages = state['messages']
-            # Update the system message to have formatting instructions
-            messages[0] = SystemMessage(content=system_msg)
-            response = self.model.invoke(messages +
-                 [HumanMessage(
-                     "Now imagine that a second developer would need to perform similar changes in this file and in other locations. "
-                     "Provide them the concept/idea of what needs to change. "
-                     "Return a JSON object with exactly these two fields:\n"
-                     "- original_intent: The original intent/reason for the rename\n"
-                     "- augmented_intent: A detailed explanation of when and why to perform similar renames\n"
-                     "Do not include any other fields or nested objects. Return only the JSON."
-                 )])
-            # Ensure content is a string for parsing
-            content = response.content if isinstance(response.content, str) else str(response.content)
-            print(f"DEBUG: LLM Response content: {content}")
-            try:
-                augmented_obj = parser.parse(content)
-                self._augmented_intent = augmented_obj
-            except Exception as e:
-                print(f"DEBUG: Parser error: {e}")
-                print(f"DEBUG: Response content was: {content}")
-                raise
-
         workflow = StateGraph(MessagesState)
-        workflow.add_node("augment_intent", augment_intent_node)
-        workflow.add_node("summarize_intent", summarize_intent_node)
-        workflow.add_edge(START, "augment_intent")
-        workflow.add_edge("augment_intent", "summarize_intent")
-        workflow.add_edge("summarize_intent", END)
+        workflow.add_node("generate_transformation_rule", generate_transformation_rule)
+        workflow.add_edge(START, "generate_transformation_rule")
+        workflow.add_edge("generate_transformation_rule", END)
         return workflow.compile()
 
     def run(self) -> AugmentedIntent:

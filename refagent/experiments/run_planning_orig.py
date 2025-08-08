@@ -19,16 +19,8 @@ import refagent.utils.project_manager as pm
 
 import refagent.agents.refactrix.analysis as analysis
 
-def get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
-    project = pm.EvalProject(project_name)
-    return project.get_commit_diff(
-        file_path_1=file_path_1,
-        file_path_2=file_path_2,
-        sha_1=v1_hash,
-        sha_2=v2_hash,
-        unified_context=1000)
 
-def run_planning(bench_point: bm_load.RenameItem,
+def run_planning(bench_point: bm_load.BenchmarkItem,
                  results_saver: rm.ResultsManager):
     project = pm.EvalProject(bench_point.project_name)
     project.checkout(bench_point.v1_hash, force=True)
@@ -52,19 +44,10 @@ def run_planning(bench_point: bm_load.RenameItem,
     old_name = bench_point.hints[0].split(" -> ")[0].strip(" ")
     new_name = bench_point.hints[0].split(" -> ")[1].strip(" ")
 
-    file_1 = bench_point.seed_example.leftSideLocations[0].filePath
-    file_2 = bench_point.seed_example.rightSideLocations[0].filePath
-    v1_hash = bench_point.v1_hash
-    seed_hash = bench_point.seed_hash
-    diff =  get_git_diff(bench_point.project_name, file_1, file_2, v1_hash, seed_hash)
-
-    print(f"Difference: {diff}")
-
     augmented_intent = analysis.AnalysisComponent(
         model=model,
-        source_file_path=file_1,
-        source_code=project.get_file_contents(file_1),
-        context_information=diff,
+        source_file_path=bench_point.starting_file,
+        source_code=project.get_file_contents(bench_point.starting_file),
         initial_intent=bench_point.improved_commit_message,
         old_name=old_name,
         new_name=new_name
@@ -103,7 +86,7 @@ if __name__ == '__main__':
     use_previous = False
     with open(args.benchmark_file) as f:
         benchmark_json = json.load(f)
-    benchmark = bm_load.load_benchmark(benchmark_json, bench_type=bm_load.RenameItem)
+    benchmark = bm_load.load_benchmark(benchmark_json)
     results_saver = rm.ResultsManager(run_identifier=args.run_identifier, save_file="planning.json")
 
     for bench_point in benchmark:
