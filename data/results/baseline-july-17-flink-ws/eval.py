@@ -20,11 +20,7 @@ if __name__ == '__main__':
         recall = d['recall']
         oracle_count = d['oracle_count']
         agent_refactoring_count = d['agent_refactoring_count']
-
-        if precision > 1:
-            precision = 1
-        if recall > 1:
-            recall = 1
+        true_positives_count = len(d['true_positives'])
 
         # Calculate F1 score
         if precision + recall > 0:
@@ -40,7 +36,8 @@ if __name__ == '__main__':
             'recall': recall,
             'f1_score': f1_score,
             'agent_refactoring_count': agent_refactoring_count,
-            'oracle_count': oracle_count
+            'oracle_count': oracle_count,
+            'true_positives_count': true_positives_count,
         })
 
         # Add to sums for averages
@@ -55,7 +52,7 @@ if __name__ == '__main__':
 
     # Save results to CSV
     with open(f"{file_name}.csv", "w", newline='') as csvfile:
-        fieldnames = ['id', 'precision', 'recall', 'f1_score', 'agent_refactoring_count', 'oracle_count']
+        fieldnames = ['id', 'precision', 'recall', 'f1_score', 'agent_refactoring_count', 'oracle_count', 'true_positives_count']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
