@@ -1,5 +1,4 @@
 import json
-import json
 import os
 import argparse
 from analyze_repo_service import analyze_repo_from_beginning, analyze_repo_from_checkpoint

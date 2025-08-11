@@ -21,6 +21,12 @@ RENAME_TYPES = {
 }
 
 
+def load_as_df(output_dir):
+
+    df = pd.read_csv(f"{output_dir}/rename_analysis_results_count.csv")
+    return df, len(df)
+
+
 def get_rename_elements(json_data):
     return [refactoring_change for refactoring_change in json_data['refactoring_changes'] if
             refactoring_change['type'] in RENAME_TYPES]
@@ -76,7 +82,7 @@ def exclude_commits(local_repo_path, data):
     if commit_date:
         # Convert both dates to date-only objects for comparison
         commit_date_only = commit_date.date()
-        two_days_ago = (datetime.now() - timedelta(days=2)).date()  # Changed from one day to two days
+        two_days_ago = (datetime.now() - timedelta(days=7)).date()  # Changed from one day to two days
         print(f"commit date: {commit_date_only} and checking against: {two_days_ago}")
         if commit_date_only >= two_days_ago:  # Changed to > two_days_ago
             print(
@@ -230,81 +236,49 @@ def create_summary_report(df, output_dir, project_name, total_commits_count, sin
 def analyze_repo_from_checkpoint(analyzed_repo_info, json_data_of_a_repo, local_repo_path, since_date, output_dir_base,
                                  skip_old_commits=True):
     print(f"Analyzing already existed repository at {local_repo_path}")
-    batch_output_dir = f'{output_dir_base}/batch_results'
     git_pull(local_repo_path)
     print(f"Pulled repo: {local_repo_path} to get the latest commits")
+    batch_output_dir = f'{output_dir_base}/batch_results'
 
-    new_commits = get_commits_since_date(local_repo_path,
-                                         since_date=analyzed_repo_info["last_analyzed_time"].split(' ')[0])
-    if len(new_commits) != 0:
-        print(f"New commits found: {len(new_commits)}")
-        save_commits_to_file(new_commits, f'{output_dir_base}/commits.txt')
-        result = process_commits_with_refactoringminer(
-            repo_path=str(local_repo_path),
-            commits=new_commits,
-            output_dir=batch_output_dir,
-            max_batch_size=500,
-            start_batch_index=analyzed_repo_info['batch_analyzed']
-        )
-        project_name = json_data_of_a_repo[0]['project']
-        actual_batch_count = None
-        if result is not None:
-            actual_batch_count, successful_batches, failed_batches = result
+    print("Start checking entry by entry to create meta data for emails")
 
-            print(f"Processed {actual_batch_count} batches")
-            print(f"Successful batches: {successful_batches}")
-            print(f"Failed batches: {failed_batches}")
+    saved_developer_info = []
+    analyzed_datapoints = []
+    total_commits_count = len(get_commits_since_date(local_repo_path, since_date=since_date))
+    df, df_length = load_as_df(output_dir_base)
+    project_name = json_data_of_a_repo[0]['project']
 
-        # Process rename analysis results
-        print("Processing rename analysis results...")
-        df = process_rename_analysis_results(batch_output_dir, output_dir_base, local_repo_path)
+    for data in json_data_of_a_repo:
+        if skip_old_commits and exclude_commits(local_repo_path, data):
+            continue
+        developer_name, developer_email = get_commit_author_info(data["v2_hash"], local_repo_path)
+        if developer_already_analyzed(local_repo_path, data, analyzed_repo_info, developer_name, developer_email):
+            continue
 
-        # Create plots
-        print("Creating visualizations...")
-        create_plots(df, output_dir_base, project_name, since_date)
-        total_commits_count = get_total_commits_count(f'{output_dir_base}/commits.txt')
-        # Create summary report
-        create_summary_report(df, output_dir_base, project_name, total_commits_count, since_date)
+        if len(get_rename_elements(data)) <= 3:
+            print(
+                f'Skipping {data["v2_hash"]} with {len(get_rename_elements(data))} rename elements as it is less than 4 renames.')
+            continue
 
-        print(f"✓ Successfully analyzed repository: {project_name}")
-        print(f"Results saved to: {output_dir_base}")
-        print(f"Main analysis file: {output_dir_base}/comprehensive_analysis_repository.json")
+        json_data = create_json_analysis(df, local_repo_path,
+                                         f'{output_dir_base}/{datetime.now().strftime("%Y-%m-%d")}/developer_analysis',
+                                         target_commit_hash=data['v2_hash'],
+                                         project_name=project_name,
+                                         developer_name=developer_name,
+                                         original_commit_count=total_commits_count,
+                                         renamed_attributes=get_renamed_attributes(data))
 
-        print("Start checking entry by entry to create meta data for emails")
-
-        saved_developer_info = []
-        analyzed_datapoints = []
-        for data in json_data_of_a_repo:
-            if skip_old_commits and exclude_commits(local_repo_path, data):
-                continue
-            developer_name, developer_email = get_commit_author_info(data["v2_hash"], local_repo_path)
-            if developer_already_analyzed(local_repo_path, data, analyzed_repo_info, developer_name, developer_email):
-                continue
-
-            if len(get_rename_elements(data)) <= 3:
-                print(
-                    f'Skipping {data["v2_hash"]} with {len(get_rename_elements(data))} rename elements as it is less than 4 renames.')
-                continue
-
-            json_data = create_json_analysis(df, local_repo_path,
-                                             f'{output_dir_base}/{datetime.now().strftime("%Y-%m-%d")}/developer_analysis',
-                                             target_commit_hash=data['v2_hash'],
-                                             project_name=project_name,
-                                             developer_name=developer_name,
-                                             original_commit_count=total_commits_count,
-                                             renamed_attributes=get_renamed_attributes(data))
-
-            if json_data is not None:
-                print(f"Created analysis data for developer: {developer_name}")
-                saved_developer_info.append(json_data)
-            else:
-                print(f"Failed to create analysis data for developer: {developer_name}")
-        save_analyzed_datapoint(analyzed_datapoints, project_name)
-        update_analyzed_repo_info(project_name=project_name,
-                                  actual_batch_count=actual_batch_count if actual_batch_count else analyzed_repo_info[
-                                      'batch_analyzed'],
-                                  total_commits_count=total_commits_count, saved_developer_info=saved_developer_info,
-                                  already_analyzed=True)
+        if json_data is not None:
+            print(f"Created analysis data for developer: {developer_name}")
+            saved_developer_info.append(json_data)
+        else:
+            print(f"Failed to create analysis data for developer: {developer_name}")
+    save_analyzed_datapoint(analyzed_datapoints, project_name)
+    update_analyzed_repo_info(project_name=project_name,
+                              actual_batch_count= analyzed_repo_info[
+                                  'batch_analyzed'],
+                              total_commits_count=total_commits_count, saved_developer_info=saved_developer_info,
+                              already_analyzed=True)
 
 
 def analyze_repo_from_beginning(analyzed_repo_info, json_data_of_a_repo, local_repo_path, since_date, output_dir_base,
@@ -398,12 +372,12 @@ def update_analyzed_repo_info(project_name, actual_batch_count, total_commits_co
     for entry in data:
         if entry['project'] == project_name:
             isNewProject = False
-            entry['batch_analyzed'] = actual_batch_count if not already_analyzed else entry[
-                                                                                          'batch_analyzed'] + actual_batch_count
-            entry['total_commits_found'] = total_commits_count if not already_analyzed else entry[
-                                                                                                'total_commits_found'] + total_commits_count
-            entry['last_analyzed_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") if already_analyzed else entry[
-                'last_analyzed_time']
+            # entry['batch_analyzed'] = actual_batch_count if not already_analyzed else entry[
+            #                                                                               'batch_analyzed'] + actual_batch_count
+            # entry['total_commits_found'] = total_commits_count if not already_analyzed else entry[
+            #                                                                                     'total_commits_found'] + total_commits_count
+            # entry['last_analyzed_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") if already_analyzed else entry[
+            #     'last_analyzed_time']
 
             email_sent_to_developer = entry.get('mail_sent_to_developer', [])
 

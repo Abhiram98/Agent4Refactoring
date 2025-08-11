@@ -41,11 +41,11 @@ def clone_repository(repo_url, base_path, project_name):
             print(f"    ⚠ Repository already exists (lowercase), skipping: {lowercase_path}")
             return 'exists'
         
-        print(f"    📥 Cloning {repo_url} to {target_path}")
+        print(f"    📥 Shallow cloning {repo_url} (since 2024-01-01) to {target_path}")
         
         try:
             result = subprocess.run([
-                'git', 'clone', '--progress', repo_url, target_path
+                'git', 'clone', '--progress', '--shallow-since', '2024-01-01', repo_url, target_path
             ], timeout=3000)  # 50 minutes timeout, shows progress in real-time
             
             if result.returncode == 0:

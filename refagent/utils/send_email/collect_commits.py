@@ -546,7 +546,7 @@ def process_single_commit_with_refactoringminer(repo_path: str, commit_sha: str,
         timeout_seconds = timeout_minutes * 60
 
         # Run RefactoringMiner on single commit with -c flag
-        cmd = f"RefactoringMiner -c {repo_path} {commit_sha} -json {output_file}"
+        cmd = f"/Users/moul7361/Desktop/AI-Agents/tool/RefactoringMiner/build/distributions/RefactoringMiner-3.0.11/bin/RefactoringMiner -c {repo_path} {commit_sha} -json {output_file}"
         print(f"Running command: {cmd}")
         print(f"Timeout: {timeout_minutes} minutes")
 
