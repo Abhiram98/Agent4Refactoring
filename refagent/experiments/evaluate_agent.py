@@ -56,8 +56,8 @@ def main():
     benchmark: List[bm_load.RenameItem] = bm_load.load_benchmark(benchmark_json, bench_type=bm_load.RenameItem)
 
     for result in agent_results:
-        if result['id'] != 2122:
-            continue
+        # if result['id'] != 2121:
+        #     continue
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
         # assert len(bench_points) == 1
         bench_point = bench_points[0]

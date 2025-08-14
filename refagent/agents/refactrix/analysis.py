@@ -58,7 +58,7 @@ class AnalysisComponent(BaseModel):
                 code_context = f"Source Code:\n{self.source_code}"
 
             llm_messages.append(
-                HumanMessage(content=f"Analyze this identifier transformation: {self.old_name} → {self.new_name}\n\n"
+                HumanMessage(content=f"Analyze this identifier transformation: {self.old_name} -> {self.new_name}\n\n"
                                      f"{code_context}\n\n"
                                      f"Create actionable transformation instructions by completing this template:\n\n"
                                      f'"Transform identifiers that [PATTERN TO MATCH] by [TRANSFORMATION RULE]. Apply this to [SCOPE/CONTEXT]."\n\n'
@@ -67,7 +67,7 @@ class AnalysisComponent(BaseModel):
                                      f"- [TRANSFORMATION RULE]: Describe changes to word parts/suffixes/prefixes (e.g., 'replacing verbose suffixes with concise equivalents')\n"
                                      f"- [SCOPE/CONTEXT]: Define the type of code context where this applies using code element terms - avoid specific class or method names\n\n"
                                      f"CRITICAL: Think about WORD PARTS and SEMANTIC CONCEPTS, not exact identifiers. Focus on what part of the identifier changed (prefix, suffix, middle word) and why that change would apply to similar identifiers.\n\n"
-                                     f"Write exactly 1-2 sentences using this template structure, then provide a concrete example using the given transformation: 'Example: {self.old_name} → {self.new_name}'."
+                                     f"Write exactly 1-2 sentences using this template structure, then provide a concrete example using the given transformation: 'Example: {self.old_name} -> {self.new_name}'."
                              )
             )
 

@@ -56,21 +56,31 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     vendor = 'grazie' # switch to `openai` to use the openai models directly
     # vendor = 'openai'
 
+    enable_critique = args.enable_critique.lower() == "true"
     agent = react_agent.ReactAgent(ide_server=ij_server,
                      reasoning_model_name=f'{vendor}:openai-o4-mini',
                      model_name=f'{vendor}:openai-gpt-4o-mini',
                      project=project,
                      plan_component=plan_type,
                      augmented_intent=augmented_intent,
-                     do_replication=do_replication)
+                     do_replication=do_replication,
+                     enable_critique=enable_critique)
+    
     try:
         if not do_replication:
+            agent.initialize_agent(starting_file=bench_point.starting_file)
+            if enable_critique:
+                print("Critique Enabled")
+                agent.initialize_critique_component(bench_point.refactoring_changes)
             final_message = agent.run(initial_intent=bench_point.improved_commit_message,
                                       starting_file=bench_point.starting_file)  # run the agent with commit message
         else:
             assert initial_commit is not None, "initial commit must be provided for replication"
             agent.add_internal_commit(project.git_repo.commit(initial_commit))
             agent.initialize_agent(starting_file=bench_point.starting_file)
+            # Re-initialize critique component after agent initialization
+            if enable_critique:
+                agent.initialize_critique_component(bench_point.refactoring_changes)
             agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
@@ -138,6 +148,10 @@ if __name__ == '__main__':
                              "If true, the change summary is used to improve the intent. "
                              "If false, the change summary is not used.", default=False)
     parser.add_argument("--use_seed", action='store_true')
+    parser.add_argument("--enable_critique", type=str, 
+                        help="Whether to enable oracle-based critique component. "
+                             "If true, agent suggestions are validated against oracle data before execution.",
+                        default="true")
     args = parser.parse_args()
 
 

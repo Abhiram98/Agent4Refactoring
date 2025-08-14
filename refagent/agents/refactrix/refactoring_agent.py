@@ -37,6 +37,7 @@ import refagent.utils.project_manager as pm
 import refagent.agents.refactrix.replication as replication
 import refagent.agents.refactrix.error_fixing as error_fixing
 import refagent.agents.refactrix.quality_check as quality_check
+import refagent.agents.refactrix.critique as critique
 
 
 class SelectedRefactoring(BaseModel):
@@ -60,6 +61,8 @@ class Agent(BaseModel):
     max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
     augmented_intent: Optional[str] = Field(description="the intent to be refactored", default=None)
     do_replication: bool = Field(description="whether to run replication", default=True)
+    enable_critique: bool = Field(description="whether to enable oracle-based critique", default=True)
+    critique_config: Optional[critique.CritiqueConfig] = Field(description="critique component configuration", default=None)
 
     MAX_GRAPH_ITERATION: int = Field(description="The maximum number of iterations to run the graph for.", default=5)
     MAX_FAILING_TOOL_CALLS: int = Field(
@@ -81,6 +84,8 @@ class Agent(BaseModel):
     _original_starting_file: str = PrivateAttr(default="")
     _performed_refactorings: Dict = PrivateAttr(default=defaultdict(list))
     _replication_inspection_data: Dict = PrivateAttr(default={})
+    _critique_component: Optional[critique.CritiqueComponent] = PrivateAttr(default=None)
+    _critique_retry_count: int = PrivateAttr(default=0)
 
     class Config:
         arbitrary_types_allowed = True
@@ -167,6 +172,19 @@ class Agent(BaseModel):
         self._reasoning_model = self.create_model(self.reasoning_model_name) if self.reasoning_model_name else model
         self._original_source_code = self.project.get_file_contents(self._starting_file)
         return model
+
+    def initialize_critique_component(self, oracle_data: List):
+        """Initialize the critique component with oracle data."""
+        if self.enable_critique and oracle_data:
+            config = self.critique_config if self.critique_config else critique.CritiqueConfig()
+            self._critique_component = critique.CritiqueComponent(
+                oracle_data=oracle_data,
+                current_file=self._starting_file,
+                config=config
+            )
+            print(f"Initialized critique component with {len(oracle_data)} oracle entries")
+        else:
+            print("Critique component disabled or no oracle data provided")
 
     def run_agentic_loop(self, current_intent, model, starting_file):
         for _ in range(self.max_iterations):
@@ -278,6 +296,10 @@ class Agent(BaseModel):
             self.try_open_file(ref_plan.steps[0].file_path)  # open the file. The edits should happen in only one file.
 
         for i, step in enumerate(ref_plan.steps):
+            # Update critique component for the current file being processed
+            if self._critique_component and step.file_path:
+                self._critique_component.current_file = step.file_path
+                print(f"Updated critique component to file: {step.file_path}")
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
             self._iterations = 0
             self._failing_tool_call_count = 0
@@ -293,8 +315,9 @@ class Agent(BaseModel):
                             SystemMessage(f"You are an expert developer who executes refactorings to"
                                           f" improve the quality of the given code. "
                                           f"Please do the following: {step.refactoring_type.value}: {step.reason} {step.execution_details} "
-                                          f"The final code is expected to look like this: {step.final_code}"
-                                          f"ONLY make TOOL CALLS to perform actions."),
+                                          f"The final code is expected to look like this: {step.final_code} "
+                                          f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
+                                          f"You will be asked to provide your analysis as a JSON response containing all rename suggestions."),
                         ]
                     },
                     config={"configurable": {"thread_id": 42}, "recursion_limit": 50}
@@ -483,6 +506,9 @@ class Agent(BaseModel):
                 rel_file_path=rel_file_path,
                 ide_server=self.ide_server
             )
+            # Pass critique component to the executor
+            if hasattr(self, '_critique_component') and self._critique_component:
+                executor.critique_component = self._critique_component
             perform_refactoring_graph = executor.compile()
             messages = state['messages'] + [
                 AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}."),
