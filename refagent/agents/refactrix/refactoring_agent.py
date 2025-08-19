@@ -63,6 +63,10 @@ class Agent(BaseModel):
     do_replication: bool = Field(description="whether to run replication", default=True)
     enable_critique: bool = Field(description="whether to enable oracle-based critique", default=True)
     critique_config: Optional[critique.CritiqueConfig] = Field(description="critique component configuration", default=None)
+    
+    # Memory parameters
+    benchmark_id: Optional[int] = Field(description="Benchmark ID for memory isolation", default=None)
+    memory_database_url: Optional[str] = Field(description="Memory database URL", default=None)
 
     MAX_GRAPH_ITERATION: int = Field(description="The maximum number of iterations to run the graph for.", default=5)
     MAX_FAILING_TOOL_CALLS: int = Field(
@@ -504,7 +508,9 @@ class Agent(BaseModel):
                 reason=reason,
                 refactoring_type=refactoring_type,
                 rel_file_path=rel_file_path,
-                ide_server=self.ide_server
+                ide_server=self.ide_server,
+                benchmark_id=self.benchmark_id,
+                memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db"
             )
             # Pass critique component to the executor
             if hasattr(self, '_critique_component') and self._critique_component:

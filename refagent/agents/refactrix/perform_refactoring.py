@@ -14,6 +14,7 @@ from pathlib import Path
 import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.utils.intellij_server as ij
 from refagent.agents.refactrix.rename_suggestions import RenameAnalysis, RenameSuggestion, ValidatedRenames
+from refagent.agents.memory.orm_memory import ORMRefactoringMemory
 
 
 class PerformRefactoring(BaseModel):
@@ -32,6 +33,31 @@ class PerformRefactoring(BaseModel):
     _performed_refactorings: List = PrivateAttr(default=[])
     _tool_call_map: Dict = PrivateAttr(default=defaultdict(dict))
     _critique_retry_count: int = PrivateAttr(default=0)
+
+    orm_memory: Optional[Any] = Field(
+        description="ORM-based persistent memory component", 
+        default=None
+    )
+    benchmark_id: Optional[int] = Field(
+        description="Current benchmark ID for memory isolation",
+        default=None
+    )
+    memory_database_url: str = Field(
+        description="Database URL for memory storage",
+        default="sqlite:///refactoring_memory.db"
+    )
+    
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.orm_memory is None:
+            self.orm_memory = ORMRefactoringMemory(self.memory_database_url)
+
+        # Start memory session if benchmark_id is provided
+        if self.benchmark_id and self.orm_memory:
+            self.orm_memory.start_session(self.benchmark_id)
 
     def get_tool_call_str(self, tool_call: Optional[ToolCall]=None) -> str:
         if tool_call is None:
@@ -68,36 +94,106 @@ class PerformRefactoring(BaseModel):
         def successful_file_open(state: MessagesState):
             return self._file_open_status
 
+        # def call_llm(state: MessagesState):
+        #     # Check if we've exceeded max retries (default is 3, but using retry_count field)
+        #     max_retries = max(3, self.retry_count + 1)  # Ensure at least 3 retries, use field if higher
+        #     if self._retry_iteration > max_retries:
+        #         print(f"[LLM DEBUG] Max retries ({max_retries}) exceeded, stopping LLM calls")
+        #         return {"messages": [AIMessage(f"Stopping LLM calls after {max_retries} attempts. Unable to generate valid rename suggestions.")]}
+        #
+        #     print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}/{max_retries}")
+        #
+        #     if self._retry_iteration > 1:
+        #         # Add retry warning for JSON-based approach
+        #         state['messages'][-1].content += (f"Your previous rename suggestions were invalid. "
+        #                                           f"DO NOT suggest the same renames again. Try different ones.")
+        #
+        #     # Create output parser for structured JSON response
+        #     parser = PydanticOutputParser(pydantic_object=RenameAnalysis)
+        #
+        #     # Add JSON format instructions to the last message
+        #     format_instructions = (
+        #         "\n\nIMPORTANT: Respond with a JSON object containing your analysis and rename suggestions. "
+        #         f"Use this exact format:\n{parser.get_format_instructions()}"
+        #     )
+        #
+        #     # Modify the last message to include format instructions
+        #     messages = state['messages'].copy()
+        #     if messages:
+        #         last_msg = messages[-1]
+        #         if hasattr(last_msg, 'content'):
+        #             last_msg.content += format_instructions
+        #
+        #     # Use model without tools for JSON output
+        #     response = self.model.invoke(messages)
+        #     self._retry_iteration += 1
+        #     return {"messages": [response]}
+
         def call_llm(state: MessagesState):
+            """Call LLM with memory-enhanced feedback for retry attempts."""
             # Check if we've exceeded max retries (default is 3, but using retry_count field)
             max_retries = max(3, self.retry_count + 1)  # Ensure at least 3 retries, use field if higher
             if self._retry_iteration > max_retries:
                 print(f"[LLM DEBUG] Max retries ({max_retries}) exceeded, stopping LLM calls")
-                return {"messages": [AIMessage(f"Stopping LLM calls after {max_retries} attempts. Unable to generate valid rename suggestions.")]}
-            
+
+                # End memory session if we have one
+                if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
+                    self.orm_memory.end_session()
+
+                return {"messages": [AIMessage(
+                    f"Stopping LLM calls after {max_retries} attempts. Unable to generate valid rename suggestions.")]}
+
             print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}/{max_retries}")
-            
+
             if self._retry_iteration > 1:
-                # Add retry warning for JSON-based approach
-                state['messages'][-1].content += (f"Your previous rename suggestions were invalid. "
-                                                  f"DO NOT suggest the same renames again. Try different ones.")
-            
+                # Add memory-enhanced retry feedback
+                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
+                                                                               'benchmark_id') and self.benchmark_id:
+                    try:
+                        memory_feedback = self.orm_memory.get_memory_feedback(
+                            benchmark_id=self.benchmark_id,
+                            file_path=self.rel_file_path
+                        )
+                        if memory_feedback:
+                            print(f"[MEMORY DEBUG] Adding memory feedback: {memory_feedback}")
+                            state['messages'][-1].content += f" {memory_feedback}"
+                        else:
+                            # Fallback to basic retry message
+                            print(f"[MEMORY DEBUG] Could not add memory feedback")
+                            state['messages'][-1].content += (
+                                f"Your previous rename suggestions were invalid. "
+                                f"DO NOT suggest the same renames again. Try different ones."
+                            )
+                    except Exception as e:
+                        print(f"[MEMORY DEBUG] Error getting memory feedback: {e}")
+                        # Fallback to basic retry message
+                        state['messages'][-1].content += (
+                            f"Your previous rename suggestions were invalid. "
+                            f"DO NOT suggest the same renames again. Try different ones."
+                        )
+                else:
+                    # No memory available, use basic retry message
+                    state['messages'][-1].content += (
+                        f"Your previous rename suggestions were invalid. "
+                        f"DO NOT suggest the same renames again. Try different ones."
+                    )
+
             # Create output parser for structured JSON response
             parser = PydanticOutputParser(pydantic_object=RenameAnalysis)
-            
+
             # Add JSON format instructions to the last message
             format_instructions = (
                 "\n\nIMPORTANT: Respond with a JSON object containing your analysis and rename suggestions. "
                 f"Use this exact format:\n{parser.get_format_instructions()}"
             )
-            
+
             # Modify the last message to include format instructions
             messages = state['messages'].copy()
             if messages:
                 last_msg = messages[-1]
                 if hasattr(last_msg, 'content'):
                     last_msg.content += format_instructions
-            
+
             # Use model without tools for JSON output
             response = self.model.invoke(messages)
             self._retry_iteration += 1
@@ -200,76 +296,243 @@ class PerformRefactoring(BaseModel):
 
             return "llm_tool"  # retry the tool call
 
+        # def critique_json_suggestions(state: MessagesState):
+        #     """Critique JSON rename suggestions before creating tool calls."""
+        #     last_message = state['messages'][-1]
+        #
+        #     print(f"[CRITIQUE DEBUG] Critiquing JSON suggestions from message type: {type(last_message)}")
+        #
+        #     # If no critique component, proceed without validation
+        #     if not self.critique_component:
+        #         return {"messages": [AIMessage("No critique component - proceeding with all suggestions")]}
+        #
+        #     # Extract rename analysis from message
+        #     if not hasattr(last_message, 'additional_kwargs') or 'rename_analysis' not in last_message.additional_kwargs:
+        #         print(f"[CRITIQUE DEBUG] No rename analysis found in message")
+        #         return {"messages": [HumanMessage("No rename suggestions found to critique. Please provide rename suggestions in the correct JSON format.")]}
+        #
+        #     # Parse the rename analysis
+        #     rename_analysis_data = last_message.additional_kwargs['rename_analysis']
+        #     rename_analysis = RenameAnalysis(**rename_analysis_data)
+        #
+        #     print(f"[CRITIQUE DEBUG] Found {len(rename_analysis.rename_suggestions)} suggestions to validate")
+        #
+        #     # Validate each rename suggestion
+        #     valid_suggestions = []
+        #     invalid_suggestions = []
+        #
+        #     for suggestion in rename_analysis.rename_suggestions:
+        #         print(f"[CRITIQUE DEBUG] Validating: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num}")
+        #
+        #         critique_result = self.critique_component.validate_rename_suggestion(
+        #             suggestion.old_name,
+        #             suggestion.new_name,
+        #             suggestion.line_num,
+        #             suggestion.code_element_type.value
+        #         )
+        #
+        #         print(f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
+        #
+        #         if critique_result.is_valid:
+        #             valid_suggestions.append(suggestion)
+        #             print(f"[CRITIQUE DEBUG] PASSED: {suggestion.old_name} → {suggestion.new_name}")
+        #         else:
+        #             invalid_suggestions.append(suggestion)
+        #             print(f"[CRITIQUE DEBUG] FAILED: {suggestion.old_name} → {suggestion.new_name}")
+        #
+        #     # Create validated renames result
+        #     validated_result = ValidatedRenames(
+        #         valid_suggestions=valid_suggestions,
+        #         invalid_suggestions=invalid_suggestions,
+        #         critique_feedback=f"Validated {len(valid_suggestions)} valid and {len(invalid_suggestions)} invalid suggestions"
+        #     )
+        #
+        #     # Handle critique results
+        #     if len(invalid_suggestions) > 0 and len(valid_suggestions) == 0:
+        #         # All suggestions failed critique
+        #         print(f"[CRITIQUE DEBUG] All {len(invalid_suggestions)} suggestions failed critique")
+        #
+        #         failed_names = [f"{s.old_name} → {s.new_name}" for s in invalid_suggestions]
+        #         feedback = (
+        #             f"CRITIQUE: All {len(invalid_suggestions)} rename suggestions were invalid: {', '.join(failed_names)}. "
+        #             f"Do NOT suggest these same renames again. Try different rename suggestions by analyzing the code more carefully."
+        #         )
+        #
+        #         return {"messages": state['messages'] + [HumanMessage(feedback)]}
+        #
+        #     # Store validated result for tool call generation
+        #     result_message = AIMessage(
+        #         content=f"Critique completed: {len(valid_suggestions)} valid suggestions, {len(invalid_suggestions)} invalid suggestions",
+        #         additional_kwargs={"validated_renames": validated_result.dict()}
+        #     )
+        #
+        #     return {"messages": state['messages'] + [result_message]}
+
         def critique_json_suggestions(state: MessagesState):
-            """Critique JSON rename suggestions before creating tool calls."""
+            """Critique JSON rename suggestions and store results in memory."""
             last_message = state['messages'][-1]
-            
+
             print(f"[CRITIQUE DEBUG] Critiquing JSON suggestions from message type: {type(last_message)}")
-            
+
             # If no critique component, proceed without validation
             if not self.critique_component:
+                print(f"[CRITIQUE DEBUG] No critique component available")
                 return {"messages": [AIMessage("No critique component - proceeding with all suggestions")]}
-            
+
             # Extract rename analysis from message
-            if not hasattr(last_message, 'additional_kwargs') or 'rename_analysis' not in last_message.additional_kwargs:
+            if not hasattr(last_message,
+                           'additional_kwargs') or 'rename_analysis' not in last_message.additional_kwargs:
                 print(f"[CRITIQUE DEBUG] No rename analysis found in message")
-                return {"messages": [HumanMessage("No rename suggestions found to critique. Please provide rename suggestions in the correct JSON format.")]}
-            
+                return {"messages": [HumanMessage(
+                    "No rename suggestions found to critique. Please provide rename suggestions in the correct JSON format.")]}
+
             # Parse the rename analysis
             rename_analysis_data = last_message.additional_kwargs['rename_analysis']
             rename_analysis = RenameAnalysis(**rename_analysis_data)
-            
+
             print(f"[CRITIQUE DEBUG] Found {len(rename_analysis.rename_suggestions)} suggestions to validate")
-            
+
             # Validate each rename suggestion
             valid_suggestions = []
             invalid_suggestions = []
-            
+
             for suggestion in rename_analysis.rename_suggestions:
-                print(f"[CRITIQUE DEBUG] Validating: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num}")
-                
+                print(
+                    f"[CRITIQUE DEBUG] Validating: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num}")
+
+                # Check if this suggestion was previously invalid (memory check)
+                previously_invalid = False
+                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
+                                                                               'benchmark_id') and self.benchmark_id:
+                    try:
+                        previously_invalid = self.orm_memory.is_suggestion_previously_invalid(
+                            benchmark_id=self.benchmark_id,
+                            file_path=self.rel_file_path,
+                            old_name=suggestion.old_name,
+                            new_name=suggestion.new_name,
+                            line_num=suggestion.line_num
+                        )
+                        if previously_invalid:
+                            print(
+                                f"[MEMORY DEBUG] Suggestion '{suggestion.old_name}' → '{suggestion.new_name}' was previously invalid")
+                    except Exception as e:
+                        print(f"[MEMORY DEBUG] Error checking previous suggestions: {e}")
+
+                # Perform critique validation
                 critique_result = self.critique_component.validate_rename_suggestion(
-                    suggestion.old_name, 
+                    suggestion.old_name,
                     suggestion.new_name,
-                    suggestion.line_num, 
+                    suggestion.line_num,
                     suggestion.code_element_type.value
                 )
 
-                print(f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
+                print(
+                    f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
 
+                # Store suggestion in memory (regardless of validation result)
+                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
+                                                                               'benchmark_id') and self.benchmark_id:
+                    try:
+                        # Prepare context data for memory storage
+                        context_data = {
+                            "analysis": rename_analysis.analysis,
+                            "suggestion_reason": suggestion.reason if hasattr(suggestion,
+                                                                              'reason') and suggestion.reason else "",
+                            "oracle_match": critique_result.oracle_match.model_dump() if hasattr(critique_result,
+                                                                                                 'oracle_match') and critique_result.oracle_match else None,
+                            "previously_invalid": previously_invalid,
+                            "retry_iteration": self._retry_iteration
+                        }
+
+                        # Add suggestion to memory
+                        memory_entry = self.orm_memory.add_suggestion(
+                            benchmark_id=self.benchmark_id,
+                            file_path=self.rel_file_path,
+                            old_name=suggestion.old_name,
+                            new_name=suggestion.new_name,
+                            line_num=suggestion.line_num,
+                            code_element_type=suggestion.code_element_type.value,
+                            is_valid=critique_result.is_valid,
+                            feedback=critique_result.feedback,
+                            critique_reason=critique_result.reason if hasattr(critique_result, 'reason') else "",
+                            confidence_score=critique_result.confidence_score if hasattr(critique_result,
+                                                                                         'confidence_score') else None,
+                            agent_iteration=self._retry_iteration,
+                            context_data=context_data
+                        )
+
+                        print(f"[MEMORY DEBUG] Stored suggestion in memory with ID: {memory_entry.id}")
+
+                    except Exception as e:
+                        print(f"[MEMORY DEBUG] Error storing suggestion in memory: {e}")
+                        # Continue processing even if memory storage fails
+
+                # Categorize suggestion based on validation result
                 if critique_result.is_valid:
                     valid_suggestions.append(suggestion)
                     print(f"[CRITIQUE DEBUG] PASSED: {suggestion.old_name} → {suggestion.new_name}")
                 else:
                     invalid_suggestions.append(suggestion)
                     print(f"[CRITIQUE DEBUG] FAILED: {suggestion.old_name} → {suggestion.new_name}")
-            
+
             # Create validated renames result
             validated_result = ValidatedRenames(
                 valid_suggestions=valid_suggestions,
                 invalid_suggestions=invalid_suggestions,
                 critique_feedback=f"Validated {len(valid_suggestions)} valid and {len(invalid_suggestions)} invalid suggestions"
             )
-            
+
             # Handle critique results
             if len(invalid_suggestions) > 0 and len(valid_suggestions) == 0:
                 # All suggestions failed critique
                 print(f"[CRITIQUE DEBUG] All {len(invalid_suggestions)} suggestions failed critique")
-                
+
                 failed_names = [f"{s.old_name} → {s.new_name}" for s in invalid_suggestions]
-                feedback = (
-                    f"CRITIQUE: All {len(invalid_suggestions)} rename suggestions were invalid: {', '.join(failed_names)}. "
-                    f"Do NOT suggest these same renames again. Try different rename suggestions by analyzing the code more carefully."
-                )
-                
+
+                # Enhanced feedback with memory context
+                feedback_parts = [
+                    f"CRITIQUE: All {len(invalid_suggestions)} rename suggestions were invalid: {', '.join(failed_names)}.",
+                    "Do NOT suggest these same renames again. Try different rename suggestions by analyzing the code more carefully."
+                ]
+
+                # Add memory-based guidance if available
+                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
+                                                                               'benchmark_id') and self.benchmark_id:
+                    try:
+                        memory_stats = self.orm_memory.get_memory_stats(self.benchmark_id, self.rel_file_path)
+                        if memory_stats['total_attempts'] > 0:
+                            feedback_parts.append(
+                                f"MEMORY STATS: {memory_stats['total_attempts']} total attempts, "
+                                f"{memory_stats['success_rate']:.1f}% success rate in this benchmark."
+                            )
+
+                        # Get successful patterns if available
+                        successful_patterns = self.orm_memory.get_most_successful_patterns(limit=3)
+                        if successful_patterns:
+                            pattern_examples = [f"'{p['old_name']}' → '{p['new_name']}'" for p in
+                                                successful_patterns[:2]]
+                            feedback_parts.append(f"Try patterns like: {', '.join(pattern_examples)}")
+
+                    except Exception as e:
+                        print(f"[MEMORY DEBUG] Error getting memory stats: {e}")
+
+                feedback = " ".join(feedback_parts)
                 return {"messages": state['messages'] + [HumanMessage(feedback)]}
-            
+
             # Store validated result for tool call generation
             result_message = AIMessage(
                 content=f"Critique completed: {len(valid_suggestions)} valid suggestions, {len(invalid_suggestions)} invalid suggestions",
                 additional_kwargs={"validated_renames": validated_result.dict()}
             )
-            
+
+            # Log memory statistics if available
+            if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
+                try:
+                    stats = self.orm_memory.get_memory_stats(self.benchmark_id, self.rel_file_path)
+                    print(f"[MEMORY DEBUG] Current stats for benchmark {self.benchmark_id}: {stats}")
+                except Exception as e:
+                    print(f"[MEMORY DEBUG] Error getting stats: {e}")
+
             return {"messages": state['messages'] + [result_message]}
 
         def generate_tool_calls(state: MessagesState):

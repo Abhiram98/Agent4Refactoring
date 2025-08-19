@@ -1,5 +1,6 @@
 import argparse
-from idlelib.configdialog import changes
+from idlelib.configdialog import changes 
+import os
 from pathlib import Path
 import json
 from typing import Optional, List
@@ -57,6 +58,17 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     # vendor = 'openai'
 
     enable_critique = args.enable_critique.lower() == "true"
+    
+    # Create memory database path in the same directory as results
+    results_dir = os.path.dirname(args.run_identifier) if "/" in args.run_identifier else "."
+    db_name = f"memory_{args.run_identifier.split('/')[-1]}.db"
+    memory_db_path = os.path.join(results_dir, db_name)
+    
+    # Ensure the directory exists
+    os.makedirs(results_dir, exist_ok=True)
+    
+    print(f"[MEMORY] Database will be saved to: {memory_db_path}")
+    
     agent = react_agent.ReactAgent(ide_server=ij_server,
                      reasoning_model_name=f'{vendor}:openai-o4-mini',
                      model_name=f'{vendor}:openai-gpt-4o-mini',
@@ -64,7 +76,10 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                      plan_component=plan_type,
                      augmented_intent=augmented_intent,
                      do_replication=do_replication,
-                     enable_critique=enable_critique)
+                     enable_critique=enable_critique,
+                     benchmark_id=bench_point.ref_id,  
+                     memory_database_url=f"sqlite:///{memory_db_path}")
+
     
     try:
         if not do_replication:
