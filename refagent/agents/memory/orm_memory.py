@@ -48,14 +48,14 @@ class ORMRefactoringMemory:
         session = self.SessionLocal()
         try:
             yield session
-            session.commit()
+            # Don't auto-commit - let methods handle their own commits
         except Exception as e:
             session.rollback()
             raise e
         finally:
             session.close()
 
-    def start_session(self, benchmark_id: int, agent_run_id: Optional[str] = None) -> str:
+    def start_session(self, benchmark_id: int, agent_run_id: Optional[str] = None, replication_enabled: Optional[bool] = None) -> str:
         """Start a new memory session."""
         session_id = f"session_{benchmark_id}_{uuid.uuid4().hex[:8]}"
         self.current_session_id = session_id
@@ -65,7 +65,8 @@ class ORMRefactoringMemory:
                 session_id=session_id,
                 benchmark_id=benchmark_id,
                 agent_run_id=agent_run_id,
-                started_at=datetime.now(timezone.utc)
+                started_at=datetime.now(timezone.utc),
+                replication_enabled=replication_enabled
             )
             db.add(memory_session)
             db.commit()
@@ -109,6 +110,7 @@ class ORMRefactoringMemory:
                        critique_reason: str = "",
                        confidence_score: Optional[float] = None,
                        agent_iteration: Optional[int] = None,
+                       llm_iteration: Optional[int] = None,
                        context_data: Optional[Dict[str, Any]] = None) -> RefactoringSuggestion:
         """Add a new suggestion to memory."""
 
@@ -126,13 +128,15 @@ class ORMRefactoringMemory:
                 confidence_score=confidence_score,
                 session_id=self.current_session_id,
                 agent_iteration=agent_iteration,
+                llm_iteration=llm_iteration,
                 context_data=json.dumps(context_data) if context_data else None
             )
 
             try:
                 db.add(suggestion)
                 db.commit()
-                db.refresh(suggestion)
+                # Detach from session to prevent lazy loading issues
+                db.expunge(suggestion)
                 return suggestion
 
             except IntegrityError:
@@ -159,87 +163,112 @@ class ORMRefactoringMemory:
                         existing.context_data = json.dumps(context_data)
 
                     db.commit()
-                    # No need to refresh - we already have the updated object
+                    # Detach from session to prevent lazy loading issues
+                    db.expunge(existing)
                     return existing
 
                 raise
 
+    def increment_llm_iteration(self, session_id: Optional[str] = None):
+        """Increment the LLM iteration counter for the current session."""
+        if session_id is None:
+            session_id = self.current_session_id
+
+        if session_id:
+            with self.get_session() as db:
+                session_obj = db.query(MemorySession).filter(
+                    MemorySession.session_id == session_id
+                ).first()
+
+                if session_obj:
+                    session_obj.total_llm_iterations = (session_obj.total_llm_iterations or 0) + 1
+                    db.commit()
+                    return session_obj.total_llm_iterations
+        return 0
+
+    def get_current_llm_iteration(self, session_id: Optional[str] = None) -> int:
+        """Get the current LLM iteration number for the session."""
+        if session_id is None:
+            session_id = self.current_session_id
+
+        if session_id:
+            with self.get_session() as db:
+                session_obj = db.query(MemorySession).filter(
+                    MemorySession.session_id == session_id
+                ).first()
+
+                if session_obj:
+                    return session_obj.total_llm_iterations or 0
+        return 0
+
     def get_memory_feedback(self,
                             benchmark_id: int,
-                            file_path: str,
+                            file_path: Optional[str] = None,
                             limit: int = 10) -> str:
-        """Generate memory-based feedback for LLM."""
+        """Generate concise, actionable memory-based feedback for LLM.
+        
+        Args:
+            benchmark_id: Current benchmark ID
+            file_path: Specific file path, or None for cross-file feedback
+            limit: Maximum number of suggestions to consider
+        """
 
         with self.get_session() as db:
             feedback_parts = []
 
-            # Get recent invalid suggestions for this benchmark and file
+            # Build base query filter
+            base_filter = [RefactoringSuggestion.benchmark_id == benchmark_id]
+            if file_path is not None:
+                base_filter.append(RefactoringSuggestion.file_path == file_path)
+
+            # Get recent invalid suggestions - be very specific about what to avoid
             recent_invalid = db.query(RefactoringSuggestion).filter(
                 and_(
-                    RefactoringSuggestion.benchmark_id == benchmark_id,
-                    RefactoringSuggestion.file_path == file_path,
+                    *base_filter,
                     RefactoringSuggestion.is_valid == False
                 )
-            ).order_by(desc(RefactoringSuggestion.created_at)).limit(limit // 2).all()
+            ).order_by(desc(RefactoringSuggestion.created_at)).limit(limit).all()
 
             if recent_invalid:
-                invalid_names = [f"'{s.old_name}' → '{s.new_name}'" for s in recent_invalid]
-                feedback_parts.append(
-                    f"MEMORY: Previously FAILED suggestions to AVOID: {', '.join(invalid_names)}"
-                )
+                if file_path is not None:
+                    # File-specific feedback: include line numbers
+                    failed_lines = list(set([s.line_num for s in recent_invalid if s.line_num]))[:3]
+                    failed_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_invalid]))[:3]
+                    
+                    if failed_lines:
+                        feedback_parts.append(f"AVOID lines: {failed_lines}")
+                    if failed_patterns:
+                        feedback_parts.append(f"AVOID patterns: {failed_patterns}")
+                else:
+                    # Cross-file feedback: focus on patterns, not specific lines
+                    failed_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_invalid]))[:5]
+                    if failed_patterns:
+                        feedback_parts.append(f"AVOID patterns: {failed_patterns}")
 
-                # Include specific failure reasons
-                reasons = [s.critique_reason for s in recent_invalid if s.critique_reason][:3]
-                if reasons:
-                    feedback_parts.append(f"Failure reasons: {'; '.join(reasons)}")
-
-            # Get recent valid suggestions for this benchmark and file
+            # Get recent valid suggestions - show what worked
             recent_valid = db.query(RefactoringSuggestion).filter(
                 and_(
-                    RefactoringSuggestion.benchmark_id == benchmark_id,
-                    RefactoringSuggestion.file_path == file_path,
+                    *base_filter,
                     RefactoringSuggestion.is_valid == True
                 )
-            ).order_by(desc(RefactoringSuggestion.created_at)).limit(limit // 2).all()
+            ).order_by(desc(RefactoringSuggestion.created_at)).limit(limit).all()
 
             if recent_valid:
-                valid_names = [f"'{s.old_name}' → '{s.new_name}'" for s in recent_valid]
-                feedback_parts.append(
-                    f"MEMORY: Previously SUCCESSFUL patterns: {', '.join(valid_names)}"
-                )
+                if file_path is not None:
+                    # File-specific: show completed lines
+                    successful_lines = [s.line_num for s in recent_valid if s.line_num]
+                    if successful_lines:
+                        feedback_parts.append(f"COMPLETED lines: {successful_lines}")
+                
+                # Always show successful patterns (both file-specific and cross-file)
+                successful_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_valid]))[:3]
+                if successful_patterns:
+                    feedback_parts.append(f"SUCCESS patterns: {successful_patterns}")
 
-            # Get cross-benchmark successful patterns (same file type)
-            file_extension = Path(file_path).suffix
-            if file_extension:
-                cross_benchmark_patterns = db.query(
-                    RefactoringSuggestion.old_name,
-                    RefactoringSuggestion.new_name,
-                    func.count(RefactoringSuggestion.id).label('frequency'),
-                    func.avg(func.cast(RefactoringSuggestion.is_valid, Float)).label('success_rate')
-                ).filter(
-                    and_(
-                        RefactoringSuggestion.file_path.like(f'%{file_extension}'),
-                        RefactoringSuggestion.benchmark_id != benchmark_id,  # Different benchmarks
-                        RefactoringSuggestion.is_valid == True
-                    )
-                ).group_by(
-                    RefactoringSuggestion.old_name,
-                    RefactoringSuggestion.new_name
-                ).having(
-                    func.count(RefactoringSuggestion.id) >= 2  # Seen at least twice
-                ).order_by(
-                    desc('success_rate'),
-                    desc('frequency')
-                ).limit(3).all()
-
-                if cross_benchmark_patterns:
-                    pattern_strs = [
-                        f"'{p.old_name}' → '{p.new_name}' ({p.frequency}x, {p.success_rate:.0%})"
-                        for p in cross_benchmark_patterns
-                    ]
-                    feedback_parts.append(f"CROSS-BENCHMARK: {', '.join(pattern_strs)}")
-
-            return " | ".join(feedback_parts) if feedback_parts else ""
+            # Keep it short and actionable
+            result = " | ".join(feedback_parts) if feedback_parts else ""
+            scope = "FILE" if file_path else "BENCHMARK"
+            return f"MEMORY ({scope}): {result}" if result else ""
 
     def is_suggestion_previously_invalid(self,
                                          benchmark_id: int,

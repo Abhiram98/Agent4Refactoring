@@ -13,6 +13,7 @@ from pathlib import Path
 
 import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.utils.intellij_server as ij
+import refagent.utils.code_utils as code_utils
 from refagent.agents.refactrix.rename_suggestions import RenameAnalysis, RenameSuggestion, ValidatedRenames
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
 
@@ -46,6 +47,10 @@ class PerformRefactoring(BaseModel):
         description="Database URL for memory storage",
         default="sqlite:///refactoring_memory.db"
     )
+    replication_enabled: Optional[bool] = Field(
+        description="Whether replication is enabled for this run",
+        default=None
+    )
     
     class Config:
         arbitrary_types_allowed = True
@@ -57,7 +62,10 @@ class PerformRefactoring(BaseModel):
 
         # Start memory session if benchmark_id is provided
         if self.benchmark_id and self.orm_memory:
-            self.orm_memory.start_session(self.benchmark_id)
+            self.orm_memory.start_session(
+                benchmark_id=self.benchmark_id,
+                replication_enabled=self.replication_enabled
+            )
 
     def get_tool_call_str(self, tool_call: Optional[ToolCall]=None) -> str:
         if tool_call is None:
@@ -143,40 +151,62 @@ class PerformRefactoring(BaseModel):
                 return {"messages": [AIMessage(
                     f"Stopping LLM calls after {max_retries} attempts. Unable to generate valid rename suggestions.")]}
 
-            print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}/{max_retries}")
+            # Increment LLM iteration counter in memory
+            current_llm_iteration = 0
+            if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
+                try:
+                    current_llm_iteration = self.orm_memory.increment_llm_iteration()
+                    print(f"[LLM DEBUG] LLM iteration {current_llm_iteration} (retry attempt {self._retry_iteration}/{max_retries})")
+                except Exception as e:
+                    print(f"[LLM DEBUG] Error tracking LLM iteration: {e}")
+                    print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}/{max_retries}")
+            else:
+                print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}/{max_retries}")
 
-            if self._retry_iteration > 1:
-                # Add memory-enhanced retry feedback
-                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
-                                                                               'benchmark_id') and self.benchmark_id:
-                    try:
+            # Get FRESH source code for every LLM call to avoid stale suggestions
+            try:
+                current_file_content = self.ide_server.call_tool_get("get_source_code")
+                if current_file_content:
+                    print(f"[LLM DEBUG] Retrieved fresh source code ({len(current_file_content)} chars)")
+                else:
+                    print(f"[LLM DEBUG] Warning: Could not get current source code, using original")
+                    current_file_content = None
+            except Exception as e:
+                print(f"[LLM DEBUG] Error getting fresh source code: {e}")
+                current_file_content = None
+
+            # Always add memory constraints if available (not just on retry)
+            memory_constraints = ""
+            if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
+                try:
+                    if current_llm_iteration <= 1:
+                        # First LLM call: Get broader memory feedback from all files in this benchmark
+                        print(f"[MEMORY DEBUG] First LLM call - getting cross-file memory feedback")
+                        memory_feedback = self.orm_memory.get_memory_feedback(
+                            benchmark_id=self.benchmark_id,
+                            file_path=None  # No file constraint for broader context
+                        )
+                    else:
+                        # Subsequent LLM calls: Get file-specific memory feedback
+                        print(f"[MEMORY DEBUG] LLM call #{current_llm_iteration} - getting file-specific memory feedback")
                         memory_feedback = self.orm_memory.get_memory_feedback(
                             benchmark_id=self.benchmark_id,
                             file_path=self.rel_file_path
                         )
-                        if memory_feedback:
-                            print(f"[MEMORY DEBUG] Adding memory feedback: {memory_feedback}")
-                            state['messages'][-1].content += f" {memory_feedback}"
-                        else:
-                            # Fallback to basic retry message
-                            print(f"[MEMORY DEBUG] Could not add memory feedback")
-                            state['messages'][-1].content += (
-                                f"Your previous rename suggestions were invalid. "
-                                f"DO NOT suggest the same renames again. Try different ones."
-                            )
-                    except Exception as e:
-                        print(f"[MEMORY DEBUG] Error getting memory feedback: {e}")
-                        # Fallback to basic retry message
-                        state['messages'][-1].content += (
-                            f"Your previous rename suggestions were invalid. "
-                            f"DO NOT suggest the same renames again. Try different ones."
-                        )
-                else:
-                    # No memory available, use basic retry message
-                    state['messages'][-1].content += (
-                        f"Your previous rename suggestions were invalid. "
-                        f"DO NOT suggest the same renames again. Try different ones."
-                    )
+                    
+                    if memory_feedback:
+                        memory_constraints = f"\n\n🚨 {memory_feedback} 🚨\n"
+                        print(f"[MEMORY DEBUG] Adding memory constraints: {memory_feedback}")
+                except Exception as e:
+                    print(f"[MEMORY DEBUG] Error getting memory feedback: {e}")
+
+            if current_llm_iteration > 1:
+                retry_warning = (
+                    f"\n\n⚠️ LLM CALL #{current_llm_iteration}: Some of your previous suggestions were invalid or failed to execute. "
+                    f"Check the memory constraints above to see what WORKED vs what FAILED. "
+                    f"Focus on new valid suggestions and avoid repeating the same mistakes."
+                )
+                state['messages'][-1].content += retry_warning
 
             # Create output parser for structured JSON response
             parser = PydanticOutputParser(pydantic_object=RenameAnalysis)
@@ -184,14 +214,34 @@ class PerformRefactoring(BaseModel):
             # Add JSON format instructions to the last message
             format_instructions = (
                 "\n\nIMPORTANT: Respond with a JSON object containing your analysis and rename suggestions. "
-                f"Use this exact format:\n{parser.get_format_instructions()}"
+                f"Use this exact format:\n{parser.get_format_instructions()}\n\n"
+                f"COMPLETION INSTRUCTIONS:\n"
+                f"- If you find rename suggestions, include them in the 'rename_suggestions' array\n"
+                f"- If NO renames are needed (refactoring is complete), set 'rename_suggestions' to an empty array []\n"
+                f"- When refactoring is complete, start your 'analysis' field with: 'REFACTORING_COMPLETE: '\n"
+                f"- When more renames are needed, start your 'analysis' field with: 'REFACTORING_NEEDED: '\n"
+                f"- For 'code_element_type', use ONLY these values: 'method', 'variable', 'class', 'attribute', 'parameter'\n"
+                f"- DO NOT suggest renaming import statements - focus only on variables, methods, classes, fields, and parameters within the code\n"
+                f"- IGNORE import lines (lines starting with 'import') - only rename actual code elements\n"
+                f"Example for completion: {{\"analysis\": \"REFACTORING_COMPLETE: All instances have been renamed.\", \"rename_suggestions\": []}}\n"
+                f"Example for more work: {{\"analysis\": \"REFACTORING_NEEDED: Found 3 more instances to rename.\", \"rename_suggestions\": [...]}}"
             )
 
-            # Modify the last message to include format instructions
+            # Modify the last message to include format instructions AND fresh source code
             messages = state['messages'].copy()
             if messages:
                 last_msg = messages[-1]
                 if hasattr(last_msg, 'content'):
+                    # Add memory constraints at the top (most important)
+                    if memory_constraints:
+                        last_msg.content = memory_constraints + last_msg.content
+                    
+                    # Add fresh source code with LINE NUMBERS if available
+                    if current_file_content:
+                        numbered_code = code_utils.add_line_numbers(current_file_content)
+                        last_msg.content += f"\n\n=== CURRENT SOURCE CODE (UPDATED) ===\n{numbered_code}\n=== END SOURCE CODE ===\n"
+                        last_msg.content += "\nNOTE: The above source code reflects the CURRENT state after any previous renames. Base your suggestions on this updated code, not the original. IMPORTANT: Use the line numbers shown to specify exact locations for renames."
+                    
                     last_msg.content += format_instructions
 
             # Use model without tools for JSON output
@@ -217,7 +267,7 @@ class PerformRefactoring(BaseModel):
                 
                 print(f"[JSON DEBUG] Successfully parsed {len(rename_analysis.rename_suggestions)} rename suggestions")
                 for i, suggestion in enumerate(rename_analysis.rename_suggestions):
-                    print(f"[JSON DEBUG] Suggestion {i}: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num}")
+                    print(f"[JSON DEBUG] Suggestion {i}: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num} - type {suggestion.code_element_type}")
                 
                 # Store the parsed analysis in the message for the next step
                 parsed_message = AIMessage(
@@ -236,6 +286,74 @@ class PerformRefactoring(BaseModel):
                 return {"messages": state['messages'] + [error_message]}
         
 
+        def check_completion(state: MessagesState):
+            """Check if there are more renames needed after successful tool calls."""
+            print("[COMPLETION DEBUG] Checking if more renames are needed...")
+            
+            # Get current file content to analyze for remaining renames
+            try:
+                current_file_content = self.ide_server.call_tool_get("get_source_code")
+                if not current_file_content:
+                    print("[COMPLETION DEBUG] Could not get current file content")
+                    return {"messages": [HumanMessage("Could not analyze file for remaining renames")]}
+                
+                # Get memory information about what has already been tried
+                memory_context = ""
+                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
+                    try:
+                        # Get memory feedback to understand what was already attempted
+                        memory_feedback = self.orm_memory.get_memory_feedback(
+                            benchmark_id=self.benchmark_id,
+                            file_path=self.rel_file_path,
+                            limit=20  # Get more context for completion check
+                        )
+                        
+                        # Get detailed memory stats
+                        memory_stats = self.orm_memory.get_memory_stats(self.benchmark_id, self.rel_file_path)
+                        
+                        if memory_feedback:
+                            memory_context = f"\n\nMEMORY CONTEXT:\n{memory_feedback}\n"
+                            memory_context += f"MEMORY STATS: {memory_stats['total_attempts']} total suggestions tried, "
+                            memory_context += f"{memory_stats['valid_count']} successful, {memory_stats['invalid_count']} failed.\n"
+                            
+                            print(f"[COMPLETION DEBUG] Added memory context: {memory_stats['total_attempts']} suggestions tried")
+                        else:
+                            memory_context = "\n\nMEMORY CONTEXT: No previous attempts recorded for this file.\n"
+                            
+                    except Exception as e:
+                        print(f"[COMPLETION DEBUG] Error getting memory context: {e}")
+                        memory_context = "\n\nMEMORY CONTEXT: Could not retrieve memory information.\n"
+                
+                # Add line numbers to current code for precise analysis
+                numbered_code = code_utils.add_line_numbers(current_file_content)
+                
+                # Enhanced completion check message with memory context
+                completion_check_message = HumanMessage(
+                    f"Please analyze this code and determine if there are any remaining renames that need to be done "
+                    f"based on the original refactoring intent: {self.reason}\n\n"
+                    f"Current code (with line numbers):\n{numbered_code}\n"
+                    f"{memory_context}\n"
+                    f"INSTRUCTIONS:\n"
+                    f"1. Review the memory context to see what renames have already been attempted\n"
+                    f"2. Focus on parts of the code that haven't been addressed yet\n"
+                    f"3. Look for any remaining instances that should be renamed but weren't suggested before\n"
+                    f"4. Ignore patterns that were already tried and failed (marked as FAILED in memory)\n"
+                    f"5. Consider successful patterns as a guide for what works\n"
+                    f"6. Use the line numbers to identify specific locations if suggesting renames\n\n"
+                    f"If you find any remaining renames needed, respond with 'CONTINUE_REFACTORING' and explain what needs to be renamed. "
+                    f"If all necessary renames have been completed, respond with 'REFACTORING_COMPLETE'."
+                )
+                
+                completion_response = self.model.invoke([completion_check_message])
+                print(f"[COMPLETION DEBUG] Completion check response: {completion_response.content[:200]}...")
+                
+                return {"messages": state['messages'] + [completion_response]}
+                
+            except Exception as e:
+                print(f"[COMPLETION DEBUG] Error during completion check: {e}")
+                # If we can't check, assume we're done
+                return {"messages": state['messages'] + [HumanMessage("REFACTORING_COMPLETE")]}
+
         def success_handler(state: MessagesState):
             print("The following refactorings have been performed successfully-> "
                   f"{self.get_successfull_refactorings()}")
@@ -252,48 +370,104 @@ class PerformRefactoring(BaseModel):
             return {'messages': [HumanMessage(final_message)]}
 
         def failure_handler(state: MessagesState):
-            print("Failed to perform the refactoring.")
+            # Check if any refactorings were successful before declaring complete failure
+            successful_refactorings = self.get_successfull_refactorings()
             
-            # Check if LLM gave up before generating tool calls
-            if llm_gave_up(state):
+            if successful_refactorings:
+                # Partial success - some refactorings worked
+                print(f"Partial refactoring success. Some refactorings were completed: {successful_refactorings}")
+                self.refactoring_success = True  # Mark as success since some work was done
+                
+                # Check if LLM gave up before generating tool calls
+                if llm_gave_up(state):
+                    return {"messages": [HumanMessage(f"Partially completed the refactoring. "
+                                                      f"Successfully performed: {successful_refactorings}. "
+                                                      f"However, LLM was unable to complete all remaining suggestions after multiple attempts.")]}
+                
+                tool_call_str = self.get_tool_call_str()
+                
+                # Find the actual tool failure message from ToolMessages
+                tool_failure_reason = "Unknown tool failure"
+                for message in reversed(state['messages']):  # Search backwards for most recent ToolMessage
+                    if isinstance(message, ToolMessage) and 'success' not in message.content.lower():
+                        tool_failure_reason = message.content
+                        break
+                
+                return {"messages": [HumanMessage(f"Partially completed the refactoring. "
+                                                  f"Successfully performed: {successful_refactorings}. "
+                                                  f"However, the final attempt failed: {tool_call_str} - {tool_failure_reason}.")]}
+            else:
+                # Complete failure - no refactorings succeeded
+                print("Failed to perform the refactoring.")
+                
+                # Check if LLM gave up before generating tool calls
+                if llm_gave_up(state):
+                    return {"messages": [HumanMessage("Cannot perform this refactoring. "
+                                                      "LLM was unable to generate valid rename suggestions after multiple attempts. "
+                                                      "The code may not contain the expected patterns for this refactoring.")]}
+                
+                tool_call_str = self.get_tool_call_str()
+                
+                # Find the actual tool failure message from ToolMessages
+                tool_failure_reason = "Unknown tool failure"
+                for message in reversed(state['messages']):  # Search backwards for most recent ToolMessage
+                    if isinstance(message, ToolMessage) and 'success' not in message.content.lower():
+                        tool_failure_reason = message.content
+                        break
+                
                 return {"messages": [HumanMessage("Cannot perform this refactoring. "
-                                                  "LLM was unable to generate valid rename suggestions after multiple attempts. "
-                                                  "The code may not contain the expected patterns for this refactoring.")]}
+                                                  f"{tool_call_str} failed. "
+                                                  f"Reason: {tool_failure_reason}. "
+                                                  f"CALL the TOOL differently, next time.")]}
+
+        def should_continue_refactoring(state: MessagesState) -> bool:
+            """Check if we should continue refactoring based on completion check."""
+            last_message = state['messages'][-1]
+            continue_refactoring = 'CONTINUE_REFACTORING' in last_message.content
             
-            tool_call_str = self.get_tool_call_str()
-            
-            # Find the actual tool failure message from ToolMessages
-            tool_failure_reason = "Unknown tool failure"
-            for message in reversed(state['messages']):  # Search backwards for most recent ToolMessage
-                if isinstance(message, ToolMessage) and 'success' not in message.content.lower():
-                    tool_failure_reason = message.content
-                    break
-            
-            return {"messages": [HumanMessage("Cannot perform this refactoring. "
-                                              f"{tool_call_str} failed. "
-                                              f"Reason: {tool_failure_reason}. "
-                                              f"CALL the TOOL differently, next time.")]}
+            if continue_refactoring:
+                # Reset retry iteration counter for fresh attempts
+                self._retry_iteration = 1
+                print("[COMPLETION DEBUG] More renames needed - resetting retry counter and continuing")
+            else:
+                print("[COMPLETION DEBUG] Refactoring complete - finishing")
+                
+            return continue_refactoring
 
         def retry_condition(state: MessagesState) -> str:
-            responded_tool_calls: List[ToolMessage] = []
-            for message in state['messages']:
-                if (isinstance(message, ToolMessage) and
-                        self._tool_call_map[message.tool_call_id].get('response') is None):
-                    responded_tool_calls.append(message)
+            # Check for LLM completion signal first
+            for message in reversed(state['messages'][-3:]):
+                if isinstance(message, HumanMessage) and message.content == "REFACTORING_COMPLETED_BY_LLM":
+                    print(f"[RETRY DEBUG] LLM detected completion - going to success handler")
+                    return "success_handler"
+            
+            # Get recent ToolMessages from the state (these are the responses to tool calls)
+            recent_tool_messages: List[ToolMessage] = []
+            for message in reversed(state['messages']):
+                if isinstance(message, ToolMessage):
+                    recent_tool_messages.append(message)
                     self.update_tool_call_map(message)
-
-            # last_message = state['messages'][-1].content
-            # False -> retry
+                else:
+                    # Stop when we hit a non-ToolMessage (like AIMessage with tool calls)
+                    break
+            
+            print(f"[RETRY DEBUG] Found {len(recent_tool_messages)} recent tool messages")
+            
+            # Check if any tool calls succeeded
             tool_call_success = any('success' in tool_response.content.lower()
-                                    for tool_response in responded_tool_calls)  # retry in case any of the tool calls succeeded.
-
+                                    for tool_response in recent_tool_messages)
+            
+            print(f"[RETRY DEBUG] Tool call success: {tool_call_success}")
+            
             if tool_call_success:
-                return "success_handler"
+                print(f"[RETRY DEBUG] Some tools succeeded - checking completion")
+                return "check_completion"  # Check if more renames are needed
 
             if self._retry_iteration > self.retry_count:
-                # retried more than threshold times
+                print(f"[RETRY DEBUG] Max retries exceeded - going to failure handler")
                 return "failure_handler"
 
+            print(f"[RETRY DEBUG] No success, retrying LLM")
             return "llm_tool"  # retry the tool call
 
         # def critique_json_suggestions(state: MessagesState):
@@ -444,6 +618,9 @@ class PerformRefactoring(BaseModel):
                             "retry_iteration": self._retry_iteration
                         }
 
+                        # Get current LLM iteration number
+                        current_llm_iteration = self.orm_memory.get_current_llm_iteration() if self.orm_memory else 0
+                        
                         # Add suggestion to memory
                         memory_entry = self.orm_memory.add_suggestion(
                             benchmark_id=self.benchmark_id,
@@ -458,10 +635,11 @@ class PerformRefactoring(BaseModel):
                             confidence_score=critique_result.confidence_score if hasattr(critique_result,
                                                                                          'confidence_score') else None,
                             agent_iteration=self._retry_iteration,
+                            llm_iteration=current_llm_iteration,
                             context_data=context_data
                         )
 
-                        print(f"[MEMORY DEBUG] Stored suggestion in memory with ID: {memory_entry.id}")
+                        print(f"[MEMORY DEBUG] Stored suggestion in memory successfully")
 
                     except Exception as e:
                         print(f"[MEMORY DEBUG] Error storing suggestion in memory: {e}")
@@ -642,55 +820,90 @@ class PerformRefactoring(BaseModel):
                 return len(validated_renames.valid_suggestions) > 0
             return False
 
+        def llm_indicates_completion(state: MessagesState) -> bool:
+            """Check if LLM is indicating that refactoring is complete via structured response."""
+            # Look for the structured completion signal in recent parsed messages
+            for message in reversed(state['messages'][-3:]):  # Check last 3 messages
+                # Check if we have parsed analysis with structured completion signal
+                if (hasattr(message, 'additional_kwargs') and 
+                    'rename_analysis' in message.additional_kwargs):
+                    analysis_data = message.additional_kwargs['rename_analysis']
+                    if 'analysis' in analysis_data:
+                        analysis_text = analysis_data['analysis'].strip()
+                        if analysis_text.startswith('REFACTORING_COMPLETE:'):
+                            print(f"[LLM COMPLETION DEBUG] Detected structured completion signal: '{analysis_text[:50]}...'")
+                            return True
+            
+            return False
+
+        def completion_message_handler(state: MessagesState):
+            """Handle completion message from LLM."""
+            print("[COMPLETION MESSAGE] LLM detected refactoring completion - creating success message")
+            completion_msg = HumanMessage("REFACTORING_COMPLETED_BY_LLM")
+            return {"messages": state['messages'] + [completion_msg]}
+
         llm_tool_workflow = StateGraph(MessagesState)
         llm_tool_workflow.add_node("call_llm", call_llm)
         llm_tool_workflow.add_node("parse_json_response", parse_json_response)
         llm_tool_workflow.add_node("critique_json_suggestions", critique_json_suggestions)
         llm_tool_workflow.add_node("generate_tool_calls", generate_tool_calls)
         llm_tool_workflow.add_node("tools", debug_tool_node)
+        llm_tool_workflow.add_node("completion_message", completion_message_handler)
         llm_tool_workflow.add_edge(START, "call_llm")
 
-        def parse_json_or_retry(state: MessagesState) -> str:
-            """Decide whether to parse JSON, retry LLM, or give up."""
+        def parse_and_decide(state: MessagesState) -> str:
+            """Parse JSON and decide next step in one unified function."""
+            
+            # 1. Check if LLM gave up (highest priority)
             if llm_gave_up(state):
                 print(f"[FLOW DEBUG] LLM gave up - exiting workflow")
-                return "END"  # Exit if LLM gave up
-            elif json_response_valid(state):
-                print(f"[FLOW DEBUG] JSON parsing successful - proceeding to critique")
-                return "critique_json_suggestions"
-            else:
+                return "END"
+            
+            # 2. Check if JSON parsing failed (need to retry LLM)
+            if not json_response_valid(state):
                 print(f"[FLOW DEBUG] JSON parsing failed - retrying LLM")
-                return "call_llm"  # Retry
+                return "call_llm"
+            
+            # 3. JSON is valid, now check for completion signal in the parsed content
+            if llm_indicates_completion(state):
+                print(f"[FLOW DEBUG] LLM indicates completion - returning completion message")
+                return "completion_message"
+            
+            # 4. JSON is valid and not completion, proceed to critique
+            print(f"[FLOW DEBUG] JSON parsing successful - proceeding to critique")
+            return "critique_json_suggestions"
 
-        # New workflow: call_llm → parse_json → critique → generate_tool_calls → tools
+        def critique_and_decide(state: MessagesState) -> str:
+            """After critique, decide whether to execute tools or retry."""
+            
+            # Check for valid suggestions to execute
+            if has_valid_suggestions(state):
+                print(f"[FLOW DEBUG] Found valid suggestions - generating tool calls")
+                return "generate_tool_calls"
+            
+            # No valid suggestions - retry LLM
+            print(f"[FLOW DEBUG] No valid suggestions found - retrying LLM")
+            return "call_llm"
+
+        # Clean workflow: call_llm → parse_and_decide → critique_and_decide → tools
         llm_tool_workflow.add_edge("call_llm", "parse_json_response")
         llm_tool_workflow.add_conditional_edges("parse_json_response",
-                                                parse_json_or_retry,
-                                                {"critique_json_suggestions": "critique_json_suggestions", 
+                                                parse_and_decide,
+                                                {"critique_json_suggestions": "critique_json_suggestions",
+                                                 "completion_message": "completion_message",
                                                  "call_llm": "call_llm",
                                                  "END": END})
-        def critique_or_retry(state: MessagesState) -> str:
-            """Decide whether to generate tool calls, retry LLM, or give up."""
-            if llm_gave_up(state):
-                print(f"[FLOW DEBUG] LLM gave up - exiting workflow")
-                return "END"  # Exit if LLM gave up
-            elif has_valid_suggestions(state):
-                print(f"[FLOW DEBUG] Critique found valid suggestions - generating tool calls")
-                return "generate_tool_calls"
-            else:
-                print(f"[FLOW DEBUG] Critique rejected all suggestions - retrying LLM")
-                return "call_llm"  # Retry
-
         llm_tool_workflow.add_conditional_edges("critique_json_suggestions",
-                                                critique_or_retry,
+                                                critique_and_decide,
                                                 {"generate_tool_calls": "generate_tool_calls",
-                                                 "call_llm": "call_llm",
-                                                 "END": END})
+                                                 "call_llm": "call_llm"})
         llm_tool_workflow.add_edge("generate_tool_calls", "tools")
+        llm_tool_workflow.add_edge("completion_message", END)
         llm_tool = llm_tool_workflow.compile()
 
         workflow = StateGraph(MessagesState)
         workflow.add_node("open_file", open_file)
+        workflow.add_node("check_completion", check_completion)
         workflow.add_node("success_handler", success_handler)
         workflow.add_node("failure_handler", failure_handler)
         workflow.add_node("llm_tool", llm_tool)
@@ -699,7 +912,13 @@ class PerformRefactoring(BaseModel):
         workflow.add_edge(START, "open_file")
         workflow.add_conditional_edges("open_file", successful_file_open,
                                        {True: "llm_tool", False: END})
-        workflow.add_conditional_edges("llm_tool", retry_condition)
+        workflow.add_conditional_edges("llm_tool", retry_condition,
+                                       {"check_completion": "check_completion",
+                                        "failure_handler": "failure_handler",
+                                        "success_handler": "success_handler",
+                                        "llm_tool": "llm_tool"})
+        workflow.add_conditional_edges("check_completion", should_continue_refactoring,
+                                       {True: "llm_tool", False: "success_handler"})
         workflow.add_edge("success_handler", END)
         workflow.add_edge("failure_handler", END)
 

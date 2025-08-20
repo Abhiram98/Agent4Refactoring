@@ -1,6 +1,6 @@
 import json
 import traceback
-
+import time
 from git import Commit
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
@@ -499,7 +499,7 @@ class Agent(BaseModel):
             refactoring_type = self._selected_refactoring.refactoring_type
             reason = self._selected_refactoring.reason
             rel_file_path = self._rel_file_path
-            self._files_changed.add(Path(rel_file_path))
+            # Don't add to _files_changed yet - wait until we know refactoring succeeded
 
             tools = self.get_available_tools(refactoring_type)
             executor = perform_ref.PerformRefactoring(
@@ -510,7 +510,8 @@ class Agent(BaseModel):
                 rel_file_path=rel_file_path,
                 ide_server=self.ide_server,
                 benchmark_id=self.benchmark_id,
-                memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db"
+                memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db",
+                replication_enabled=self.do_replication
             )
             # Pass critique component to the executor
             if hasattr(self, '_critique_component') and self._critique_component:
@@ -524,6 +525,46 @@ class Agent(BaseModel):
             observation = perform_refactoring_graph.invoke(state)
             self._failing_tool_call_count += not executor.refactoring_success  # increment the count if tool calls failed.
             self._performed_refactorings[rel_file_path] += executor.get_performed_refactorings(state)
+            
+            # Only add to _files_changed if refactoring was successful AND file actually changed
+            if executor.refactoring_success:
+                # Force IntelliJ to save all changes and sync with file system
+                print(f"[FILE TRACKING] Forcing IntelliJ to save all changes...")
+                self.ide_server.call_tool('save_all_changes')
+                
+                # Add a small delay to allow git to detect file system changes
+                time.sleep(0.5)  # 500ms should be enough for file system sync
+                
+                # Double-check: verify the file actually changed using git status
+                actual_changed_files = set(self.project.get_changed_files())
+                print(f"[FILE TRACKING DEBUG] rel_file_path: '{rel_file_path}'")
+                print(f"[FILE TRACKING DEBUG] actual_changed_files: {actual_changed_files}")
+                
+                # Try exact match first
+                if rel_file_path in actual_changed_files:
+                    self._files_changed.add(Path(rel_file_path))
+                    print(f"[FILE TRACKING] Added {rel_file_path} to changed files (exact match)")
+                else:
+                    # Try to find a matching file (handle path format differences)
+                    matching_file = None
+                    rel_path_normalized = str(Path(rel_file_path))
+                    
+                    for changed_file in actual_changed_files:
+                        changed_file_normalized = str(Path(changed_file))
+                        if rel_path_normalized == changed_file_normalized or rel_file_path == changed_file:
+                            matching_file = changed_file
+                            break
+                    
+                    if matching_file:
+                        self._files_changed.add(Path(rel_file_path))
+                        print(f"[FILE TRACKING] Added {rel_file_path} to changed files (normalized match with {matching_file})")
+                    else:
+                        # If still no match, add the file anyway since refactoring succeeded
+                        # This handles cases where git sync is still delayed
+                        self._files_changed.add(Path(rel_file_path))
+                        print(f"[FILE TRACKING] Added {rel_file_path} to changed files (refactoring succeeded, assuming git sync delay)")
+            else:
+                print(f"[FILE TRACKING] Not adding {rel_file_path} to changed files (refactoring failed)")
 
             last_message = observation['messages'][-1]
             messages = state["messages"]
@@ -531,63 +572,62 @@ class Agent(BaseModel):
 
             return {"messages": messages}
 
-        def finished_refactoring(state: MessagesState):
-            if not ask_finished_first_iteration and step_count == 0 and self._iterations == 0:
-                return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
-            if self._iterations >= self.MAX_GRAPH_ITERATION:
-                # Stopping because limit has been reached.
-                return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
-
-            if self._failing_tool_call_count >= self.MAX_FAILING_TOOL_CALLS:
-                return {'messages': [AIMessage(
-                    f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
-
-            if self.contains_tool_call_cycle():
-                return {'messages': [AIMessage('finished because tool calls are cycling. DONE')]}
-
-            if self.ide_server.call_tool_get("get_source_code") == '':
-                return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
-
-            response = self._reasoning_model.invoke(state['messages'] +
-                                                    [HumanMessage(
-                                                        'Please reflect whether the original ask has been completed successfully (for the given file)'
-                                                        f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
-                                                        f'{self.get_changed_file_contents().content}'
-                                                        f'Please reflect whether the task is complete, '
-                                                        f'by answering the following questions: '
-                                                        'Has the original ask been met? '
-                                                        'If the answer is no, please specify what needs to be changed (provide details including line numbers). '
-                                                        # f'2. Have all appropriate locations within the file {self._rel_file_path} '
-                                                        # f'been updated? '
-                                                        'Finally, say whether the task is complete '
-                                                        'by using the following sentence: "The task is <Status>." '
-                                                        'Use the word DONE/INCOMPLETE in place of <Status>. ')])
-            return {'messages': [response]}
-
-        def has_finished_refactoring(state: MessagesState) -> bool:
-            finished = (state['messages'][-1].content.endswith('DONE') or
-                        'INCOMPLETE' not in state['messages'][-1].content)
-            return finished
+        # def finished_refactoring(state: MessagesState):
+        #     if not ask_finished_first_iteration and step_count == 0 and self._iterations == 0:
+        #         return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
+        #
+        #     if self._iterations >= self.MAX_GRAPH_ITERATION:
+        #         # Stopping because limit has been reached.
+        #         return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
+        #
+        #     if self._failing_tool_call_count >= self.MAX_FAILING_TOOL_CALLS:
+        #         return {'messages': [AIMessage(
+        #             f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
+        #
+        #     if self.contains_tool_call_cycle():
+        #         return {'messages': [AIMessage('finished because tool calls are cycling. DONE')]}
+        #
+        #     if self.ide_server.call_tool_get("get_source_code") == '':
+        #         return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
+        #
+        #     response = self._reasoning_model.invoke(state['messages'] +
+        #                                             [HumanMessage(
+        #                                                 'Please reflect whether the original ask has been completed successfully (for the given file)'
+        #                                                 f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
+        #                                                 f'{self.get_changed_file_contents().content}'
+        #                                                 f'Please reflect whether the task is complete, '
+        #                                                 f'by answering the following questions: '
+        #                                                 'Has the original ask been met? '
+        #                                                 'If the answer is no, please specify what needs to be changed (provide details including line numbers). '
+        #                                                 # f'2. Have all appropriate locations within the file {self._rel_file_path} '
+        #                                                 # f'been updated? '
+        #                                                 'Finally, say whether the task is complete '
+        #                                                 'by using the following sentence: "The task is <Status>." '
+        #                                                 'Use the word DONE/INCOMPLETE in place of <Status>. ')])
+        #     return {'messages': [response]}
+        #
+        # def has_finished_refactoring(state: MessagesState) -> bool:
+        #     finished = (state['messages'][-1].content.endswith('DONE') or
+        #                 'INCOMPLETE' not in state['messages'][-1].content)
+        #     return finished
 
         workflow = StateGraph(MessagesState)
         # Add nodes
         # workflow.add_node("curate_tests", curate_tests)
         workflow.add_node("select_refactoring", select_refactoring)
         workflow.add_node("perform_refactoring", perform_selected_refactoring)
-        workflow.add_node("finished_refactoring", finished_refactoring)
-        # Add edges to connect nodes
-        workflow.add_edge(START, "finished_refactoring")
+        
+        # Simplified workflow: START → select_refactoring → perform_refactoring → END
+        workflow.add_edge(START, "select_refactoring")
 
         def has_tool_call(state: MessagesState) -> bool:
             return self._selected_refactoring.refactoring_type != sup_refs.SupportedRefactorings.UNSUPPORTED
 
-        workflow.add_conditional_edges("finished_refactoring", has_finished_refactoring,
-                                       {True: END, False: "select_refactoring"})
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
         )
-        workflow.add_edge("perform_refactoring", "finished_refactoring")
+        workflow.add_edge("perform_refactoring", END)
 
         # Compile
         graph = workflow.compile()

@@ -36,6 +36,7 @@ class RefactoringSuggestion(Base):
     session_id = Column(String(100), nullable=True, index=True)
     agent_iteration = Column(Integer, nullable=True)
     retry_count = Column(Integer, default=0)
+    llm_iteration = Column(Integer, nullable=True)  # Track which LLM call iteration this was
 
     # Additional context (JSON field for flexibility)
     context_data = Column(Text, nullable=True)  # JSON string
@@ -70,6 +71,7 @@ class RefactoringSuggestion(Base):
             'session_id': self.session_id,
             'agent_iteration': self.agent_iteration,
             'retry_count': self.retry_count,
+            'llm_iteration': self.llm_iteration,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'context_data': json.loads(self.context_data) if self.context_data else None
@@ -89,11 +91,13 @@ class MemorySession(Base):
     # Session metadata
     started_at = Column(DateTime(timezone=True), server_default=func.now())
     ended_at = Column(DateTime(timezone=True), nullable=True)
+    replication_enabled = Column(Boolean, nullable=True)  # Track if replication was on/off
 
     # Statistics
     total_suggestions = Column(Integer, default=0)
     valid_suggestions = Column(Integer, default=0)
     invalid_suggestions = Column(Integer, default=0)
+    total_llm_iterations = Column(Integer, default=0)  # Track total LLM iterations in this session
 
     # Additional session info
     session_metadata = Column(Text, nullable=True)  # JSON

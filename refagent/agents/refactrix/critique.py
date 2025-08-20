@@ -125,15 +125,19 @@ class CritiqueComponent(BaseModel):
         oracle_end_line = oracle_entry.leftSideLocations[0].endLine
         
         # Check if suggested line is within oracle range (no tolerance for now)
-        if not (oracle_start_line <= line_num <= oracle_end_line):
-            return False
+        if code_element_type == "method":
+            if not (oracle_start_line <= line_num <= oracle_end_line):
+                return False
+        else:
+            if oracle_start_line != line_num:
+                return False
         
         # 4. Code element type match
-        # oracle_type = oracle_entry.leftSideLocations[0].codeElementType
-        # if not self._code_element_types_match(oracle_type, code_element_type):
+        # oracle_type = oracle_entry.type.lower().split(" ")[-1].strip()
+        # if oracle_type != code_element_type.lower().strip():
         #     return False
         
-        # 5. Old name exact match
+        # 5. Old name approx match
         oracle_old_name = self._extract_name_from_code_element(oracle_entry.leftSideLocations[0])
         # if oracle_old_name != old_name:
         #     return False
@@ -169,29 +173,29 @@ class CritiqueComponent(BaseModel):
         # Compare as strings after normalization
         return str(oracle_path) == str(current_path) or oracle_path.name == current_path.name
 
-    def _code_element_types_match(self, oracle_type: str, suggested_type: str) -> bool:
-        """Check if code element types match, handling different naming conventions."""
-        # Mapping from tool types to oracle types
-        type_mapping = {
-            'variable': ['VARIABLE_DECLARATION', 'LOCAL_VARIABLE', 'FIELD'],
-            'field': ['FIELD', 'ATTRIBUTE', 'VARIABLE_DECLARATION'],
-            'method': ['METHOD_DECLARATION', 'METHOD'],
-            'class': ['CLASS_DECLARATION', 'CLASS'],
-            'parameter': ['PARAMETER', 'FORMAL_PARAMETER']
-        }
-        
-        suggested_lower = suggested_type.lower()
-        oracle_upper = oracle_type.upper()
-        
-        # Direct match
-        if suggested_lower == oracle_upper.lower():
-            return True
-        
-        # Check mapping
-        if suggested_lower in type_mapping:
-            return oracle_upper in type_mapping[suggested_lower]
-        
-        return False
+    # def _code_element_types_match(self, oracle_type: str, suggested_type: str) -> bool:
+    #     """Check if code element types match, handling different naming conventions."""
+    #     # Mapping from tool types to oracle types
+    #     type_mapping = {
+    #         'variable': ['VARIABLE_DECLARATION', 'LOCAL_VARIABLE', 'FIELD'],
+    #         'field': ['FIELD', 'ATTRIBUTE', 'VARIABLE_DECLARATION'],
+    #         'method': ['METHOD_DECLARATION', 'METHOD'],
+    #         'class': ['CLASS_DECLARATION', 'CLASS'],
+    #         'parameter': ['PARAMETER', 'FORMAL_PARAMETER']
+    #     }
+    #
+    #     suggested_lower = suggested_type.lower()
+    #     oracle_upper = oracle_type.upper()
+    #
+    #     # Direct match
+    #     if suggested_lower == oracle_upper.lower():
+    #         return True
+    #
+    #     # Check mapping
+    #     if suggested_lower in type_mapping:
+    #         return oracle_upper in type_mapping[suggested_lower]
+    #
+    #     return False
 
     def _extract_name_from_code_element(self, location: refactoring_types.CodeLocation) -> str:
         """Extract the identifier name from a code element string."""
