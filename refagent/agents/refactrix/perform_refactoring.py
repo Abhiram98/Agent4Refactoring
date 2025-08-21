@@ -139,29 +139,35 @@ class PerformRefactoring(BaseModel):
 
         def call_llm(state: MessagesState):
             """Call LLM with memory-enhanced feedback for retry attempts."""
-            # Check if we've exceeded max retries (default is 3, but using retry_count field)
-            max_retries = max(3, self.retry_count + 1)  # Ensure at least 3 retries, use field if higher
-            if self._retry_iteration > max_retries:
-                print(f"[LLM DEBUG] Max retries ({max_retries}) exceeded, stopping LLM calls")
+            # Get current LLM iteration from memory
+            current_llm_iteration = 0
+            if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
+                try:
+                    current_llm_iteration = self.orm_memory.get_current_llm_iteration()
+                except Exception as e:
+                    print(f"[LLM DEBUG] Error getting current LLM iteration: {e}")
+            
+            # Check if we've exceeded max LLM iterations (3 total across entire session)
+            max_llm_iterations = 3
+            if current_llm_iteration >= max_llm_iterations:
+                print(f"[LLM DEBUG] Max LLM iterations ({max_llm_iterations}) exceeded, stopping LLM calls")
 
                 # End memory session if we have one
                 if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
                     self.orm_memory.end_session()
 
                 return {"messages": [AIMessage(
-                    f"Stopping LLM calls after {max_retries} attempts. Unable to generate valid rename suggestions.")]}
+                    f"Stopping LLM calls after {max_llm_iterations} total iterations. Unable to generate valid rename suggestions.")]}
 
             # Increment LLM iteration counter in memory
-            current_llm_iteration = 0
             if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
                 try:
                     current_llm_iteration = self.orm_memory.increment_llm_iteration()
-                    print(f"[LLM DEBUG] LLM iteration {current_llm_iteration} (retry attempt {self._retry_iteration}/{max_retries})")
+                    print(f"[LLM DEBUG] LLM iteration {current_llm_iteration}/{max_llm_iterations}")
                 except Exception as e:
                     print(f"[LLM DEBUG] Error tracking LLM iteration: {e}")
-                    print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}/{max_retries}")
             else:
-                print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}/{max_retries}")
+                print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}")
 
             # Get FRESH source code for every LLM call to avoid stale suggestions
             try:
@@ -246,7 +252,6 @@ class PerformRefactoring(BaseModel):
 
             # Use model without tools for JSON output
             response = self.model.invoke(messages)
-            self._retry_iteration += 1
             return {"messages": [response]}
 
         def parse_json_response(state: MessagesState):
@@ -426,9 +431,7 @@ class PerformRefactoring(BaseModel):
             continue_refactoring = 'CONTINUE_REFACTORING' in last_message.content
             
             if continue_refactoring:
-                # Reset retry iteration counter for fresh attempts
-                self._retry_iteration = 1
-                print("[COMPLETION DEBUG] More renames needed - resetting retry counter and continuing")
+                print("[COMPLETION DEBUG] More renames needed - continuing with next LLM iteration")
             else:
                 print("[COMPLETION DEBUG] Refactoring complete - finishing")
                 
@@ -463,8 +466,16 @@ class PerformRefactoring(BaseModel):
                 print(f"[RETRY DEBUG] Some tools succeeded - checking completion")
                 return "check_completion"  # Check if more renames are needed
 
-            if self._retry_iteration > self.retry_count:
-                print(f"[RETRY DEBUG] Max retries exceeded - going to failure handler")
+            # Check if we've reached max LLM iterations
+            current_llm_iteration = 0
+            if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
+                try:
+                    current_llm_iteration = self.orm_memory.get_current_llm_iteration()
+                except Exception as e:
+                    print(f"[RETRY DEBUG] Error getting current LLM iteration: {e}")
+            
+            if current_llm_iteration >= 3:  # Max 3 LLM iterations
+                print(f"[RETRY DEBUG] Max LLM iterations (3) exceeded - going to failure handler")
                 return "failure_handler"
 
             print(f"[RETRY DEBUG] No success, retrying LLM")
