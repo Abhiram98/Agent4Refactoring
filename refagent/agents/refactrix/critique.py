@@ -125,7 +125,7 @@ class CritiqueComponent(BaseModel):
         oracle_end_line = oracle_entry.leftSideLocations[0].endLine
         
         # Check if suggested line is within oracle range (no tolerance for now)
-        if code_element_type == "method":
+        if code_element_type == "method" or code_element_type == "parameter":
             if not (oracle_start_line <= line_num <= oracle_end_line):
                 return False
         else:

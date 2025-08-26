@@ -8,7 +8,6 @@ class CodeElementType(str, Enum):
     METHOD = "method"
     VARIABLE = "variable"
     CLASS = "class"
-    ATTRIBUTE = "attribute"
     PARAMETER = "parameter"
 
 class RenameSuggestion(BaseModel):
