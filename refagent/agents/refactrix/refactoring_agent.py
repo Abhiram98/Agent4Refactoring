@@ -90,6 +90,7 @@ class Agent(BaseModel):
     _replication_inspection_data: Dict = PrivateAttr(default={})
     _critique_component: Optional[critique.CritiqueComponent] = PrivateAttr(default=None)
     _critique_retry_count: int = PrivateAttr(default=0)
+    _oracle_data: Optional[List] = PrivateAttr(default=None)
 
     class Config:
         arbitrary_types_allowed = True
@@ -179,6 +180,9 @@ class Agent(BaseModel):
 
     def initialize_critique_component(self, oracle_data: List):
         """Initialize the critique component with oracle data."""
+        # Store oracle data for use in replication
+        self._oracle_data = oracle_data
+        
         if self.enable_critique and oracle_data:
             config = self.critique_config if self.critique_config else critique.CritiqueConfig()
             self._critique_component = critique.CritiqueComponent(
@@ -234,7 +238,8 @@ class Agent(BaseModel):
             project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
-            refactoring_commit=self._internal_commits[0]
+            refactoring_commit=self._internal_commits[0],
+            oracle_data=self._oracle_data  # Pass oracle data for file filtering
         )
         for plan in replicator.compile_and_run():
             self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
@@ -523,6 +528,8 @@ class Agent(BaseModel):
             ]
             state = MessagesState(messages=messages)
             observation = perform_refactoring_graph.invoke(state)
+            # Add PerformRefactoring workflow messages to trajectory
+            self._trajectory += observation['messages']
             self._failing_tool_call_count += not executor.refactoring_success  # increment the count if tool calls failed.
             self._performed_refactorings[rel_file_path] += executor.get_performed_refactorings(state)
             

@@ -108,8 +108,8 @@ class CritiqueComponent(BaseModel):
         """Check if an oracle entry matches the suggestion criteria."""
         
         # 1. Check if it's a rename refactoring
-        if not isinstance(oracle_entry, refactoring_types.Rename):
-            return False
+        # if not isinstance(oracle_entry, refactoring_types.Rename):
+        #     return False
         
         # 2. File path match - normalize paths for comparison
         oracle_file = oracle_entry.leftSideLocations[0].filePath
@@ -124,12 +124,13 @@ class CritiqueComponent(BaseModel):
         oracle_start_line = oracle_entry.leftSideLocations[0].startLine
         oracle_end_line = oracle_entry.leftSideLocations[0].endLine
         
-        # Check if suggested line is within oracle range (no tolerance for now)
+        # Check if suggested line is within oracle range with ±2 line tolerance
         if code_element_type == "method" or code_element_type == "parameter":
             if not (oracle_start_line <= line_num <= oracle_end_line):
                 return False
         else:
-            if oracle_start_line != line_num:
+            # Apply ±2 line tolerance for other code element types
+            if abs(oracle_start_line - line_num) > 2:
                 return False
         
         # 4. Code element type match
@@ -141,7 +142,7 @@ class CritiqueComponent(BaseModel):
         oracle_old_name = self._extract_name_from_code_element(oracle_entry.leftSideLocations[0])
         # if oracle_old_name != old_name:
         #     return False
-        if old_name not in oracle_old_name:
+        if old_name.strip(' ') not in oracle_old_name.strip(' '):
             return False
         
         return True

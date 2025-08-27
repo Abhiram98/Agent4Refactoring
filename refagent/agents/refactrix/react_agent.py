@@ -54,7 +54,7 @@ class ReactAgent(ra.Agent):
                 config={"configurable": {"thread_id": 42}, "recursion_limit": 50}
             )
             self._trajectory += final_state['messages']
-            print(f"Result of executing step {0}: ", final_state["messages"][-1].content)
+            # print(f"Result of executing step {0}: ", final_state["messages"][-1].content)
         except:
             print(f"Execution of step 1 failed.")
             traceback.print_exc()
@@ -84,7 +84,8 @@ class ReactAgent(ra.Agent):
             project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
-            refactoring_commit=self._internal_commits[0]
+            refactoring_commit=self._internal_commits[0],
+            oracle_data=self._oracle_data
         )
         self.MAX_GRAPH_ITERATION = 2
         self.MAX_FAILING_TOOL_CALLS = 1

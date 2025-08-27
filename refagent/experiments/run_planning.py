@@ -118,6 +118,8 @@ if __name__ == '__main__':
             print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
             continue
 
+        print(f"Running planning for {bench_point.ref_id}")
+
         with ls.trace(name=f"refactoring agent planning - {args.run_identifier}. ID {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:
             run_planning(bench_point, results_saver)

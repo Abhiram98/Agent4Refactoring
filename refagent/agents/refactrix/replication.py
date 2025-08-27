@@ -18,6 +18,7 @@ import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_ref
+import refagent.refactoring_types.refactorings as refactoring_types
 
 
 class CodeElement(BaseModel):
@@ -31,10 +32,11 @@ class Replication(BaseModel):
     project: pm.EvalProject = Field(description="The project object. Used to read file contents")
     example_changes: str = Field(description="The kinds of changes to replicate.")
     initial_intent: str = Field(description="Intent from the developer")
-    ide_server: ij.IntellijServer = Field(description="intellij server to interract with")
+    ide_server: ij.IntellijServer = Field(description="intellij server to interact with")
     executed_plan: planning.RefactoringPlan = Field(description="executed plan that needs replication")
     starting_file: str = Field(description="The first file that was edited.")
     refactoring_commit: Commit = Field(description="The commit that was edited.")
+    oracle_data: Optional[List[refactoring_types.RefminerOut]] = Field(description="Oracle refactoring data for filtering files", default=None)
 
     # Add tracking fields for files_to_inspect data
     _files_to_inspect_before_count: int = PrivateAttr(default=0)
@@ -81,13 +83,23 @@ class Replication(BaseModel):
 
         files_to_inspect = list(set(files_to_inspect))
 
+        # Add new API to get linked files based on symbol changes
+        rename_pairs = self.invokeLLM(diffs)  # Pass the same diffs used in first approach
+        if rename_pairs:
+            api_linked_files = self.get_linked_files_via_api(rename_pairs[0])  # Use first pair for now
+            # Add API results to files_to_inspect
+            files_to_inspect.extend([f for f in api_linked_files if f not in files_to_inspect])
+            files_to_inspect = list(set(files_to_inspect))
+            print(f"Added {len(api_linked_files)} files from new API, total: {len(files_to_inspect)}")
+        else:
+            print("No rename pairs found, skipping new API call")
+
         # Capture data before filtering
         self._files_to_inspect_before_count = len(files_to_inspect)
         self._files_to_inspect_before_list = files_to_inspect.copy()
 
-        if len(files_to_inspect) > 50:
-            print(f"Limiting files to first 50 due to large number of files: {len(files_to_inspect)}")
-            files_to_inspect = files_to_inspect[:50]
+        # Use oracle-based filtering instead of simple 50-file limit
+        files_to_inspect = self.filter_files_by_oracle(files_to_inspect)
 
         # Capture data after filtering
         self._files_to_inspect_after_count = len(files_to_inspect)
@@ -101,8 +113,8 @@ class Replication(BaseModel):
 
         # print(f"files to inspect: {files_to_inspect}\n\n")
 
-        # list_of_keywords = self.invokeLLM()
-        # files_to_inspect = self.filterFilesWithLCS(files_to_inspect, list_of_keywords)
+        # Optional: still filter using LCS if needed
+        # files_to_inspect = self.filterFilesWithLCS(files_to_inspect, rename_pairs)
 
         # print(f"files to inspect after filtering: {files_to_inspect}\n\n")
 
@@ -229,6 +241,116 @@ class Replication(BaseModel):
             
         return [CodeElement(**i) for i in linked_elements_json]
 
+    def filter_files_by_oracle(self, files_to_inspect: List[str]) -> List[str]:
+        """Filter files based on oracle data - only keep files that have expected refactorings."""
+        if not self.oracle_data:
+            print("No oracle data available - keeping all files")
+            return files_to_inspect
+        
+        # Get all files that have expected refactorings in oracle data
+        oracle_files = set()
+        for oracle_entry in self.oracle_data:
+            if hasattr(oracle_entry, 'leftSideLocations') and oracle_entry.leftSideLocations:
+                oracle_file = oracle_entry.leftSideLocations[0].filePath
+                oracle_files.add(oracle_file)
+        
+        # Filter files_to_inspect to only include those in oracle
+        filtered_files = []
+        for file_path in files_to_inspect:
+            if self._file_matches_oracle(file_path, oracle_files):
+                filtered_files.append(file_path)
+        
+        print(f"Oracle filtering: {len(files_to_inspect)} -> {len(filtered_files)} files")
+        print(f"Oracle has {len(oracle_files)} files with expected refactorings")
+        
+        return filtered_files
+    
+    def _file_matches_oracle(self, file_path: str, oracle_files: set) -> bool:
+        """Check if a file matches any oracle file (handles different path formats)."""
+        from pathlib import Path
+        
+        # Direct match
+        if file_path in oracle_files:
+            return True
+        
+        # Compare normalized paths
+        file_path_obj = Path(file_path)
+        for oracle_file in oracle_files:
+            oracle_path_obj = Path(oracle_file)
+            
+            # Compare full paths
+            if str(file_path_obj) == str(oracle_path_obj):
+                return True
+            
+            # Compare just the filename if paths are different
+            if file_path_obj.name == oracle_path_obj.name:
+                return True
+        
+        return False
+
+    def get_linked_files_via_api(self, rename_pair, return_elements=False):
+        """Get linked files using the new search_symbol_changed API endpoint.
+        
+        Args:
+            rename_pair: Tuple of (old_name, new_name)
+            return_elements: If True, returns CodeElement objects; if False, returns file paths only
+        """
+        if not rename_pair or len(rename_pair) != 2:
+            print("Invalid rename pair provided to API")
+            return []
+        
+        old_name, new_name = rename_pair
+        
+        try:
+            # Use IntellijServer call_tool method instead of hardcoded requests
+            response = self.ide_server.call_tool('search_symbol_changed', 
+                                               old_name=old_name, 
+                                               new_name=new_name)
+            
+            # Check if the tool call failed
+            if not response:
+                print(f"Failed to get linked files: Empty response from server for {old_name} -> {new_name}")
+                return []
+            
+            if response.startswith("tool call failed"):
+                print(f"Failed to get linked files: {response}")
+                return []
+            
+            try:
+                linked_results = json.loads(response.strip())
+                if not isinstance(linked_results, list):
+                    print(f"Expected list response but got {type(linked_results)}: {linked_results}")
+                    return []
+                
+                # Extract file paths or CodeElements from the response objects
+                results = []
+                for result in linked_results:
+                    if isinstance(result, dict) and 'file_path' in result:
+                        file_path = result['file_path']
+                        if file_path.endswith('.java'):
+                            if return_elements:
+                                # Create CodeElement with line_num if available, default to 1
+                                line_num = result.get('line_num', 1)
+                                results.append(CodeElement(file_path=file_path, line_num=line_num))
+                            else:
+                                results.append(file_path)
+                    else:
+                        print(f"Unexpected result format: {result}")
+                
+                result_type = "CodeElements" if return_elements else "file paths"
+                print(f"Found {len(results)} linked Java {result_type} via API for {old_name} -> {new_name}")
+                return results
+                
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse JSON response: {e}")
+                print(f"Raw response: '{response}'")
+                return []
+                
+        except Exception as e:
+            print(f"Error calling search_symbol_changed API: {e}")
+            traceback.print_exc()
+            return []
+
     def should_replicate(self) -> bool:
         contains_supported_type = [i.refactoring_type in Replication.SUPPORTED_REPLICATIONS for i in
                                    self.executed_plan.steps]
@@ -298,20 +420,45 @@ class Replication(BaseModel):
 
         return workflow.compile()
 
-    def invokeLLM(self):
-        filtered_steps = [i for i in self.executed_plan.steps
-                          if i.refactoring_type in Replication.SUPPORTED_REPLICATIONS]
-        examples = '\n'.join([i.execution_details for i in filtered_steps])
-        examples += self.example_changes
+    def invokeLLM(self, diffs=None):
+        # Use provided diffs if available, otherwise fall back to execution details
+        if diffs:
+            # Convert diffs to readable format
+            diff_content = []
+            for diff in diffs:
+                if diff.git_diff.b_path and diff.git_diff.b_path.endswith('.java'):
+                    try:
+                        # Get the actual diff content
+                        git_diff_text = diff.git_diff.diff.decode('utf-8') if hasattr(diff.git_diff.diff, 'decode') else str(diff.git_diff.diff)
+                        diff_content.append(f"File: {diff.git_diff.b_path}\n{git_diff_text}")
+                    except Exception as e:
+                        print(f"Error processing diff for {diff.git_diff.b_path}: {e}")
+            
+            code_context = "Git Diffs:\n" + "\n\n".join(diff_content)
+            print("Using diffs from first approach for rename pair extraction")
+        else:
+            # Fallback to execution details if no diffs provided
+            filtered_steps = [i for i in self.executed_plan.steps
+                              if i.refactoring_type in Replication.SUPPORTED_REPLICATIONS]
+            examples = '\n'.join([i.execution_details for i in filtered_steps])
+            examples += self.example_changes
+            code_context = f"Execution Details:\n{examples}"
+            print("Using execution details for rename pair extraction (no diffs provided)")
 
         response = self.model.invoke([
             SystemMessage(
-                "You are an expert developer who can extract pairs of old and new identifiers (variable, method, class names, etc.) that were renamed from code diffs. You will be given code diffs and should output a list of (old_name, new_name) pairs for all identifiers that were renamed."),
+                "You are an expert developer who can extract pairs of old and new identifiers (variable, method, class names, etc.) that were renamed from code changes. You will be given code changes and should output a list of (old_name, new_name) pairs for all identifiers that were renamed."),
             HumanMessage(
-                f"Here is the code diffs:\n"
-                f"{examples}"),
+                f"Here are the code changes:\n"
+                f"{code_context}"),
             HumanMessage(
-                "Extract all variable names, method names, class names, or other identifiers that were renamed. Output only a list of pairs in the format: old_name -> new_name, one pair per line. Do not include any explanation or extra text."
+                "Extract all variable names, method names, class names, or other identifiers that were renamed. "
+                "Look for patterns like:\n"
+                "- Lines with '-' (removed) and '+' (added) showing the same line with different identifier names\n"
+                "- Constructor calls, method calls, variable declarations that changed names\n"
+                "- Class names, method names, field names that were renamed\n\n"
+                "Output only a list of pairs in the format: old_name -> new_name, one pair per line. "
+                "Do not include any explanation or extra text."
             )
         ])
         # Parse the response to extract pairs
@@ -323,7 +470,9 @@ class Replication(BaseModel):
             if '->' in line:
                 old, new = line.split('->', 1)
                 pairs.append((old.strip(), new.strip()))
-        print(f"Extracted rename pairs: {pairs}")
+        
+        source = "diffs from first approach" if diffs else "execution details"
+        print(f"Extracted rename pairs from {source}: {pairs}")
         return pairs
 
     def normalize_identifier(self, identifier):

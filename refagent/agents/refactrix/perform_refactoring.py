@@ -226,7 +226,7 @@ class PerformRefactoring(BaseModel):
                 f"- If NO renames are needed (refactoring is complete), set 'rename_suggestions' to an empty array []\n"
                 f"- When refactoring is complete, start your 'analysis' field with: 'REFACTORING_COMPLETE: '\n"
                 f"- When more renames are needed, start your 'analysis' field with: 'REFACTORING_NEEDED: '\n"
-                f"- For 'code_element_type', use ONLY these values: 'method', 'variable', 'class', 'attribute', 'parameter'\n"
+                f"- For 'code_element_type', use ONLY these values: 'method', 'variable', 'class', 'parameter', 'field'\n"
                 f"- DO NOT suggest renaming import statements - focus only on variables, methods, classes, fields, and parameters within the code\n"
                 f"- IGNORE import lines (lines starting with 'import') - only rename actual code elements\n"
                 f"Example for completion: {{\"analysis\": \"REFACTORING_COMPLETE: All instances have been renamed.\", \"rename_suggestions\": []}}\n"
@@ -238,9 +238,9 @@ class PerformRefactoring(BaseModel):
             if messages:
                 last_msg = messages[-1]
                 if hasattr(last_msg, 'content'):
-                    # Add memory constraints at the top (most important)
+                    # Add memory constraints at the bottom
                     if memory_constraints:
-                        last_msg.content = memory_constraints + last_msg.content
+                        last_msg.content = last_msg.content + memory_constraints
                     
                     # Add fresh source code with LINE NUMBERS if available
                     if current_file_content:
@@ -258,7 +258,7 @@ class PerformRefactoring(BaseModel):
             """Parse and validate JSON response from LLM."""
             last_message = state['messages'][-1]
             
-            print(f"[JSON DEBUG] Parsing LLM response: {last_message.content[:200]}...")
+            # print(f"[JSON DEBUG] Parsing LLM response: {last_message.content[:200]}...")
             
             # Check if LLM gave up BEFORE trying to parse as JSON
             if llm_gave_up(state):
@@ -342,9 +342,9 @@ class PerformRefactoring(BaseModel):
                     f"1. Review the memory context to see what renames have already been attempted\n"
                     f"2. Focus on parts of the code that haven't been addressed yet\n"
                     f"3. Look for any remaining instances that should be renamed but weren't suggested before\n"
-                    f"4. Ignore patterns that were already tried and failed (marked as FAILED in memory)\n"
-                    f"5. Consider successful patterns as a guide for what works\n"
-                    f"6. Use the line numbers to identify specific locations if suggesting renames\n\n"
+                    # f"4. Ignore patterns that were already tried and failed (marked as FAILED in memory)\n"
+                    f"4. Consider successful patterns as a guide for what works\n"
+                    f"5. Use the line numbers to identify specific locations if suggesting renames\n\n"
                     f"If you find any remaining renames needed, respond with 'CONTINUE_REFACTORING' and explain what needs to be renamed. "
                     f"If all necessary renames have been completed, respond with 'REFACTORING_COMPLETE'."
                 )

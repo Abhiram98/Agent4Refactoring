@@ -232,18 +232,18 @@ class ORMRefactoringMemory:
             if recent_invalid:
                 if file_path is not None:
                     # File-specific feedback: include line numbers
-                    failed_lines = list(set([s.line_num for s in recent_invalid if s.line_num]))[:3]
-                    failed_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_invalid]))[:3]
+                    failed_lines = list(set([s.line_num for s in recent_invalid if s.line_num]))
+                    failed_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_invalid]))
                     
                     if failed_lines:
                         feedback_parts.append(f"AVOID lines: {failed_lines}")
-                    if failed_patterns:
-                        feedback_parts.append(f"AVOID patterns: {failed_patterns}")
-                else:
-                    # Cross-file feedback: focus on patterns, not specific lines
-                    failed_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_invalid]))[:5]
-                    if failed_patterns:
-                        feedback_parts.append(f"AVOID patterns: {failed_patterns}")
+                    # if failed_patterns:
+                    #     feedback_parts.append(f"AVOID patterns: {failed_patterns}")
+                # else:
+                #     # Cross-file feedback: focus on patterns, not specific lines
+                #     failed_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_invalid]))
+                #     if failed_patterns:
+                #         feedback_parts.append(f"AVOID patterns: {failed_patterns}")
 
             # Get recent valid suggestions - show what worked
             recent_valid = db.query(RefactoringSuggestion).filter(
@@ -261,9 +261,9 @@ class ORMRefactoringMemory:
                         feedback_parts.append(f"COMPLETED lines: {successful_lines}")
                 
                 # Always show successful patterns (both file-specific and cross-file)
-                successful_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_valid]))[:3]
+                successful_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_valid]))
                 if successful_patterns:
-                    feedback_parts.append(f"SUCCESS patterns: {successful_patterns}")
+                    feedback_parts.append(f"Example SUCCESS patterns: {successful_patterns}")
 
             # Keep it short and actionable
             result = " | ".join(feedback_parts) if feedback_parts else ""

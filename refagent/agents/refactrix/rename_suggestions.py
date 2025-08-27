@@ -9,6 +9,7 @@ class CodeElementType(str, Enum):
     VARIABLE = "variable"
     CLASS = "class"
     PARAMETER = "parameter"
+    FIELD = "field"
 
 class RenameSuggestion(BaseModel):
     """A single rename suggestion from the LLM."""
