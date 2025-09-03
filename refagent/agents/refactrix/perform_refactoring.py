@@ -51,21 +51,31 @@ class PerformRefactoring(BaseModel):
         description="Whether replication is enabled for this run",
         default=None
     )
+    enable_memory: bool = Field(
+        description="Whether memory component is enabled for storing and retrieving suggestions",
+        default=True
+    )
     
     class Config:
         arbitrary_types_allowed = True
 
     def __init__(self, **data):
         super().__init__(**data)
+        
+        # Always initialize memory component for evaluation storage, but control feedback usage
         if self.orm_memory is None:
             self.orm_memory = ORMRefactoringMemory(self.memory_database_url)
-
-        # Start memory session if benchmark_id is provided
+        
+        # Start memory session if benchmark_id is provided (always for evaluation)
         if self.benchmark_id and self.orm_memory:
             self.orm_memory.start_session(
                 benchmark_id=self.benchmark_id,
                 replication_enabled=self.replication_enabled
             )
+            if self.enable_memory:
+                print(f"[MEMORY INIT] Memory session started for benchmark {self.benchmark_id} - feedback enabled")
+            else:
+                print(f"[MEMORY INIT] Memory session started for benchmark {self.benchmark_id} - feedback disabled (storage only for evaluation)")
 
     def get_tool_call_str(self, tool_call: Optional[ToolCall]=None) -> str:
         if tool_call is None:
@@ -139,7 +149,7 @@ class PerformRefactoring(BaseModel):
 
         def call_llm(state: MessagesState):
             """Call LLM with memory-enhanced feedback for retry attempts."""
-            # Get current LLM iteration from memory
+            # Get current LLM iteration from memory (always track for evaluation purposes)
             current_llm_iteration = 0
             if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
                 try:
@@ -152,22 +162,23 @@ class PerformRefactoring(BaseModel):
             if current_llm_iteration >= max_llm_iterations:
                 print(f"[LLM DEBUG] Max LLM iterations ({max_llm_iterations}) exceeded, stopping LLM calls")
 
-                # End memory session if we have one
+                # End memory session if we have one (always end since we always initialize for evaluation)
                 if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
                     self.orm_memory.end_session()
 
                 return {"messages": [AIMessage(
                     f"Stopping LLM calls after {max_llm_iterations} total iterations. Unable to generate valid rename suggestions.")]}
 
-            # Increment LLM iteration counter in memory
+            # Increment LLM iteration counter in memory (always track for evaluation purposes)
             if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
                 try:
                     current_llm_iteration = self.orm_memory.increment_llm_iteration()
-                    print(f"[LLM DEBUG] LLM iteration {current_llm_iteration}/{max_llm_iterations}")
+                    print(f"[LLM DEBUG] LLM iteration {current_llm_iteration}/{max_llm_iterations} (feedback enabled)")
+                    
                 except Exception as e:
                     print(f"[LLM DEBUG] Error tracking LLM iteration: {e}")
             else:
-                print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}")
+                print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration} (no memory tracking)")
 
             # Get FRESH source code for every LLM call to avoid stale suggestions
             try:
@@ -181,9 +192,9 @@ class PerformRefactoring(BaseModel):
                 print(f"[LLM DEBUG] Error getting fresh source code: {e}")
                 current_file_content = None
 
-            # Always add memory constraints if available (not just on retry)
+            # Add memory constraints if memory is enabled and available (not just on retry)
             memory_constraints = ""
-            if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
+            if self.enable_memory and hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
                 try:
                     if current_llm_iteration <= 1:
                         # First LLM call: Get broader memory feedback from all files in this benchmark
@@ -201,16 +212,18 @@ class PerformRefactoring(BaseModel):
                         )
                     
                     if memory_feedback:
-                        memory_constraints = f"\n\n🚨 {memory_feedback} 🚨\n"
+                        memory_constraints = f"\n\n {memory_feedback} \n"
                         print(f"[MEMORY DEBUG] Adding memory constraints: {memory_feedback}")
                 except Exception as e:
                     print(f"[MEMORY DEBUG] Error getting memory feedback: {e}")
+            elif not self.enable_memory:
+                print(f"[MEMORY DEBUG] Memory disabled - skipping memory feedback")
 
             if current_llm_iteration > 1:
                 retry_warning = (
-                    f"\n\n⚠️ LLM CALL #{current_llm_iteration}: Some of your previous suggestions were invalid or failed to execute. "
+                    f"\n\n LLM CALL #{current_llm_iteration}: Find what other elements are left to rename. "
                     f"Check the memory constraints above to see what WORKED vs what FAILED. "
-                    f"Focus on new valid suggestions and avoid repeating the same mistakes."
+                    f"Focus on new valid suggestions, skip the already operated lines, and avoid repeating the same mistakes."
                 )
                 state['messages'][-1].content += retry_warning
 
@@ -302,7 +315,7 @@ class PerformRefactoring(BaseModel):
                     print("[COMPLETION DEBUG] Could not get current file content")
                     return {"messages": [HumanMessage("Could not analyze file for remaining renames")]}
                 
-                # Get memory information about what has already been tried
+                # Get memory information about what has already been tried (always available for evaluation)
                 memory_context = ""
                 if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
                     try:
@@ -310,18 +323,23 @@ class PerformRefactoring(BaseModel):
                         memory_feedback = self.orm_memory.get_memory_feedback(
                             benchmark_id=self.benchmark_id,
                             file_path=self.rel_file_path,
-                            limit=20  # Get more context for completion check
+                            limit=100  # Get more context for completion check
                         )
                         
                         # Get detailed memory stats
                         memory_stats = self.orm_memory.get_memory_stats(self.benchmark_id, self.rel_file_path)
                         
                         if memory_feedback:
-                            memory_context = f"\n\nMEMORY CONTEXT:\n{memory_feedback}\n"
-                            memory_context += f"MEMORY STATS: {memory_stats['total_attempts']} total suggestions tried, "
-                            memory_context += f"{memory_stats['valid_count']} successful, {memory_stats['invalid_count']} failed.\n"
-                            
-                            print(f"[COMPLETION DEBUG] Added memory context: {memory_stats['total_attempts']} suggestions tried")
+                            if self.enable_memory:
+                                # Include memory context in LLM prompt when feedback is enabled
+                                memory_context = f"\n\nMEMORY CONTEXT:\n{memory_feedback}\n"
+                                memory_context += f"MEMORY STATS: {memory_stats['total_attempts']} total suggestions tried, "
+                                memory_context += f"{memory_stats['valid_count']} successful, {memory_stats['invalid_count']} failed.\n"
+                                print(f"[COMPLETION DEBUG] Added memory context to LLM: {memory_stats['total_attempts']} suggestions tried")
+                            else:
+                                # Don't include memory context in LLM prompt, but log for evaluation
+                                memory_context = "\n\nMEMORY CONTEXT: Memory feedback disabled for this run.\n"
+                                print(f"[COMPLETION DEBUG] Memory available but feedback disabled: {memory_stats['total_attempts']} suggestions tried (not shared with LLM)")
                         else:
                             memory_context = "\n\nMEMORY CONTEXT: No previous attempts recorded for this file.\n"
                             
@@ -466,7 +484,7 @@ class PerformRefactoring(BaseModel):
                 print(f"[RETRY DEBUG] Some tools succeeded - checking completion")
                 return "check_completion"  # Check if more renames are needed
 
-            # Check if we've reached max LLM iterations
+            # Check if we've reached max LLM iterations (always check since we always track for evaluation)
             current_llm_iteration = 0
             if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
                 try:
@@ -561,8 +579,38 @@ class PerformRefactoring(BaseModel):
 
             # If no critique component, proceed without validation
             if not self.critique_component:
-                print(f"[CRITIQUE DEBUG] No critique component available")
-                return {"messages": [AIMessage("No critique component - proceeding with all suggestions")]}
+                print(f"[CRITIQUE DEBUG] No critique component available - accepting all suggestions")
+                
+                # Extract rename analysis from message
+                if not hasattr(last_message, 'additional_kwargs') or 'rename_analysis' not in last_message.additional_kwargs:
+                    print(f"[CRITIQUE DEBUG] No rename analysis found in message")
+                    return {"messages": [HumanMessage(
+                        "No rename suggestions found to critique. Please provide rename suggestions in the correct JSON format.")]}
+
+                # Parse the rename analysis
+                rename_analysis_data = last_message.additional_kwargs['rename_analysis']
+                rename_analysis = RenameAnalysis(**rename_analysis_data)
+
+                print(f"[CRITIQUE DEBUG] Found {len(rename_analysis.rename_suggestions)} suggestions - accepting all without validation")
+
+                # When critique is disabled, mark ALL suggestions as valid
+                valid_suggestions = rename_analysis.rename_suggestions
+                invalid_suggestions = []
+
+                # Create validated renames result with all suggestions marked as valid
+                validated_result = ValidatedRenames(
+                    valid_suggestions=valid_suggestions,
+                    invalid_suggestions=invalid_suggestions,
+                    critique_feedback=f"Critique disabled - accepted all {len(valid_suggestions)} suggestions without validation"
+                )
+
+                # Store validated result for tool call generation
+                result_message = AIMessage(
+                    content=f"Critique disabled: accepting all {len(valid_suggestions)} suggestions without validation",
+                    additional_kwargs={"validated_renames": validated_result.dict()}
+                )
+
+                return {"messages": state['messages'] + [result_message]}
 
             # Extract rename analysis from message
             if not hasattr(last_message,
@@ -585,9 +633,9 @@ class PerformRefactoring(BaseModel):
                 print(
                     f"[CRITIQUE DEBUG] Validating: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num}")
 
-                # Check if this suggestion was previously invalid (memory check)
+                # Check if this suggestion was previously invalid (memory check - only if memory enabled)
                 previously_invalid = False
-                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
+                if self.enable_memory and hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
                                                                                'benchmark_id') and self.benchmark_id:
                     try:
                         previously_invalid = self.orm_memory.is_suggestion_previously_invalid(
@@ -614,9 +662,8 @@ class PerformRefactoring(BaseModel):
                 print(
                     f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
 
-                # Store suggestion in memory (regardless of validation result)
-                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
-                                                                               'benchmark_id') and self.benchmark_id:
+                # Always store suggestion in memory for evaluation purposes (regardless of enable_memory flag)
+                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
                     try:
                         # Prepare context data for memory storage
                         context_data = {
@@ -626,7 +673,8 @@ class PerformRefactoring(BaseModel):
                             "oracle_match": critique_result.oracle_match.model_dump() if hasattr(critique_result,
                                                                                                  'oracle_match') and critique_result.oracle_match else None,
                             "previously_invalid": previously_invalid,
-                            "retry_iteration": self._retry_iteration
+                            "retry_iteration": self._retry_iteration,
+                            "memory_feedback_enabled": self.enable_memory  # Track whether feedback was used
                         }
 
                         # Get current LLM iteration number
@@ -650,7 +698,10 @@ class PerformRefactoring(BaseModel):
                             context_data=context_data
                         )
 
-                        print(f"[MEMORY DEBUG] Stored suggestion in memory successfully")
+                        if self.enable_memory:
+                            print(f"[MEMORY DEBUG] Stored suggestion in memory successfully (with feedback enabled)")
+                        else:
+                            print(f"[MEMORY DEBUG] Stored suggestion in memory for evaluation (feedback disabled)")
 
                     except Exception as e:
                         print(f"[MEMORY DEBUG] Error storing suggestion in memory: {e}")
@@ -684,8 +735,8 @@ class PerformRefactoring(BaseModel):
                     "Do NOT suggest these same renames again. Try different rename suggestions by analyzing the code more carefully."
                 ]
 
-                # Add memory-based guidance if available
-                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
+                # Add memory-based guidance if available (only if memory enabled)
+                if self.enable_memory and hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
                                                                                'benchmark_id') and self.benchmark_id:
                     try:
                         memory_stats = self.orm_memory.get_memory_stats(self.benchmark_id, self.rel_file_path)
@@ -704,6 +755,8 @@ class PerformRefactoring(BaseModel):
 
                     except Exception as e:
                         print(f"[MEMORY DEBUG] Error getting memory stats: {e}")
+                elif not self.enable_memory:
+                    print(f"[MEMORY DEBUG] Memory disabled - no memory-based guidance available")
 
                 feedback = " ".join(feedback_parts)
                 return {"messages": state['messages'] + [HumanMessage(feedback)]}
@@ -714,11 +767,14 @@ class PerformRefactoring(BaseModel):
                 additional_kwargs={"validated_renames": validated_result.dict()}
             )
 
-            # Log memory statistics if available
+            # Log memory statistics if available (always show since we always store for evaluation)
             if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
                 try:
                     stats = self.orm_memory.get_memory_stats(self.benchmark_id, self.rel_file_path)
-                    print(f"[MEMORY DEBUG] Current stats for benchmark {self.benchmark_id}: {stats}")
+                    if self.enable_memory:
+                        print(f"[MEMORY DEBUG] Current stats for benchmark {self.benchmark_id}: {stats} (feedback enabled)")
+                    else:
+                        print(f"[MEMORY DEBUG] Current stats for benchmark {self.benchmark_id}: {stats} (feedback disabled, storage only)")
                 except Exception as e:
                     print(f"[MEMORY DEBUG] Error getting stats: {e}")
 

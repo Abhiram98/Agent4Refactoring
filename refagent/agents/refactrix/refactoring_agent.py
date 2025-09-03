@@ -62,6 +62,7 @@ class Agent(BaseModel):
     augmented_intent: Optional[str] = Field(description="the intent to be refactored", default=None)
     do_replication: bool = Field(description="whether to run replication", default=True)
     enable_critique: bool = Field(description="whether to enable oracle-based critique", default=True)
+    enable_memory: bool = Field(description="whether to enable memory component for storing and retrieving suggestions", default=True)
     critique_config: Optional[critique.CritiqueConfig] = Field(description="critique component configuration", default=None)
     
     # Memory parameters
@@ -516,7 +517,8 @@ class Agent(BaseModel):
                 ide_server=self.ide_server,
                 benchmark_id=self.benchmark_id,
                 memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db",
-                replication_enabled=self.do_replication
+                replication_enabled=self.do_replication,
+                enable_memory=self.enable_memory
             )
             # Pass critique component to the executor
             if hasattr(self, '_critique_component') and self._critique_component:

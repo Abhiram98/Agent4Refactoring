@@ -58,8 +58,14 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     # vendor = 'openai'
 
     enable_critique = args.enable_critique.lower() == "true"
+    enable_memory = args.enable_memory.lower() == "true"
     
-    # Create memory database path in the same directory as results
+    # Memory is automatically disabled when critique is disabled
+    if not enable_critique:
+        enable_memory = False
+        print("[MEMORY] Memory disabled because critique is disabled")
+    
+    # Create memory database path in the same directory as results (even if disabled for logging)
     results_dir = os.path.dirname(args.run_identifier) if "/" in args.run_identifier else "."
     db_name = f"memory_{args.run_identifier.split('/')[-1]}.db"
     memory_db_path = os.path.join(results_dir, db_name)
@@ -67,7 +73,10 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     # Ensure the directory exists
     os.makedirs(results_dir, exist_ok=True)
     
-    print(f"[MEMORY] Database will be saved to: {memory_db_path}")
+    if enable_memory:
+        print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
+    else:
+        print(f"[MEMORY] Memory feedback disabled - data still stored for evaluation at: {memory_db_path}")
     
     agent = react_agent.ReactAgent(ide_server=ij_server,
                      reasoning_model_name=f'{vendor}:openai-o4-mini',
@@ -77,6 +86,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                      augmented_intent=augmented_intent,
                      do_replication=do_replication,
                      enable_critique=enable_critique,
+                     enable_memory=enable_memory,
                      benchmark_id=bench_point.ref_id,  
                      memory_database_url=f"sqlite:///{memory_db_path}")
 
@@ -166,6 +176,11 @@ if __name__ == '__main__':
     parser.add_argument("--enable_critique", type=str, 
                         help="Whether to enable oracle-based critique component. "
                              "If true, agent suggestions are validated against oracle data before execution.",
+                        default="true")
+    parser.add_argument("--enable_memory", type=str,
+                        help="Whether to enable memory component for storing and retrieving refactoring suggestions. "
+                             "If false, memory storage and retrieval are disabled. "
+                             "Note: Memory is automatically disabled when critique is disabled.",
                         default="true")
     args = parser.parse_args()
 
