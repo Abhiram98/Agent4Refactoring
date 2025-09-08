@@ -167,6 +167,10 @@ class EvalProject:
             ['git', '-C', self.get_project_path(), 'status', '--short'], capture_output=True, text=True, check=True)
         return [i.split(' ')[-1] for i in result.stdout.strip().splitlines()]
 
+    def get_all_uncommitted_changes(self) -> list[MyDiff]:
+        diffs = self.git_repo.head.commit.diff(None, create_patch=True)
+        return [MyDiff(d) for d in diffs]
+
     def replace_contents(self, file_path, new_content):
         try:
             with open(self.get_project_path().joinpath(file_path), "w") as f:

@@ -46,7 +46,7 @@ class ReactAgent(ra.Agent):
                         SystemMessage(f"You are an expert developer who executes rename refactorings to"
                                       f" improve the quality of the given code. "
                                       f"Please do the following: {self.augmented_intent} "
-                                      f"The final code is expected to look like this: {step.final_code} "
+                                      # f"The final code is expected to look like this: {step.final_code} "
                                       f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
                                       f"You will be asked to provide your analysis as a JSON response containing all rename suggestions."),
                     ]
@@ -85,7 +85,12 @@ class ReactAgent(ra.Agent):
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
             refactoring_commit=self._internal_commits[0],
-            oracle_data=self._oracle_data
+            oracle_data=self._oracle_data,
+            # Pass memory parameters for iterative replication
+            benchmark_id=self.benchmark_id,
+            memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db",
+            enable_memory=self.enable_memory,
+            orm_memory=getattr(self, '_orm_memory', None)  # Use agent's memory if available
         )
         self.MAX_GRAPH_ITERATION = 2
         self.MAX_FAILING_TOOL_CALLS = 1

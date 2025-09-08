@@ -222,8 +222,8 @@ class PerformRefactoring(BaseModel):
             if current_llm_iteration > 1:
                 retry_warning = (
                     f"\n\n LLM CALL #{current_llm_iteration}: Find what other elements are left to rename. "
-                    f"Check the memory constraints above to see what WORKED vs what FAILED. "
-                    f"Focus on new valid suggestions, skip the already operated lines, and avoid repeating the same mistakes."
+                    f"Check the MEMORY info below: use AVOID lines to skip, COMPLETED lines to not repeat, "
+                    f"and SUCCESS patterns as guidance."
                 )
                 state['messages'][-1].content += retry_warning
 

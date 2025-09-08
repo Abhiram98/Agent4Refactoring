@@ -339,6 +339,40 @@ class ORMRefactoringMemory:
             ).delete()
             db.commit()
 
+    def get_successful_renames_for_file(self, file_path: str, benchmark_id: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Get successful rename suggestions for a specific file."""
+        with self.get_session() as db:
+            query = db.query(RefactoringSuggestion).filter(
+                and_(
+                    RefactoringSuggestion.file_path == file_path,
+                    RefactoringSuggestion.is_valid == True
+                )
+            )
+            
+            if benchmark_id:
+                query = query.filter(RefactoringSuggestion.benchmark_id == benchmark_id)
+            elif self.current_session_id:
+                # Use current session's benchmark if available
+                session_info = db.query(MemorySession).filter(
+                    MemorySession.session_id == self.current_session_id
+                ).first()
+                if session_info:
+                    query = query.filter(RefactoringSuggestion.benchmark_id == session_info.benchmark_id)
+            
+            suggestions = query.order_by(RefactoringSuggestion.created_at.desc()).all()
+            
+            return [
+                {
+                    'old_name': s.old_name,
+                    'new_name': s.new_name,
+                    'line_num': s.line_num,
+                    'code_element_type': s.code_element_type,
+                    'confidence_score': s.confidence_score,
+                    'created_at': s.created_at
+                }
+                for s in suggestions
+            ]
+
     def get_most_successful_patterns(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get the most successful transformation patterns across all benchmarks."""
 
