@@ -171,7 +171,7 @@ if __name__ == '__main__':
     parser.add_argument("--use_change_summary", type=str,
                         help="Whether to use the change summary or not. "
                              "If true, the change summary is used to improve the intent. "
-                             "If false, the change summary is not used.", default=False)
+                             "If false, the change summary is not used.", default='False')
     parser.add_argument("--use_seed", action='store_true')
     parser.add_argument("--enable_critique", type=str, 
                         help="Whether to enable oracle-based critique component. "
