@@ -104,5 +104,5 @@ class NaiveAnalysisComponent(AnalysisComponent):
     def run(self) -> AugmentedIntent:
         return AugmentedIntent(
             original_intent=self.initial_intent,
-            augmented_intent=f"rename {self.old_name} -> {self.new_name}"
+            augmented_intent=f"Please rename the variable '{self.old_name}' to '{self.new_name}'"
         )
