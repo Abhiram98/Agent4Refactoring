@@ -97,3 +97,12 @@ class AnalysisComponent(BaseModel):
         if self._augmented_intent is None:
             raise ValueError("Augmented intent was not generated or found in the component.")
         return self._augmented_intent
+
+
+
+class NaiveAnalysisComponent(AnalysisComponent):
+    def run(self) -> AugmentedIntent:
+        return AugmentedIntent(
+            original_intent=self.initial_intent,
+            augmented_intent=f"rename {self.old_name} -> {self.new_name}"
+        )

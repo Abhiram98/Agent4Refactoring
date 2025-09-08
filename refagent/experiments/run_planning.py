@@ -17,7 +17,10 @@ import refagent.benchmark.load as bm_load
 import refagent.experiments.results_manager as rm
 import refagent.utils.project_manager as pm
 
-import refagent.agents.refactrix.analysis as analysis
+import refagent.agents.refactrix.analysis.component as analysis
+
+import logging
+logger = logging.getLogger(__name__)
 
 def get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
     project = pm.EvalProject(project_name)
@@ -29,7 +32,8 @@ def get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
         unified_context=1000)
 
 def run_planning(bench_point: bm_load.RenameItem,
-                 results_saver: rm.ResultsManager):
+                 results_saver: rm.ResultsManager,
+                 planning_type: str):
     project = pm.EvalProject(bench_point.project_name)
     project.checkout(bench_point.v1_hash, force=True)
 
@@ -56,11 +60,19 @@ def run_planning(bench_point: bm_load.RenameItem,
     file_2 = bench_point.seed_example.rightSideLocations[0].filePath
     v1_hash = bench_point.v1_hash
     seed_hash = bench_point.seed_hash
-    diff =  get_git_diff(bench_point.project_name, file_1, file_2, v1_hash, seed_hash)
+    try:
+        diff =  get_git_diff(bench_point.project_name, file_1, file_2, v1_hash, seed_hash)
+    except:
+        logger.warn("Failed to get diff")
+        diff = ""
 
     print(f"Difference: {diff}")
 
-    augmented_intent = analysis.AnalysisComponent(
+    if planning_type =='naive':
+        plan_type = analysis.NaiveAnalysisComponent
+    else:
+        plan_type = analysis.AnalysisComponent
+    augmented_intent = plan_type(
         model=model,
         source_file_path=file_1,
         source_code=project.get_file_contents(file_1),
@@ -97,6 +109,9 @@ if __name__ == '__main__':
                         default="default")
     parser.add_argument('--benchmark_file', type=str, help='Path to benchmark file',
                         default=str(refagent.benchmark_full_file))
+    # todo: have an two way planning type: naive/augmented
+    parser.add_argument('--planning_type',
+                        help='Type of planning to use', default='naive')
     args = parser.parse_args()
 
     selected_ref_ids = [int(i) for i in args.ref_ids.split(',')] if args.ref_ids is not None else None
@@ -122,4 +137,4 @@ if __name__ == '__main__':
 
         with ls.trace(name=f"refactoring agent planning - {args.run_identifier}. ID {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:
-            run_planning(bench_point, results_saver)
+            run_planning(bench_point, results_saver, args.planning_type)

@@ -32,7 +32,7 @@ import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.perform_refactoring as perform_ref
 import refagent.agents.refactrix.tools as ref_tools
 import refagent.agents.refactrix.planning as planning
-import refagent.agents.refactrix.analysis as analysis
+import refagent.agents.refactrix.analysis.component as analysis
 import refagent.utils.project_manager as pm
 import refagent.agents.refactrix.replication as replication
 import refagent.agents.refactrix.error_fixing as error_fixing
