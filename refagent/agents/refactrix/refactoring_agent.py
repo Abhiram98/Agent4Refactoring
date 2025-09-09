@@ -51,6 +51,8 @@ class SelectedRefactoring(BaseModel):
 
 
 class Agent(BaseModel):
+    """A wrapper class for refactoring agents developed in this project.
+    It should ideally have no prompts. Just high level design"""
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
     reasoning_model_name: str = Field(description="model name for reasoning", default=None)
@@ -525,12 +527,18 @@ class Agent(BaseModel):
                 memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db",
                 replication_enabled=self.do_replication,
                 enable_memory=self.enable_memory,
-                critique_component=self._critique_component # Pass critique component to the executor
+                critique_component=self._critique_component, # Pass critique component to the executor,
+                original_intent=self.augmented_intent
             )
             perform_refactoring_graph = executor.compile()
             self.get_changed_file_contents() # nit: this call exists to update the changed files list. this is tech debt
             state = MessagesState(messages=state['messages'])
             observation = perform_refactoring_graph.invoke(state)
+
+            if executor.new_intent:
+                # call intent refinement to generate a new intent
+                self.augmented_intent = executor.new_intent
+                raise NotImplementedError()
             # Add PerformRefactoring workflow messages to trajectory
             self._trajectory += observation['messages']
             self._failing_tool_call_count += not executor.refactoring_success  # increment the count if tool calls failed.
