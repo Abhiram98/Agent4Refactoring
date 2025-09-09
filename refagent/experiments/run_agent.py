@@ -69,6 +69,9 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     results_dir = os.path.dirname(args.run_identifier) if "/" in args.run_identifier else "."
     db_name = f"memory_{args.run_identifier.split('/')[-1]}.db"
     memory_db_path = os.path.join(results_dir, db_name)
+    if Path(memory_db_path).exists():
+        # delete it to run it again.
+        os.remove(memory_db_path)
     
     # Ensure the directory exists
     os.makedirs(results_dir, exist_ok=True)
@@ -109,7 +112,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
             agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
-        traceback.print_tb(e.__traceback__)
+        print(traceback.format_exc())
 
     internal_commits = agent.internal_commits()
     previous_commits = "\n".join([i.message for i in internal_commits])
@@ -224,21 +227,21 @@ if __name__ == '__main__':
 
     for bench_point in benchmark:
 
-        if args.use_change_summary.lower() == "true":
-            print(f"Using change summary for {bench_point.change_summary}")
-        else:
-            print(args.use_change_summary)
-            print(f"Using initial commit for {bench_point.improved_commit_message}")
+        # if args.use_change_summary.lower() == "true":
+        #     print(f"Using change summary for {bench_point.change_summary}")
+        # else:
+        #     print(args.use_change_summary)
+            # print(f"Using initial commit for {bench_point.improved_commit_message}")
 
 
         if (selected_ref_ids is not None and
                 bench_point.ref_id not in selected_ref_ids):
-            print(f"Skipping ref id {bench_point.ref_id} as it is not a selected one. "
-                  f"Selected: {selected_ref_ids}")
+            # print(f"Skipping ref id {bench_point.ref_id} as it is not a selected one. "
+            #       f"Selected: {selected_ref_ids}")
             continue
 
         if not args.force_run and results_saver.exists(bench_point.ref_id):
-            print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
+            # print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
             continue
 
         with ls.trace(name=f"refactoring agent - {args.run_identifier}. bench point {bench_point.ref_id}",
