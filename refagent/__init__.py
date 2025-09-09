@@ -35,7 +35,10 @@ logging.basicConfig(
 
 def my_print(*args, **kwargs):
     frame = inspect.currentframe().f_back
-    filename = Path(frame.f_code.co_filename).relative_to(repo_root)
+    try:
+        filename = Path(frame.f_code.co_filename).relative_to(repo_root)
+    except ValueError:
+        filename = Path(frame.f_code.co_filename)
     lineno = frame.f_lineno
 
     message = " ".join(str(a) for a in args)
