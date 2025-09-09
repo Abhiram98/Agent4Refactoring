@@ -14,6 +14,7 @@ from pathlib import Path
 import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
+import refagent.agents.refactrix.critique as critique
 from refagent.agents.refactrix.rename_suggestions import RenameAnalysis, RenameSuggestion, ValidatedRenames
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
 
@@ -27,7 +28,7 @@ class PerformRefactoring(BaseModel):
     rel_file_path: str = Field(description="relative file path from repo root. file to be edited.")
     ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
     refactoring_success: bool = Field(description="whether the refactoring was successful or not.", default=False)
-    critique_component: Optional[Any] = Field(description="Critique component for validating suggestions", default=None)
+    critique_component: Optional[critique.CritiqueComponent] = Field(description="Critique component for validating suggestions", default=None)
     _file_open_status: bool = PrivateAttr(default=False)
     _active_tool_call: List = PrivateAttr(default="")
     _retry_iteration: int = PrivateAttr(default=1)

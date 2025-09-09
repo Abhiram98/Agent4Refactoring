@@ -62,6 +62,8 @@ class CritiqueComponent(BaseModel):
         )
         
         if not matching_entries:
+            # todo: refine the intent based on this context.
+
             return CritiqueResult(
                 is_valid=False,
                 feedback=f"No oracle match found for renaming '{old_name}' to '{new_name}' at line {line_num}. "

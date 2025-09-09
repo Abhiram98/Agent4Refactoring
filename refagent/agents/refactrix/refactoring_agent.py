@@ -16,6 +16,8 @@ from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AI
 from langchain_core.language_models import BaseChatModel
 from collections import defaultdict
 
+import refagent.refactoring_types.refactorings as refactorings
+
 try:
     from grazie_langchain_utils.language_models.grazie import ChatGrazie
 except ImportError:
@@ -179,7 +181,7 @@ class Agent(BaseModel):
         self._original_source_code = self.project.get_file_contents(self._starting_file)
         return model
 
-    def initialize_critique_component(self, oracle_data: List):
+    def initialize_critique_component(self, oracle_data: List[refactorings.RefminerOut]):
         """Initialize the critique component with oracle data."""
         # Store oracle data for use in replication
         self._oracle_data = oracle_data
@@ -522,11 +524,9 @@ class Agent(BaseModel):
                 benchmark_id=self.benchmark_id,
                 memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db",
                 replication_enabled=self.do_replication,
-                enable_memory=self.enable_memory
+                enable_memory=self.enable_memory,
+                critique_component=self._critique_component # Pass critique component to the executor
             )
-            # Pass critique component to the executor
-            if hasattr(self, '_critique_component') and self._critique_component:
-                executor.critique_component = self._critique_component
             perform_refactoring_graph = executor.compile()
             messages = state['messages'] + [
                 AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}."),
