@@ -16,6 +16,7 @@ import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
 import refagent.agents.refactrix.critique as critique
+from agents.refactrix.analysis.refine_intent import RefineIntent
 from refagent.agents.refactrix.rename_suggestions import RenameAnalysis, RenameSuggestion, ValidatedRenames
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
 
@@ -30,12 +31,16 @@ class PerformRefactoring(BaseModel):
     ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
     refactoring_success: bool = Field(description="whether the refactoring was successful or not.", default=False)
     critique_component: Optional[critique.CritiqueComponent] = Field(description="Critique component for validating suggestions", default=None)
+    original_intent: str = Field(description="Original intent.")
+
+
     _file_open_status: bool = PrivateAttr(default=False)
     _active_tool_call: List = PrivateAttr(default="")
     _retry_iteration: int = PrivateAttr(default=1)
     _performed_refactorings: List = PrivateAttr(default=[])
     _tool_call_map: Dict = PrivateAttr(default=defaultdict(dict))
     _critique_retry_count: int = PrivateAttr(default=0)
+    _new_intent: Optional[str] = PrivateAttr(default=None)
 
     benchmark_id: Optional[int] = Field(
         description="Current benchmark ID for memory isolation",
@@ -79,6 +84,10 @@ class PerformRefactoring(BaseModel):
 
         return self._orm_memory
 
+    @property
+    def new_intent(self) -> Optional[str]:
+        """return the new intent if generated, else none"""
+        return self._new_intent
 
     def get_tool_call_str(self, tool_call: Optional[ToolCall]=None) -> str:
         if tool_call is None:
@@ -104,13 +113,16 @@ class PerformRefactoring(BaseModel):
                     if create_response == 'success':
                         self._file_open_status = True
                         open_response = self.ide_server.open_file(Path(self.rel_file_path))
-                        return {"messages": [HumanMessage(f"Created and opened file successfully. "
-                                                          f"You are now editing {self.rel_file_path}")]}
+                        return {"messages": [opened_file_message()]}
 
                 return {"messages": [HumanMessage(response)]}
             self._file_open_status = True
             return {"messages": [HumanMessage(f"Opened file successfully. "
                                               f"You are now editing {self.rel_file_path}")]}
+
+        def opened_file_message():
+            return HumanMessage(f"Created and opened file successfully. "
+                                f"You are now editing {self.rel_file_path}")
 
         def successful_file_open(state: MessagesState):
             return self._file_open_status
@@ -190,8 +202,8 @@ class PerformRefactoring(BaseModel):
                 f"Example for more work: {{\"analysis\": \"REFACTORING_NEEDED: Found 3 more instances to rename.\", \"rename_suggestions\": [...]}}"
             )
 
-            # Modify the last message to include format instructions AND fresh source code
-            messages = state['messages'].copy()
+            # Only pass the system prompt to avoid prompt bloating
+            messages = [state['messages'][0] , opened_file_message()]
             if messages:
                 last_msg = messages[-1]
                 if hasattr(last_msg, 'content'):
@@ -471,77 +483,6 @@ class PerformRefactoring(BaseModel):
             print(f"[RETRY DEBUG] No success, retrying LLM")
             return "llm_tool"  # retry the tool call
 
-        # def critique_json_suggestions(state: MessagesState):
-        #     """Critique JSON rename suggestions before creating tool calls."""
-        #     last_message = state['messages'][-1]
-        #
-        #     print(f"[CRITIQUE DEBUG] Critiquing JSON suggestions from message type: {type(last_message)}")
-        #
-        #     # If no critique component, proceed without validation
-        #     if not self.critique_component:
-        #         return {"messages": [AIMessage("No critique component - proceeding with all suggestions")]}
-        #
-        #     # Extract rename analysis from message
-        #     if not hasattr(last_message, 'additional_kwargs') or 'rename_analysis' not in last_message.additional_kwargs:
-        #         print(f"[CRITIQUE DEBUG] No rename analysis found in message")
-        #         return {"messages": [HumanMessage("No rename suggestions found to critique. Please provide rename suggestions in the correct JSON format.")]}
-        #
-        #     # Parse the rename analysis
-        #     rename_analysis_data = last_message.additional_kwargs['rename_analysis']
-        #     rename_analysis = RenameAnalysis(**rename_analysis_data)
-        #
-        #     print(f"[CRITIQUE DEBUG] Found {len(rename_analysis.rename_suggestions)} suggestions to validate")
-        #
-        #     # Validate each rename suggestion
-        #     valid_suggestions = []
-        #     invalid_suggestions = []
-        #
-        #     for suggestion in rename_analysis.rename_suggestions:
-        #         print(f"[CRITIQUE DEBUG] Validating: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num}")
-        #
-        #         critique_result = self.critique_component.validate_rename_suggestion(
-        #             suggestion.old_name,
-        #             suggestion.new_name,
-        #             suggestion.line_num,
-        #             suggestion.code_element_type.value
-        #         )
-        #
-        #         print(f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
-        #
-        #         if critique_result.is_valid:
-        #             valid_suggestions.append(suggestion)
-        #             print(f"[CRITIQUE DEBUG] PASSED: {suggestion.old_name} → {suggestion.new_name}")
-        #         else:
-        #             invalid_suggestions.append(suggestion)
-        #             print(f"[CRITIQUE DEBUG] FAILED: {suggestion.old_name} → {suggestion.new_name}")
-        #
-        #     # Create validated renames result
-        #     validated_result = ValidatedRenames(
-        #         valid_suggestions=valid_suggestions,
-        #         invalid_suggestions=invalid_suggestions,
-        #         critique_feedback=f"Validated {len(valid_suggestions)} valid and {len(invalid_suggestions)} invalid suggestions"
-        #     )
-        #
-        #     # Handle critique results
-        #     if len(invalid_suggestions) > 0 and len(valid_suggestions) == 0:
-        #         # All suggestions failed critique
-        #         print(f"[CRITIQUE DEBUG] All {len(invalid_suggestions)} suggestions failed critique")
-        #
-        #         failed_names = [f"{s.old_name} → {s.new_name}" for s in invalid_suggestions]
-        #         feedback = (
-        #             f"CRITIQUE: All {len(invalid_suggestions)} rename suggestions were invalid: {', '.join(failed_names)}. "
-        #             f"Do NOT suggest these same renames again. Try different rename suggestions by analyzing the code more carefully."
-        #         )
-        #
-        #         return {"messages": state['messages'] + [HumanMessage(feedback)]}
-        #
-        #     # Store validated result for tool call generation
-        #     result_message = AIMessage(
-        #         content=f"Critique completed: {len(valid_suggestions)} valid suggestions, {len(invalid_suggestions)} invalid suggestions",
-        #         additional_kwargs={"validated_renames": validated_result.dict()}
-        #     )
-        #
-        #     return {"messages": state['messages'] + [result_message]}
 
         def critique_json_suggestions(state: MessagesState):
             """Critique JSON rename suggestions and store results in memory."""
@@ -632,6 +573,11 @@ class PerformRefactoring(BaseModel):
                 )
 
                 # todo: call the intent agent to refine intent if critque_result.is_valid == False
+                self._new_intent = RefineIntent(
+                    original_intent=self.original_intent,
+                    positive_examples=[],
+                    negative_examples=[]
+                ).get_new_intent()
 
 
                 print(
