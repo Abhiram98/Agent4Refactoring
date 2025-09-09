@@ -210,13 +210,7 @@ class Agent(BaseModel):
             final_state = self.execute_initial_plan(current_intent, model, ref_plan)
             self.update_changed_files()
 
-            quality_result = quality_check.QualityCheck(
-                model=model,
-                ide_server=self.ide_server,
-                original_code=self._original_source_code,
-                refactored_code=self._source_code,
-                intent=self.augmented_intent
-            ).compile_and_run()
+            quality_result = self.do_quality_check(model)
             self._internal_commits = \
                 [self.project.squash_changes(current_intent, len(self._internal_commits))]
 
@@ -227,6 +221,16 @@ class Agent(BaseModel):
                 # quality check failed, update intent
                 current_intent = quality_result.refined_intent
         return current_intent, ref_plan
+
+    def do_quality_check(self, model) -> quality_check.QualityCheckResult:
+        quality_result = quality_check.QualityCheck(
+            model=model,
+            ide_server=self.ide_server,
+            original_code=self._original_source_code,
+            refactored_code=self._source_code,
+            intent=self.augmented_intent
+        ).compile_and_run()
+        return quality_result
 
     def perform_replication(self, current_intent, model, ref_plan):
         replicator = replication.Replication(
