@@ -109,7 +109,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
             agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
-        traceback.print_exc()
+        traceback.print_tb(e.__traceback__)
 
     internal_commits = agent.internal_commits()
     previous_commits = "\n".join([i.message for i in internal_commits])
@@ -122,7 +122,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     # new_hash = project.commit_all(f"changes to solve benchmark id {bench_point.ref_id} \n\n {previous_commits}")
     print(f"New hash: {new_hash}")
 
-    results_saver.add(
+    results_saver.update(
         bench_point.ref_id,
         {
             "changes": [c.to_json() for c in project.get_changes(new_hash)],
@@ -182,6 +182,9 @@ if __name__ == '__main__':
                              "If false, memory storage and retrieval are disabled. "
                              "Note: Memory is automatically disabled when critique is disabled.",
                         default="true")
+    parser.add_argument("--force_run",
+                        help="Whether to force a run of the agent, even if it ran previously.",
+                        action='store_true')
     args = parser.parse_args()
 
 
@@ -234,7 +237,7 @@ if __name__ == '__main__':
                   f"Selected: {selected_ref_ids}")
             continue
 
-        if results_saver.exists(bench_point.ref_id):
+        if not args.force_run and results_saver.exists(bench_point.ref_id):
             print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
             continue
 

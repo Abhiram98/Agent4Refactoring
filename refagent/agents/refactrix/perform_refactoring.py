@@ -53,23 +53,19 @@ class PerformRefactoring(BaseModel):
         description="Whether memory component is enabled for storing and retrieving suggestions",
         default=True
     )
+
+    _orm_memory: Optional[ORMRefactoringMemory] = PrivateAttr(default=None)
     
     class Config:
         arbitrary_types_allowed = True
 
 
-    @cached_property
     @property
     def orm_memory(self) -> ORMRefactoringMemory:
-        return ORMRefactoringMemory(self.memory_database_url)
-
-
-
-    def __init__(self, **data):
-        super().__init__(**data)
-
-        # Start memory session if benchmark_id is provided (always for evaluation)
-        if self.benchmark_id and self.orm_memory:
+        if self._orm_memory is not None:
+            return self._orm_memory
+        self._orm_memory = ORMRefactoringMemory(self.memory_database_url)
+        if self.benchmark_id:
             self.orm_memory.start_session(
                 benchmark_id=self.benchmark_id,
                 replication_enabled=self.replication_enabled
@@ -77,7 +73,12 @@ class PerformRefactoring(BaseModel):
             if self.enable_memory:
                 print(f"[MEMORY INIT] Memory session started for benchmark {self.benchmark_id} - feedback enabled")
             else:
-                print(f"[MEMORY INIT] Memory session started for benchmark {self.benchmark_id} - feedback disabled (storage only for evaluation)")
+                print(
+                    f"[MEMORY INIT] Memory session started for benchmark {self.benchmark_id} - feedback disabled (storage only for evaluation)")
+
+
+        return self._orm_memory
+
 
     def get_tool_call_str(self, tool_call: Optional[ToolCall]=None) -> str:
         if tool_call is None:
@@ -458,11 +459,10 @@ class PerformRefactoring(BaseModel):
 
             # Check if we've reached max LLM iterations (always check since we always track for evaluation)
             current_llm_iteration = 0
-            if self.orm_memory.current_session_id:
-                try:
-                    current_llm_iteration = self.orm_memory.get_current_llm_iteration()
-                except Exception as e:
-                    print(f"[RETRY DEBUG] Error getting current LLM iteration: {e}")
+            try:
+                current_llm_iteration = self.orm_memory.get_current_llm_iteration()
+            except Exception as e:
+                print(f"[RETRY DEBUG] Error getting current LLM iteration: {e}")
             
             if current_llm_iteration >= 3:  # Max 3 LLM iterations
                 print(f"[RETRY DEBUG] Max LLM iterations (3) exceeded - going to failure handler")
@@ -711,8 +711,7 @@ class PerformRefactoring(BaseModel):
                 ]
 
                 # Add memory-based guidance if available (only if memory enabled)
-                if self.enable_memory and  hasattr(self,
-                                                                               'benchmark_id') and self.benchmark_id:
+                if self.enable_memory and  hasattr(self, 'benchmark_id') and self.benchmark_id:
                     try:
                         memory_stats = self.orm_memory.get_memory_stats(self.benchmark_id, self.rel_file_path)
                         if memory_stats['total_attempts'] > 0:
