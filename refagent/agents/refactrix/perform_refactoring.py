@@ -10,6 +10,7 @@ from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, BaseMessage, ToolCall
 from pathlib import Path
+from functools import cached_property
 
 import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.utils.intellij_server as ij
@@ -36,10 +37,6 @@ class PerformRefactoring(BaseModel):
     _tool_call_map: Dict = PrivateAttr(default=defaultdict(dict))
     _critique_retry_count: int = PrivateAttr(default=0)
 
-    orm_memory: Optional[Any] = Field(
-        description="ORM-based persistent memory component", 
-        default=None
-    )
     benchmark_id: Optional[int] = Field(
         description="Current benchmark ID for memory isolation",
         default=None
@@ -60,13 +57,17 @@ class PerformRefactoring(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+
+    @cached_property
+    @property
+    def orm_memory(self) -> ORMRefactoringMemory:
+        return ORMRefactoringMemory(self.memory_database_url)
+
+
+
     def __init__(self, **data):
         super().__init__(**data)
-        
-        # Always initialize memory component for evaluation storage, but control feedback usage
-        if self.orm_memory is None:
-            self.orm_memory = ORMRefactoringMemory(self.memory_database_url)
-        
+
         # Start memory session if benchmark_id is provided (always for evaluation)
         if self.benchmark_id and self.orm_memory:
             self.orm_memory.start_session(
@@ -113,46 +114,11 @@ class PerformRefactoring(BaseModel):
         def successful_file_open(state: MessagesState):
             return self._file_open_status
 
-        # def call_llm(state: MessagesState):
-        #     # Check if we've exceeded max retries (default is 3, but using retry_count field)
-        #     max_retries = max(3, self.retry_count + 1)  # Ensure at least 3 retries, use field if higher
-        #     if self._retry_iteration > max_retries:
-        #         print(f"[LLM DEBUG] Max retries ({max_retries}) exceeded, stopping LLM calls")
-        #         return {"messages": [AIMessage(f"Stopping LLM calls after {max_retries} attempts. Unable to generate valid rename suggestions.")]}
-        #
-        #     print(f"[LLM DEBUG] LLM call attempt {self._retry_iteration}/{max_retries}")
-        #
-        #     if self._retry_iteration > 1:
-        #         # Add retry warning for JSON-based approach
-        #         state['messages'][-1].content += (f"Your previous rename suggestions were invalid. "
-        #                                           f"DO NOT suggest the same renames again. Try different ones.")
-        #
-        #     # Create output parser for structured JSON response
-        #     parser = PydanticOutputParser(pydantic_object=RenameAnalysis)
-        #
-        #     # Add JSON format instructions to the last message
-        #     format_instructions = (
-        #         "\n\nIMPORTANT: Respond with a JSON object containing your analysis and rename suggestions. "
-        #         f"Use this exact format:\n{parser.get_format_instructions()}"
-        #     )
-        #
-        #     # Modify the last message to include format instructions
-        #     messages = state['messages'].copy()
-        #     if messages:
-        #         last_msg = messages[-1]
-        #         if hasattr(last_msg, 'content'):
-        #             last_msg.content += format_instructions
-        #
-        #     # Use model without tools for JSON output
-        #     response = self.model.invoke(messages)
-        #     self._retry_iteration += 1
-        #     return {"messages": [response]}
-
         def call_llm(state: MessagesState):
             """Call LLM with memory-enhanced feedback for retry attempts."""
             # Get current LLM iteration from memory (always track for evaluation purposes)
             current_llm_iteration = 0
-            if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
+            if self.orm_memory.current_session_id:
                 try:
                     current_llm_iteration = self.orm_memory.get_current_llm_iteration()
                 except Exception as e:
@@ -164,14 +130,14 @@ class PerformRefactoring(BaseModel):
                 print(f"[LLM DEBUG] Max LLM iterations ({max_llm_iterations}) exceeded, stopping LLM calls")
 
                 # End memory session if we have one (always end since we always initialize for evaluation)
-                if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
+                if self.orm_memory.current_session_id:
                     self.orm_memory.end_session()
 
                 return {"messages": [AIMessage(
                     f"Stopping LLM calls after {max_llm_iterations} total iterations. Unable to generate valid rename suggestions.")]}
 
             # Increment LLM iteration counter in memory (always track for evaluation purposes)
-            if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
+            if self.orm_memory.current_session_id:
                 try:
                     current_llm_iteration = self.orm_memory.increment_llm_iteration()
                     print(f"[LLM DEBUG] LLM iteration {current_llm_iteration}/{max_llm_iterations} (feedback enabled)")
@@ -194,31 +160,7 @@ class PerformRefactoring(BaseModel):
                 current_file_content = None
 
             # Add memory constraints if memory is enabled and available (not just on retry)
-            memory_constraints = ""
-            if self.enable_memory and hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
-                try:
-                    if current_llm_iteration <= 1:
-                        # First LLM call: Get broader memory feedback from all files in this benchmark
-                        print(f"[MEMORY DEBUG] First LLM call - getting cross-file memory feedback")
-                        memory_feedback = self.orm_memory.get_memory_feedback(
-                            benchmark_id=self.benchmark_id,
-                            file_path=None  # No file constraint for broader context
-                        )
-                    else:
-                        # Subsequent LLM calls: Get file-specific memory feedback
-                        print(f"[MEMORY DEBUG] LLM call #{current_llm_iteration} - getting file-specific memory feedback")
-                        memory_feedback = self.orm_memory.get_memory_feedback(
-                            benchmark_id=self.benchmark_id,
-                            file_path=self.rel_file_path
-                        )
-                    
-                    if memory_feedback:
-                        memory_constraints = f"\n\n {memory_feedback} \n"
-                        print(f"[MEMORY DEBUG] Adding memory constraints: {memory_feedback}")
-                except Exception as e:
-                    print(f"[MEMORY DEBUG] Error getting memory feedback: {e}")
-            elif not self.enable_memory:
-                print(f"[MEMORY DEBUG] Memory disabled - skipping memory feedback")
+            memory_constraints = get_memory_constraints(current_llm_iteration)
 
             if current_llm_iteration > 1:
                 retry_warning = (
@@ -267,6 +209,35 @@ class PerformRefactoring(BaseModel):
             # Use model without tools for JSON output
             response = self.model.invoke(messages)
             return {"messages": [response]}
+
+        def get_memory_constraints(current_llm_iteration):
+            memory_constraints = ""
+            if hasattr(self, 'benchmark_id') and self.benchmark_id:
+                try:
+                    if current_llm_iteration <= 1:
+                        # First LLM call: Get broader memory feedback from all files in this benchmark
+                        print(f"[MEMORY DEBUG] First LLM call - getting cross-file memory feedback")
+                        memory_feedback = self.orm_memory.get_memory_feedback(
+                            benchmark_id=self.benchmark_id,
+                            file_path=None  # No file constraint for broader context
+                        )
+                    else:
+                        # Subsequent LLM calls: Get file-specific memory feedback
+                        print(
+                            f"[MEMORY DEBUG] LLM call #{current_llm_iteration} - getting file-specific memory feedback")
+                        memory_feedback = self.orm_memory.get_memory_feedback(
+                            benchmark_id=self.benchmark_id,
+                            file_path=self.rel_file_path
+                        )
+
+                    if memory_feedback:
+                        memory_constraints = f"\n\n {memory_feedback} \n"
+                        print(f"[MEMORY DEBUG] Adding memory constraints: {memory_feedback}")
+                except Exception as e:
+                    print(f"[MEMORY DEBUG] Error getting memory feedback: {e}")
+            elif not self.enable_memory:
+                print(f"[MEMORY DEBUG] Memory disabled - skipping memory feedback")
+            return memory_constraints
 
         def parse_json_response(state: MessagesState):
             """Parse and validate JSON response from LLM."""
@@ -318,7 +289,7 @@ class PerformRefactoring(BaseModel):
                 
                 # Get memory information about what has already been tried (always available for evaluation)
                 memory_context = ""
-                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
+                if hasattr(self, 'benchmark_id') and self.benchmark_id:
                     try:
                         # Get memory feedback to understand what was already attempted
                         memory_feedback = self.orm_memory.get_memory_feedback(
@@ -487,7 +458,7 @@ class PerformRefactoring(BaseModel):
 
             # Check if we've reached max LLM iterations (always check since we always track for evaluation)
             current_llm_iteration = 0
-            if hasattr(self, 'orm_memory') and self.orm_memory and self.orm_memory.current_session_id:
+            if self.orm_memory.current_session_id:
                 try:
                     current_llm_iteration = self.orm_memory.get_current_llm_iteration()
                 except Exception as e:
@@ -636,7 +607,7 @@ class PerformRefactoring(BaseModel):
 
                 # Check if this suggestion was previously invalid (memory check - only if memory enabled)
                 previously_invalid = False
-                if self.enable_memory and hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
+                if self.enable_memory and hasattr(self,
                                                                                'benchmark_id') and self.benchmark_id:
                     try:
                         previously_invalid = self.orm_memory.is_suggestion_previously_invalid(
@@ -660,11 +631,14 @@ class PerformRefactoring(BaseModel):
                     suggestion.code_element_type.value
                 )
 
+                # todo: call the intent agent to refine intent if critque_result.is_valid == False
+
+
                 print(
                     f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
 
                 # Always store suggestion in memory for evaluation purposes (regardless of enable_memory flag)
-                if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
+                if hasattr(self, 'benchmark_id') and self.benchmark_id:
                     try:
                         # Prepare context data for memory storage
                         context_data = {
@@ -737,7 +711,7 @@ class PerformRefactoring(BaseModel):
                 ]
 
                 # Add memory-based guidance if available (only if memory enabled)
-                if self.enable_memory and hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self,
+                if self.enable_memory and  hasattr(self,
                                                                                'benchmark_id') and self.benchmark_id:
                     try:
                         memory_stats = self.orm_memory.get_memory_stats(self.benchmark_id, self.rel_file_path)
@@ -769,7 +743,7 @@ class PerformRefactoring(BaseModel):
             )
 
             # Log memory statistics if available (always show since we always store for evaluation)
-            if hasattr(self, 'orm_memory') and self.orm_memory and hasattr(self, 'benchmark_id') and self.benchmark_id:
+            if hasattr(self, 'benchmark_id') and self.benchmark_id:
                 try:
                     stats = self.orm_memory.get_memory_stats(self.benchmark_id, self.rel_file_path)
                     if self.enable_memory:
