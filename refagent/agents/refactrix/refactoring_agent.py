@@ -528,11 +528,8 @@ class Agent(BaseModel):
                 critique_component=self._critique_component # Pass critique component to the executor
             )
             perform_refactoring_graph = executor.compile()
-            messages = state['messages'] + [
-                AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}."),
-                self.get_changed_file_contents()
-            ]
-            state = MessagesState(messages=messages)
+            self.get_changed_file_contents() # nit: this call exists to update the changed files list. this is tech debt
+            state = MessagesState(messages=state['messages'])
             observation = perform_refactoring_graph.invoke(state)
             # Add PerformRefactoring workflow messages to trajectory
             self._trajectory += observation['messages']
