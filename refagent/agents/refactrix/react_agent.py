@@ -47,7 +47,7 @@ class ReactAgent(ra.Agent):
                     "messages": [
                         SystemMessage(f"You are an expert developer who executes rename refactorings to"
                                       f" improve the quality of the given code. "
-                                      f"Please do the following: {self.augmented_intent} "
+                                      f"Please do the following: {self.augmented_intent} \n"
                                       # f"The final code is expected to look like this: {step.final_code} "
                                       f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
                                       f"You will be asked to provide your analysis as a JSON response containing all rename suggestions."),
