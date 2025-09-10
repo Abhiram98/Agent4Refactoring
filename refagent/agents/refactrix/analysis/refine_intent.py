@@ -9,5 +9,8 @@ class RefineIntent(BaseModel):
     negative_examples: List[Tuple[str, str]]
 
     def get_new_intent(self) -> str:
-        return self.original_intent + f"\nAvoid renames like {self.negative_examples[0][0]} -> {self.negative_examples[0][1]}"
+        renames_str = ""
+        for i in self.negative_examples:
+            renames_str += f"Avoid {i[0]} -> {i[1]}\n"
+        return self.original_intent + f"\nAvoid the following renames: {renames_str}"
 

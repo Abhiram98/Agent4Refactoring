@@ -10,7 +10,7 @@ from langchain_core.language_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, BaseMessage, ToolCall
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, BaseMessage, ToolCall, SystemMessage
 from pathlib import Path
 
 
@@ -206,7 +206,10 @@ class PerformRefactoring(BaseModel):
             )
 
             # Only pass the system prompt to avoid prompt bloating
-            messages = [state['messages'][0] , opened_file_message()]
+            if self.new_intent is not None:
+                messages = [SystemMessage(self.new_intent), opened_file_message()]
+            else:
+                messages = [state['messages'][0] , opened_file_message()]
             if messages:
                 last_msg = messages[-1]
                 if hasattr(last_msg, 'content'):
