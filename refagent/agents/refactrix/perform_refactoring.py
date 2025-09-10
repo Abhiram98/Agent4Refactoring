@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 
 from pydantic.v1 import BaseModel, Field, PrivateAttr
@@ -10,12 +11,13 @@ from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, BaseMessage, ToolCall
 from pathlib import Path
-from functools import cached_property
+
 
 import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
 import refagent.agents.refactrix.critique as critique
+import refagent.utils.cache.prompt_cache as prompt_cache
 from agents.refactrix.analysis.refine_intent import RefineIntent
 from refagent.agents.refactrix.rename_suggestions import RenameAnalysis, RenameSuggestion, ValidatedRenames
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
@@ -220,7 +222,7 @@ class PerformRefactoring(BaseModel):
                     last_msg.content += format_instructions
 
             # Use model without tools for JSON output
-            response = self.model.invoke(messages)
+            response = prompt_cache.prompt(self.model, messages)
             return {"messages": [response]}
 
         def get_memory_constraints(current_llm_iteration):
@@ -352,7 +354,7 @@ class PerformRefactoring(BaseModel):
                     f"If all necessary renames have been completed, respond with 'REFACTORING_COMPLETE'."
                 )
                 
-                completion_response = self.model.invoke([completion_check_message])
+                completion_response = prompt_cache.prompt(self.model, [completion_check_message])
                 print(f"[COMPLETION DEBUG] Completion check response: {completion_response.content[:200]}...")
                 
                 return {"messages": state['messages'] + [completion_response]}

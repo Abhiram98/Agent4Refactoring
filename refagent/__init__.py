@@ -45,3 +45,30 @@ def my_print(*args, **kwargs):
     logging.info(f"{filename}:{lineno} - {message}")
 import builtins
 builtins.print = my_print
+
+
+# if os.getenv('PROMPT_CACHING'):
+#     from langchain_core.globals import set_llm_cache
+#     from langchain_community.cache import SQLiteCache
+#
+#     # For SQLite persistent caching
+#     set_llm_cache(SQLiteCache(database_path=str(repo_root.joinpath("logs/.langchain_cache.db"))))
+
+    # from langchain_core.language_models.chat_models import BaseChatModel
+    #
+    # _original_agenerate_with_cache = BaseChatModel._agenerate_with_cache
+    # _original_generate_with_cache = BaseChatModel._generate_with_cache
+    #
+    #
+    # async def _agenerate_with_cache_with_tool_workaround(self, messages, *args, **kwargs):
+    #     messages = [message.copy(update={"id": None}) for message in messages]
+    #     return await _original_agenerate_with_cache(self, messages, *args, **kwargs)
+    #
+    #
+    # def _generate_with_cache_with_tool_workaround(self, messages, *args, **kwargs):
+    #     messages = [message.copy(update={"id": "xx"}) for message in messages]
+    #     return _original_generate_with_cache(self, messages, *args, **kwargs)
+    #
+    #
+    # BaseChatModel._agenerate_with_cache = _agenerate_with_cache_with_tool_workaround
+    # BaseChatModel._generate_with_cache = _generate_with_cache_with_tool_workaround
