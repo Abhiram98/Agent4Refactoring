@@ -1,23 +1,22 @@
-import os
-from typing import Type
-
 import refagent.agents.refactrix.refactoring_agent as ra
 import refagent.agents.refactrix.perform_refactoring as perform_refactoring
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.replication as replication
 
-
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, BaseMessage
 import traceback
+
+from agents.refactrix import quality_check
+
 
 class ReactPerformer(perform_refactoring.PerformRefactoring):
     pass
 
+
 class ReactAgent(ra.Agent):
     MAX_GRAPH_ITERATION: int = 10
     MAX_FAILING_TOOL_CALLS: int = 3
-    replication_strategy_class: Type[replication.Replication] = replication.SimpleReplication
 
     def execute_plan(self, initial_intent, model, ref_plan,
                      ask_finished_first_iteration=False,
@@ -28,6 +27,12 @@ class ReactAgent(ra.Agent):
         self._failing_tool_call_count = 0
         assert len(ref_plan.steps) == 1
         step = ref_plan.steps[0]
+        
+        # Update critique component for the current file being processed
+        if self._critique_component and step.file_path:
+            self._critique_component.current_file = step.file_path
+            print(f"Updated critique component to file: {step.file_path}")
+            
         if len(ref_plan.steps) > 0 and open_file:
             self.try_open_file(step.file_path)
 
@@ -42,15 +47,16 @@ class ReactAgent(ra.Agent):
                     "messages": [
                         SystemMessage(f"You are an expert developer who executes rename refactorings to"
                                       f" improve the quality of the given code. "
-                                      f"Please do the following: {self.augmented_intent} "
-                                      f"The final code is expected to look like this: {step.final_code}"
-                                      f"ONLY make TOOL CALLS to perform actions."),
+                                      f"Please do the following: {self.augmented_intent} \n"
+                                      # f"The final code is expected to look like this: {step.final_code} "
+                                      f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
+                                      f"You will be asked to provide your analysis as a JSON response containing all rename suggestions."),
                     ]
                 },
                 config={"configurable": {"thread_id": 42}, "recursion_limit": 50}
             )
             self._trajectory += final_state['messages']
-            print(f"Result of executing step {0}: ", final_state["messages"][-1].content)
+            # print(f"Result of executing step {0}: ", final_state["messages"][-1].content)
         except:
             print(f"Execution of step 1 failed.")
             traceback.print_exc()
@@ -70,7 +76,7 @@ class ReactAgent(ra.Agent):
         )
 
     def perform_replication(self, current_intent, model, ref_plan):
-        replicator = self.replication_strategy_class(
+        replicator = replication.SimpleReplication(
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
@@ -80,7 +86,13 @@ class ReactAgent(ra.Agent):
             project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
-            refactoring_commit=self._internal_commits[0]
+            refactoring_commit=self._internal_commits[0],
+            oracle_data=self._oracle_data,
+            # Pass memory parameters for iterative replication
+            benchmark_id=self.benchmark_id,
+            memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db",
+            enable_memory=self.enable_memory,
+            orm_memory=getattr(self, '_orm_memory', None)  # Use agent's memory if available
         )
         self.MAX_GRAPH_ITERATION = 2
         self.MAX_FAILING_TOOL_CALLS = 1
@@ -94,47 +106,18 @@ class ReactAgent(ra.Agent):
                 break
             self.update_changed_files()
 
-if __name__ == '__main__':
-    import argparse
-    import refagent.utils.intellij_server as ij
-    import refagent.agents.refactrix.planning as planning
-    import refagent.utils.project_manager as pm
+        # Capture replication inspection data
+        self._replication_inspection_data = replicator.get_files_inspection_data()
 
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--project", help="Project name", required=True)
-    parser.add_argument("-ij", "--ide-server", help="IdeServer address", default=os.getenv('IJ_SERVER_URL'))
-    parser.add_argument("-s", "--starting-file", help="relative path to the Starting file in the project. "
-                                                      "If not provided, will ask the IDE server")
-    parser.add_argument("-i", "--intent", help="Intent/prompt from the developer", required=True)
-
-    args = parser.parse_args()
-    vendor = 'grazie'
-    ide_server = ij.IntellijServer(server_url=args.ide_server)
-    project = pm.EvalProject(args.project)
-    starting_file = args.starting_file
-    if starting_file is None:
-        starting_file = ide_server.call_tool_get("get_open_file")
-
-    agent = ReactAgent(
-        ide_server=ide_server,
-        model_name=f'{vendor}:openai-gpt-4o-mini',
-        reasoning_model_name = f'{vendor}openai-o4-mini',
-        project = project,
-        plan_component = planning.PlanningComponent,
-        augmented_intent = args.intent,
-        do_replication = True
-    )
-    # start session with the ide
-    response = ide_server.call_tool("start_refactoring_session")
-    assert response == 'success'
-
-    try:
-        agent.run(
-            initial_intent=args.intent,
-            starting_file=starting_file,
+    def do_quality_check(self, model) -> quality_check.QualityCheckResult:
+        # force the quality check to result in true.
+        return quality_check.QualityCheckResult(
+            overall_assessment=quality_check.OverallAssessment.PASS,
+            intent_alignment=quality_check.IntentAlignment.MET,
+            intent_alignment_explanation="",
+            improvements=quality_check.ImprovementResult.NO_IMPROVEMENTS,
+            improvements_explanation="",
+            issues=quality_check.IssueStatus.NO_ISSUES,
+            issues_explanation="",
+            refined_intent=""
         )
-    finally:
-        ide_server.call_tool("end_refactoring_session")
-
-

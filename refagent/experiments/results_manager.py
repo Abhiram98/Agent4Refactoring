@@ -25,6 +25,13 @@ class ResultsManager:
             "response": response
         })
 
+    def update(self, ref_id, response):
+        matching_response = [i for i in self.responses if i["id"] == ref_id]
+        if len(matching_response) > 0:
+            matching_response[0]["response"] = response
+        else:
+            self.add(ref_id, response)
+
     def save(self):
         with open(self.save_path.joinpath(self.save_file), "w") as f:
             json.dump(self.responses, f, indent=4)

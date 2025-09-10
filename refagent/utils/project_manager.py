@@ -1,6 +1,6 @@
 import pathlib
 import git
-from typing import Dict, List
+from typing import Dict
 from pathlib import Path
 import re
 from itertools import groupby
@@ -159,13 +159,17 @@ class EvalProject:
         return [MyDiff(d) for d in diffs]
 
     def get_staged_changes(self) -> list[MyDiff]:
-        diffs = self.git_repo.head.commit.diff(create_patch=True)
+        diffs = self.git_repo.index.diff('HEAD', create_patch=True)
         return [MyDiff(d) for d in diffs]
 
     def get_changed_files(self) -> list[str]:
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'status', '--short'], capture_output=True, text=True, check=True)
         return [i.split(' ')[-1] for i in result.stdout.strip().splitlines()]
+
+    def get_all_uncommitted_changes(self) -> list[MyDiff]:
+        diffs = self.git_repo.head.commit.diff(None, create_patch=True)
+        return [MyDiff(d) for d in diffs]
 
     def replace_contents(self, file_path, new_content):
         try:
@@ -202,10 +206,10 @@ class EvalProject:
             result = subprocess.run(
                 ['git', '-C', self.get_project_path(), 'diff', '--staged', file_path], capture_output=True, text=True, check=True)
         return result.stdout
-    
+
     def get_commit_diff(self, file_path_1: str=None, file_path_2: str=None, sha_1: str=None, sha_2: str=None, unified_context: int=None) -> str:
         git_cmd = ['git', '-C', self.get_project_path(), 'diff']
-        
+
         if unified_context is not None:
             git_cmd.append(f'-U{unified_context}')
 
@@ -219,7 +223,7 @@ class EvalProject:
             git_cmd.append(sha_2)
             git_cmd.append('--')
             git_cmd.append(file_path_2)
-        
+
         result = subprocess.run(git_cmd, capture_output=True, text=True, check=True)
         return result.stdout
 
@@ -259,51 +263,3 @@ class EvalProject:
         commit = self.git_repo.commit(sha1)
         file_contents = commit.tree[file_path].data_stream.read().decode('utf-8')
         return file_contents
-
-    def get_unified_file_diff_between_commits(self, sha1: str, sha2: str, file_path: str) -> str:
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'diff', '-U100', sha1, sha2, '--', file_path], capture_output=True, text=True, check=True)
-        return result.stdout
-
-    def pull_project(self):
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'pull', 'origin',
-             self.get_master_branch_name()], capture_output=True, text=True, check=True)
-        return result.stdout
-
-    def get_master_branch_name(self):
-        # git symbolic-ref refs/remotes/origin/HEAD
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'symbolic-ref', 'refs/remotes/origin/HEAD'], capture_output=True, text=True, check=True)
-        return result.stdout.split('/')[-1].strip()
-
-    def get_remote_url(self):
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'remote', 'get-url', 'origin'], capture_output=True, text=True, check=True)
-        return result.stdout.strip().rstrip('.git')
-
-    def create_branch(self, branch_name):
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'checkout', '-b',
-            branch_name], capture_output=True, text=True, check=True
-        )
-        return result.stdout
-
-    def push_upstream_branch(self, branch_name):
-        # git push --set-upstream origin seed-1077
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'push', '--set-upstream',
-             'origin', branch_name], capture_output=True, text=True, check=True
-        )
-        return result.stdout
-
-    def checkout_main(self):
-        return self.checkout(self.get_master_branch_name(), force=True)
-
-    def get_src_directories(self) -> List[str]:
-        src_directories = []
-        for root, dirs, files in os.walk(self.get_project_path()):
-            if 'src' in dirs:
-                src_directories.append(os.path.join(root, 'src'))
-        return src_directories
-

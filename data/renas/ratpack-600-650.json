@@ -6,7 +6,7 @@
     "v2_hash": "4f61fc84e93185e6f08ec3b84202543df6275dfb",
     "orig_commit_message": "Rework the bootstrapping/launching, to make test time launching more robust.\n",
     "improved_commit_message": "Rename the concept settings. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `RatpackServerSettings` to `LaunchConfig` reflects a shift to a more accurate and descriptive naming convention that aligns with the purpose and functionality of the configuration being used. For example, the code changed from `private final RatpackServerSettings settings;` to `private final LaunchConfig launchConfig;`, indicating a clearer representation of the configuration's role in the `ServiceBackedServer` class.",
+    "change_summary": "The rename from `RatpackServerSettings` to `LaunchConfig` reflects a shift to a more accurate and descriptive naming convention that aligns with the purpose and functionality of the configuration being used.",
     "hints": [
       "settings -> launchConfig",
       "settings -> launchConfig",
@@ -1544,7 +1544,7 @@
     "v2_hash": "4f61fc84e93185e6f08ec3b84202543df6275dfb",
     "orig_commit_message": "Rework the bootstrapping/launching, to make test time launching more robust.\n",
     "improved_commit_message": "Rename the concept RatpackServerSettings. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `serverSettings` to `launchConfig` reflects a shift in terminology that likely better captures the purpose of the interface, aiming for clarity and alignment with the overall application architecture. For instance, while the previous naming suggested a broader configuration context, `launchConfig` implies a more focused role in managing the server's startup and operational parameters, enhancing developer understanding when implementing related functionality.",
+    "change_summary": "The rename from `serverSettings` to `launchConfig` reflects a shift in terminology that likely better captures the purpose of the interface, aiming for clarity and alignment with the overall application architecture.",
     "hints": [
       "serverSettings -> launchConfig",
       "serverSettings -> launchConfig",
@@ -3088,7 +3088,7 @@
     "v2_hash": "4fd7097c4d9dac45ac59c6136f5b6cc600454b81",
     "orig_commit_message": "Some improvements to the request logging API.\n",
     "improved_commit_message": "Rename the concept context. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `Context` to `Request` clarifies the expected purpose of the parameter in the `generate` method, aligning it with the handling of HTTP requests rather than a more generic context. For example, the method signature changed from `public RequestId generate(Context context)` to `public RequestId generate(Request request)`, directly reflecting that the input is specifically an HTTP request object for generating unique request IDs.",
+    "change_summary": "The rename from `Context` to `Request` clarifies the expected purpose of the parameter in the `generate` method, aligning it with the handling of HTTP requests rather than a more generic context.",
     "hints": [
       "context -> request",
       "context -> request"
@@ -3606,7 +3606,7 @@
     "v2_hash": "504669ea2182a1600edd70861a8955b8742e75c7",
     "orig_commit_message": "Fill in some docs, fix some javadoc warnings.\n",
     "improved_commit_message": "Rename the concept config. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The term \"definition\" was introduced to replace \"config\" in the context of building a configuration object, providing a clearer and more descriptive term that emphasizes the purpose of the argument. For instance, the method signature changed from `static ConfigData of(Action<? super ConfigDataSpec> config)` to `static ConfigData of(Action<? super ConfigDataSpec> definition)`, which aligns better with the concept of defining how configuration data is constructed.",
+    "change_summary": "The term \"definition\" was introduced to replace \"config\" in the context of building a configuration object, providing a clearer and more descriptive term that emphasizes the purpose of the argument.",
     "hints": [
       "config -> definition",
       "config -> definition",
@@ -3942,7 +3942,7 @@
     "v2_hash": "508ad32a720774b7b7f246b68c6d3f0274180f55",
     "orig_commit_message": "Some tweaks to URL building.\n",
     "improved_commit_message": "Rename the concept pathSegment. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `pathSegment` to `segment` enhances clarity and consistency within the code, reflecting a more concise method name for adding segments to the URL path. For example, in the method `public HttpUrlBuilder segment(String pathSegment, Object... args)`, the previous implementation `pathSegment(URLDecoder.decode(s, \"UTF8\"));` was changed to `segment(URLDecoder.decode(s, \"UTF8\"));`, streamlining the API while also allowing for formatted segments.",
+    "change_summary": "The rename from `pathSegment` to `segment` enhances clarity and consistency within the code, reflecting a more concise method name for adding segments to the URL path.",
     "hints": [
       "pathSegment -> segment",
       "pathSegment -> segment"
@@ -4085,7 +4085,7 @@
     "v2_hash": "5310ac570dd725f5a09838bd6624914e3cabe390",
     "orig_commit_message": "Work on the quick start page, and associated testing infrastructure.\n",
     "improved_commit_message": "Rename the concept HelloWorldAppSnippetFixture. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "Renaming `HelloWorldAppSnippetFixture` to `HelloWorldAppSnippetExecuter` aligns the class name with its intended functionality as it derives from `ServerCaptureSnippetExecuter`. This change clarifies the purpose of the class, ensuring that future developers understand it serves as an executer for snippet tests rather than merely a fixture.",
+    "change_summary": "Renaming `HelloWorldAppSnippetFixture` to `HelloWorldAppSnippetExecuter` aligns the class name with its intended functionality as it derives from `ServerCaptureSnippetExecuter`.",
     "hints": [
       "HelloWorldAppSnippetFixture -> HelloWorldAppSnippetExecuter",
       "fixture -> executer",
@@ -4667,7 +4667,7 @@
     "v2_hash": "57d6cbc153784a8440f292c80b24b306ba61942d",
     "orig_commit_message": "Minor improvements to file sending.\n",
     "improved_commit_message": "Rename the concept randomAccessFile. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `randomAccessFile` to `fileInputStream` in this commit reflects a correction to align the variable name with the actual type being used (`FileInputStream`). In the `transmit` method, the variable `randomAccessFile` was incorrectly named, despite being initialized as a `FileInputStream` (`new FileInputStream(file)`). This rename improves code clarity and consistency, ensuring the variable name accurately describes its purpose and type. For example, in the `FileServingInfo` class, the field `fileInputStream` correctly describes its type, so the rename ensures consistency across the codebase. To apply this change elsewhere, the second developer should identify similar misnamed variables, verify their actual types, and rename them to match the type or purpose, ensuring consistency with the surrounding code. This change enhances readability and reduces potential confusion for future developers.",
+    "change_summary": "The change from `RandomAccessFile randomAccessFile` to `FileInputStream fileInputStream` enhances the file handling mechanism by switching from a more specialized, channel-based file access method to a simpler stream-based approach, improving compatibility and ease of use.",
     "hints": [
       "randomAccessFile -> fileInputStream",
       "randomAccessFile -> fileInputStream",
@@ -4917,7 +4917,7 @@
     "v2_hash": "58f8280a11588deb3a4b842a955ade1bda12d1ad",
     "orig_commit_message": "Rename the Groovy Context subclass to GroovyContext.\n",
     "improved_commit_message": "Rename the concept Context. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `Context` to `GroovyContext` reflects a clarification of purpose, distinguishing this Groovy-specific interface from the more general `ratpack.handling.Context`. The updated code explicitly imports `ratpack.handling.Context` and renames the interface to `GroovyContext`, which now extends `ratpack.handling.Context`. For example, the previous declaration `public interface Context extends ratpack.handling.Context` is updated to `public interface GroovyContext extends Context`, ensuring the name aligns with its Groovy-specific functionality, such as the `blocking(Closure<T> operation)` method. \n\nTo apply this rename consistently elsewhere, the second developer should:  \n1. Identify all references to `Context` in the `ratpack-groovy` module or related code.  \n2. Update these references to `GroovyContext`, ensuring imports and usages reflect the new name.  \n3. Verify that all changes preserve functionality and align with the intent of distinguishing Groovy-specific behavior.  \n\nThis rename improves clarity and avoids confusion with the base `Context` class, making the codebase more maintainable.",
+    "change_summary": "The renaming from `Context` to `GroovyContext` is likely aimed at clarifying the distinction between the Groovy-specific context and the more general context interface in the Ratpack framework, reducing potential confusion.",
     "hints": [
       "Context -> GroovyContext",
       "GroovyContext -> DefaultGroovyContext"
@@ -5266,7 +5266,7 @@
     "v2_hash": "599a3347126b7ff52031f5047aa5c29873593a11",
     "orig_commit_message": "Remove query string from request metric name (#602)\n",
     "improved_commit_message": "Rename the concept requestUri. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `requestUri` to `requestPath` reflects a shift towards more precise terminology, as `requestPath` better describes the specific portion of the URI being referenced (the path component, excluding query parameters or fragments). In the provided diff, the method `buildBlockingTimerTag` uses `request.getPath()` to retrieve the path of the request, aligning with the new naming convention. For consistency, the second developer should identify all instances of `requestUri` in the codebase, verify if they refer to the path component, and rename them to `requestPath`. They should also update related documentation, comments, and tests to reflect this change. For example, in the deleted `BlockingExecTimingInterceptor` class, the `requestPath` is used to build metric tags like `root.get-blocking` or `api.users.post-blocking`, demonstrating its role in accurately representing the request path. This rename improves clarity and reduces potential confusion between the full URI and its path component.",
+    "change_summary": "The rename from `requestUri` to `requestPath` clarifies the variable's purpose, indicating it specifically refers to the request's path rather than its full URI.",
     "hints": [
       "requestUri -> requestPath",
       "requestUri -> requestPath"
@@ -5507,7 +5507,7 @@
     "v2_hash": "5c06bce530c087d23f12e876101e125f96adc22c",
     "orig_commit_message": "#128 Improved the API for the SSL classes\n\nApplications can now implement SSLContextFactory or just use the default impl\n",
     "improved_commit_message": "Rename the concept sslContext. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `sslContext` to `sslContextFactory` reflects a shift in terminology to better describe the purpose of the object being referenced. The original name, `sslContext`, implied a specific instance of an `SSLContext`, whereas the new name, `sslContextFactory`, more accurately conveys that this is a factory responsible for creating `SSLContext` instances. For example, in the `LaunchConfigBuilder` class, the field `sslContextFactory` and the corresponding method `sslContextFactory(SSLContextFactory sslContextFactory)` now clearly indicate that this component is responsible for producing SSL contexts, rather than holding a single instance. This change improves clarity and aligns with the principle of naming variables and methods to reflect their intent and behavior. To apply this change consistently elsewhere, the second developer should identify all instances of `sslContext` in the codebase and rename them to `sslContextFactory`, ensuring that method names, variable names, and documentation are updated accordingly. This includes reviewing related comments, method signatures, and usages to maintain consistency and avoid ambiguity.",
+    "change_summary": "The rename from `sslContext` to `sslContextFactory` clarifies the type of object being used, as the new name indicates that it is intended to create SSL contexts rather than being an instance of `SSLContext` itself.",
     "hints": [
       "sslContext -> sslContextFactory",
       "sslContext -> sslContextFactory",
@@ -6014,7 +6014,7 @@
     "v2_hash": "5c72c1840e94423b4c7007d37edfe4ec2e20957f",
     "orig_commit_message": "Document the promise operations, and clean some other stuff up along the way.\n",
     "improved_commit_message": "Rename the concept execute. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `execute` to `yield` reflects a shift in semantics to better align with the method's purpose and behavior. The original `execute` method was used to run an action or computation within the execution context, but the term `yield` more accurately conveys the idea of producing or returning a result from a computation, as seen in the `yield` method that applies a function to an `ExecControl` and returns an `ExecResult`. This change improves clarity by distinguishing between running an action (`run`) and producing a result (`yield`). For consistency, the second developer should identify all instances of `execute` in similar contexts where results are returned and rename them to `yield`, ensuring the terminology matches the updated semantics. For example, in the provided diff, the `execute` method within the `start` block was renamed to align with the new `yield` terminology. This rename enhances code readability and reduces potential confusion for developers working with asynchronous execution flows.",
+    "change_summary": "The rename from `execute` to `yield` reflects a shift in terminology that better aligns with the intended functionality of the method, which is to yield control while handling asynchronous operations using `ExecControl`.",
     "hints": [
       "execute -> yield",
       "execute -> yield"
@@ -6402,7 +6402,7 @@
     "v2_hash": "5d18ea1b8be40318446ee74787f885050ba285b6",
     "orig_commit_message": "Use Java 7's Path instead of File everywhere, to support running inside different file systems (such as a Jar).\n\n#210 & #214.\n",
     "improved_commit_message": "Rename the concept FileTemplateSource. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The change from using a `File` object to a `Path` object in the `DefaultFileSystemBinding` class optimizes file path handling by leveraging improvements in the `java.nio.file` package, which provides better support for modern file operations. For example, the constructor now takes a `Path` parameter (`public DefaultFileSystemBinding(Path binding)`) instead of a `File`, and the `file(String path)` method constructs child paths using `Paths.get(binding.toString(), path).normalize()` to ensure proper path normalization and safer operations.",
+    "change_summary": "The rename from `File file` to `Path binding` reflects a shift from using the legacy `File` class to the more modern `Path` class for better file path handling, which offers improved clarity and functionality.",
     "hints": [
       "file -> path",
       "FileTemplateSource -> PathTemplateSource",
@@ -7937,7 +7937,7 @@
     "v2_hash": "5d18ea1b8be40318446ee74787f885050ba285b6",
     "orig_commit_message": "Use Java 7's Path instead of File everywhere, to support running inside different file systems (such as a Jar).\n\n#210 & #214.\n",
     "improved_commit_message": "Rename the concept file. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `file` to `binding` in this commit reflects a shift in terminology to better align with the purpose and semantics of the `DefaultFileSystemBinding` class. Previously, the term `file` was used ambiguously for both the root directory (`binding`) and child paths, which could lead to confusion. The updated code now uses `binding` consistently to refer to the root directory (`File binding`) and introduces a helper method `binding(String path)` for resolving child paths relative to the root. For example, the old `file(String path)` method is replaced with `binding(String path)`, and the `binding(Path path)` method is replaced with `binding(File binding)`. This ensures clarity and consistency in naming, especially when dealing with nested bindings or resolving paths. The addition of the `inRoot(String path)` method further enforces safety by ensuring paths remain within the root directory.",
+    "change_summary": "The rename from `File file` to `Path binding` in the `DefaultFileSystemBinding` class enhances the code by transitioning from a legacy Java `File` type to the more modern and flexible `Path` type from the `java.",
     "hints": [
       "file -> binding",
       "file -> binding",
@@ -9471,7 +9471,7 @@
     "v2_hash": "5d5bc303d3724195c29424823ebce3f0e6d8a065",
     "orig_commit_message": "Rename some of the potentially ambiguous method overloads in BindingsSpec.\n",
     "improved_commit_message": "Rename the concept bind. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `bind` to `bindInstance` reflects a clearer distinction between binding a type and binding a specific instance, improving code readability and reducing ambiguity. For example, the method `bind(Class<?> type)` is used to bind a type, while `bindInstance(Class<? super T> publicType, T instance)` explicitly binds a concrete instance to a type. This change ensures that developers can more easily understand the intent of the method at a glance, especially in cases where both binding types and instances coexist. The surrounding code shows that `bindInstance` is used consistently for instance-specific bindings, aligning with the naming convention. The rename likely aims to standardize method names and avoid confusion for developers working with dependency injection in the Ratpack framework.",
+    "change_summary": "The changes introduce clearer method names by renaming `bind` to `bindInstance`, which enhances code readability and better conveys the method's purpose of binding an instance to a specified type.",
     "hints": [
       "bind -> bindInstance",
       "bind -> bindInstance",
@@ -10412,7 +10412,7 @@
     "v2_hash": "5d5bc303d3724195c29424823ebce3f0e6d8a065",
     "orig_commit_message": "Rename some of the potentially ambiguous method overloads in BindingsSpec.\n",
     "improved_commit_message": "Rename the concept provider. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `provider` to `providerType` in the provided diff reflects a shift towards more precise and descriptive naming. The original `provider` method accepted a `Provider` instance, whereas `providerType` refers specifically to a `Class` representing a `Provider`. This distinction clarifies the API's intent, differentiating between passing an actual provider instance (`provider`) and specifying the type of a provider (`providerType`). For example, the method `provider(Class<T> publicType, Provider<? extends T> provider)` remains unchanged for direct instances, while `providerType(Class<T> publicType, Class<? extends Provider<? extends T>> providerType)` explicitly handles provider types. This change improves code readability and reduces ambiguity, especially in contexts where both provider instances and provider types might be used.\n\nTo apply this change consistently elsewhere, the second developer should:  \n1. Identify all usages of `provider` in the codebase.  \n2. Assess whether the usage refers to a provider instance or a provider type.  \n3. Rename `provider` to `providerType` where it refers to a provider type, ensuring the method signature and surrounding code are updated accordingly.  \n4. Update documentation and tests to reflect the new naming convention.",
+    "change_summary": "The rename from `provider` to `providerType` enhances clarity by explicitly indicating that the argument represents the type of the provider rather than an instance of the provider itself.",
     "hints": [
       "provider -> providerType",
       "provider -> providerType",
@@ -11013,7 +11013,7 @@
     "v2_hash": "6082f522ce22b69cd40b6a3ef2d455f53c3eef07",
     "orig_commit_message": "Update expiration to be represented as a Duration\n",
     "improved_commit_message": "Rename the concept cookieExpiresMins. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `cookieExpiresMins` to `cookieExpiration` was likely made to improve clarity and consistency in naming. The original name, `cookieExpiresMins`, inaccurately suggested that the value was in minutes, but the code shows it is actually defined in seconds (`60 * 60 * 24 * 365` for one year). The new name, `cookieExpiration`, is more generic and avoids confusion about the unit of measurement. This change also aligns with the updated usage in `DefaultSessionCookieConfig`, where `cookieExpiration` is passed directly without implying a specific unit. The surrounding code reflects this adjustment, with getter and setter methods (`getCookieExpiration` and `setCookieExpiration`) updated accordingly to maintain consistency. This ensures that the code is more intuitive and reduces potential misunderstandings for future developers.",
+    "change_summary": "The renaming from `cookieExpiresMins` to `cookieExpiration` reflects a shift from using an integer representation of expiration time in minutes to a more precise `Duration` type that can handle various time units, enhancing clarity and type safety.",
     "hints": [
       "cookieExpiresMins -> cookieExpiration",
       "setCookieExpiresMins -> setCookieExpiration",
@@ -11361,7 +11361,7 @@
     "v2_hash": "6082f522ce22b69cd40b6a3ef2d455f53c3eef07",
     "orig_commit_message": "Update expiration to be represented as a Duration\n",
     "improved_commit_message": "Rename the concept expiresMins. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `expiresMins` to `expiresDuration` reflects a shift towards using a more descriptive and precise naming convention, aligning with the `java.time.Duration` type. In the provided diff, the `DefaultSessionIdCookieConfig` class uses `expiresDuration` to represent the expiration time of a session cookie, replacing the previous naming that implied a unit-specific value (minutes). This change improves clarity by avoiding ambiguity about the time unit and emphasizing the use of a flexible `Duration` object. For consistency, the second developer should locate all instances of `expiresMins` in the codebase, including method names, variables, and documentation, and rename them to `expiresDuration`. They should also ensure that the type and usage align with `Duration`, updating any logic or tests that rely on the old naming or unit-specific behavior. This rename enhances code readability and maintainability by providing a clear and consistent representation of time durations.",
+    "change_summary": "The rename from `expiresMins` to `expiresDuration` reflects a shift from using an integer representation of expiration time in minutes to using a more descriptive `Duration` object, which provides better expressiveness and flexibility when dealing with time intervals.",
     "hints": [
       "expiresMins -> expiresDuration",
       "setExpiresMins -> setExpiresDuration",
@@ -12059,7 +12059,7 @@
     "v2_hash": "6082f522ce22b69cd40b6a3ef2d455f53c3eef07",
     "orig_commit_message": "Update expiration to be represented as a Duration\n",
     "improved_commit_message": "Rename the concept expiryMins. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `expiryMins` to `expiration` likely reflects an effort to improve clarity and consistency in naming. The term `expiration` is more descriptive and aligns better with the surrounding code, such as the use of `Duration` objects (e.g., `cookieConfig.getExpiresDuration()` and `setCookie(String value, Duration expiration)`), which represent time durations rather than specific units like minutes. This change ensures the name accurately conveys its purpose and avoids ambiguity about the unit of measurement. \n\nTo apply this rename consistently elsewhere, the second developer should:  \n1. Identify all occurrences of `expiryMins` in the codebase, including variable declarations, method parameters, and documentation.  \n2. Replace them with `expiration`, ensuring the surrounding logic (e.g., handling of `Duration` or time-related operations) remains consistent.  \n3. Update any related tests, comments, or documentation to reflect the new naming convention.  \n\nThis rename improves code readability and aligns terminology with the broader time-related context in the system.",
+    "change_summary": "The rename from `expiryMins` to `expiration` enhances clarity by replacing a less descriptive variable name with one that accurately represents the duration type, which is now a `Duration` instead of an integer.",
     "hints": [
       "expiryMins -> expiration",
       "expiryMins -> expiration"
@@ -12386,7 +12386,7 @@
     "v2_hash": "6082f522ce22b69cd40b6a3ef2d455f53c3eef07",
     "orig_commit_message": "Update expiration to be represented as a Duration\n",
     "improved_commit_message": "Rename the concept getCookieExpiryMins. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "The rename from `getCookieExpiryMins` to `getCookieExpiry` was likely made to improve clarity and consistency in naming. The method originally returned the cookie expiry in minutes (`sessionCookieConfig.getExpiresMins()`), but the name `getCookieExpiryMins` explicitly included the unit, which might have been redundant or inconsistent with other method names. The surrounding code shows similar methods like `getCookieDomain` and `getCookiePath`, which do not specify units in their names, aligning with a more general naming convention. For consistency, the second developer should identify all instances of `getCookieExpiryMins` in the codebase and rename them to `getCookieExpiry`, ensuring that both method calls and definitions are updated. Additionally, they should verify that any documentation, comments, or tests referencing the old method name are updated accordingly. This change simplifies the API and aligns it with the naming style used elsewhere in the class.",
+    "change_summary": "The method `getCookieExpiryMins()` was renamed to `getCookieExpiry()` to reflect a change in the return type from an integer representing minutes to a `Duration` object representing the expiration duration.",
     "hints": [
       "getCookieExpiryMins -> getCookieExpiry",
       "getCookieExpiryMins -> getCookieExpiry"
@@ -12657,7 +12657,7 @@
     "v2_hash": "61f4e2e9f70ee75e862d1d8ba0637b14360ae1a5",
     "orig_commit_message": "Tigthen up the names of the background/foreground executors.\n",
     "improved_commit_message": "Rename the concept computeExecutorService. Rename all related entities like variables, fields, methods, and classes.",
-    "change_summary": "Identify the variable or method name that needs to be updated to better reflect its purpose or usage. Replace all occurrences of the old name with the new name consistently across the codebase, ensuring all references, imports, and related documentation are updated. Verify that the new name aligns with the intended functionality or context it represents. Run tests to ensure the changes do not introduce any regressions or issues.\n\nThis improves code readability and maintainability by making the naming more descriptive and aligned with its actual purpose.",
+    "change_summary": "Renaming `computeExecutorService` to `foregroundExecutorService` clarifies the intended usage of this executor service within the `DefaultContext` class, suggesting that it is specifically for tasks that should run in the foreground rather than background computation.",
     "hints": [
       "computeExecutorService -> foregroundExecutorService",
       "getComputationExecutorService -> getForegroundExecutorService",

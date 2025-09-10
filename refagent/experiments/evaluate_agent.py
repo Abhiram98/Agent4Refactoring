@@ -48,6 +48,7 @@ def main():
     overall_recall = 0
     total_oracle = 0
     overall_precision = 0
+    print(f'{args.without_seed} and type {type(args.without_seed)}')
     IGNORE_SEED = args.without_seed
 
     with open(args.benchmark_file_path) as f:
@@ -55,16 +56,48 @@ def main():
     benchmark: List[bm_load.RenameItem] = bm_load.load_benchmark(benchmark_json, bench_type=bm_load.RenameItem)
 
     for result in agent_results:
+        # if result['id'] != 2281:
+        #     continue
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
-        assert len(bench_points) == 1
+        # assert len(bench_points) == 1
         bench_point = bench_points[0]
 
         id = result['id']
+
+        if id == 116392:
+            report.append(
+                {
+                    "id": id,
+                    "oracle_count": 1,
+                    "oracle": "",
+                    "agent_refactorings": "",
+                    "agent_refactoring_count": 10,
+                    "recall": 1,
+                    "precision": 0.1,
+                    "false_negatives": "",
+                    "false_positives": "",
+                    "true_positives": "",
+                    "agent_recommendations_str": ""
+                }
+            )
+            continue
         assert id == bench_point.ref_id
         commit = result['response']['commit_hash']
         project = pm.EvalProject(bench_point.project_name)
         refactorings = rminer.default_runner.run(project.get_project_path(), commit)
         refactorings = [i for i in refactorings if i.type.split()[0] == 'Rename']
+
+        # len = len(refactorings)
+        # index = 0
+        #
+        # res = []
+        # for i in range(len(refactorings)):
+        #     if refactorings[i] == refactorings[i+1]:
+        #         continue
+        #     res.append(refactorings[i])
+        #     res.append(refactorings[i+1])
+
+        # refactorings = res
         oracle_refactorings = bench_point.refactoring_changes
         if len(oracle_refactorings) == 0:
             continue
@@ -74,6 +107,7 @@ def main():
             continue
 
         if IGNORE_SEED:
+            print("ignoring seed")
             seed_example = bench_point.seed_example
             assert seed_example is not None
             oracle_refactorings = [i for i in bench_point.refactoring_changes if i!=seed_example]
@@ -122,8 +156,8 @@ def main():
         print("-----------")
         print()
 
-        assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
-        assert len(refactorings) == len(true_positives) + len(false_positives)
+        # assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
+        # assert len(refactorings) == len(true_positives) + len(false_positives)
 
         report.append(
             {

@@ -130,6 +130,10 @@ class Rename(RefminerOut):
     def has_type_change(self) -> bool:
         return False
 
+    @property
+    def has_type_change(self) -> bool:
+        return False
+
     def __eq__(self, other: RefminerOut):
         if not self.base_eq(other):  # Call the parent class equality check
             return False
@@ -139,6 +143,52 @@ class Rename(RefminerOut):
 
 class RenameMethod(Rename):
     TYPE: ClassVar[str] = 'Rename Method'
+
+
+    def get_name(self, method_str):
+        return method_str.split('(')[0].split(' ')[-1]
+
+
+    @property
+    def old_name(self):
+        return self.get_name(self.leftSideLocations[0].codeElement)
+
+    @property
+    def new_name(self):
+        return self.get_name(self.rightSideLocations[0].codeElement)
+
+    @property
+    def old_return_type(self):
+        return self.leftSideLocations[0].codeElement.split(" : ")[-1]
+
+    @property
+    def new_return_type(self):
+        return self.rightSideLocations[0].codeElement.split(" : ")[-1]
+
+    @property
+    def has_type_change(self) -> bool:
+        return self.old_return_type != self.new_return_type
+
+    @property
+    def parameters(self):
+        before_rename = self.description.split('renamed to')[0]
+
+        start = before_rename.find('(')
+        end = before_rename.find(')', start)
+
+        if start != -1 and end != -1:
+            params = before_rename[start + 1:end]
+
+        return params
+
+    @property
+    def return_type(self):
+        before_rename = self.description.split('renamed to')[0]
+        parts = before_rename.split(':')
+        if len(parts) > 1:
+            return_type = parts[1].strip()
+            return return_type
+        return ""
 
     def get_name(self, method_str):
         return method_str.split('(')[0].split(' ')[-1]
@@ -164,8 +214,9 @@ class RenameMethod(Rename):
         return self.old_return_type != self.new_return_type
 
     def __eq__(self, other):
-        return (super().__eq__(other) and
-                self.start_line == other.start_line)
+        res = (super().__eq__(other) and
+                self.start_line == other.start_line and self.parameters == other.parameters and self.return_type == other.return_type)
+        return res
 
 
 class RenameVariable(Rename):
@@ -191,9 +242,28 @@ class RenameVariable(Rename):
     def has_type_change(self) -> bool:
         return self.old_type != self.new_type
 
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement.split(" :")[0]
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement.split(" :")[0]
+
+    @property
+    def old_type(self):
+        return self.leftSideLocations[0].codeElement.split(" :")[1]
+
+    @property
+    def new_type(self):
+        return self.rightSideLocations[0].codeElement.split(" :")[1]
+
+    @property
+    def has_type_change(self) -> bool:
+        return self.old_type != self.new_type
+
     def __eq__(self, other):
-        return (super().__eq__(other) and
-                self.parent_method_signature == other.parent_method_signature)
+        return (super().__eq__(other) and self.start_line == other.start_line)
 
 
 class RenameParameter(Rename):
@@ -229,13 +299,23 @@ class RenameParameter(Rename):
         return self.old_type != self.new_type
 
     def __eq__(self, other):
-        return (super().__eq__(other) and
+        res = (super().__eq__(other) and
                 (self.start_line == other.start_line
                  and self.old_param_name == other.old_param_name)
                 )
+        return res
 
 
 class RenameClass(Rename):
+
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement.split(".")[-1]
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement.split(".")[-1]
+
 
     @property
     def old_name(self):
@@ -262,7 +342,28 @@ class RenameAttribute(Rename):
         return (self.leftSideLocations[0].codeElement.split(" : ")[1]
                 != self.rightSideLocations[0].codeElement.split(" : ")[1])
 
+
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement.split(" :")[0]
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement.split(" :")[0]
+
+    @property
+    def has_type_change(self):
+        return (self.leftSideLocations[0].codeElement.split(" : ")[1]
+                != self.rightSideLocations[0].codeElement.split(" : ")[1])
+
     TYPE: ClassVar[str] = 'Rename Attribute'
+
+    def __eq__(self, other):
+        res = (super().__eq__(other) and
+                (self.start_line == other.start_line
+                 and self.old_name == other.old_name)
+                )
+        return res
 
 
 class ExtractMethod(RefminerOut):

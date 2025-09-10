@@ -13,8 +13,6 @@ class AugmentedIntent(BaseModel):
 class AnalysisComponent(BaseModel):
     """An agent that takes an initial intent and augments it with additional details."""
     initial_intent: str = Field(description="The initial intent provided by the user.")
-    old_name: str = Field(description="The name of the variable that was renamed.")
-    new_name: str = Field(description="The new name for the variable.")
     context_information: Optional[str] = Field(
         default=None,
         description="Optional context to help augment the intent."
@@ -24,8 +22,8 @@ class AnalysisComponent(BaseModel):
     model: BaseChatModel = Field(description="Model to use for augmenting the intent")
     generation_system_message: str = Field(
         default=(
-            "You are an expert software developer tasked with enhancing the user intents "
-            "from the provided context and source code."
+            "You are an expert assistant tasked with enhancing the user intents "
+            "from the provided context and source code. Return ONLY the JSON as instructed."
         ),
         description=(
             "System message for the intent augmentation LLM call. "
@@ -43,8 +41,8 @@ class AnalysisComponent(BaseModel):
 
             system_msg = (
                 f"{self.generation_system_message}\n\n"
-                # f"Return ONLY the JSON—no markdown or commentary.\n"
-                # f"{fmt}"
+                f"Return ONLY the JSON—no markdown or commentary.\n"
+                f"{fmt}"
             )
 
             llm_messages = [
@@ -59,50 +57,17 @@ class AnalysisComponent(BaseModel):
                 HumanMessage(content=f"Source code:\n{self.source_code}")
             )
 
-            llm_messages.append(
-                HumanMessage(content=f"Given the example rename, come up with a reason for why the rename was applied. "
-                                     f"In order to do so, answer the following questions: \n"
-                                     f"1. Why was the variable {self.old_name} renamed to {self.new_name}? \n"
-                                     f"2. In what other situations would a developer perform a similar rename? Where would they rename an element that looks similar to {self.old_name}? \n"
-                                     f"3. In what other situations would a developer choose to not "
-                                     f"perform a rename where an element {self.old_name} was present? \n"
-                                     f"Consider the context of this rename ({self.old_name} -> {self.new_name}) when answering these questions. "
-                                     f"Your answers should be specific to this kind of scenario (renaming {self.old_name} -> {self.new_name})\n"
-                             )
-            )
-
             response = self.model.invoke(llm_messages)
-            # augmented_obj = parser.parse(response.content)
-            # save for retrieval
-            # self._augmented_intent = augmented_obj
-            # update only messages in state
-            return {'messages': llm_messages + [response]}
-
-        def summarize_intent_node(state: MessagesState):
-            parser = PydanticOutputParser(pydantic_object=AugmentedIntent)
-            fmt = parser.get_format_instructions()
-            system_msg = (
-                f"{self.generation_system_message}\n\n"
-                f"Return ONLY the JSON—no markdown or commentary.\n"
-                f"{fmt}"
-            )
-            messages = state['messages']
-            messages[0] = system_msg # update the system message to have formatting instructions
-            response = self.model.invoke(messages +
-                 [HumanMessage(
-                     "Now imagine that a second developer would need to perform similar changes in this file and in other locations. "
-                     "Provide them the concept/idea of what needs to change. "
-                     "Please summarise in the required format."
-                 )])
             augmented_obj = parser.parse(response.content)
+            # save for retrieval
             self._augmented_intent = augmented_obj
+            # update only messages in state
+            return {'messages': [response]}
 
         workflow = StateGraph(MessagesState)
         workflow.add_node("augment_intent", augment_intent_node)
-        workflow.add_node("summarize_intent", summarize_intent_node)
         workflow.add_edge(START, "augment_intent")
-        workflow.add_edge("augment_intent", "summarize_intent")
-        workflow.add_edge("summarize_intent", END)
+        workflow.add_edge("augment_intent", END)
         return workflow.compile()
 
     def run(self) -> AugmentedIntent:

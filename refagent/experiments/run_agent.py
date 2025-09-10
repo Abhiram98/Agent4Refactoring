@@ -1,5 +1,6 @@
 import argparse
-from idlelib.configdialog import changes
+from idlelib.configdialog import changes 
+import os
 from pathlib import Path
 import json
 from typing import Optional, List
@@ -32,7 +33,11 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     if initial_commit is None:
         if use_seed:
             # In this case, we would like to start the agent from the seed changes.
-            project.checkout(bench_point.seed_hash, force=True)
+            if bench_point.seed_hash is not None:
+                print(f"seed_hash={bench_point.seed_hash} bench_id={bench_point.ref_id}")
+                project.checkout(bench_point.seed_hash, force=True)
+            else:
+                project.checkout(bench_point.v1_hash, force=True)
             project.reset_head(1)
         else:
             project.checkout(bench_point.v1_hash, force=True)
@@ -49,28 +54,65 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     else:
         plan_type = planning.PlanningComponent
 
-    # vendor = 'grazie' # switch to `openai` to use the openai models directly
-    vendor = 'openai'
+    vendor = 'grazie' # switch to `openai` to use the openai models directly
+    # vendor = 'openai'
 
+    enable_critique = args.enable_critique.lower() == "true"
+    enable_memory = args.enable_memory.lower() == "true"
+    
+    # Memory is automatically disabled when critique is disabled
+    if not enable_critique:
+        enable_memory = False
+        print("[MEMORY] Memory disabled because critique is disabled")
+    
+    # Create memory database path in the same directory as results (even if disabled for logging)
+    results_dir = os.path.dirname(args.run_identifier) if "/" in args.run_identifier else "."
+    db_name = f"memory_{args.run_identifier.split('/')[-1]}.db"
+    memory_db_path = os.path.join(results_dir, db_name)
+    if Path(memory_db_path).exists():
+        # delete it to run it again.
+        os.remove(memory_db_path)
+    
+    # Ensure the directory exists
+    os.makedirs(results_dir, exist_ok=True)
+    
+    if enable_memory:
+        print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
+    else:
+        print(f"[MEMORY] Memory feedback disabled - data still stored for evaluation at: {memory_db_path}")
+    
     agent = react_agent.ReactAgent(ide_server=ij_server,
-                     model_name=f'{vendor}:gpt-4o-mini',
-                     reasoning_model_name=f'{vendor}:o4-mini',
+                     reasoning_model_name=f'{vendor}:openai-o4-mini',
+                     model_name=f'{vendor}:openai-gpt-4o-mini',
                      project=project,
                      plan_component=plan_type,
                      augmented_intent=augmented_intent,
-                     do_replication=do_replication)
+                     do_replication=do_replication,
+                     enable_critique=enable_critique,
+                     enable_memory=enable_memory,
+                     benchmark_id=bench_point.ref_id,  
+                     memory_database_url=f"sqlite:///{memory_db_path}")
+
+    
     try:
         if not do_replication:
+            agent.initialize_agent(starting_file=bench_point.starting_file)
+            if enable_critique:
+                print("Critique Enabled")
+                agent.initialize_critique_component(bench_point.refactoring_changes)
             final_message = agent.run(initial_intent=bench_point.improved_commit_message,
                                       starting_file=bench_point.starting_file)  # run the agent with commit message
         else:
             assert initial_commit is not None, "initial commit must be provided for replication"
             agent.add_internal_commit(project.git_repo.commit(initial_commit))
             agent.initialize_agent(starting_file=bench_point.starting_file)
-            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
+            # Re-initialize critique component after agent initialization
+            if enable_critique:
+                agent.initialize_critique_component(bench_point.refactoring_changes)
+            agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
-        traceback.print_exc()
+        print(traceback.format_exc())
 
     internal_commits = agent.internal_commits()
     previous_commits = "\n".join([i.message for i in internal_commits])
@@ -80,8 +122,10 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     agent.update_changed_files()
     project.safe_add(agent.files_changed())
     new_hash = project.git_repo.index.commit(f"changes to solve benchmark id {bench_point.ref_id} \n\n {previous_commits}")
+    # new_hash = project.commit_all(f"changes to solve benchmark id {bench_point.ref_id} \n\n {previous_commits}")
+    print(f"New hash: {new_hash}")
 
-    results_saver.add(
+    results_saver.update(
         bench_point.ref_id,
         {
             "changes": [c.to_json() for c in project.get_changes(new_hash)],
@@ -89,6 +133,9 @@ def setup_and_run(bench_point: bm_load.RenameItem,
             "trajectory": [i.to_json() for i in agent.get_trajectory()],
             "performed_refactorings": agent.get_performed_refactorings(),
             "internal_commits": [str(i) for i in internal_commits],
+            "performed_refactorings": agent.get_performed_refactorings(),
+            "internal_commits": [str(i) for i in internal_commits],
+            "replication_inspection_data": agent.get_replication_inspection_data()
         }
     )
     results_saver.save()
@@ -105,7 +152,6 @@ def load_benchmark(filepath, bench_type) -> List[bm_load.BenchmarkItem]:
     return benchmark
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser(description='Run the agent on the entire benchmark.')
     parser.add_argument('-ij_server_url', type=str, help='Url where IJ server is running.', default=refagent.IJ_SERVER_URL)
     parser.add_argument('-ref_ids', type=str, help='IDs to run the agent on. '
@@ -125,7 +171,23 @@ if __name__ == '__main__':
                              "If true, ONLY the replication is performed, starting from an initial commit. "
                              "If false, ONLY the initial agent is run (to edit only the starting file)", default=True
                         )
+    parser.add_argument("--use_change_summary", type=str,
+                        help="Whether to use the change summary or not. "
+                             "If true, the change summary is used to improve the intent. "
+                             "If false, the change summary is not used.", default='False')
     parser.add_argument("--use_seed", action='store_true')
+    parser.add_argument("--enable_critique", type=str, 
+                        help="Whether to enable oracle-based critique component. "
+                             "If true, agent suggestions are validated against oracle data before execution.",
+                        default="true")
+    parser.add_argument("--enable_memory", type=str,
+                        help="Whether to enable memory component for storing and retrieving refactoring suggestions. "
+                             "If false, memory storage and retrieval are disabled. "
+                             "Note: Memory is automatically disabled when critique is disabled.",
+                        default="true")
+    parser.add_argument("--force_run",
+                        help="Whether to force a run of the agent, even if it ran previously.",
+                        action='store_true')
     args = parser.parse_args()
 
 
@@ -134,14 +196,22 @@ if __name__ == '__main__':
     ij_server = ij.IntellijServer(server_url=args.ij_server_url)
 
     planning_results = {}
+    augmented_intents = {}
     if args.planning_results_file is not None:
         with open(refagent.data_folder.joinpath(args.planning_results_file)) as f:
             json_ = json.load(f)
             planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) if i['response']['plan'] is not None else None
                                 for i in json_}
+            planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) if i['response']['plan'] is not None else None
+                                for i in json_}
             augmented_intents = {i['id']: i['response']['augmented_intent'] for i in json_}
 
     initial_save_file = rm.ResultsManager(run_identifier=args.run_identifier, save_file="no-replication.json").save_file_path
+    initial_commits={}
+    if initial_save_file.exists():
+        with open(initial_save_file) as f:
+            initial_run = json.load(f)
+            initial_commits = {i['id']: i['response']['commit_hash'] for i in initial_run}
     initial_commits={}
     if initial_save_file.exists():
         with open(initial_save_file) as f:
@@ -157,20 +227,27 @@ if __name__ == '__main__':
 
     for bench_point in benchmark:
 
+        # if args.use_change_summary.lower() == "true":
+        #     print(f"Using change summary for {bench_point.change_summary}")
+        # else:
+        #     print(args.use_change_summary)
+            # print(f"Using initial commit for {bench_point.improved_commit_message}")
+
+
         if (selected_ref_ids is not None and
                 bench_point.ref_id not in selected_ref_ids):
-            print(f"Skipping ref id {bench_point.ref_id} as it is not a selected one. "
-                  f"Selected: {selected_ref_ids}")
+            # print(f"Skipping ref id {bench_point.ref_id} as it is not a selected one. "
+            #       f"Selected: {selected_ref_ids}")
             continue
 
-        if results_saver.exists(bench_point.ref_id):
-            print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
+        if not args.force_run and results_saver.exists(bench_point.ref_id):
+            # print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
             continue
 
         with ls.trace(name=f"refactoring agent - {args.run_identifier}. bench point {bench_point.ref_id}",
                       tags=[args.run_identifier]) as tracer:
             setup_and_run(bench_point, ij_server, results_saver, do_replication,
                           plan=planning_results.get(bench_point.ref_id),
-                          augmented_intent=augmented_intents.get(bench_point.ref_id),
+                          augmented_intent=bench_point.change_summary if args.use_change_summary.lower() == "true" else augmented_intents.get(bench_point.ref_id),
                           initial_commit=initial_commits.get(bench_point.ref_id),
                           use_seed=args.use_seed)
