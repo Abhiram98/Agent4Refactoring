@@ -454,4 +454,3 @@ def test_flink_test_method2():
     response = intellij_server.call_tool('rename',
                                          **_json)
     assert response == 'success'
-

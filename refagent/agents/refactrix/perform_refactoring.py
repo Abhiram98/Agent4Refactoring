@@ -1,5 +1,6 @@
 import os
 from collections import defaultdict
+from json import JSONDecodeError
 
 from pydantic.v1 import BaseModel, Field, PrivateAttr
 from typing import List, Callable, Dict, Optional, Any
@@ -273,7 +274,9 @@ class PerformRefactoring(BaseModel):
                 print(f"[JSON DEBUG] Successfully parsed {len(rename_analysis.rename_suggestions)} rename suggestions")
                 for i, suggestion in enumerate(rename_analysis.rename_suggestions):
                     print(f"[JSON DEBUG] Suggestion {i}: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num} - type {suggestion.code_element_type}")
-                
+
+                rename_analysis.rename_suggestions \
+                    = self.validate_rename_objects(rename_analysis.rename_suggestions)
                 # Store the parsed analysis in the message for the next step
                 parsed_message = AIMessage(
                     content=f"Parsed rename analysis: {rename_analysis.analysis}",
@@ -935,4 +938,21 @@ class PerformRefactoring(BaseModel):
         success_refactorings = "\n".join([self.get_tool_call_str(v['tool_call'])
                                 for k,v in self._tool_call_map.items() if 'success' in v['response'].lower()])
         return success_refactorings
+
+    def validate_rename_objects(self, rename_suggestions: List[RenameSuggestion]) -> List[RenameSuggestion]:
+        valid_objs = []
+        for rename_suggestion in rename_suggestions:
+            validated_json = self.ide_server.call_tool('form-rename-object',
+                                      old_name=rename_suggestion.old_name,
+                                      new_name=rename_suggestion.new_name,
+                                      line_num=rename_suggestion.line_num,
+                                      code_element_type=rename_suggestion.code_element_type)
+            try:
+                validated_json = json.loads(validated_json)
+            except JSONDecodeError:
+                validated_json = None
+            if validated_json:
+                valid_objs.append(RenameSuggestion(**validated_json))
+        return valid_objs
+
 
