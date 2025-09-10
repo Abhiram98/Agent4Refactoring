@@ -4,14 +4,14 @@ ORM-based memory manager for refactoring suggestions.
 from sqlalchemy import create_engine, and_, or_, desc, func, text, Integer, Float
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import IntegrityError
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any, Union, Tuple
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import json
 import uuid
 from contextlib import contextmanager
 
-from .memory_models import Base, RefactoringSuggestion, MemorySession
+from .memory_models import Base, RefactoringSuggestion, MemorySession, ExamplePair
 
 
 class ORMRefactoringMemory:
@@ -40,6 +40,7 @@ class ORMRefactoringMemory:
 
     def create_tables(self):
         """Create all tables if they don't exist."""
+        print(Base.metadata.tables.keys())
         Base.metadata.create_all(bind=self.engine)
 
     @contextmanager
@@ -406,3 +407,35 @@ class ORMRefactoringMemory:
                 }
                 for p in patterns
             ]
+
+    def get_positive_examples(self) -> List[Tuple[str, str]]:
+        """Retrieve all positive example name pairs."""
+        with self.get_session() as db:
+            examples = db.query(ExamplePair).filter(ExamplePair.is_positive == True).all()
+            return [(str(e.old_name), str(e.new_name)) for e in examples]
+    def get_negative_examples(self) -> List[Tuple[str, str]]:
+        with self.get_session() as db:
+            examples = db.query(ExamplePair).filter(ExamplePair.is_positive == False).all()
+            return [(str(e.old_name), str(e.new_name)) for e in examples]
+
+    def set_positive_example(self, example: Tuple[str, str]):
+        """Store a new positive example"""
+        old_name, new_name = example
+        with self.get_session() as db:
+            db.add(ExamplePair(
+                old_name=old_name,
+                new_name=new_name,
+                is_positive=True
+            ))
+            db.commit()
+
+    def set_negative_example(self, example: Tuple[str, str]):
+        """Store a new negative example."""
+        old_name, new_name = example
+        with self.get_session() as db:
+            db.add(ExamplePair(
+                old_name=old_name,
+                new_name=new_name,
+                is_positive=False
+            ))
+            db.commit()

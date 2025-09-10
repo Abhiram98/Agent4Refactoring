@@ -538,7 +538,6 @@ class Agent(BaseModel):
             if executor.new_intent:
                 # call intent refinement to generate a new intent
                 self.augmented_intent = executor.new_intent
-                raise NotImplementedError()
             # Add PerformRefactoring workflow messages to trajectory
             self._trajectory += observation['messages']
             self._failing_tool_call_count += not executor.refactoring_success  # increment the count if tool calls failed.

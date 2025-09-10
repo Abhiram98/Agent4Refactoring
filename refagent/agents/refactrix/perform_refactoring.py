@@ -574,12 +574,16 @@ class PerformRefactoring(BaseModel):
                     suggestion.code_element_type.value
                 )
 
-                # todo: call the intent agent to refine intent if critque_result.is_valid == False
-                self._new_intent = RefineIntent(
-                    original_intent=self.original_intent,
-                    positive_examples=[],
-                    negative_examples=[]
-                ).get_new_intent()
+                if critique_result.is_valid:
+                    self.orm_memory.set_positive_example((suggestion.old_name, suggestion.new_name))
+                else:
+                    self.orm_memory.set_negative_example((suggestion.old_name, suggestion.new_name))
+
+                    self._new_intent = RefineIntent(
+                        original_intent=self._new_intent or self.original_intent, # build on the new intent if needed.
+                        positive_examples=self.orm_memory.get_positive_examples(),
+                        negative_examples=self.orm_memory.get_negative_examples()
+                    ).get_new_intent()
 
 
                 print(

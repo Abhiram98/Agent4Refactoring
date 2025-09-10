@@ -101,3 +101,13 @@ class MemorySession(Base):
 
     # Additional session info
     session_metadata = Column(Text, nullable=True)  # JSON
+
+
+class ExamplePair(Base):
+    __tablename__ = "example_pairs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    old_name = Column(String, nullable=False)
+    new_name = Column(String, nullable=False)
+    is_positive = Column(Boolean, nullable=False)  # True = positive example, False = negative
+    created_at = Column(DateTime, default=datetime.utcnow)
