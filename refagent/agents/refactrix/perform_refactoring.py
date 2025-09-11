@@ -20,7 +20,10 @@ import refagent.utils.code_utils as code_utils
 import refagent.agents.refactrix.critique as critique
 import refagent.utils.cache.prompt_cache as prompt_cache
 from agents.refactrix.analysis.refine_intent import RefineIntent
-from refagent.agents.refactrix.rename_suggestions import RenameAnalysis, RenameSuggestion, ValidatedRenames
+from refagent.agents.refactrix.rename_suggestions import (RenameAnalysis, RenameSuggestion,
+                                                          ValidatedRenames,
+                                                          RenameSuggestionWithCommentStartLine,
+                                                          RenameAnalysisWithCommentStartLine)
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
 
 
@@ -542,7 +545,7 @@ class PerformRefactoring(BaseModel):
 
             # Parse the rename analysis
             rename_analysis_data = last_message.additional_kwargs['rename_analysis']
-            rename_analysis = RenameAnalysis(**rename_analysis_data)
+            rename_analysis = RenameAnalysisWithCommentStartLine(**rename_analysis_data)
 
             print(f"[CRITIQUE DEBUG] Found {len(rename_analysis.rename_suggestions)} suggestions to validate")
 
@@ -950,7 +953,7 @@ class PerformRefactoring(BaseModel):
                                 for k,v in self._tool_call_map.items() if 'success' in v['response'].lower()])
         return success_refactorings
 
-    def validate_rename_objects(self, rename_suggestions: List[RenameSuggestion]) -> List[RenameSuggestion]:
+    def validate_rename_objects(self, rename_suggestions: List[RenameSuggestion]) -> List[RenameSuggestionWithCommentStartLine]:
         valid_objs = []
         for rename_suggestion in rename_suggestions:
             validated_json = self.ide_server.call_tool('form-rename-object',
@@ -963,7 +966,7 @@ class PerformRefactoring(BaseModel):
             except JSONDecodeError:
                 validated_json = None
             if validated_json:
-                valid_objs.append(RenameSuggestion(**validated_json))
+                valid_objs.append(RenameSuggestionWithCommentStartLine(**validated_json))
         return valid_objs
 
 

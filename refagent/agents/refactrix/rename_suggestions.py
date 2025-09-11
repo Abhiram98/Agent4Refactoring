@@ -18,6 +18,9 @@ class RenameSuggestion(BaseModel):
     line_num: int = Field(description="Line number where the element is located")
     code_element_type: CodeElementType = Field(description="Type of code element to rename")
     reason: Optional[str] = Field(description="Explanation for why this rename is suggested", default="")
+
+class RenameSuggestionWithCommentStartLine(RenameSuggestion):
+    """A single rename suggestion from the LLM."""
     start_line_comments: Optional[int] = Field(description="Start line including header comments", default=None)
 
 
@@ -29,6 +32,9 @@ class RenameAnalysis(BaseModel):
     class Config:
         # Allow enum values to be serialized as strings
         use_enum_values = True
+
+class RenameAnalysisWithCommentStartLine(RenameAnalysis):
+    rename_suggestions: List[RenameSuggestionWithCommentStartLine] = Field(description="List of suggested renames")
 
 
 class ValidatedRenames(BaseModel):
