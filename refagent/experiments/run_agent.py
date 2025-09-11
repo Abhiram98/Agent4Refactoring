@@ -15,6 +15,7 @@ import refagent.agents.refactrix.refactoring_agent as ra
 import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.react_agent as react_agent
+import refagent.experiments.init_memory as init_memory
 
 import langsmith as ls
 
@@ -67,20 +68,17 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     
     # Create memory database path in the same directory as results (even if disabled for logging)
     results_dir = os.path.dirname(args.run_identifier) if "/" in args.run_identifier else "."
-    db_name = f"memory_{args.run_identifier.split('/')[-1]}.db"
-    memory_db_path = os.path.join(results_dir, db_name)
-    if Path(memory_db_path).exists():
-        # delete it to run it again.
-        os.remove(memory_db_path)
-    
     # Ensure the directory exists
     os.makedirs(results_dir, exist_ok=True)
-    
-    if enable_memory:
-        print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
-    else:
-        print(f"[MEMORY] Memory feedback disabled - data still stored for evaluation at: {memory_db_path}")
-    
+
+    db_name = f"memory_{args.run_identifier.split('/')[-1]}.db"
+    memory_db_path = os.path.join(results_dir, db_name)
+    init_memory.InitMemory(
+        benchmark_item=bench_point,
+        do_replication=do_replication,
+        use_seed=use_seed).init_memory(memory_db_path)
+    print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
+
     agent = react_agent.ReactAgent(ide_server=ij_server,
                      reasoning_model_name=f'{vendor}:openai-o4-mini',
                      model_name=f'{vendor}:openai-gpt-4o-mini',
