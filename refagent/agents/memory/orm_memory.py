@@ -233,18 +233,12 @@ class ORMRefactoringMemory:
             if recent_invalid:
                 if file_path is not None:
                     # File-specific feedback: include line numbers
-                    failed_lines = list(set([s.line_num for s in recent_invalid if s.line_num]))
-                    failed_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_invalid]))
+                    # failed_lines = list(set([s.line_num for s in recent_invalid if s.line_num]))
+                    failed_patterns = list(set([f"{s.old_name}→{s.new_name} on line {s.line_num}" for s in recent_invalid]))
                     
-                    if failed_lines:
-                        feedback_parts.append(f"AVOID lines: {failed_lines}")
-                    # if failed_patterns:
-                    #     feedback_parts.append(f"AVOID patterns: {failed_patterns}")
-                # else:
-                #     # Cross-file feedback: focus on patterns, not specific lines
-                #     failed_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_invalid]))
-                #     if failed_patterns:
-                #         feedback_parts.append(f"AVOID patterns: {failed_patterns}")
+                    if len(failed_patterns):
+                        feedback_parts.append(f"The following renames were rejected by the developer. "
+                                              f"Do not attempt these again: \n{'\n'.join(failed_patterns)}")
 
             # Get recent valid suggestions - show what worked
             recent_valid = db.query(RefactoringSuggestion).filter(
@@ -255,21 +249,16 @@ class ORMRefactoringMemory:
             ).order_by(desc(RefactoringSuggestion.created_at)).limit(limit).all()
 
             if recent_valid:
-                if file_path is not None:
-                    # File-specific: show completed lines
-                    successful_lines = [s.line_num for s in recent_valid if s.line_num]
-                    if successful_lines:
-                        feedback_parts.append(f"COMPLETED lines: {successful_lines}")
-                
-                # Always show successful patterns (both file-specific and cross-file)
-                successful_patterns = list(set([f"{s.old_name}→{s.new_name}" for s in recent_valid]))
-                if successful_patterns:
-                    feedback_parts.append(f"Example SUCCESS patterns: {successful_patterns}")
+                # File-specific: show completed lines
+                success_patterns = list(
+                    set([f"{s.old_name}→{s.new_name} on line {s.line_num}" for s in recent_valid]))
+                if len(success_patterns):
+                    feedback_parts.append(f"The following renames were successfully executed, and accepted by the developer:\n"
+                                          f"{'\n'.join(success_patterns)}")
 
             # Keep it short and actionable
-            result = " | ".join(feedback_parts) if feedback_parts else ""
-            scope = "FILE" if file_path else "BENCHMARK"
-            return f"MEMORY ({scope}): {result}" if result else ""
+            result = "\n".join(feedback_parts) if feedback_parts else ""
+            return f"History of renames performed on this file: \n{result}" if result else ""
 
     def is_suggestion_previously_invalid(self,
                                          benchmark_id: int,

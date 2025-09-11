@@ -45,7 +45,7 @@ class ReactAgent(ra.Agent):
             final_state = graph.invoke(
                 {
                     "messages": [
-                        SystemMessage(f"You are an expert developer who executes rename refactorings for the sake of consistency.\n"
+                        SystemMessage(f"You are an expert developer who executes rename refactorings.\n"
                                       f"Please do the following: {self.augmented_intent} \n"
                                       f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
                                       f"You will be asked to provide your analysis as a JSON response containing all rename suggestions."),

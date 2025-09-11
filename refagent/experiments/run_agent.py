@@ -31,21 +31,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                   ):
     project = pm.EvalProject(bench_point.project_name)
     ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
-    if initial_commit is None:
-        if use_seed:
-            # In this case, we would like to start the agent from the seed changes.
-            if bench_point.seed_hash is not None:
-                print(f"seed_hash={bench_point.seed_hash} bench_id={bench_point.ref_id}")
-                project.checkout(bench_point.seed_hash, force=True)
-            else:
-                project.checkout(bench_point.v1_hash, force=True)
-            project.reset_head(1)
-        else:
-            project.checkout(bench_point.v1_hash, force=True)
-            project.restore_changes()
-    else:
-        project.checkout(initial_commit, force=True)
-        project.restore_changes()
+    checkout_commit(bench_point, initial_commit, project, use_seed)
 
     ij_server.open_project(project_path=project.get_project_path())
     ij_server.reload_project()
@@ -137,6 +123,26 @@ def setup_and_run(bench_point: bm_load.RenameItem,
         }
     )
     results_saver.save()
+
+
+def checkout_commit(bench_point, initial_commit, project, use_seed):
+    # checkout the right commit so that agent can resume execution
+    if use_seed:
+        # In this case, we would like to start the agent from the seed changes.
+        if bench_point.seed_hash is not None:
+            print(f"seed_hash={bench_point.seed_hash} bench_id={bench_point.ref_id}")
+            project.checkout(bench_point.seed_hash, force=True)
+        else:
+            project.checkout(bench_point.v1_hash, force=True)
+        project.reset_head(1)
+    else:
+        # in this case, we are running the agent without a seed hash
+        if initial_commit is None:
+            project.checkout(bench_point.v1_hash, force=True)
+            project.restore_changes()
+        else:
+            project.checkout(initial_commit, force=True)
+            project.restore_changes()
 
 
 def load_benchmark(filepath, bench_type) -> List[bm_load.BenchmarkItem]:
