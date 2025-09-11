@@ -590,8 +590,14 @@ class PerformRefactoring(BaseModel):
                         source_code=self.ide_server.call_tool_get("get_source_code"),
                         original_intent=self._new_intent or self.original_intent, # build on the new intent if needed.
                         positive_examples=self.orm_memory.get_positive_examples(),
-                        negative_examples=self.orm_memory.get_negative_examples()
+                        negative_examples=self.orm_memory.get_negative_examples(),
+                        model=self.model,
+                        feedback=self.orm_memory.get_memory_feedback(
+                            benchmark_id=self.benchmark_id,
+                            file_path=self.rel_file_path
+                        )
                     ).get_new_intent()
+                    # todo: save intent in memory
 
 
                 print(
