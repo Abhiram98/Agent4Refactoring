@@ -11,6 +11,7 @@ class InitMemory(BaseModel):
     benchmark_item: benchmark_load.RenameItem
     do_replication: bool
     use_seed: bool
+    initial_intent: str
 
     def init_memory(self, memory_db_path: str):
         if self.do_replication:
@@ -44,3 +45,4 @@ class InitMemory(BaseModel):
                     agent_iteration=0,
                     llm_iteration=0
                 )
+                orm_db.add_rename_scope(self.initial_intent)

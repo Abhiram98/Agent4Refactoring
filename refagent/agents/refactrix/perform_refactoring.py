@@ -37,7 +37,6 @@ class PerformRefactoring(BaseModel):
     ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
     refactoring_success: bool = Field(description="whether the refactoring was successful or not.", default=False)
     critique_component: Optional[critique.CritiqueComponent] = Field(description="Critique component for validating suggestions", default=None)
-    original_intent: str = Field(description="Original intent.")
 
 
     _file_open_status: bool = PrivateAttr(default=False)
@@ -46,7 +45,6 @@ class PerformRefactoring(BaseModel):
     _performed_refactorings: List = PrivateAttr(default=[])
     _tool_call_map: Dict = PrivateAttr(default=defaultdict(dict))
     _critique_retry_count: int = PrivateAttr(default=0)
-    _new_intent: Optional[str] = PrivateAttr(default=None)
 
     benchmark_id: Optional[int] = Field(
         description="Current benchmark ID for memory isolation",
@@ -93,7 +91,7 @@ class PerformRefactoring(BaseModel):
     @property
     def new_intent(self) -> Optional[str]:
         """return the new intent if generated, else none"""
-        return self._new_intent
+        return self.orm_memory.get_latest_scope()
 
     def get_tool_call_str(self, tool_call: Optional[ToolCall]=None) -> str:
         if tool_call is None:
@@ -210,7 +208,7 @@ class PerformRefactoring(BaseModel):
 
             # Only pass the system prompt to avoid prompt bloating
             if self.new_intent is not None:
-                messages = [SystemMessage(self.new_intent), opened_file_message()]
+                messages = [self.generate_system_prompt(), opened_file_message()]
             else:
                 messages = [state['messages'][0] , opened_file_message()]
             if messages:
@@ -231,6 +229,9 @@ class PerformRefactoring(BaseModel):
             # Use model without tools for JSON output
             response = prompt_cache.prompt(self.model, messages)
             return {"messages": [response]}
+
+        def generate_system_prompt():
+            return SystemMessage(self.new_intent)
 
         def get_memory_constraints(current_llm_iteration):
             memory_constraints = ""
@@ -589,9 +590,9 @@ class PerformRefactoring(BaseModel):
                 else:
                     self.orm_memory.set_negative_example((suggestion.old_name, suggestion.new_name))
 
-                    self._new_intent = RefineIntent(
+                    _new_intent = RefineIntent(
                         source_code=self.ide_server.call_tool_get("get_source_code"),
-                        original_intent=self._new_intent or self.original_intent, # build on the new intent if needed.
+                        original_intent=self.new_intent, # build on the new intent if needed.
                         positive_examples=self.orm_memory.get_positive_examples(),
                         negative_examples=self.orm_memory.get_negative_examples(),
                         model=self.model,
@@ -600,7 +601,7 @@ class PerformRefactoring(BaseModel):
                             file_path=self.rel_file_path
                         )
                     ).get_new_intent()
-                    # todo: save intent in memory
+                    self.orm_memory.add_rename_scope(_new_intent)
 
 
                 print(
@@ -968,5 +969,11 @@ class PerformRefactoring(BaseModel):
             if validated_json:
                 valid_objs.append(RenameSuggestionWithCommentStartLine(**validated_json))
         return valid_objs
+
+    def generate_system_prompt(self) -> SystemMessage:
+        return SystemMessage(f"You are an expert developer who executes rename refactorings.\n"
+                      f"Please do the following: {self.new_intent} \n"
+                      f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
+                      f"You will be asked to provide your analysis as a JSON response containing all rename suggestions.")
 
 

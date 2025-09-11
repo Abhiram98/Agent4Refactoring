@@ -62,7 +62,9 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     init_memory.InitMemory(
         benchmark_item=bench_point,
         do_replication=do_replication,
-        use_seed=use_seed).init_memory(memory_db_path)
+        use_seed=use_seed,
+        initial_intent=augmented_intent
+    ).init_memory(memory_db_path)
     print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
 
     agent = react_agent.ReactAgent(ide_server=ij_server,

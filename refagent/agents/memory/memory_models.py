@@ -111,3 +111,11 @@ class ExamplePair(Base):
     new_name = Column(String, nullable=False)
     is_positive = Column(Boolean, nullable=False)  # True = positive example, False = negative
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class RenameScope(Base):
+    __tablename__ = 'rename_scopes'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    scope = Column(String, nullable=False)
+

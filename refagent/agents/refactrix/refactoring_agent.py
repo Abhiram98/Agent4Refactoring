@@ -528,7 +528,6 @@ class Agent(BaseModel):
                 replication_enabled=self.do_replication,
                 enable_memory=self.enable_memory,
                 critique_component=self._critique_component, # Pass critique component to the executor,
-                original_intent=self.augmented_intent
             )
             perform_refactoring_graph = executor.compile()
             self.get_changed_file_contents() # nit: this call exists to update the changed files list. this is tech debt
