@@ -20,6 +20,7 @@ import refagent.utils.code_utils as code_utils
 import refagent.agents.refactrix.critique as critique
 import refagent.utils.cache.prompt_cache as prompt_cache
 from agents.refactrix.analysis.refine_intent import RefineIntent
+from agents.refactrix.critique import CritiqueResult
 from refagent.agents.refactrix.rename_suggestions import (RenameAnalysis, RenameSuggestion,
                                                           ValidatedRenames,
                                                           RenameSuggestionWithCommentStartLine,
@@ -555,6 +556,7 @@ class PerformRefactoring(BaseModel):
             invalid_suggestions = []
 
             for suggestion in rename_analysis.rename_suggestions:
+                should_break = False
                 print(
                     f"[CRITIQUE DEBUG] Validating: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.start_line_comments or suggestion.line_num}")
 
@@ -588,6 +590,7 @@ class PerformRefactoring(BaseModel):
                 if critique_result.is_valid:
                     self.orm_memory.set_positive_example((suggestion.old_name, suggestion.new_name))
                 else:
+                    should_break = True
                     self.orm_memory.set_negative_example((suggestion.old_name, suggestion.new_name))
 
                     _new_intent = RefineIntent(
@@ -607,50 +610,9 @@ class PerformRefactoring(BaseModel):
                 print(
                     f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
 
-                # Always store suggestion in memory for evaluation purposes (regardless of enable_memory flag)
-                if hasattr(self, 'benchmark_id') and self.benchmark_id:
-                    try:
-                        # Prepare context data for memory storage
-                        context_data = {
-                            "analysis": rename_analysis.analysis,
-                            "suggestion_reason": suggestion.reason if hasattr(suggestion,
-                                                                              'reason') and suggestion.reason else "",
-                            "oracle_match": critique_result.oracle_match.model_dump() if hasattr(critique_result,
-                                                                                                 'oracle_match') and critique_result.oracle_match else None,
-                            "previously_invalid": previously_invalid,
-                            "retry_iteration": self._retry_iteration,
-                            "memory_feedback_enabled": self.enable_memory  # Track whether feedback was used
-                        }
-
-                        # Get current LLM iteration number
-                        current_llm_iteration = self.orm_memory.get_current_llm_iteration() if self.orm_memory else 0
-                        
-                        # Add suggestion to memory
-                        memory_entry = self.orm_memory.add_suggestion(
-                            benchmark_id=self.benchmark_id,
-                            file_path=self.rel_file_path,
-                            old_name=suggestion.old_name,
-                            new_name=suggestion.new_name,
-                            line_num=suggestion.line_num,
-                            code_element_type=suggestion.code_element_type.value,
-                            is_valid=critique_result.is_valid,
-                            feedback=critique_result.feedback,
-                            critique_reason=critique_result.reason if hasattr(critique_result, 'reason') else "",
-                            confidence_score=critique_result.confidence_score if hasattr(critique_result,
-                                                                                         'confidence_score') else None,
-                            agent_iteration=self._retry_iteration,
-                            llm_iteration=current_llm_iteration,
-                            context_data=context_data
-                        )
-
-                        if self.enable_memory:
-                            print(f"[MEMORY DEBUG] Stored suggestion in memory successfully (with feedback enabled)")
-                        else:
-                            print(f"[MEMORY DEBUG] Stored suggestion in memory for evaluation (feedback disabled)")
-
-                    except Exception as e:
-                        print(f"[MEMORY DEBUG] Error storing suggestion in memory: {e}")
-                        # Continue processing even if memory storage fails
+                self.store_critque_results(critique_result,
+                                           previously_invalid,
+                                           rename_analysis, suggestion)
 
                 # Categorize suggestion based on validation result
                 if critique_result.is_valid:
@@ -659,6 +621,9 @@ class PerformRefactoring(BaseModel):
                 else:
                     invalid_suggestions.append(suggestion)
                     print(f"[CRITIQUE DEBUG] FAILED: {suggestion.old_name} → {suggestion.new_name}")
+
+                if should_break:
+                    break
 
             # Create validated renames result
             validated_result = ValidatedRenames(
@@ -976,4 +941,53 @@ class PerformRefactoring(BaseModel):
                       f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
                       f"You will be asked to provide your analysis as a JSON response containing all rename suggestions.")
 
+    def store_critque_results(self,
+                              critique_result: CritiqueResult,
+                              previously_invalid: bool,
+                              rename_analysis: RenameAnalysisWithCommentStartLine,
+                              suggestion: RenameSuggestionWithCommentStartLine):
+        # Always store suggestion in memory for evaluation purposes (regardless of enable_memory flag)
+        if hasattr(self, 'benchmark_id') and self.benchmark_id:
+            try:
+                # Prepare context data for memory storage
+                context_data = {
+                    "analysis": rename_analysis.analysis,
+                    "suggestion_reason": suggestion.reason if hasattr(suggestion,
+                                                                      'reason') and suggestion.reason else "",
+                    "oracle_match": critique_result.oracle_match.model_dump() if hasattr(critique_result,
+                                                                                         'oracle_match') and critique_result.oracle_match else None,
+                    "previously_invalid": previously_invalid,
+                    "retry_iteration": self._retry_iteration,
+                    "memory_feedback_enabled": self.enable_memory  # Track whether feedback was used
+                }
+
+                # Get current LLM iteration number
+                current_llm_iteration = self.orm_memory.get_current_llm_iteration() if self.orm_memory else 0
+
+                # Add suggestion to memory
+                memory_entry = self.orm_memory.add_suggestion(
+                    benchmark_id=self.benchmark_id,
+                    file_path=self.rel_file_path,
+                    old_name=suggestion.old_name,
+                    new_name=suggestion.new_name,
+                    line_num=suggestion.line_num,
+                    code_element_type=suggestion.code_element_type.value,
+                    is_valid=critique_result.is_valid,
+                    feedback=critique_result.feedback,
+                    critique_reason=critique_result.reason if hasattr(critique_result, 'reason') else "",
+                    confidence_score=critique_result.confidence_score if hasattr(critique_result,
+                                                                                 'confidence_score') else None,
+                    agent_iteration=self._retry_iteration,
+                    llm_iteration=current_llm_iteration,
+                    context_data=context_data
+                )
+
+                if self.enable_memory:
+                    print(f"[MEMORY DEBUG] Stored suggestion in memory successfully (with feedback enabled)")
+                else:
+                    print(f"[MEMORY DEBUG] Stored suggestion in memory for evaluation (feedback disabled)")
+
+            except Exception as e:
+                print(f"[MEMORY DEBUG] Error storing suggestion in memory: {e}")
+                # Continue processing even if memory storage fails
 
