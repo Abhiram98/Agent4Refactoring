@@ -552,7 +552,7 @@ class PerformRefactoring(BaseModel):
 
             for suggestion in rename_analysis.rename_suggestions:
                 print(
-                    f"[CRITIQUE DEBUG] Validating: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num}")
+                    f"[CRITIQUE DEBUG] Validating: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.start_line_comments or suggestion.line_num}")
 
                 # Check if this suggestion was previously invalid (memory check - only if memory enabled)
                 previously_invalid = False
@@ -564,7 +564,7 @@ class PerformRefactoring(BaseModel):
                             file_path=self.rel_file_path,
                             old_name=suggestion.old_name,
                             new_name=suggestion.new_name,
-                            line_num=suggestion.line_num
+                            line_num=suggestion.start_line_comments or suggestion.line_num,
                         )
                         if previously_invalid:
                             print(
@@ -576,7 +576,8 @@ class PerformRefactoring(BaseModel):
                 critique_result = self.critique_component.validate_rename_suggestion(
                     suggestion.old_name,
                     suggestion.new_name,
-                    suggestion.line_num,
+                    suggestion.start_line_comments or suggestion.line_num, # use the start line with comments if possible,
+                                                                           #  so that refactoring miner based oracle is happy
                     suggestion.code_element_type.value
                 )
 
@@ -586,6 +587,7 @@ class PerformRefactoring(BaseModel):
                     self.orm_memory.set_negative_example((suggestion.old_name, suggestion.new_name))
 
                     self._new_intent = RefineIntent(
+                        source_code=self.ide_server.call_tool_get("get_source_code"),
                         original_intent=self._new_intent or self.original_intent, # build on the new intent if needed.
                         positive_examples=self.orm_memory.get_positive_examples(),
                         negative_examples=self.orm_memory.get_negative_examples()

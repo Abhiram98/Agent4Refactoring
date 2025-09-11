@@ -18,6 +18,7 @@ class RenameSuggestion(BaseModel):
     line_num: int = Field(description="Line number where the element is located")
     code_element_type: CodeElementType = Field(description="Type of code element to rename")
     reason: Optional[str] = Field(description="Explanation for why this rename is suggested", default="")
+    start_line_comments: Optional[int] = Field(description="Start line including header comments", default=None)
 
 
 class RenameAnalysis(BaseModel):
