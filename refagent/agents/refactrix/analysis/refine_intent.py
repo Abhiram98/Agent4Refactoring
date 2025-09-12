@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel # to allow BaseChatmodel (grazie) to be a field for pydantic class
 
 
 class RefineIntent(BaseModel):

@@ -2,7 +2,7 @@ import os
 from collections import defaultdict
 from json import JSONDecodeError
 
-from pydantic.v1 import BaseModel, Field, PrivateAttr
+from pydantic.v1 import BaseModel, Field, PrivateAttr # to comply with grazie models
 from typing import List, Callable, Dict, Optional, Any
 from langchain_core.output_parsers import PydanticOutputParser
 import json
