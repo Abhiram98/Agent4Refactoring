@@ -57,7 +57,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     # Ensure the directory exists
     os.makedirs(results_dir, exist_ok=True)
 
-    db_name = f"memory_{args.run_identifier.split('/')[-1]}.db"
+    db_name = f"memory_{args.run_identifier.split('/')[-1]}_{bench_point.ref_id}.db"
     memory_db_path = os.path.join(results_dir, db_name)
     init_memory.InitMemory(
         benchmark_item=bench_point,
