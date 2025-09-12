@@ -19,9 +19,12 @@ class RenameSuggestion(BaseModel):
     code_element_type: CodeElementType = Field(description="Type of code element to rename")
     reason: Optional[str] = Field(description="Explanation for why this rename is suggested", default="")
 
-class RenameSuggestionWithCommentStartLine(RenameSuggestion):
-    """A single rename suggestion from the LLM."""
+class RenameSuggestionValidated(RenameSuggestion):
+    """A single rename suggestion from the LLM, validated and augmented by the IDE."""
     start_line_comments: Optional[int] = Field(description="Start line including header comments", default=None)
+    resolved_file_path: Optional[str] = Field(description="Resolved file path", default=None)
+    resolved_start_line: Optional[int] = Field(description="Resolved start line", default=None)
+
 
 
 class RenameAnalysis(BaseModel):
@@ -34,7 +37,7 @@ class RenameAnalysis(BaseModel):
         use_enum_values = True
 
 class RenameAnalysisWithCommentStartLine(RenameAnalysis):
-    rename_suggestions: List[RenameSuggestionWithCommentStartLine] = Field(description="List of suggested renames")
+    rename_suggestions: List[RenameSuggestionValidated] = Field(description="List of suggested renames")
 
 
 class ValidatedRenames(BaseModel):

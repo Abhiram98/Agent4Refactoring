@@ -567,10 +567,10 @@ class PerformRefactoring(BaseModel):
                     try:
                         previously_invalid = self.orm_memory.is_suggestion_previously_invalid(
                             benchmark_id=self.benchmark_id,
-                            file_path=self.rel_file_path,
+                            file_path=suggestion.resolved_file_path or self.rel_file_path,
                             old_name=suggestion.old_name,
                             new_name=suggestion.new_name,
-                            line_num=suggestion.start_line_comments or suggestion.line_num,
+                            line_num=suggestion.resolved_start_line or suggestion.start_line_comments or suggestion.line_num,
                         )
                         if previously_invalid:
                             print(
@@ -584,7 +584,8 @@ class PerformRefactoring(BaseModel):
                     suggestion.new_name,
                     suggestion.start_line_comments or suggestion.line_num, # use the start line with comments if possible,
                                                                            #  so that refactoring miner based oracle is happy
-                    suggestion.code_element_type.value
+                    suggestion.code_element_type.value,
+                    file_to_check=suggestion.resolved_file_path or self.rel_file_path
                 )
 
                 if critique_result.is_valid:
@@ -919,7 +920,7 @@ class PerformRefactoring(BaseModel):
                                 for k,v in self._tool_call_map.items() if 'success' in v['response'].lower()])
         return success_refactorings
 
-    def validate_rename_objects(self, rename_suggestions: List[RenameSuggestion]) -> List[RenameSuggestionWithCommentStartLine]:
+    def validate_rename_objects(self, rename_suggestions: List[RenameSuggestion]) -> List[RenameSuggestionValidated]:
         valid_objs = []
         for rename_suggestion in rename_suggestions:
             validated_json = self.ide_server.call_tool('form-rename-object',
@@ -932,7 +933,7 @@ class PerformRefactoring(BaseModel):
             except JSONDecodeError:
                 validated_json = None
             if validated_json:
-                valid_objs.append(RenameSuggestionWithCommentStartLine(**validated_json))
+                valid_objs.append(RenameSuggestionValidated(**validated_json))
         return valid_objs
 
     def generate_system_prompt(self) -> SystemMessage:
@@ -945,7 +946,7 @@ class PerformRefactoring(BaseModel):
                               critique_result: CritiqueResult,
                               previously_invalid: bool,
                               rename_analysis: RenameAnalysisWithCommentStartLine,
-                              suggestion: RenameSuggestionWithCommentStartLine):
+                              suggestion: RenameSuggestionValidated):
         # Always store suggestion in memory for evaluation purposes (regardless of enable_memory flag)
         if hasattr(self, 'benchmark_id') and self.benchmark_id:
             try:
