@@ -23,7 +23,7 @@ from agents.refactrix.analysis.refine_intent import RefineIntent
 from agents.refactrix.critique import CritiqueResult
 from refagent.agents.refactrix.rename_suggestions import (RenameAnalysis, RenameSuggestion,
                                                           ValidatedRenames,
-                                                          RenameSuggestionWithCommentStartLine,
+                                                          RenameSuggestionValidated,
                                                           RenameAnalysisWithCommentStartLine)
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
 
@@ -189,22 +189,39 @@ class PerformRefactoring(BaseModel):
                 state['messages'][-1].content += retry_warning
 
             # Create output parser for structured JSON response
-            parser = PydanticOutputParser(pydantic_object=RenameAnalysis)
-
+            # parser = PydanticOutputParser(pydantic_object=RenameAnalysis)
+            # METHOD = "method"
+            # VARIABLE = "variable"
+            # CLASS = "class"
+            # PARAMETER = "parameter"
+            # FIELD = "field"
             # Add JSON format instructions to the last message
             format_instructions = (
-                "\n\nIMPORTANT: Respond with a JSON object containing your analysis and rename suggestions. "
-                f"Use this exact format:\n{parser.get_format_instructions()}\n\n"
-                f"COMPLETION INSTRUCTIONS:\n"
-                f"- If you find rename suggestions, include them in the 'rename_suggestions' array\n"
-                f"- If NO renames are needed (refactoring is complete), set 'rename_suggestions' to an empty array []\n"
+                # "\n\nIMPORTANT: Respond with a JSON object containing your analysis and rename suggestions. "
+                f"Use this exact format: Json Object with two keys - 'analysis' and 'rename_suggestions'. "
+                f"The `rename_suggestions` should be a json list of object with the keys - `old_name`, `new_name`, `line_num`, `code_element_type`(method/variable/class/parameter/field), `reason`)\n\n"
+                f""
+                f"Example: "
+                """{
+                  "analysis" : "REFACTORING_NEEDED: Found 1 more instance to rename.",
+                  "rename_suggestions" : [ {
+                    "old_name" : "<old_name>",
+                    "new_name" : "<new_name>",
+                    "line_num" : 120,
+                    "code_element_type" : "method",
+                    "reason" : "Renaming the method <old_name> satisfies the pattern, because <reason>"
+                  } ]
+                }"""
+                f"\nNote:\n"
+                # f"- If you find rename suggestions, include them in the 'rename_suggestions' array\n"
+                # f"- If NO renames are needed (refactoring is complete), set 'rename_suggestions' to an empty array []\n"
                 f"- When refactoring is complete, start your 'analysis' field with: 'REFACTORING_COMPLETE: '\n"
                 f"- When more renames are needed, start your 'analysis' field with: 'REFACTORING_NEEDED: '\n"
-                f"- For 'code_element_type', use ONLY these values: 'method', 'variable', 'class', 'parameter', 'field'\n"
-                f"- DO NOT suggest renaming import statements - focus only on variables, methods, classes, fields, and parameters within the code\n"
-                f"- IGNORE import lines (lines starting with 'import') - only rename actual code elements\n"
-                f"Example for completion: {{\"analysis\": \"REFACTORING_COMPLETE: All instances have been renamed.\", \"rename_suggestions\": []}}\n"
-                f"Example for more work: {{\"analysis\": \"REFACTORING_NEEDED: Found 3 more instances to rename.\", \"rename_suggestions\": [...]}}"
+                f"- For 'code_element_type', use only these values: 'method', 'variable', 'class', 'parameter', 'field'\n"
+                # f"- DO NOT suggest renaming import statements - focus only on variables, methods, classes, fields, and parameters within the code\n"
+                # f"- IGNORE import lines (lines starting with 'import') - only rename actual code elements\n"
+                # f"Example for completion: {{\"analysis\": \"REFACTORING_COMPLETE: All instances have been renamed.\", \"rename_suggestions\": []}}\n"
+                # f"Example for more work: {{\"analysis\": \"REFACTORING_NEEDED: Found 3 more instances to rename.\", \"rename_suggestions\": [...]}}"
             )
 
             # Only pass the system prompt to avoid prompt bloating
@@ -215,17 +232,21 @@ class PerformRefactoring(BaseModel):
             if messages:
                 last_msg = messages[-1]
                 if hasattr(last_msg, 'content'):
-                    # Add memory constraints at the bottom
-                    if memory_constraints:
-                        last_msg.content = last_msg.content + memory_constraints
-                    
                     # Add fresh source code with LINE NUMBERS if available
                     if current_file_content:
                         numbered_code = code_utils.add_line_numbers(current_file_content)
                         last_msg.content += f"\n\n=== CURRENT SOURCE CODE (UPDATED) ===\n{numbered_code}\n=== END SOURCE CODE ===\n"
-                        last_msg.content += "\nNOTE: The above source code reflects the CURRENT state after any previous renames. Base your suggestions on this updated code, not the original. IMPORTANT: Use the line numbers shown to specify exact locations for renames."
-                    
+
+                    if memory_constraints:
+                        last_msg.content = last_msg.content + '\nIMPORTANT:\n' + memory_constraints +'\n'
+
                     last_msg.content += format_instructions
+
+                    # Add memory constraints at the bottom
+
+
+
+
 
             # Use model without tools for JSON output
             response = prompt_cache.prompt(self.model, messages)
@@ -255,7 +276,7 @@ class PerformRefactoring(BaseModel):
                         )
 
                     if memory_feedback:
-                        memory_constraints = f"\n\n {memory_feedback} \n"
+                        memory_constraints = memory_feedback
                         print(f"[MEMORY DEBUG] Adding memory constraints: {memory_feedback}")
                 except Exception as e:
                     print(f"[MEMORY DEBUG] Error getting memory feedback: {e}")
@@ -588,8 +609,16 @@ class PerformRefactoring(BaseModel):
                     file_to_check=suggestion.resolved_file_path or self.rel_file_path
                 )
 
+                print(
+                    f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
+
+                self.store_critque_results(critique_result,
+                                           previously_invalid,
+                                           rename_analysis, suggestion)
+
                 if critique_result.is_valid:
                     self.orm_memory.set_positive_example((suggestion.old_name, suggestion.new_name))
+
                 else:
                     should_break = True
                     self.orm_memory.set_negative_example((suggestion.old_name, suggestion.new_name))
@@ -606,14 +635,6 @@ class PerformRefactoring(BaseModel):
                         )
                     ).get_new_intent()
                     self.orm_memory.add_rename_scope(_new_intent)
-
-
-                print(
-                    f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
-
-                self.store_critque_results(critique_result,
-                                           previously_invalid,
-                                           rename_analysis, suggestion)
 
                 # Categorize suggestion based on validation result
                 if critique_result.is_valid:
@@ -633,7 +654,9 @@ class PerformRefactoring(BaseModel):
                 critique_feedback=f"Validated {len(valid_suggestions)} valid and {len(invalid_suggestions)} invalid suggestions"
             )
 
-            # Handle critique results
+            # In case there are no valid suggestions,
+            #   capture errors and pass it back to the LLM
+            # todo: move this code to the orm_memory file.
             if len(invalid_suggestions) > 0 and len(valid_suggestions) == 0:
                 # All suggestions failed critique
                 print(f"[CRITIQUE DEBUG] All {len(invalid_suggestions)} suggestions failed critique")
@@ -797,22 +820,6 @@ class PerformRefactoring(BaseModel):
                 return len(validated_renames.valid_suggestions) > 0
             return False
 
-        def llm_indicates_completion(state: MessagesState) -> bool:
-            """Check if LLM is indicating that refactoring is complete via structured response."""
-            # Look for the structured completion signal in recent parsed messages
-            for message in reversed(state['messages'][-3:]):  # Check last 3 messages
-                # Check if we have parsed analysis with structured completion signal
-                if (hasattr(message, 'additional_kwargs') and 
-                    'rename_analysis' in message.additional_kwargs):
-                    analysis_data = message.additional_kwargs['rename_analysis']
-                    if 'analysis' in analysis_data:
-                        analysis_text = analysis_data['analysis'].strip()
-                        if analysis_text.startswith('REFACTORING_COMPLETE:'):
-                            print(f"[LLM COMPLETION DEBUG] Detected structured completion signal: '{analysis_text[:50]}...'")
-                            return True
-            
-            return False
-
         def completion_message_handler(state: MessagesState):
             """Handle completion message from LLM."""
             print("[COMPLETION MESSAGE] LLM detected refactoring completion - creating success message")
@@ -831,22 +838,14 @@ class PerformRefactoring(BaseModel):
         def parse_and_decide(state: MessagesState) -> str:
             """Parse JSON and decide next step in one unified function."""
             
-            # 1. Check if LLM gave up (highest priority)
             if llm_gave_up(state):
                 print(f"[FLOW DEBUG] LLM gave up - exiting workflow")
                 return "END"
             
-            # 2. Check if JSON parsing failed (need to retry LLM)
             if not json_response_valid(state):
                 print(f"[FLOW DEBUG] JSON parsing failed - retrying LLM")
                 return "call_llm"
-            
-            # 3. JSON is valid, now check for completion signal in the parsed content
-            if llm_indicates_completion(state):
-                print(f"[FLOW DEBUG] LLM indicates completion - returning completion message")
-                return "completion_message"
-            
-            # 4. JSON is valid and not completion, proceed to critique
+
             print(f"[FLOW DEBUG] JSON parsing successful - proceeding to critique")
             return "critique_json_suggestions"
 
@@ -939,7 +938,7 @@ class PerformRefactoring(BaseModel):
     def generate_system_prompt(self) -> SystemMessage:
         return SystemMessage(f"You are an expert developer who executes rename refactorings.\n"
                       f"Please do the following: {self.new_intent} \n"
-                      f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
+                      f"IMPORTANT: Analyze the code and identify all occurrences of matching identifiers (methods, variables, fields, parameters, classes). that need to be renamed. "
                       f"You will be asked to provide your analysis as a JSON response containing all rename suggestions.")
 
     def store_critque_results(self,

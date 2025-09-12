@@ -1,9 +1,9 @@
 from pydantic.v1 import BaseModel, Field, PrivateAttr
-from typing import Optional
+from typing import Optional, List
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END, MessagesState
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, BaseMessage
 
 
 class AugmentedIntent(BaseModel):
@@ -16,12 +16,13 @@ class AnalysisComponent(BaseModel):
     initial_intent: str = Field(description="The initial intent provided by the user.")
     old_name: str = Field(description="The name of the variable that was renamed.")
     new_name: str = Field(description="The new name for the variable.")
+    feedback: Optional[str] = Field(description="The feedback provided by the user with accepted and rejected renames.", default=None)
     context_information: Optional[str] = Field(
         default=None,
         description="Optional context to help augment the intent."
     )
     source_code: str = Field(description="Source code to work with")
-    source_file_path: str = Field(description="Path to the source file.")
+    source_file_path: Optional[str] = Field(description="Path to the source file.")
     model: BaseChatModel = Field(description="Model to use for augmenting the intent")
     generation_system_message: str = Field(
         default=(
@@ -45,9 +46,9 @@ class AnalysisComponent(BaseModel):
                 f"Do not include any other text, explanations, or formatting."
             )
 
-            llm_messages = [
-                SystemMessage(content=system_msg),
-                HumanMessage(content=f"Initial intent: {self.initial_intent}")
+            llm_messages: List[BaseMessage] = [
+                SystemMessage(content=system_msg)
+                # HumanMessage(content=f"Initial intent: {self.initial_intent}")
             ]
 
             print(f"old name: {self.old_name} new name: {self.new_name}")
@@ -57,8 +58,13 @@ class AnalysisComponent(BaseModel):
             else:
                 code_context = f"Source Code:\n{self.source_code}"
 
+            if self.feedback is not None:
+                analysis_msg = f"Analyse the history of renames accepted and rejected by the developer in this file: {self.feedback}"
+            else:
+                analysis_msg = f"Analyze this identifier transformation: {self.old_name} -> {self.new_name}"
+
             llm_messages.append(
-                HumanMessage(content=f"Analyze this identifier transformation: {self.old_name} -> {self.new_name}\n\n"
+                HumanMessage(content=f"{analysis_msg}\n\n"
                                      f"{code_context}\n\n"
                                      f"Create actionable transformation instructions by completing this template:\n\n"
                                      f'"Transform identifiers that [PATTERN TO MATCH] by [TRANSFORMATION RULE]. Apply this to [SCOPE/CONTEXT]."\n\n'
@@ -104,5 +110,5 @@ class NaiveAnalysisComponent(AnalysisComponent):
     def run(self) -> AugmentedIntent:
         return AugmentedIntent(
             original_intent=self.initial_intent,
-            augmented_intent=f"Please rename variables according to this pattern: '{self.old_name}' to '{self.new_name}'"
+            augmented_intent=f"Perform renames that follow this pattern: '{self.old_name}' -> '{self.new_name}'"
         )

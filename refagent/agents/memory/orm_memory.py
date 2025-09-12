@@ -1,6 +1,8 @@
 """
 ORM-based memory manager for refactoring suggestions.
 """
+import textwrap
+
 from sqlalchemy import create_engine, and_, or_, desc, func, text, Integer, Float
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import IntegrityError
@@ -235,10 +237,13 @@ class ORMRefactoringMemory:
                     # File-specific feedback: include line numbers
                     # failed_lines = list(set([s.line_num for s in recent_invalid if s.line_num]))
                     failed_patterns = list(set([f"{s.old_name}→{s.new_name} on line {s.line_num}" for s in recent_invalid]))
+                    # callout: if old_name is in both good and bad examples, LLM may get confused.
                     
                     if len(failed_patterns):
-                        feedback_parts.append(f"The following renames were rejected by the developer. "
-                                              f"Do not attempt these again: \n{'\n'.join(failed_patterns)}")
+                        msg = (f"The following renames were rejected by the developer, and do not fit the renaming scope. "
+                               f"Do not suggest these again: \n{'\n'.join(failed_patterns)}")
+                        feedback_parts.append(textwrap.indent(msg, ' '*4))
+                        feedback_parts.append('')
 
             # Get recent valid suggestions - show what worked
             recent_valid = db.query(RefactoringSuggestion).filter(
@@ -253,8 +258,10 @@ class ORMRefactoringMemory:
                 success_patterns = list(
                     set([f"{s.old_name}→{s.new_name} on line {s.line_num}" for s in recent_valid]))
                 if len(success_patterns):
-                    feedback_parts.append(f"The following renames were successfully executed, and accepted by the developer:\n"
-                                          f"{'\n'.join(success_patterns)}")
+                    msg = (f"The following renames were successfully executed, and accepted by the developer. These fit the renaming scope:\n"
+                           f"{'\n'.join(success_patterns)}")
+                    feedback_parts.append(textwrap.indent(msg, ' '*4))
+                    feedback_parts.append('')
 
             # Keep it short and actionable
             result = "\n".join(feedback_parts) if feedback_parts else ""
