@@ -12,6 +12,7 @@ class InitMemory(BaseModel):
     do_replication: bool
     use_seed: bool
     initial_intent: str
+    source_code: str
 
     def init_memory(self, memory_db_path: str):
         if self.do_replication:
@@ -29,7 +30,6 @@ class InitMemory(BaseModel):
                 # assert isinstance(seed, refactorings.Rename)
                 seed_old_name = seed.old_name
                 seed_new_name = seed.new_name
-                orm_db.set_positive_example((seed_old_name, seed_new_name))
 
                 orm_db.add_suggestion(
                     benchmark_id=self.benchmark_item.ref_id,
@@ -43,6 +43,12 @@ class InitMemory(BaseModel):
                     critique_reason="",
                     confidence_score=1.0,
                     agent_iteration=0,
-                    llm_iteration=0
+                    llm_iteration=0,
+                    snippet=self.get_code_on_line(seed.start_line),
                 )
                 orm_db.add_rename_scope(self.initial_intent)
+
+    def get_code_on_line(self, line_num: int, tolerance: int=4):
+        half_tolerance = int(tolerance / 2)
+        return "\n".join(self.source_code.splitlines(keepends=True)[line_num-half_tolerance : line_num+half_tolerance])
+

@@ -6,7 +6,7 @@ import textwrap
 from sqlalchemy import create_engine, and_, or_, desc, func, text, Integer, Float
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import IntegrityError
-from typing import Optional, List, Dict, Any, Union, Tuple
+from typing import Optional, List, Dict, Any, Union, Tuple, Type
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import json
@@ -109,6 +109,7 @@ class ORMRefactoringMemory:
                        line_num: int,
                        code_element_type: str,
                        is_valid: bool,
+                       snippet: str,
                        feedback: str = "",
                        critique_reason: str = "",
                        confidence_score: Optional[float] = None,
@@ -124,6 +125,7 @@ class ORMRefactoringMemory:
                 old_name=old_name,
                 new_name=new_name,
                 line_num=line_num,
+                snippet=snippet,
                 code_element_type=code_element_type,
                 is_valid=is_valid,
                 feedback=feedback,
@@ -226,7 +228,7 @@ class ORMRefactoringMemory:
 
 
             # Get recent valid suggestions - show what worked
-            recent_valid = db.query(RefactoringSuggestion).filter(
+            recent_valid: List[Type[RefactoringSuggestion]] = db.query(RefactoringSuggestion).filter(
                 and_(
                     *base_filter,
                     RefactoringSuggestion.is_valid == True
@@ -236,7 +238,7 @@ class ORMRefactoringMemory:
             if recent_valid:
                 # File-specific: show completed lines
                 success_patterns = list(
-                    set([f"`{s.old_name}` → `{s.new_name}` on line {s.line_num}" for s in recent_valid]))
+                    set([s.get_summary() for s in recent_valid]))
                 if len(success_patterns):
                     msg = (f"The following renames were successfully executed, and accepted by the developer. These fit the renaming scope:\n"
                            f"{'\n'.join(success_patterns)}")
@@ -244,7 +246,7 @@ class ORMRefactoringMemory:
                     feedback_parts.append('')
 
             # Get recent invalid suggestions - be very specific about what to avoid
-            recent_invalid = db.query(RefactoringSuggestion).filter(
+            recent_invalid: List[Type[RefactoringSuggestion]] = db.query(RefactoringSuggestion).filter(
                 and_(
                     *base_filter,
                     RefactoringSuggestion.is_valid == False
@@ -255,7 +257,7 @@ class ORMRefactoringMemory:
                 if file_path is not None:
                     # File-specific feedback: include line numbers
                     # failed_lines = list(set([s.line_num for s in recent_invalid if s.line_num]))
-                    failed_patterns = list(set([f"`{s.old_name}` → `{s.new_name}` on line {s.line_num}" for s in recent_invalid]))
+                    failed_patterns = list(set([s.get_summary() for s in recent_invalid]))
                     # callout: if old_name is in both good and bad examples, LLM may get confused.
                     
                     if len(failed_patterns):
@@ -405,37 +407,17 @@ class ORMRefactoringMemory:
                 for p in patterns
             ]
 
-    def get_positive_examples(self) -> List[Tuple[str, str]]:
-        """Retrieve all positive example name pairs."""
+    def get_all_successful_patterns(self) -> List[RefactoringSuggestion]:
+        """Get all successful transformation patterns."""
         with self.get_session() as db:
-            examples = db.query(ExamplePair).filter(ExamplePair.is_positive == True).all()
-            return [(str(e.old_name), str(e.new_name)) for e in examples]
-    def get_negative_examples(self) -> List[Tuple[str, str]]:
-        with self.get_session() as db:
-            examples = db.query(ExamplePair).filter(ExamplePair.is_positive == False).all()
-            return [(str(e.old_name), str(e.new_name)) for e in examples]
+            response = db.query(RefactoringSuggestion).all()
+            return [i for i in response if i.is_valid]
 
-    def set_positive_example(self, example: Tuple[str, str]):
-        """Store a new positive example"""
-        old_name, new_name = example
+    def get_all_rejected_patterns(self) -> List[RefactoringSuggestion]:
+        """Get all rejected transformation patterns."""
         with self.get_session() as db:
-            db.add(ExamplePair(
-                old_name=old_name,
-                new_name=new_name,
-                is_positive=True
-            ))
-            db.commit()
-
-    def set_negative_example(self, example: Tuple[str, str]):
-        """Store a new negative example."""
-        old_name, new_name = example
-        with self.get_session() as db:
-            db.add(ExamplePair(
-                old_name=old_name,
-                new_name=new_name,
-                is_positive=False
-            ))
-            db.commit()
+            response = db.query(RefactoringSuggestion).all()
+            return [i for i in response if not i.is_valid]
 
     def add_rename_scope(self, rename_intent: str):
         with self.get_session() as db:

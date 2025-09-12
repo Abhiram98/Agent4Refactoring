@@ -23,6 +23,7 @@ class RefactoringSuggestion(Base):
     file_path = Column(String(500), nullable=False, index=True)
     old_name = Column(String(200), nullable=False)
     new_name = Column(String(200), nullable=False)
+    snippet = Column(String, nullable=False)
     line_num = Column(Integer, nullable=True)
     code_element_type = Column(String(50), nullable=True)
 
@@ -76,6 +77,12 @@ class RefactoringSuggestion(Base):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'context_data': json.loads(self.context_data) if self.context_data else None
         }
+
+    def get_summary(self, add_context=False) -> str:
+        summary = f"`{self.old_name}` -> `{self.new_name}` on line {self.line_num}."
+        if add_context:
+            summary += f"\nContext: {self.snippet}"
+        return summary
 
 
 class MemorySession(Base):

@@ -626,8 +626,6 @@ class PerformRefactoring(BaseModel):
                     _new_intent = RefineIntent(
                         source_code=self.ide_server.call_tool_get("get_source_code"),
                         original_intent=self.new_intent, # build on the new intent if needed.
-                        positive_examples=self.orm_memory.get_positive_examples(),
-                        negative_examples=self.orm_memory.get_negative_examples(),
                         model=self.model,
                         feedback=self.orm_memory.get_memory_feedback(
                             benchmark_id=self.benchmark_id,
@@ -979,7 +977,8 @@ class PerformRefactoring(BaseModel):
                                                                                  'confidence_score') else None,
                     agent_iteration=self._retry_iteration,
                     llm_iteration=current_llm_iteration,
-                    context_data=context_data
+                    context_data=context_data,
+                    snippet=self.get_code_on_line(suggestion.line_num)
                 )
 
                 if self.enable_memory:
@@ -991,3 +990,7 @@ class PerformRefactoring(BaseModel):
                 print(f"[MEMORY DEBUG] Error storing suggestion in memory: {e}")
                 # Continue processing even if memory storage fails
 
+    def get_code_on_line(self, line_num: int, tolerance: int=4):
+        source_code = self.ide_server.call_tool_get("get_source_code")
+        half_tolerance = int(tolerance / 2)
+        return "\n".join(source_code.splitlines(keepends=True)[line_num-half_tolerance : line_num+half_tolerance])
