@@ -608,12 +608,8 @@ class PerformRefactoring(BaseModel):
                                            previously_invalid,
                                            rename_analysis, suggestion)
 
-                if critique_result.is_valid:
-                    self.orm_memory.set_positive_example((suggestion.old_name, suggestion.new_name))
-
-                else:
-                    should_break = True
-                    self.orm_memory.set_negative_example((suggestion.old_name, suggestion.new_name))
+                if not critique_result.is_valid:
+                    # should_break = True
 
                     _new_intent = RefineIntent(
                         source_code=self.ide_server.call_tool_get("get_source_code"),
@@ -911,6 +907,7 @@ class PerformRefactoring(BaseModel):
 
     def validate_rename_objects(self, rename_suggestions: List[RenameSuggestion]) -> List[RenameSuggestionValidated]:
         valid_objs = []
+        seen_suggestions = []
         for rename_suggestion in rename_suggestions:
             validated_json = self.ide_server.call_tool('form-rename-object',
                                       old_name=rename_suggestion.old_name,
@@ -922,7 +919,15 @@ class PerformRefactoring(BaseModel):
             except JSONDecodeError:
                 validated_json = None
             if validated_json:
-                valid_objs.append(RenameSuggestionValidated(**validated_json))
+                validated_obj = RenameSuggestionValidated(**validated_json)
+                if validated_obj.line_num!=rename_suggestion.line_num:
+                    validated_obj.llm_start_line_num = rename_suggestion.line_num
+
+                if (validated_obj.resolved_start_line or validated_obj.line_num, validated_obj.old_name, validated_obj.new_name) not in seen_suggestions:
+                    seen_suggestions.append((validated_obj.resolved_start_line or validated_obj.line_num, validated_obj.old_name, validated_obj.new_name))
+                    valid_objs.append(validated_obj)
+                else:
+                    print(f"Skipping duplicate rename suggestion -> {validated_obj}")
         return valid_objs
 
     def generate_system_prompt(self) -> SystemMessage:

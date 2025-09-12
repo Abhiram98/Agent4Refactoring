@@ -24,6 +24,7 @@ class RenameSuggestionValidated(RenameSuggestion):
     start_line_comments: Optional[int] = Field(description="Start line including header comments", default=None)
     resolved_file_path: Optional[str] = Field(description="Resolved file path", default=None)
     resolved_start_line: Optional[int] = Field(description="Resolved start line", default=None)
+    llm_start_line_num: Optional[int] = Field(description="LLM's suggested start line number", default=None)
 
 
 
