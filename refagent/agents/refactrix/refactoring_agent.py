@@ -192,7 +192,6 @@ class Agent(BaseModel):
             config = self.critique_config if self.critique_config else critique.CritiqueConfig()
             self._critique_component = critique.CritiqueComponent(
                 oracle_data=oracle_data,
-                current_file=self._starting_file,
                 config=config
             )
             print(f"Initialized critique component with {len(oracle_data)} oracle entries")
@@ -314,10 +313,6 @@ class Agent(BaseModel):
             self.try_open_file(ref_plan.steps[0].file_path)  # open the file. The edits should happen in only one file.
 
         for i, step in enumerate(ref_plan.steps):
-            # Update critique component for the current file being processed
-            if self._critique_component and step.file_path:
-                self._critique_component.current_file = step.file_path
-                print(f"Updated critique component to file: {step.file_path}")
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
             self._iterations = 0
             self._failing_tool_call_count = 0

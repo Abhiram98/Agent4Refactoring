@@ -29,14 +29,14 @@ class CritiqueConfig(BaseModel):
 class CritiqueComponent(BaseModel):
     """Component that validates refactoring suggestions against oracle data."""
     oracle_data: List[refactoring_types.RefminerOut] = Field(description="Oracle refactoring data for validation")
-    current_file: str = Field(description="File being refactored (relative path)")
     config: CritiqueConfig = Field(description="Critique configuration", default_factory=CritiqueConfig)
     
     class Config:
         arbitrary_types_allowed = True
 
     def validate_rename_suggestion(self, old_name: str, new_name: str, 
-                                 line_num: int, code_element_type: str) -> CritiqueResult:
+                                 line_num: int, code_element_type: str,
+                                 file_to_check: str) -> CritiqueResult:
         """
         Validate if the suggested rename matches oracle expectations.
         
@@ -45,6 +45,7 @@ class CritiqueComponent(BaseModel):
             new_name: The proposed new name
             line_num: Line number where the rename should occur
             code_element_type: Type of code element ('variable', 'method', 'class', etc.)
+            file_to_check: Path to the file to check
             
         Returns:
             CritiqueResult indicating validation outcome
@@ -58,14 +59,14 @@ class CritiqueComponent(BaseModel):
         
         # Find matching oracle entries
         matching_entries = self._find_matching_oracle_entries(
-            old_name, new_name, line_num, code_element_type
+            old_name, new_name, line_num, code_element_type, file_to_check
         )
         
         if not matching_entries:
             return CritiqueResult(
                 is_valid=False,
                 feedback=f"No oracle match found for renaming '{old_name}' to '{new_name}' at line {line_num}. "
-                        f"Expected refactorings in this file: {self._get_expected_renames_summary()}",
+                        f"Expected refactorings in this file: {self._get_expected_renames_summary(file_to_check)}",
                 reason=f"No oracle entry matches the suggested rename: {old_name} → {new_name} at line {line_num}"
             )
         
@@ -93,18 +94,19 @@ class CritiqueComponent(BaseModel):
         )
 
     def _find_matching_oracle_entries(self, old_name: str, new_name: str, 
-                                    line_num: int, code_element_type: str) -> List[refactoring_types.RefminerOut]:
+                                    line_num: int, code_element_type: str, file_to_check: str) -> List[refactoring_types.RefminerOut]:
         """Find oracle entries that match the suggestion criteria."""
         matching_entries = []
         
         for oracle_entry in self.oracle_data:
-            if self._matches_oracle_entry(oracle_entry, old_name, new_name, line_num, code_element_type):
+            if self._matches_oracle_entry(oracle_entry, old_name, new_name, line_num, code_element_type, file_to_check):
                 matching_entries.append(oracle_entry)
         
         return matching_entries
 
     def _matches_oracle_entry(self, oracle_entry: refactoring_types.RefminerOut, 
-                             old_name: str, new_name: str, line_num: int, code_element_type: str) -> bool:
+                             old_name: str, new_name: str, line_num: int, code_element_type: str,
+                              file_to_check: str) -> bool:
         """Check if an oracle entry matches the suggestion criteria."""
         
         # 1. Check if it's a rename refactoring
@@ -113,7 +115,7 @@ class CritiqueComponent(BaseModel):
         
         # 2. File path match - normalize paths for comparison
         oracle_file = oracle_entry.leftSideLocations[0].filePath
-        if not self._files_match(oracle_file, self.current_file):
+        if not self._files_match(oracle_file, file_to_check):
             return False
         
         # 3. Line number proximity
@@ -165,11 +167,11 @@ class CritiqueComponent(BaseModel):
         scored_matches.sort(key=lambda x: x[0], reverse=True)
         return scored_matches[0][1]
 
-    def _files_match(self, oracle_file: str, current_file: str) -> bool:
+    def _files_match(self, oracle_file: str, file_to_check: str) -> bool:
         """Check if file paths match, handling different path formats."""
         # Normalize paths by converting to Path objects and comparing
         oracle_path = Path(oracle_file)
-        current_path = Path(current_file)
+        current_path = Path(file_to_check)
         
         # Compare as strings after normalization
         return str(oracle_path) == str(current_path) or oracle_path.name == current_path.name
@@ -225,12 +227,12 @@ class CritiqueComponent(BaseModel):
         # Fallback: return the whole element
         return code_element.strip()
 
-    def _get_expected_renames_summary(self) -> str:
+    def _get_expected_renames_summary(self, file_to_check: str) -> str:
         """Get a summary of expected renames in the current file for feedback."""
         file_renames = []
         for oracle_entry in self.oracle_data:
             if (isinstance(oracle_entry, refactoring_types.Rename) and 
-                self._files_match(oracle_entry.leftSideLocations[0].filePath, self.current_file)):
+                self._files_match(oracle_entry.leftSideLocations[0].filePath, file_to_check)):
                 
                 old_name = self._extract_name_from_code_element(oracle_entry.leftSideLocations[0])
                 new_name = self._extract_name_from_code_element(oracle_entry.rightSideLocations[0])

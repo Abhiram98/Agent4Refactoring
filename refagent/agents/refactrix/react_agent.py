@@ -28,11 +28,6 @@ class ReactAgent(ra.Agent):
         assert len(ref_plan.steps) == 1
         step = ref_plan.steps[0]
         
-        # Update critique component for the current file being processed
-        if self._critique_component and step.file_path:
-            self._critique_component.current_file = step.file_path
-            print(f"Updated critique component to file: {step.file_path}")
-            
         if len(ref_plan.steps) > 0 and open_file:
             self.try_open_file(step.file_path)
 
