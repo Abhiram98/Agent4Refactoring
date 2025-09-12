@@ -10,12 +10,12 @@ from agents.refactrix.analysis.component import AnalysisComponent
 class RefineIntent(BaseModel):
     source_code: str
     original_intent: str
-
-    positive_examples: List[Tuple[str, str]]
-    negative_examples: List[Tuple[str, str]]
-
     feedback: str
     model: BaseChatModel
+
+    class Config:
+        arbitrary_types_allowed = True
+
 
     def get_new_intent(self) -> str:
         # renames_str = "\nThe following renames DO NOT fit the pattern:\n"
@@ -27,15 +27,15 @@ class RefineIntent(BaseModel):
         #     seed_bad.append((i[0], i[1]))
         # return self.original_intent + renames_str
 
-        response = AnalysisComponent(
-            initial_intent=self.original_intent,
-            old_name='',
-            new_name='',
-            feedback=self.feedback,
-            model=self.model,
-            source_code=self.source_code,
-            source_file_path=None
-        ).run()
-        return response.augmented_intent
+        # response = AnalysisComponent(
+        #     initial_intent=self.original_intent,
+        #     old_name='',
+        #     new_name='',
+        #     feedback=self.feedback,
+        #     model=self.model,
+        #     source_code=self.source_code,
+        #     source_file_path=None
+        # ).run()
+        return self.original_intent
 
 

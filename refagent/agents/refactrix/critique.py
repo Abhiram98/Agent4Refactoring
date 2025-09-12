@@ -134,20 +134,10 @@ class CritiqueComponent(BaseModel):
             # Apply ±2 line tolerance for other code element types
             if abs(oracle_start_line - line_num) > 2:
                 return False
-        
-        # 4. Code element type match
-        # oracle_type = oracle_entry.type.lower().split(" ")[-1].strip()
-        # if oracle_type != code_element_type.lower().strip():
-        #     return False
-        
-        # 5. Old name approx match
-        oracle_old_name = self._extract_name_from_code_element(oracle_entry.leftSideLocations[0])
-        # if oracle_old_name != old_name:
-        #     return False
-        if old_name.strip(' ') not in oracle_old_name.strip(' '):
-            return False
-        
-        return True
+
+
+        oracle_old_name = oracle_entry.old_name if hasattr(oracle_entry, 'old_name') else self._extract_name_from_code_element(oracle_entry.leftSideLocations[0])
+        return old_name == oracle_old_name
 
     def _select_best_match(self, matching_entries: List[refactoring_types.RefminerOut], 
                           old_name: str, new_name: str, line_num: int) -> refactoring_types.RefminerOut:
