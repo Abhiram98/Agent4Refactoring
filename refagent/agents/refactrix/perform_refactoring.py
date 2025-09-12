@@ -599,15 +599,7 @@ class PerformRefactoring(BaseModel):
                     except Exception as e:
                         print(f"[MEMORY DEBUG] Error checking previous suggestions: {e}")
 
-                # Perform critique validation
-                critique_result = self.critique_component.validate_rename_suggestion(
-                    suggestion.old_name,
-                    suggestion.new_name,
-                    suggestion.start_line_comments or suggestion.line_num, # use the start line with comments if possible,
-                                                                           #  so that refactoring miner based oracle is happy
-                    suggestion.code_element_type.value,
-                    file_to_check=suggestion.resolved_file_path or self.rel_file_path
-                )
+                critique_result = self._do_critique(suggestion)
 
                 print(
                     f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
@@ -994,3 +986,33 @@ class PerformRefactoring(BaseModel):
         source_code = self.ide_server.call_tool_get("get_source_code")
         half_tolerance = int(tolerance / 2)
         return "\n".join(source_code.splitlines(keepends=True)[line_num-half_tolerance : line_num+half_tolerance])
+
+    def _do_critique(self, suggestion: RenameSuggestionValidated) -> CritiqueResult:
+        # Perform critique validation
+        critique_result = self.critique_component.validate_rename_suggestion(
+            suggestion.old_name,
+            suggestion.new_name,
+            suggestion.resolved_start_line or suggestion.start_line_comments or suggestion.line_num,  # use the start line with comments if possible,
+            #  so that refactoring miner based oracle is happy
+            suggestion.code_element_type.value,
+            file_to_check=suggestion.resolved_file_path or self.rel_file_path
+        )
+        if not critique_result.is_valid:
+            # try with the start_line without comments.
+            critique_result = self.critique_component.validate_rename_suggestion(
+                suggestion.old_name,
+                suggestion.new_name,
+                suggestion.line_num,
+                suggestion.code_element_type.value,
+                file_to_check=suggestion.resolved_file_path or self.rel_file_path
+            )
+        if not critique_result.is_valid and suggestion.llm_start_line_num is not None:
+            # try with Llm suggested line
+            critique_result = self.critique_component.validate_rename_suggestion(
+                suggestion.old_name,
+                suggestion.new_name,
+                suggestion.llm_start_line_num,
+                suggestion.code_element_type.value,
+                file_to_check=suggestion.resolved_file_path or self.rel_file_path
+            )
+        return critique_result
