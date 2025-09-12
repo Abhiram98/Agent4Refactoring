@@ -47,3 +47,21 @@ def test_flink_test_method_formation():
         assert False
     except JSONDecodeError:
         print("expcted error")
+
+
+    _json = {
+        "old_name": "TypeSerializer",
+        "new_name": "TypeSerializerANAME",
+        "line_num": 406,
+        "code_element_type": "class"
+    }
+    # intellij_server.reset_project_reload_counters()
+    # intellij_server.reload_project()
+    response = intellij_server.call_tool('form-rename-object',
+                                         **_json)
+
+    response_json = json.loads(response)
+    assert 'resolved_file_path' in response_json
+    assert response_json['resolved_file_path'] is not None
+    assert 'resolved_start_line' in response_json
+    assert response_json['resolved_start_line'] is not None
