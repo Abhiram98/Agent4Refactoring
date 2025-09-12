@@ -89,7 +89,7 @@ def run_planning(bench_point: bm_load.RenameItem,
     #     source_code=project.get_file_contents(bench_point.starting_file)
     # )
     # ref_plan = planner.run()
-    results_saver.add(bench_point.ref_id,
+    results_saver.update(bench_point.ref_id,
                       {
                           "plan": None,
                           "augmented_intent": augmented_intent
@@ -112,6 +112,7 @@ if __name__ == '__main__':
     # todo: have an two way planning type: naive/augmented
     parser.add_argument('--planning_type',
                         help='Type of planning to use', default='naive')
+    parser.add_argument('--force', action='store_true')
     args = parser.parse_args()
 
     selected_ref_ids = [int(i) for i in args.ref_ids.split(',')] if args.ref_ids is not None else None
@@ -129,7 +130,7 @@ if __name__ == '__main__':
                   f"Selected: {selected_ref_ids}")
             continue
 
-        if results_saver.exists(bench_point.ref_id):
+        if not args.force and results_saver.exists(bench_point.ref_id):
             print(f"skipping ref if {bench_point.ref_id} because it was previously worked upon.")
             continue
 
