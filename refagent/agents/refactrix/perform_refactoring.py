@@ -304,6 +304,9 @@ class PerformRefactoring(BaseModel):
                 for i, suggestion in enumerate(rename_analysis.rename_suggestions):
                     print(f"[JSON DEBUG] Suggestion {i}: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num} - type {suggestion.code_element_type}")
 
+                # augment suggestions
+                rename_analysis.rename_suggestions += self.get_augmented_suggestions()
+
                 rename_analysis.rename_suggestions \
                     = self.validate_rename_objects(rename_analysis.rename_suggestions)
                 # Store the parsed analysis in the message for the next step
@@ -1021,3 +1024,19 @@ class PerformRefactoring(BaseModel):
                 file_to_check=suggestion.resolved_file_path or self.rel_file_path
             )
         return critique_result
+
+    def get_augmented_suggestions(self) -> List[RenameSuggestion]:
+        # query history to get rename patterns
+        history_based_patterns = []
+        success_patterns = self.orm_memory.get_all_successful_patterns()
+        for pattern in success_patterns:
+            # attempt to create objects for all previously successful patterns
+            rename_json = self.ide_server.call_tool('form-rename-object-all', old_name=pattern.old_name, new_name=pattern.new_name)
+            try:
+                rename_objs = json.loads(rename_json)
+                for obj in rename_objs:
+                    history_based_patterns.append(RenameSuggestion(**obj))
+            except JSONDecodeError:
+                print(f"pattern {pattern} was not found in file")
+
+        return history_based_patterns

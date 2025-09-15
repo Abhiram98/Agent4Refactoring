@@ -84,6 +84,9 @@ class RefactoringSuggestion(Base):
             summary += f"\nContext: {self.snippet}"
         return summary
 
+    def __str__(self):
+        return f"{self.old_name} -> {self.new_name} on line {self.line_num}"
+
 
 class MemorySession(Base):
     """Track memory sessions for debugging and analysis."""
