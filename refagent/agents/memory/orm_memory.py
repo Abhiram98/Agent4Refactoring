@@ -257,12 +257,12 @@ class ORMRefactoringMemory:
                 if file_path is not None:
                     # File-specific feedback: include line numbers
                     # failed_lines = list(set([s.line_num for s in recent_invalid if s.line_num]))
-                    failed_patterns = list(set([s.get_summary() for s in recent_invalid]))
+                    failed_patterns = list(set([f"{s.old_name} near line {s.line_num}" for s in recent_invalid]))
                     # callout: if old_name is in both good and bad examples, LLM may get confused.
                     
                     if len(failed_patterns):
-                        msg = (f"The following renames were rejected by the developer, and do not fit the renaming scope. "
-                               f"Do not suggest these again: \n{'\n'.join(failed_patterns)}")
+                        msg = (f"The following identifiers do not need to be renamed. "
+                               f"Do not suggest renaming for these elements: \n{'\n'.join(failed_patterns)}")
                         feedback_parts.append(textwrap.indent(msg, ' '*4))
                         feedback_parts.append('')
 
