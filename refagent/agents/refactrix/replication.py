@@ -19,11 +19,17 @@ import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.refactoring_types.refactorings as refactoring_types
+import refagent.utils.cache.prompt_cache as prompt_cache
 
 
 class CodeElement(BaseModel):
     file_path: str = Field(description="The file that was edited.")
     line_num: int = Field(description="The line number that was edited.")
+
+class SearchResult(BaseModel):
+    file_path: str
+    line_nums: List[int]
+    hit_count: int
 
 
 class Replication(BaseModel):
@@ -50,6 +56,7 @@ class Replication(BaseModel):
     _files_to_inspect_before_list: List[str] = PrivateAttr(default=[])
     _files_to_inspect_after_list: List[str] = PrivateAttr(default=[])
     _operated_files: set = PrivateAttr(default=set())
+    _oracle_files: Optional[set] = PrivateAttr(default=None)
 
     SUPPORTED_REPLICATIONS: ClassVar[List[sup_ref.SupportedRefactorings]] \
         = [sup_ref.SupportedRefactorings.RENAME,
@@ -98,7 +105,7 @@ class Replication(BaseModel):
         if initial_rename_pairs:
             api_linked_files = self.get_linked_files_via_api_by_keyword_match(initial_rename_pairs)
             # Add API results to files_to_inspect
-            initial_files_to_inspect.extend([f for f in api_linked_files if f not in initial_files_to_inspect])
+            initial_files_to_inspect.extend([f.file_path for f in api_linked_files if f not in initial_files_to_inspect])
             initial_files_to_inspect = list(set(initial_files_to_inspect))
             print(f"Added {len(api_linked_files)} files from initial API call, total: {len(initial_files_to_inspect)}")
         else:
@@ -250,24 +257,29 @@ class Replication(BaseModel):
             print("No oracle data available - keeping all files")
             return files_to_inspect
         
-        # Get all files that have expected refactorings in oracle data
+        # Filter files_to_inspect to only include those in oracle
+        filtered_files = []
+        for file_path in files_to_inspect:
+            if self._file_matches_oracle(file_path, self.all_oracle_files):
+                filtered_files.append(file_path)
+        
+        print(f"Oracle filtering: {len(files_to_inspect)} -> {len(filtered_files)} files")
+        print(f"Oracle has {len(self.all_oracle_files)} files with expected refactorings")
+        
+        return filtered_files
+
+    @property
+    def all_oracle_files(self):
+        if self._oracle_files is not None:
+            return self._oracle_files
         oracle_files = set()
         for oracle_entry in self.oracle_data:
             if hasattr(oracle_entry, 'leftSideLocations') and oracle_entry.leftSideLocations:
                 oracle_file = oracle_entry.leftSideLocations[0].filePath
                 oracle_files.add(oracle_file)
-        
-        # Filter files_to_inspect to only include those in oracle
-        filtered_files = []
-        for file_path in files_to_inspect:
-            if self._file_matches_oracle(file_path, oracle_files):
-                filtered_files.append(file_path)
-        
-        print(f"Oracle filtering: {len(files_to_inspect)} -> {len(filtered_files)} files")
-        print(f"Oracle has {len(oracle_files)} files with expected refactorings")
-        
-        return filtered_files
-    
+        self._oracle_files = oracle_files
+        return oracle_files
+
     def _file_matches_oracle(self, file_path: str, oracle_files: set) -> bool:
         """Check if a file matches any oracle file (handles different path formats)."""
         from pathlib import Path
@@ -354,7 +366,7 @@ class Replication(BaseModel):
             traceback.print_exc()
             return []
 
-    def get_linked_files_via_api_by_keyword_match(self, rename_pairs, use_call_graph = False):
+    def get_linked_files_via_api_by_keyword_match(self, rename_pairs, use_call_graph = False) -> List[SearchResult]:
 
         results = []
         
@@ -395,7 +407,7 @@ class Replication(BaseModel):
                     continue
 
                 try:
-                    linked_results = json.loads(response.strip())
+                    linked_results = json.loads(response)['files']
                     if not isinstance(linked_results, list):
                         print(f"Expected list response but got {type(linked_results)}: {linked_results}")
                         continue
@@ -406,9 +418,7 @@ class Replication(BaseModel):
                         if isinstance(result, dict) and 'file_path' in result:
                             file_path = result['file_path']
                             if file_path.endswith('.java') and file_path not in results:
-                                results.append(file_path)
-                        else:
-                            print(f"Unexpected result format: {result}")
+                                results.append(SearchResult(**result))
 
                     print(f"[Search File API] Worked on {old_name} -> {new_name}] now file list length: {len(results)} and files: {results} ")
                 except json.JSONDecodeError as e:
@@ -430,24 +440,6 @@ class Replication(BaseModel):
                                    self.executed_plan.steps]
         return any(contains_supported_type)
 
-        # file_contents = self.project.get_file_contents(self.starting_file)
-        #
-        # response = self.model.invoke(
-        #     [
-        #         SystemMessage("You are an expert developer who decides whether a "
-        #                       "refactoring needs to be replicated in other files "
-        #                       "for the sake of consistency, based on a user's request. "),
-        #         HumanMessage(f"Here are the contents of the file: {file_contents}"),
-        #         HumanMessage(f"Here was the request from the user: {self.initial_intent}"),
-        #         HumanMessage("Answer the following question: "
-        #                      f"Should this change be carried out in other files? Or is the current state of the file "
-        #                      f"sufficient to complete the user's request?"
-        #                      f"Then, add a YES/NO at the end of your reply,"
-        #                      f" indicating whether to "
-        #                      f"replicate the refactoring concept to other files.")
-        #     ]
-        # )
-        # return response
 
     def compile(self, file_to_inspect: str):
         """Compile the langgraph."""
@@ -463,9 +455,7 @@ class Replication(BaseModel):
                               if i.refactoring_type in Replication.SUPPORTED_REPLICATIONS]
             examples = '\n'.join([i.execution_details for i in filtered_steps])
             examples += self.example_changes
-            response = self.model.invoke(
-                state['messages'] +
-                [
+            messages = state['messages'] + [
                     SystemMessage("You are an expert developer who decides whether a "
                                   "refactoring needs to be replicated in a certain file, "
                                   "for the sake of consistency. "),
@@ -481,11 +471,10 @@ class Replication(BaseModel):
                                  f"Are there ANY code elements in {file_name}, "
                                  f"that could change? "
                                  f"Then, say YES/NO at the end of your reply,"
-                                 f" indicating whether to "
+                                 f" indicating whether "
                                  f"there are any code elements that should change.")
                 ]
-            )
-
+            response = prompt_cache.prompt(self.model, messages)
             return {'messages': [response]}
 
         workflow = StateGraph(MessagesState)
@@ -814,7 +803,7 @@ class Replication(BaseModel):
                 
             # Find new files based on successful renames from this iteration
             new_files = self.get_linked_files_via_api_by_keyword_match(successful_renames_this_iteration, use_call_graph=True)
-            new_files = [f for f in new_files if f not in self._files_to_inspect_before_list]
+            new_files = [f.file_path for f in new_files if f not in self._files_to_inspect_before_list]
             
             # Track files before oracle filtering (only add new ones)
             for f in new_files:
