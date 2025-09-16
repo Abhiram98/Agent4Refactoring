@@ -97,8 +97,8 @@ class Replication(BaseModel):
         initial_files_to_inspect = list(set(initial_files_to_inspect))
 
         # Add new API to get linked files based on symbol changes
-        initial_rename_pairs = self.invokeLLM(diffs)  # Pass the same diffs used in first approach
-        if initial_rename_pairs:
+        initial_rename_pairs = [(i.old_name, i.new_name) for i in self.orm_memory.get_all_successful_patterns()]
+        if len(initial_rename_pairs)>0:
             api_linked_files = self.get_linked_files_via_api_by_keyword_match(initial_rename_pairs)
             # Add API results to files_to_inspect
             initial_files_to_inspect.extend([f.file_path for f in api_linked_files if f not in initial_files_to_inspect])
@@ -362,7 +362,7 @@ class Replication(BaseModel):
             traceback.print_exc()
             return []
 
-    def get_linked_files_via_api_by_keyword_match(self, rename_pairs, use_call_graph = False) -> List[SearchResult]:
+    def get_linked_files_via_api_by_keyword_match(self, rename_pairs: List[Tuple[str, str]], use_call_graph = False) -> List[SearchResult]:
 
         results = []
         
@@ -478,61 +478,6 @@ class Replication(BaseModel):
         workflow.add_edge(START, "ask_replicate")
 
         return workflow.compile()
-
-    def invokeLLM(self, diffs=None):
-        # Use provided diffs if available, otherwise fall back to execution details
-        if diffs:
-            # Convert diffs to readable format
-            diff_content = []
-            for diff in diffs:
-                if diff.git_diff.b_path and diff.git_diff.b_path.endswith('.java'):
-                    try:
-                        # Get the actual diff content
-                        git_diff_text = diff.git_diff.diff.decode('utf-8') if hasattr(diff.git_diff.diff, 'decode') else str(diff.git_diff.diff)
-                        diff_content.append(f"File: {diff.git_diff.b_path}\n{git_diff_text}")
-                    except Exception as e:
-                        print(f"Error processing diff for {diff.git_diff.b_path}: {e}")
-            
-            code_context = "Git Diffs:\n" + "\n\n".join(diff_content)
-            print("Using diffs from first approach for rename pair extraction")
-        else:
-            # Fallback to execution details if no diffs provided
-            filtered_steps = [i for i in self.executed_plan.steps
-                              if i.refactoring_type in Replication.SUPPORTED_REPLICATIONS]
-            examples = '\n'.join([i.execution_details for i in filtered_steps])
-            examples += self.example_changes
-            code_context = f"Execution Details:\n{examples}"
-            print("Using execution details for rename pair extraction (no diffs provided)")
-
-        response = self.model.invoke([
-            SystemMessage(
-                "You are an expert developer who can extract pairs of old and new identifiers (variable, method, class names, etc.) that were renamed from code changes. You will be given code changes and should output a list of (old_name, new_name) pairs for all identifiers that were renamed."),
-            HumanMessage(
-                f"Here are the code changes:\n"
-                f"{code_context}"),
-            HumanMessage(
-                "Extract all variable names, method names, class names, or other identifiers that were renamed. "
-                "Look for patterns like:\n"
-                "- Lines with '-' (removed) and '+' (added) showing the same line with different identifier names\n"
-                "- Constructor calls, method calls, variable declarations that changed names\n"
-                "- Class names, method names, field names that were renamed\n\n"
-                "Output only a list of pairs in the format: old_name -> new_name, one pair per line. "
-                "Do not include any explanation or extra text."
-            )
-        ])
-        # Parse the response to extract pairs
-        pairs = []
-        content = response.content if hasattr(response, 'content') else str(response)
-        if not isinstance(content, str):
-            content = str(content)
-        for line in content.strip().split('\n'):
-            if '->' in line:
-                old, new = line.split('->', 1)
-                pairs.append((old.strip(), new.strip()))
-        
-        source = "diffs from first approach" if diffs else "execution details"
-        print(f"Extracted rename pairs from {source}: {pairs}")
-        return pairs
 
     def normalize_identifier(self, identifier):
         """Normalize identifier by converting to lowercase and removing separators."""
