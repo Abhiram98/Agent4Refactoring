@@ -20,6 +20,7 @@ import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.refactoring_types.refactorings as refactoring_types
 import refagent.utils.cache.prompt_cache as prompt_cache
+import refagent.agents.memory.orm_memory as orm_memory
 
 
 class CodeElement(BaseModel):
@@ -46,9 +47,8 @@ class Replication(BaseModel):
     
     # Memory system parameters
     benchmark_id: Optional[int] = Field(description="Benchmark ID for memory isolation", default=None)
-    memory_database_url: Optional[str] = Field(description="Memory database URL", default=None)
+    memory_database_url: str = Field(description="Memory database URL")
     enable_memory: bool = Field(description="Whether memory component is enabled", default=True)
-    orm_memory: Optional[Any] = Field(description="ORM-based persistent memory component", default=None)
 
     # Add tracking fields for files_to_inspect data
     _files_to_inspect_before_count: int = PrivateAttr(default=0)
@@ -67,13 +67,9 @@ class Replication(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        
-        # Initialize memory system if not provided
-        if self.orm_memory is None and self.memory_database_url:
-            from refagent.agents.memory.orm_memory import ORMRefactoringMemory
-            self.orm_memory = ORMRefactoringMemory(self.memory_database_url)
+    @property
+    def orm_memory(self) -> orm_memory.ORMRefactoringMemory:
+        return orm_memory.ORMRefactoringMemory(self.memory_database_url)
 
     def get_files_inspection_data(self) -> dict:
         """Return the files inspection data for saving to results"""
@@ -148,7 +144,7 @@ class Replication(BaseModel):
                     # Pass memory parameters to planning component
                     benchmark_id=self.benchmark_id,
                     memory_database_url=self.memory_database_url,
-                    enable_memory=self.enable_memory,
+                    enable_memory=True,
                     orm_memory=self.orm_memory
                 ).run()
                 for step in plan.steps:
@@ -842,12 +838,11 @@ class Replication(BaseModel):
         successful_renames = []
         
         try:
-            if hasattr(self, 'orm_memory') and self.orm_memory:
-                # Try to get successful renames from memory for this file
-                memory_renames = self.orm_memory.get_successful_renames_for_file(file_path)
-                if memory_renames:
-                    successful_renames.extend([(r['old_name'], r['new_name']) for r in memory_renames])
-                    print(f"[RENAME EXTRACTION] Found {len(memory_renames)} successful renames from memory for {file_path}")
+            # Try to get successful renames from memory for this file
+            memory_renames = self.orm_memory.get_successful_renames_for_file(file_path)
+            if memory_renames:
+                successful_renames.extend([(r['old_name'], r['new_name']) for r in memory_renames])
+                print(f"[RENAME EXTRACTION] Found {len(memory_renames)} successful renames from memory for {file_path}")
         except Exception as e:
             print(f"[RENAME EXTRACTION] Error extracting from memory: {e}")
         

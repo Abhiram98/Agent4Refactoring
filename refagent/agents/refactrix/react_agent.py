@@ -83,9 +83,7 @@ class ReactAgent(ra.Agent):
             oracle_data=self._oracle_data,
             # Pass memory parameters for iterative replication
             benchmark_id=self.benchmark_id,
-            memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db",
-            enable_memory=self.enable_memory,
-            orm_memory=getattr(self, '_orm_memory', None)  # Use agent's memory if available
+            memory_database_url=self.memory_database_url
         )
         self.MAX_GRAPH_ITERATION = 2
         self.MAX_FAILING_TOOL_CALLS = 1

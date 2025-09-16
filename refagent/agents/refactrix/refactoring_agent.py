@@ -72,7 +72,7 @@ class Agent(BaseModel):
     
     # Memory parameters
     benchmark_id: Optional[int] = Field(description="Benchmark ID for memory isolation", default=None)
-    memory_database_url: Optional[str] = Field(description="Memory database URL", default=None)
+    memory_database_url: str = Field(description="Memory database URL")
 
     MAX_GRAPH_ITERATION: int = Field(description="The maximum number of iterations to run the graph for.", default=5)
     MAX_FAILING_TOOL_CALLS: int = Field(
@@ -248,7 +248,8 @@ class Agent(BaseModel):
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
             refactoring_commit=self._internal_commits[0],
-            oracle_data=self._oracle_data  # Pass oracle data for file filtering
+            oracle_data=self._oracle_data,  # Pass oracle data for file filtering,
+            memory_database_url=self.memory_database_url
         )
         for plan in replicator.compile_and_run():
             self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
@@ -520,7 +521,7 @@ class Agent(BaseModel):
                 rel_file_path=rel_file_path,
                 ide_server=self.ide_server,
                 benchmark_id=self.benchmark_id,
-                memory_database_url=self.memory_database_url or "sqlite:///refactoring_memory.db",
+                memory_database_url=self.memory_database_url,
                 replication_enabled=self.do_replication,
                 enable_memory=self.enable_memory,
                 critique_component=self._critique_component, # Pass critique component to the executor,
