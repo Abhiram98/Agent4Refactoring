@@ -377,7 +377,7 @@ class Replication(BaseModel):
             # diffs = self.project.get_unstaged_changes()
             diffs = self.project.get_all_uncommitted_changes()
             elements_to_inspect = self.get_elements_to_inspect(diffs)
-            results = [i for i in set(i[0].file_path for i in elements_to_inspect)]
+            results = [SearchResult(file_path=i[0].file_path, line_nums=[i[0].line_num], hit_count=1) for i in elements_to_inspect]
             print(f"[Search File API] Invoked call graph and found {len(results)} linked file, files are : {results}")
 
         for rename_pair in unique_rename_pairs:
