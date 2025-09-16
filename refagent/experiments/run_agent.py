@@ -122,7 +122,10 @@ def setup_and_run(bench_point: bm_load.RenameItem,
             "internal_commits": [str(i) for i in internal_commits],
             "performed_refactorings": agent.get_performed_refactorings(),
             "internal_commits": [str(i) for i in internal_commits],
-            "replication_inspection_data": agent.get_replication_inspection_data()
+            "replication_inspection_data": agent.get_replication_inspection_data(),
+            "human_review_count": agent.human_review_count(),
+            "human_accepted_count": agent.human_accepted_count(),
+            "human_rejected_count": agent.human_rejected_count()
         }
     )
     results_saver.save()

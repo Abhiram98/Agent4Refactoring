@@ -158,7 +158,13 @@ def main():
 
         # assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
         # assert len(refactorings) == len(true_positives) + len(false_positives)
-
+        review_count = result.get('human_review_count')
+        accepted_count = result.get('human_accepted_count')
+        rejected_count = result.get('human_rejected_count')
+        if accepted_count is not None and rejected_count is not None:
+            accepted_rate = accepted_count/ (accepted_count + rejected_count)
+        else:
+            accepted_rate = None
         report.append(
             {
                 "id": id,
@@ -171,7 +177,11 @@ def main():
                 "false_negatives": [i.model_dump() for i in false_negatives],
                 "false_positives": [i.model_dump() for i in false_positives],
                 "true_positives": [i.model_dump() for i in true_positives],
-                "agent_recommendations_str": str([i.old_name for i in refactorings])
+                "agent_recommendations_str": str([i.old_name for i in refactorings]),
+                "human_review_count": review_count,
+                "human_accepted_count": accepted_count,
+                "human_rejected_count": rejected_count,
+                "human_accepted_rate": accepted_rate,
             }
         )
 

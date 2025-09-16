@@ -17,6 +17,7 @@ from langchain_core.language_models import BaseChatModel
 from collections import defaultdict
 
 import refagent.refactoring_types.refactorings as refactorings
+from agents.memory.orm_memory import ORMRefactoringMemory
 
 try:
     from grazie_langchain_utils.language_models.grazie import ChatGrazie
@@ -693,5 +694,18 @@ class Agent(BaseModel):
 
         except:
             return False
+
+    @property
+    def orm_memory(self) -> ORMRefactoringMemory:
+        return ORMRefactoringMemory(self.memory_database_url)
+
+    def human_review_count(self):
+        return len(self.orm_memory.get_all_rejected_patterns()) + len(self.orm_memory.get_all_successful_patterns())
+
+    def human_accepted_count(self):
+        return len(self.orm_memory.get_all_successful_patterns())
+
+    def human_rejected_count(self):
+        return len(self.orm_memory.get_all_rejected_patterns())
 
 
