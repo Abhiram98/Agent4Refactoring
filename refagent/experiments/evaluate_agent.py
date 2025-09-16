@@ -64,23 +64,6 @@ def main():
 
         id = result['id']
 
-        if id == 116392:
-            report.append(
-                {
-                    "id": id,
-                    "oracle_count": 1,
-                    "oracle": "",
-                    "agent_refactorings": "",
-                    "agent_refactoring_count": 10,
-                    "recall": 1,
-                    "precision": 0.1,
-                    "false_negatives": "",
-                    "false_positives": "",
-                    "true_positives": "",
-                    "agent_recommendations_str": ""
-                }
-            )
-            continue
         assert id == bench_point.ref_id
         commit = result['response']['commit_hash']
         project = pm.EvalProject(bench_point.project_name)
