@@ -14,7 +14,7 @@ from langchain_core.messages import SystemMessage, AIMessage, ToolMessage, Human
 def test_grazie():
     grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
                             client_auth_type=AuthType.APPLICATION,
-                            client_url=GrazieApiGatewayUrls.STAGING,
+                            client_url=GrazieApiGatewayUrls.PRODUCTION,
                             profile="openai-gpt-4o-mini",
                             client_agent_name='ref-agent',
                             client_agent_version='0.1'
@@ -38,7 +38,7 @@ def test_grazie_with_tool_messages():
 
     grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
                             client_auth_type=AuthType.APPLICATION,
-                            client_url=GrazieApiGatewayUrls.STAGING,
+                            client_url=GrazieApiGatewayUrls.PRODUCTION,
                             profile="openai-gpt-4o-mini",
                             client_agent_name='ref-agent',
                             client_agent_version='0.1'
