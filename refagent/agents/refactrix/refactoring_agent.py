@@ -146,17 +146,14 @@ class Agent(BaseModel):
     def internal_commits(self) -> list[Commit]:
         return self._internal_commits
 
-    def try_open_file(self, rel_file_path: str):
+    def try_open_file(self, rel_file_path: str) -> bool:
         response = self.ide_server.try_open_file(Path(rel_file_path))
         if response.startswith('tool call failed '):
-            # TODO: Ask agent if it would like to open a different file, or
-            create_response = self.ide_server.create_file(Path(rel_file_path))
-            if create_response == 'success':
-                open_response = self.ide_server.open_file(Path(rel_file_path))
-            else:
-                raise Exception("Failed to open file and did not create one either.")
+            # raise Exception("Failed to open file and did not create one either.")
+            return False
         self._rel_file_path = rel_file_path
         self._directly_edited_files.add(Path(rel_file_path))
+        return True
 
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.

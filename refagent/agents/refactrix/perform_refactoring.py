@@ -109,18 +109,7 @@ class PerformRefactoring(BaseModel):
         def open_file(state: MessagesState):
             response = self.ide_server.try_open_file(Path(self.rel_file_path))
             if response.startswith('tool call failed '):
-                create_file = self.model.invoke(
-                    state['messages'] +
-                    [HumanMessage(f"{response}. Would you like to create this file? Answer YES/NO.")])
-
-                if 'YES' in create_file.content:
-                    create_response = self.ide_server.create_file(Path(self.rel_file_path))
-                    if create_response == 'success':
-                        self._file_open_status = True
-                        open_response = self.ide_server.open_file(Path(self.rel_file_path))
-                        return {"messages": [opened_file_message()]}
-
-                return {"messages": [HumanMessage(response)]}
+                return {"messages": HumanMessage("failed to open file")}
             self._file_open_status = True
             return {"messages": [HumanMessage(f"Opened file successfully. "
                                               f"You are now editing {self.rel_file_path}")]}

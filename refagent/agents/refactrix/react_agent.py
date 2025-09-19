@@ -28,8 +28,10 @@ class ReactAgent(ra.Agent):
         assert len(ref_plan.steps) == 1
         step = ref_plan.steps[0]
         
-        if len(ref_plan.steps) > 0 and open_file:
-            self.try_open_file(step.file_path)
+        if len(ref_plan.steps) > 0 and open_file and not self.try_open_file(step.file_path):
+            print("Failed to open file. stopping agent.")
+            return
+
 
         try:
             graph = self.compile_graph(model=model,
