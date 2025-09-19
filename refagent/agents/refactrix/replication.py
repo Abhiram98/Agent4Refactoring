@@ -108,11 +108,11 @@ class Replication(BaseModel):
         self._files_to_inspect_before_list = initial_files_to_inspect.copy()
 
         # Use oracle-based filtering instead of simple 50-file limit
-        files_to_inspect = self.filter_files_by_oracle(initial_files_to_inspect)
+        _files_in_oracle = self.filter_files_by_oracle(initial_files_to_inspect)
 
         # Capture data after filtering (will be updated in iterative loop)
-        self._files_to_inspect_after_count = len(files_to_inspect)
-        self._files_to_inspect_after_list = files_to_inspect.copy()
+        self._files_to_inspect_after_count = len(_files_in_oracle)
+        self._files_to_inspect_after_list = _files_in_oracle.copy()
 
         should_replicate_msg = self.should_replicate()
         if not should_replicate_msg:
@@ -121,7 +121,7 @@ class Replication(BaseModel):
             return None
 
         # Start iterative replication
-        yield from self.iterative_replication(files_to_inspect, success_renames)
+        yield from self.iterative_replication(initial_files_to_inspect, success_renames)
 
         return None
 
@@ -758,10 +758,10 @@ class Replication(BaseModel):
             self._files_to_inspect_before_count = len(self._files_to_inspect_before_list)
             
             # Apply oracle filtering to new files
-            new_files = self.filter_files_by_oracle(new_files)
+            new_files_in_oracle = self.filter_files_by_oracle(new_files)
             
             # Track files after oracle filtering (only add new ones)
-            for f in new_files:
+            for f in new_files_in_oracle:
                 if f not in self._files_to_inspect_after_list:
                     self._files_to_inspect_after_list.append(f)
             self._files_to_inspect_after_count = len(self._files_to_inspect_after_list)
