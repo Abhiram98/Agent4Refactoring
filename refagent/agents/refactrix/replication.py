@@ -94,9 +94,8 @@ class Replication(BaseModel):
         initial_files_to_inspect = self.get_linked_files_data_flow(renames=success_renames)
 
         # Add new API to get linked files based on symbol changes
-        initial_rename_pairs = [(i.old_name, i.new_name) for i in success_renames]
-        if len(initial_rename_pairs)>0:
-            api_linked_files = self.get_linked_files_via_api_by_keyword_match(initial_rename_pairs)
+        if len(success_renames)>0:
+            api_linked_files = self.get_linked_files_via_api_by_keyword_match(success_renames)
             # Add API results to files_to_inspect
             initial_files_to_inspect.extend([f.file_path for f in api_linked_files if f not in initial_files_to_inspect])
             initial_files_to_inspect = list(set(initial_files_to_inspect))
@@ -368,65 +367,67 @@ class Replication(BaseModel):
             traceback.print_exc()
             return []
 
-    def get_linked_files_via_api_by_keyword_match(self, rename_pairs: List[Tuple[str, str]]) -> List[SearchResult]:
+    def get_linked_files_via_api_by_keyword_match(self, success_renames: List[RefactoringSuggestion]) -> List[SearchResult]:
 
         results = []
-        
+        rename_pairs = [(i.old_name, i.new_name) for i in success_renames]
         unique_rename_pairs = list(set(rename_pairs))
-        print(f"[Search File API] Processing {len(unique_rename_pairs)} unique rename pairs (from {len(rename_pairs)} total)")
+        print(f"[Search File API] Processing {len(unique_rename_pairs)} unique rename pairs (from {len(success_renames)} total)")
+        edited_files = {i.file_path for i in success_renames}
 
-        for rename_pair in unique_rename_pairs:
-            if not rename_pair or len(rename_pair) != 2:
-                print("Invalid rename pair provided to API")
-                continue
+        for file in edited_files:
+            self.ide_server.open_file(Path(file)) #open file to search for files in that directory.
 
-            old_name, new_name = rename_pair
-            if len(old_name) < 6:
-                continue
-            print(f"[Search File API] Working on {old_name} -> {new_name}")
-
-            try:
-                # Use IntellijServer call_tool method instead of hardcoded requests
-                response = self.ide_server.call_tool('search_symbol',
-                                                     symbol=old_name)
-
-                # Check if the tool call failed
-                if not response:
-                    print(f"Failed to get linked files: Empty response from server for {old_name} -> {new_name}")
-                    # return []
+            for rename_pair in unique_rename_pairs:
+                if not rename_pair or len(rename_pair) != 2:
+                    print("Invalid rename pair provided to API")
                     continue
 
-                if response.startswith("tool call failed"):
-                    print(f"Failed to get linked files: {response}")
-                    # return []
+                old_name, new_name = rename_pair
+                if len(old_name) < 6:
                     continue
+                print(f"[Search File API] Working on {old_name} -> {new_name}")
 
                 try:
-                    linked_results = json.loads(response)['files']
-                    if not isinstance(linked_results, list):
-                        print(f"Expected list response but got {type(linked_results)}: {linked_results}")
+                    # Use IntellijServer call_tool method instead of hardcoded requests
+                    response = self.ide_server.call_tool('search_symbol',
+                                                         symbol=old_name)
+
+                    # Check if the tool call failed
+                    if not response:
+                        print(f"Failed to get linked files: Empty response from server for {old_name} -> {new_name}")
+                        continue
+
+                    if response.startswith("tool call failed"):
+                        print(f"Failed to get linked files: {response}")
+                        continue
+
+                    try:
+                        linked_results = json.loads(response)['files']
+                        if not isinstance(linked_results, list):
+                            print(f"Expected list response but got {type(linked_results)}: {linked_results}")
+                            continue
+                            # return []
+
+                        # Extract file paths or CodeElements from the response objects
+                        for result in linked_results:
+                            if isinstance(result, dict) and 'file_path' in result:
+                                file_path = result['file_path']
+                                if file_path.endswith('.java') and file_path not in results:
+                                    results.append(SearchResult(**result))
+
+                        print(f"[Search File API] Worked on {old_name} -> {new_name}] now file list length: {len(results)} and files: {results} ")
+                    except json.JSONDecodeError as e:
+                        print(f"Failed to parse JSON response: {e}")
+                        print(f"Raw response: '{response}'")
                         continue
                         # return []
 
-                    # Extract file paths or CodeElements from the response objects
-                    for result in linked_results:
-                        if isinstance(result, dict) and 'file_path' in result:
-                            file_path = result['file_path']
-                            if file_path.endswith('.java') and file_path not in results:
-                                results.append(SearchResult(**result))
-
-                    print(f"[Search File API] Worked on {old_name} -> {new_name}] now file list length: {len(results)} and files: {results} ")
-                except json.JSONDecodeError as e:
-                    print(f"Failed to parse JSON response: {e}")
-                    print(f"Raw response: '{response}'")
+                except Exception as e:
+                    print(f"Error calling search_symbol_changed API: {e}")
+                    traceback.print_exc()
                     continue
                     # return []
-
-            except Exception as e:
-                print(f"Error calling search_symbol_changed API: {e}")
-                traceback.print_exc()
-                continue
-                # return []
 
         return results
 
@@ -712,7 +713,7 @@ class Replication(BaseModel):
             print(f"[ITERATIVE REPLICATION] Iteration {iteration + 1}, processing {len(files_to_process)} files")
             
             # Process current batch of files
-            successful_renames_this_iteration = []
+            successful_renames_this_iteration: List[RefactoringSuggestion] = []
             
             with ContextThreadPoolExecutor(max_workers=4) as executor:
                 futures = {executor.submit(self.handle_file, file_path): file_path for file_path in files_to_process}
@@ -725,7 +726,7 @@ class Replication(BaseModel):
                         operated_files.add(file_path)
                         # Extract successful renames from this file's operation
                         file_renames = self.extract_successful_renames_from_completed_file(file_path)
-                        successful_renames_this_iteration.extend(file_renames)
+                        successful_renames_this_iteration += file_renames
 
                     processed_files.add(file_path)
             
@@ -737,7 +738,7 @@ class Replication(BaseModel):
             print(f"[ITERATIVE REPLICATION] Rename instances {successful_renames_this_iteration} successful renames")
             
             # If no successful renames, stop iterating
-            if not successful_renames_this_iteration:
+            if len(successful_renames_this_iteration) == 0:
                 print(f"[ITERATIVE REPLICATION] No successful renames in iteration {iteration + 1}, stopping")
                 break
                 
@@ -783,20 +784,15 @@ class Replication(BaseModel):
         
         return None
     
-    def extract_successful_renames_from_completed_file(self, file_path: str) -> List[tuple]:
-        successful_renames = []
-        
+    def extract_successful_renames_from_completed_file(self, file_path: str) -> List[RefactoringSuggestion]:
         try:
             # Try to get successful renames from memory for this file
             memory_renames = self.orm_memory.get_successful_renames_for_file(file_path)
-            if memory_renames:
-                successful_renames.extend([(r['old_name'], r['new_name']) for r in memory_renames])
-                print(f"[RENAME EXTRACTION] Found {len(memory_renames)} successful renames from memory for {file_path}")
+            print(f"[RENAME EXTRACTION] Total successful renames extracted for {file_path}: {len(memory_renames)}")
+            return memory_renames
         except Exception as e:
             print(f"[RENAME EXTRACTION] Error extracting from memory: {e}")
-        
-        print(f"[RENAME EXTRACTION] Total successful renames extracted for {file_path}: {len(successful_renames)}")
-        return successful_renames
+            return []
 
     def _data_flow_files(self, rename: RefactoringSuggestion) -> List[str]:
 
