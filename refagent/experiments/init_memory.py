@@ -1,3 +1,5 @@
+import shutil
+
 from pydantic import BaseModel
 from pathlib import Path
 import os
@@ -14,15 +16,17 @@ class InitMemory(BaseModel):
     initial_intent: str
     source_code: str
 
-    def init_memory(self, memory_db_path: str):
+    def init_memory(self, memory_db_path: Path) -> Path:
+        no_replication_path = self.no_replication_path(memory_db_path)
         if self.do_replication:
-            return # nothing to do because it is assumed that memory will be used from previous session
+            # copy from no-replication_file
+            shutil.copyfile(no_replication_path, memory_db_path)
+            return memory_db_path
         else:
             # delete it to run it again.
-            if Path(memory_db_path).exists():
-                os.remove(memory_db_path)
-
-            memory_url = f"sqlite:///{memory_db_path}"
+            if Path(no_replication_path).exists():
+                os.remove(no_replication_path)
+            memory_url = f"sqlite:///{no_replication_path}"
             orm_db = ORMRefactoringMemory(memory_url)
 
             if self.use_seed:
@@ -47,6 +51,13 @@ class InitMemory(BaseModel):
                     snippet=self.get_code_on_line(seed.start_line),
                 )
                 orm_db.add_rename_scope(self.initial_intent)
+            return no_replication_path
+
+    def no_replication_path(self, memory_db_path):
+        extension = memory_db_path.suffix
+        before_extension = memory_db_path.stem + '-no-replication'
+        memory_db_path = Path(before_extension).with_suffix(extension)
+        return memory_db_path
 
     def get_code_on_line(self, line_num: int, tolerance: int=4):
         half_tolerance = int(tolerance / 2)

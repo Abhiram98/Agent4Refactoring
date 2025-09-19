@@ -58,14 +58,15 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     os.makedirs(results_dir, exist_ok=True)
 
     db_name = f"memory_{args.run_identifier.split('/')[-1]}_{bench_point.ref_id}.db"
-    memory_db_path = os.path.join(results_dir, db_name)
-    init_memory.InitMemory(
+    orig_memory_db_path = os.path.join(results_dir, db_name)
+    memory_db_path = init_memory.InitMemory(
         benchmark_item=bench_point,
         do_replication=do_replication,
         use_seed=use_seed,
         initial_intent=augmented_intent,
         source_code=project.get_file_contents(bench_point.starting_file)
-    ).init_memory(memory_db_path)
+    ).init_memory(Path(orig_memory_db_path))
+    memory_db_path = str(memory_db_path)
     print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
 
     agent = react_agent.ReactAgent(ide_server=ij_server,
