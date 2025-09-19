@@ -1,6 +1,9 @@
+import copy
 import json
 import traceback
 from concurrent.futures import as_completed
+from json import JSONDecodeError
+
 from langsmith.utils import ContextThreadPoolExecutor
 
 from git import Commit
@@ -10,7 +13,7 @@ from typing import List, Iterable, Tuple, ClassVar, Any
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Set
 import os
 import re
 
@@ -21,6 +24,7 @@ import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.refactoring_types.refactorings as refactoring_types
 import refagent.utils.cache.prompt_cache as prompt_cache
 import refagent.agents.memory.orm_memory as orm_memory
+from agents.memory.memory_models import RefactoringSuggestion
 
 
 class CodeElement(BaseModel):
@@ -31,6 +35,9 @@ class SearchResult(BaseModel):
     file_path: str
     line_nums: List[int]
     hit_count: int
+
+    def __hash__(self):
+        return hash(self.file_path)
 
 
 class Replication(BaseModel):
@@ -83,21 +90,11 @@ class Replication(BaseModel):
         }
 
     def compile_and_run(self) -> Iterable[planning.RefactoringPlan]:
-        # files_to_inspect = [str(i) for i in self.edited_files if str(i).endswith('.java')]
-        diffs = self.project.get_changes(self.refactoring_commit.hexsha)
-        elements_to_inspect = self.get_elements_to_inspect(diffs)
-        elements_to_inspect += [(i, 1) for i in
-                                self.get_linked_elements(CodeElement(file_path=self.starting_file, line_num=1))]
-
-        # Always capture file inspection data, even if replication is skipped
-        initial_files_to_inspect = [i for i in set(i[0].file_path for i in elements_to_inspect)
-                            # if i!=self.starting_file
-                            ]
-
-        initial_files_to_inspect = list(set(initial_files_to_inspect))
+        success_renames = self.orm_memory.get_all_successful_patterns()
+        initial_files_to_inspect = self.get_linked_files_data_flow(renames=success_renames)
 
         # Add new API to get linked files based on symbol changes
-        initial_rename_pairs = [(i.old_name, i.new_name) for i in self.orm_memory.get_all_successful_patterns()]
+        initial_rename_pairs = [(i.old_name, i.new_name) for i in success_renames]
         if len(initial_rename_pairs)>0:
             api_linked_files = self.get_linked_files_via_api_by_keyword_match(initial_rename_pairs)
             # Add API results to files_to_inspect
@@ -122,10 +119,10 @@ class Replication(BaseModel):
         if not should_replicate_msg:
             # The change does not need replication to other files,
             # the developer did not ask for it.
-            return []
+            return None
 
         # Start iterative replication
-        yield from self.iterative_replication(files_to_inspect, initial_rename_pairs)
+        yield from self.iterative_replication(files_to_inspect, success_renames)
 
         return None
 
@@ -179,6 +176,15 @@ class Replication(BaseModel):
         package_dir = Path(starting_file).parent
         return [str(package_dir.joinpath(i))
                 for i in os.listdir(str(package_dir)) if i.endswith('.java')]
+
+    def get_linked_files_data_flow(self, renames: List[RefactoringSuggestion]) -> List[str]:
+        files = set()
+        for rename in renames:
+            files.update(
+                self._data_flow_files(rename)
+            )
+        return list(files)
+
 
     def get_linked_files(self, starting_file: str) -> List[str]:
         self.ide_server.open_file(Path(starting_file))
@@ -265,7 +271,7 @@ class Replication(BaseModel):
         return filtered_files
 
     @property
-    def all_oracle_files(self):
+    def all_oracle_files(self) -> Set[str]:
         if self._oracle_files is not None:
             return self._oracle_files
         oracle_files = set()
@@ -362,19 +368,12 @@ class Replication(BaseModel):
             traceback.print_exc()
             return []
 
-    def get_linked_files_via_api_by_keyword_match(self, rename_pairs: List[Tuple[str, str]], use_call_graph = False) -> List[SearchResult]:
+    def get_linked_files_via_api_by_keyword_match(self, rename_pairs: List[Tuple[str, str]]) -> List[SearchResult]:
 
         results = []
         
         unique_rename_pairs = list(set(rename_pairs))
         print(f"[Search File API] Processing {len(unique_rename_pairs)} unique rename pairs (from {len(rename_pairs)} total)")
-
-        if use_call_graph:
-            # diffs = self.project.get_unstaged_changes()
-            diffs = self.project.get_all_uncommitted_changes()
-            elements_to_inspect = self.get_elements_to_inspect(diffs)
-            results = [SearchResult(file_path=i[0].file_path, line_nums=[i[0].line_num], hit_count=1) for i in elements_to_inspect]
-            print(f"[Search File API] Invoked call graph and found {len(results)} linked file, files are : {results}")
 
         for rename_pair in unique_rename_pairs:
             if not rename_pair or len(rename_pair) != 2:
@@ -470,7 +469,7 @@ class Replication(BaseModel):
                                  f" indicating whether "
                                  f"there are any code elements that should change.")
                 ]
-            response = prompt_cache.prompt(self.model, messages)
+            response = prompt_cache.prompt(self.model, copy.copy(messages))
             return {'messages': [response]}
 
         workflow = StateGraph(MessagesState)
@@ -698,14 +697,14 @@ class Replication(BaseModel):
 
         return filtered_files
 
-    def iterative_replication(self, initial_files: List[str], initial_rename_pairs: List[tuple]) -> Iterable[planning.RefactoringPlan]:
+    def iterative_replication(self, initial_files: List[str], success_renames: List[RefactoringSuggestion]) -> Iterable[planning.RefactoringPlan]:
         """Perform iterative replication with cascading file discovery."""
         processed_files = set()
         operated_files = set()  # Track files that were actually operated on
-        current_rename_pairs = initial_rename_pairs
         iteration = 0
         max_iterations = 3  # Prevent runaway discovery
-        
+        inspected_renames = success_renames.copy()
+
         # Start with initial files
         files_to_process = initial_files.copy()
         
@@ -727,7 +726,7 @@ class Replication(BaseModel):
                         # Extract successful renames from this file's operation
                         file_renames = self.extract_successful_renames_from_completed_file(file_path)
                         successful_renames_this_iteration.extend(file_renames)
-                    
+
                     processed_files.add(file_path)
             
             # Update total files inspected count for tracking
@@ -743,8 +742,13 @@ class Replication(BaseModel):
                 break
                 
             # Find new files based on successful renames from this iteration
-            new_files = self.get_linked_files_via_api_by_keyword_match(successful_renames_this_iteration, use_call_graph=True)
-            new_files = [f.file_path for f in new_files if f not in self._files_to_inspect_before_list]
+            new_files = [i.file_path for i in
+                         self.get_linked_files_via_api_by_keyword_match(successful_renames_this_iteration)]
+            new_renames = [i for i in self.orm_memory.get_all_successful_patterns() if i not in success_renames]
+            new_files += self.get_linked_files_data_flow(new_renames)
+            new_files = list(set(new_files))
+            inspected_renames.extend(new_renames)
+            new_files = [f for f in new_files if f not in self._files_to_inspect_before_list]
             
             # Track files before oracle filtering (only add new ones)
             for f in new_files:
@@ -793,6 +797,29 @@ class Replication(BaseModel):
         
         print(f"[RENAME EXTRACTION] Total successful renames extracted for {file_path}: {len(successful_renames)}")
         return successful_renames
+
+    def _data_flow_files(self, rename: RefactoringSuggestion) -> List[str]:
+
+        # try to pick up the new file in case of rename class.
+        if rename.code_element_type == 'class' and rename.old_name in rename.file_path:
+            file_path = rename.file_path.replace(rename.old_name, rename.new_name)
+        else:
+            file_path = rename.file_path
+
+        self.ide_server.open_file(Path(file_path))
+        response = self.ide_server.call_tool('data-flow',
+                                  old_name=rename.new_name, # we would like to search for the new name
+                                  new_name=rename.new_name+'X', # throwaway param
+                                  code_element_type=rename.code_element_type,
+                                  line_num=rename.line_num
+                                  )
+        try:
+            linked_files = json.loads(response)
+            return linked_files
+        except JSONDecodeError:
+            print("data-flow api threw error: {}".format(response))
+            print(f"old_name={rename.old_name}, new_name={rename.new_name}, file_path={rename.file_path}")
+            return []
 
 
 class SimpleReplication(Replication):

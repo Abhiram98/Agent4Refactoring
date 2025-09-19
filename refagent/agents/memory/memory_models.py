@@ -87,6 +87,14 @@ class RefactoringSuggestion(Base):
     def __str__(self):
         return f"{self.old_name} -> {self.new_name} on line {self.line_num}"
 
+    def __eq__(self, other):
+        if isinstance(other, RefactoringSuggestion):
+            return (self.old_name == other.old_name
+                    and self.new_name == other.new_name
+                    and self.line_num == other.line_num
+                    and self.file_path == other.file_path)
+        return False
+
 
 class MemorySession(Base):
     """Track memory sessions for debugging and analysis."""
