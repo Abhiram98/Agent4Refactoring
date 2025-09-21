@@ -8,25 +8,39 @@ from typing import List
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import BaseMessage, AIMessage
 import refagent
+import sqlite3
 
-prompt_cache_file = refagent.repo_root.joinpath('.prompt_cache.json')
-if not prompt_cache_file.exists():
-    with open(prompt_cache_file, 'w') as f:
-        json.dump({}, f)
-
-with open(prompt_cache_file) as f:
-    prompt_cache = json.load(f)
+prompt_cache_db = refagent.repo_root.joinpath(".prompt_cache.sqlite")
+_conn = sqlite3.connect(prompt_cache_db)
+_cursor = _conn.cursor()
+_cursor.execute(
+    """
+    CREATE TABLE IF NOT EXISTS prompt_cache (
+        key TEXT PRIMARY KEY,
+        response TEXT
+    )
+    """
+)
+_conn.commit()
 
 def prompt(model: BaseChatModel, messages: List[BaseMessage]):
     key_str = str([i.content for i in messages])
-
+    cursor, conn = None, None
     if os.getenv('PROMPT_CACHING'):
-        if prompt_cache.get(key_str):
-            return AIMessage(content=prompt_cache.get(key_str))
+        conn = sqlite3.connect(prompt_cache_db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT response FROM prompt_cache WHERE key = ?", (key_str,))
+        row = cursor.fetchone()
+        if row:
+            return AIMessage(content=row[0])
 
     response = model.invoke(messages)
 
-    prompt_cache[key_str] = response.content
-    with open(prompt_cache_file, 'w') as f:
-        json.dump(prompt_cache, f)
+    if cursor is not None and conn is not None:
+        cursor.execute(
+            "INSERT OR REPLACE INTO prompt_cache (key, response) VALUES (?, ?)",
+            (key_str, response.content),
+        )
+        conn.commit()
+
     return response
