@@ -57,13 +57,10 @@ class Replication(BaseModel):
     memory_database_url: str = Field(description="Memory database URL")
     enable_memory: bool = Field(description="Whether memory component is enabled", default=True)
 
-    # Add tracking fields for files_to_inspect data
-    _files_to_inspect_before_count: int = PrivateAttr(default=0)
-    _files_to_inspect_after_count: int = PrivateAttr(default=0)
-    _files_to_inspect_before_list: List[str] = PrivateAttr(default=[])
-    _files_to_inspect_after_list: List[str] = PrivateAttr(default=[])
     _operated_files: set = PrivateAttr(default=set())
+    _processed_files: set = PrivateAttr(default=set())
     _oracle_files: Optional[set] = PrivateAttr(default=None)
+    _stopping: bool = PrivateAttr(default=False)
 
     SUPPORTED_REPLICATIONS: ClassVar[List[sup_ref.SupportedRefactorings]] \
         = [sup_ref.SupportedRefactorings.RENAME,
@@ -81,12 +78,12 @@ class Replication(BaseModel):
     def get_files_inspection_data(self) -> dict:
         """Return the files inspection data for saving to results"""
         return {
-            "files_to_inspect_before_count": self._files_to_inspect_before_count,
-            "files_to_inspect_after_count": self._files_to_inspect_after_count,
-            "files_to_inspect_before_list": self._files_to_inspect_before_list,
-            "files_to_inspect_after_list": self._files_to_inspect_after_list,
+            "files_matching_oracle": self._operated_files.intersection(self.all_oracle_files),
+            "count_files_matching_oracle": len(self._operated_files.intersection(self.all_oracle_files)),
             "operated_files_count": len(self._operated_files),
             "operated_files_list": list(self._operated_files),
+            "inspected_files_count": len(self._processed_files),
+            "inspected_files_list": list(self._processed_files)
         }
 
     def compile_and_run(self) -> Iterable[planning.RefactoringPlan]:
@@ -95,24 +92,16 @@ class Replication(BaseModel):
 
         # Add new API to get linked files based on symbol changes
         if len(success_renames)>0:
-            api_linked_files = self.get_linked_files_via_api_by_keyword_match(success_renames)
+            keyword_search_files = self.keyword_search(success_renames)
             # Add API results to files_to_inspect
-            initial_files_to_inspect.extend([f.file_path for f in api_linked_files if f not in initial_files_to_inspect])
-            initial_files_to_inspect = list(set(initial_files_to_inspect))
-            print(f"Added {len(api_linked_files)} files from initial API call, total: {len(initial_files_to_inspect)}")
+            keyword_search_files_ = list({i.file_path for i in keyword_search_files})
+            initial_files_to_inspect_ = keyword_search_files_ + [i for i in initial_files_to_inspect if i not in keyword_search_files_] # prioritize search files.
+            initial_files_to_inspect = initial_files_to_inspect_
+            print(f"Added {len(keyword_search_files)} files from initial API call, total: {len(initial_files_to_inspect)}")
         else:
             print("No initial rename pairs found, skipping new API call")
 
-        # Capture data before filtering (initial)
-        self._files_to_inspect_before_count = len(initial_files_to_inspect)
-        self._files_to_inspect_before_list = initial_files_to_inspect.copy()
-
-        # Use oracle-based filtering instead of simple 50-file limit
         _files_in_oracle = self.filter_files_by_oracle(initial_files_to_inspect)
-
-        # Capture data after filtering (will be updated in iterative loop)
-        self._files_to_inspect_after_count = len(_files_in_oracle)
-        self._files_to_inspect_after_list = _files_in_oracle.copy()
 
         should_replicate_msg = self.should_replicate()
         if not should_replicate_msg:
@@ -130,6 +119,9 @@ class Replication(BaseModel):
             ask_replicate = self.compile(file_path)  # the edited file?
             should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
             print(should_replicate.content)
+
+            if self._stopping:
+                return None
 
             if 'YES' in should_replicate.content:  # should replicate the content
                 plan = planning.PlanningComponent(
@@ -367,7 +359,7 @@ class Replication(BaseModel):
             traceback.print_exc()
             return []
 
-    def get_linked_files_via_api_by_keyword_match(self, success_renames: List[RefactoringSuggestion]) -> List[SearchResult]:
+    def keyword_search(self, success_renames: List[RefactoringSuggestion]) -> List[SearchResult]:
 
         results = []
         rename_pairs = [(i.old_name, i.new_name) for i in success_renames]
@@ -386,7 +378,7 @@ class Replication(BaseModel):
                 old_name, new_name = rename_pair
                 if len(old_name) < 6:
                     continue
-                print(f"[Search File API] Working on {old_name} -> {new_name}")
+                print(f"[Search File API] Searching for {old_name}")
 
                 try:
                     # Use IntellijServer call_tool method instead of hardcoded requests
@@ -416,7 +408,7 @@ class Replication(BaseModel):
                                 if file_path.endswith('.java') and file_path not in results:
                                     results.append(SearchResult(**result))
 
-                        print(f"[Search File API] Worked on {old_name} -> {new_name}] now file list length: {len(results)} and files: {results} ")
+                        print(f"[Search File API] Finished search for {old_name}]. total files found: {len(results)}. files: {results} ")
                     except json.JSONDecodeError as e:
                         print(f"Failed to parse JSON response: {e}")
                         print(f"Raw response: '{response}'")
@@ -700,11 +692,11 @@ class Replication(BaseModel):
 
     def iterative_replication(self, initial_files: List[str], success_renames: List[RefactoringSuggestion]) -> Iterable[planning.RefactoringPlan]:
         """Perform iterative replication with cascading file discovery."""
-        processed_files = set()
+        inspected_files = set() # total files that were inspected.
         operated_files = set()  # Track files that were actually operated on
         iteration = 0
         max_iterations = 3  # Prevent runaway discovery
-        inspected_renames = success_renames.copy()
+        THRESHOLD_FILES_PER_ITERATION = 25
 
         # Start with initial files
         files_to_process = initial_files.copy()
@@ -714,26 +706,29 @@ class Replication(BaseModel):
             
             # Process current batch of files
             successful_renames_this_iteration: List[RefactoringSuggestion] = []
+            count_inspected_files_i = 0
             
             with ContextThreadPoolExecutor(max_workers=4) as executor:
                 futures = {executor.submit(self.handle_file, file_path): file_path for file_path in files_to_process}
                 for i, future in enumerate(as_completed(futures)):
+                    if count_inspected_files_i >= THRESHOLD_FILES_PER_ITERATION:
+                        self._stopping = True
+                        print(f"Stopping this iteration because more then {THRESHOLD_FILES_PER_ITERATION} "
+                              f"were processed successfully.")
+                        break
                     file_path = futures[future]
                     print(f"completed planning for: {i + 1}/{len(futures)} in iteration {iteration + 1}")
                     result = future.result()
                     if result is not None:
                         yield result
                         operated_files.add(file_path)
+                        count_inspected_files_i += 1
                         # Extract successful renames from this file's operation
                         file_renames = self.extract_successful_renames_from_completed_file(file_path)
                         successful_renames_this_iteration += file_renames
 
-                    processed_files.add(file_path)
-            
-            # Update total files inspected count for tracking
-            self._files_to_inspect_after_count += len([f for f in files_to_process if f not in self._files_to_inspect_after_list])
-            self._files_to_inspect_after_list.extend([f for f in files_to_process if f not in self._files_to_inspect_after_list])
-            
+                    inspected_files.add(file_path)
+
             print(f"[ITERATIVE REPLICATION] Iteration {iteration + 1} completed. Found {len(successful_renames_this_iteration)} successful renames")
             print(f"[ITERATIVE REPLICATION] Rename instances {successful_renames_this_iteration} successful renames")
             
@@ -742,30 +737,15 @@ class Replication(BaseModel):
                 print(f"[ITERATIVE REPLICATION] No successful renames in iteration {iteration + 1}, stopping")
                 break
                 
-            # Find new files based on successful renames from this iteration
-            new_files = [i.file_path for i in
-                         self.get_linked_files_via_api_by_keyword_match(successful_renames_this_iteration)]
+            # prioritize keyword search files because it searches in same directory.
+            keyword_search_files = list({i.file_path for i in
+                          self.keyword_search(successful_renames_this_iteration)})
             new_renames = [i for i in self.orm_memory.get_all_successful_patterns() if i not in success_renames]
-            new_files += self.get_linked_files_data_flow(new_renames)
-            new_files = list(set(new_files))
-            inspected_renames.extend(new_renames)
-            new_files = [f for f in new_files if f not in self._files_to_inspect_before_list]
-            
-            # Track files before oracle filtering (only add new ones)
-            for f in new_files:
-                if f not in self._files_to_inspect_before_list:
-                    self._files_to_inspect_before_list.append(f)
-            self._files_to_inspect_before_count = len(self._files_to_inspect_before_list)
-            
-            # Apply oracle filtering to new files
-            new_files_in_oracle = self.filter_files_by_oracle(new_files)
-            
-            # Track files after oracle filtering (only add new ones)
-            for f in new_files_in_oracle:
-                if f not in self._files_to_inspect_after_list:
-                    self._files_to_inspect_after_list.append(f)
-            self._files_to_inspect_after_count = len(self._files_to_inspect_after_list)
-            
+            data_flow_files = [i for i in self.get_linked_files_data_flow(new_renames)
+                               if i in keyword_search_files]
+            new_files = keyword_search_files + data_flow_files
+            new_files = [f for f in new_files if f not in inspected_files]
+
             if not new_files:
                 print(f"[ITERATIVE REPLICATION] No new files found in iteration {iteration + 1}, stopping")
                 break
@@ -776,11 +756,12 @@ class Replication(BaseModel):
             iteration += 1
         
         print(f"[ITERATIVE REPLICATION] Completed after {iteration} iterations")
-        print(f"[ITERATIVE REPLICATION] Total files processed: {len(processed_files)}")
+        print(f"[ITERATIVE REPLICATION] Total files processed: {len(inspected_files)}")
         print(f"[ITERATIVE REPLICATION] Files with operations: {len(operated_files)}")
         
         # Store operated files for potential saving/tracking
         self._operated_files = operated_files
+        self._processed_files = inspected_files
         
         return None
     
