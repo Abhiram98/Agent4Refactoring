@@ -253,7 +253,8 @@ class PerformRefactoring(BaseModel):
                         print(f"[MEMORY DEBUG] First LLM call - getting cross-file memory feedback")
                         memory_feedback = self.orm_memory.get_memory_feedback(
                             benchmark_id=self.benchmark_id,
-                            file_path=None  # No file constraint for broader context
+                            file_path=None,  # No file constraint for broader context
+                            use_line_numbers=False
                         )
                     else:
                         # Subsequent LLM calls: Get file-specific memory feedback

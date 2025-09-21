@@ -78,8 +78,10 @@ class RefactoringSuggestion(Base):
             'context_data': json.loads(self.context_data) if self.context_data else None
         }
 
-    def get_summary(self, add_context=False) -> str:
-        summary = f"`{self.old_name}` -> `{self.new_name}` on line {self.line_num}."
+    def get_summary(self, add_context=False, use_line_number=True) -> str:
+        summary = f"`{self.old_name}` -> `{self.new_name}` "
+        if use_line_number:
+            summary += f"on line {self.line_num}."
         if add_context:
             summary += f"\nContext: {self.snippet}"
         return summary

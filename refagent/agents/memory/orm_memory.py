@@ -209,7 +209,9 @@ class ORMRefactoringMemory:
     def get_memory_feedback(self,
                             benchmark_id: int,
                             file_path: Optional[str] = None,
-                            limit: int = 10) -> str:
+                            limit: int = 10,
+                            use_line_numbers: bool = True,
+                            ) -> str:
         """Generate concise, actionable memory-based feedback for LLM.
         
         Args:
@@ -238,9 +240,14 @@ class ORMRefactoringMemory:
             if recent_valid:
                 # File-specific: show completed lines
                 success_patterns = list(
-                    set([s.get_summary() for s in recent_valid]))
+                    set([s.get_summary(use_line_number=use_line_numbers) for s in recent_valid]))
                 if len(success_patterns):
-                    msg = (f"The following renames were successfully executed, and accepted by the developer. These fit the renaming scope:\n"
+                    other_files_msg = ''
+                    if file_path is None:
+                        other_files_msg = "These renames were performed in other files. "
+
+                    msg = (f"The following renames were successfully executed, and accepted by the developer. {other_files_msg}"
+                           f"These fit the renaming scope:\n"
                            f"{'\n'.join(success_patterns)}")
                     feedback_parts.append(textwrap.indent(msg, ' '*4))
                     feedback_parts.append('')
@@ -339,7 +346,7 @@ class ORMRefactoringMemory:
             ).delete()
             db.commit()
 
-    def get_successful_renames_for_file(self, file_path: str, benchmark_id: Optional[int] = None) -> List[Dict[str, Any]]:
+    def get_successful_renames_for_file(self, file_path: str, benchmark_id: Optional[int] = None) -> List[RefactoringSuggestion]:
         """Get successful rename suggestions for a specific file."""
         with self.get_session() as db:
             query = db.query(RefactoringSuggestion).filter(
@@ -361,17 +368,7 @@ class ORMRefactoringMemory:
             
             suggestions = query.order_by(RefactoringSuggestion.created_at.desc()).all()
             
-            return [
-                {
-                    'old_name': s.old_name,
-                    'new_name': s.new_name,
-                    'line_num': s.line_num,
-                    'code_element_type': s.code_element_type,
-                    'confidence_score': s.confidence_score,
-                    'created_at': s.created_at
-                }
-                for s in suggestions
-            ]
+            return [s for s in suggestions]
 
     def get_most_successful_patterns(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get the most successful transformation patterns across all benchmarks."""
