@@ -96,3 +96,25 @@ def test_data_flow_class():
     for file in expected_files:
         assert file in json.loads(response)
 
+
+def test_completed_checkpoint():
+    #  old_name=restoreMode, new_name=recoveryClaimMode, file_path=flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/CompletedCheckpoint.java
+    # 18:14:54 - INFO - refagent/agents/refactrix/replication.py:820 - data-flow api threw error: tool call failed - 500:
+    # 18:14:54 - INFO - refagent/agents/refactrix/replication.py:821 - old_name=restoreMode, new_name=recoveryClaimMode, file_path=flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java
+    # be25a140f011e6ff93a23f28b3826d376a1c0ba7
+    project = pm.EvalProject("flink")
+    project.checkout("be25a140f011e6ff93a23f28b3826d376a1c0ba7")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java'))
+    _json = {
+        "old_name": "restoreMode",
+        "new_name": "recoveryClaimMode",
+        "line_num": 700
+    }
+    intellij_server.reset_project_reload_counters()
+    intellij_server.reload_project()
+    response = intellij_server.call_tool('data-flow',
+                                         **_json)
+    assert len(json.loads(response)) == 12
