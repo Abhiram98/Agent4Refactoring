@@ -21,8 +21,9 @@ def test_data_flow_ioexecutor():
                                          **_json)
     print(f"{response=}")
 
-    assert len(json.loads(response)) == 13
-    response_json = json.loads(response)
+    assert len(json.loads(response)) == 29
+    files_ = {i['file_path'] for i in json.loads(response)}
+    assert len(files_) == 13
 
     expected_files = [
         "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/StandaloneCompletedCheckpointStore.java",
@@ -39,7 +40,7 @@ def test_data_flow_ioexecutor():
         "flink-runtime/src/main/java/org/apache/flink/runtime/dispatcher/cleanup/CheckpointResourcesCleanupRunner.java",
         "flink-core/src/main/java/org/apache/flink/util/Preconditions.java"]
     for file in expected_files:
-        assert file in response_json
+        assert file in files_
 
 
 
@@ -59,7 +60,8 @@ def test_data_flow_log():
     response = intellij_server.call_tool('data-flow',
                                          **_json)
     print(f"{response=}")
-    assert json.loads(response) == ["flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/Checkpoints.java"]
+    files_ = {i['file_path'] for i in json.loads(response)}
+    assert list(files_) == ["flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/Checkpoints.java"]
 
 
 
@@ -79,6 +81,7 @@ def test_data_flow_class():
     response = intellij_server.call_tool('data-flow',
                                          **_json)
     print(f"{response=}")
+    files_ = [i['file_path'] for i in json.loads(response)]
     expected_files = [
         'flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/TestUtils.java',
         'flink-runtime/src/test/java/org/apache/flink/runtime/dispatcher/DispatcherTest.java',
@@ -94,7 +97,7 @@ def test_data_flow_class():
         'flink-runtime/src/test/java/org/apache/flink/runtime/operators/coordination/OperatorCoordinatorSchedulerTest.java',
     ]
     for file in expected_files:
-        assert file in json.loads(response)
+        assert file in files_
 
 
 def test_completed_checkpoint():

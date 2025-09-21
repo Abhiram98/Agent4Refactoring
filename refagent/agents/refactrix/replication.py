@@ -1,6 +1,7 @@
 import copy
 import json
 import traceback
+from collections import defaultdict
 from concurrent.futures import as_completed
 from json import JSONDecodeError
 
@@ -9,7 +10,7 @@ from langsmith.utils import ContextThreadPoolExecutor
 from git import Commit
 from pydantic.v1 import BaseModel, Field, PrivateAttr
 from langchain_core.language_models import BaseChatModel
-from typing import List, Iterable, Tuple, ClassVar, Any
+from typing import List, Iterable, Tuple, ClassVar, Any, Dict
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from pathlib import Path
@@ -38,6 +39,10 @@ class SearchResult(BaseModel):
 
     def __hash__(self):
         return hash(self.file_path)
+
+class DataFlowResult(BaseModel):
+    file_path: str
+    depth: int
 
 
 class Replication(BaseModel):
@@ -169,12 +174,14 @@ class Replication(BaseModel):
                 for i in os.listdir(str(package_dir)) if i.endswith('.java')]
 
     def get_linked_files_data_flow(self, renames: List[RefactoringSuggestion]) -> List[str]:
-        files = set()
+        all_results: Dict[str, int] = {}
         for rename in renames:
-            files.update(
-                self._data_flow_files(rename)
-            )
-        return list(files)
+            data_flow_results = self._data_flow_files(rename)
+            for i in data_flow_results:
+                all_results[i.file_path] = min(i.depth, all_results.get(i.file_path, 10000))
+
+        files = sorted(all_results.keys(), key=lambda x: all_results[x])
+        return files
 
 
     def get_linked_files(self, starting_file: str) -> List[str]:
@@ -775,7 +782,7 @@ class Replication(BaseModel):
             print(f"[RENAME EXTRACTION] Error extracting from memory: {e}")
             return []
 
-    def _data_flow_files(self, rename: RefactoringSuggestion) -> List[str]:
+    def _data_flow_files(self, rename: RefactoringSuggestion) -> List[DataFlowResult]:
 
         # try to pick up the new file in case of rename class.
         if rename.code_element_type == 'class' and rename.old_name in rename.file_path:
@@ -791,8 +798,8 @@ class Replication(BaseModel):
                                   line_num=rename.line_num
                                   )
         try:
-            linked_files = json.loads(response)
-            return linked_files
+            json_ = json.loads(response)
+            return [DataFlowResult(**i) for i in json_]
         except JSONDecodeError:
             print("data-flow api threw error: {}".format(response))
             print(f"old_name={rename.old_name}, new_name={rename.new_name}, file_path={rename.file_path}")
