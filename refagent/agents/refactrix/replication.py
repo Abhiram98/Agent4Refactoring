@@ -17,7 +17,9 @@ from pathlib import Path
 from typing import Optional, Set
 import os
 import re
+import sqlite3
 
+import refagent
 import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
@@ -83,7 +85,7 @@ class Replication(BaseModel):
     def get_files_inspection_data(self) -> dict:
         """Return the files inspection data for saving to results"""
         return {
-            "files_matching_oracle": self._operated_files.intersection(self.all_oracle_files),
+            "files_matching_oracle": list(self._operated_files.intersection(self.all_oracle_files)),
             "count_files_matching_oracle": len(self._operated_files.intersection(self.all_oracle_files)),
             "operated_files_count": len(self._operated_files),
             "operated_files_list": list(self._operated_files),
@@ -92,6 +94,8 @@ class Replication(BaseModel):
         }
 
     def compile_and_run(self) -> Iterable[planning.RefactoringPlan]:
+        self.init_replication_db()
+
         success_renames = self.orm_memory.get_all_successful_patterns()
         initial_files_to_inspect = self.get_linked_files_data_flow(renames=success_renames)
 
@@ -121,14 +125,16 @@ class Replication(BaseModel):
 
     def handle_file(self, file_path) -> Optional[planning.RefactoringPlan]:
         try:
+            if not self.continue_replication():
+                print("Stopping replication because continue_replication is False")
+                return None
+
             ask_replicate = self.compile(file_path)  # the edited file?
             should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
             print(should_replicate.content)
 
-            if self._stopping:
-                return None
-
             if 'YES' in should_replicate.content:  # should replicate the content
+                self.add_file_to_replication_db(file_path)
                 plan = planning.PlanningComponent(
                     initial_intent=self.initial_intent + should_replicate.content,
                     model=self.model,
@@ -714,6 +720,7 @@ class Replication(BaseModel):
             # Process current batch of files
             successful_renames_this_iteration: List[RefactoringSuggestion] = []
             count_inspected_files_i = 0
+            self.clear_files_in_db()
             
             with ContextThreadPoolExecutor(max_workers=4) as executor:
                 futures = {executor.submit(self.handle_file, file_path): file_path for file_path in files_to_process}
@@ -731,6 +738,7 @@ class Replication(BaseModel):
                         operated_files.add(file_path)
                         count_inspected_files_i += 1
                         # Extract successful renames from this file's operation
+                        # todo: change this to have a just call all renames and fiter
                         file_renames = self.extract_successful_renames_from_completed_file(file_path)
                         successful_renames_this_iteration += file_renames
 
@@ -805,15 +813,62 @@ class Replication(BaseModel):
             print(f"old_name={rename.old_name}, new_name={rename.new_name}, file_path={rename.file_path}")
             return []
 
+    def continue_replication(self):
+        """Check whether too many files have been edited."""
+
+        return self.count_files_in_db() < 25
+
+    def init_replication_db(self):
+        conn = self.get_new_conn()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS replication_files (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                file_path TEXT UNIQUE NOT NULL
+            )
+        """)
+        conn.commit()
+
+    def add_file_to_replication_db(self, file_path: str):
+        conn = self.get_new_conn()
+        cursor = conn.cursor()
+        cursor.execute("""
+                       INSERT
+                       OR IGNORE INTO replication_files (file_path) VALUES (?)
+                       """, (file_path,))
+        conn.commit()
+
+    def get_new_conn(self):
+        conn = sqlite3.connect(refagent.repo_root.joinpath('.replication.db'))
+        return conn
+
+    def count_files_in_db(self) -> int:
+        conn = self.get_new_conn()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM replication_files")
+        return cursor.fetchone()[0]
+
+    def clear_files_in_db(self):
+        conn = self.get_new_conn()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM replication_files")
+        conn.commit()
+
+
 
 class SimpleReplication(Replication):
 
     def handle_file(self, file_path) -> Optional[planning.RefactoringPlan]:
         try:
+            if not self.continue_replication():
+                print("Stopping replication because continue_replication is False")
+                return None
+
             ask_replicate = self.compile(file_path)
             should_replicate = ask_replicate.invoke({"messages": []})['messages'][-1]
             print(should_replicate.content)
             if 'YES' in should_replicate.content:  # should replicate the content
+                self.add_file_to_replication_db(file_path)
                 plan = planning.RefactoringPlan(
                     steps=[
                         planning.PlanningStep(
