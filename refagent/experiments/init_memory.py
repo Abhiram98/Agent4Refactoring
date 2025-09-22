@@ -7,6 +7,7 @@ import os
 import refagent.benchmark.load as benchmark_load
 from agents.memory.orm_memory import ORMRefactoringMemory
 import refactoring_types.refactorings as refactorings
+from refactoring_types.refactorings import RefminerOut
 
 
 class InitMemory(BaseModel):
@@ -41,7 +42,7 @@ class InitMemory(BaseModel):
                     old_name=seed_old_name,
                     new_name=seed_new_name,
                     line_num=seed.start_line,
-                    code_element_type=seed.type,
+                    code_element_type=self.get_code_element_type(seed),
                     is_valid=True,
                     feedback="First rename from the developer",
                     critique_reason="",
@@ -53,13 +54,16 @@ class InitMemory(BaseModel):
                 orm_db.add_rename_scope(self.initial_intent)
             return no_replication_path
 
+    def get_code_element_type(self, seed: RefminerOut):
+        return seed.type.split('Rename ')[-1].lower()
+
     def no_replication_path(self, memory_db_path):
         extension = memory_db_path.suffix
         before_extension = memory_db_path.stem + '-no-replication'
         memory_db_path = Path(before_extension).with_suffix(extension)
         return memory_db_path
 
-    def get_code_on_line(self, line_num: int, tolerance: int=4):
+    def get_code_on_line(self, line_num: int, tolerance: int=10):
         half_tolerance = int(tolerance / 2)
         return "\n".join(self.source_code.splitlines(keepends=True)[line_num-half_tolerance : line_num+half_tolerance])
 

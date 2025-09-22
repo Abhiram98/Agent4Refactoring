@@ -64,7 +64,9 @@ def setup_and_run(bench_point: bm_load.RenameItem,
         do_replication=do_replication,
         use_seed=use_seed,
         initial_intent=augmented_intent,
-        source_code=project.get_file_contents(bench_point.starting_file)
+        source_code=project.get_file_content_by_sha(
+            sha1=bench_point.v1_hash,
+            file_path=bench_point.seed_example.leftSideLocations[0].filePath)
     ).init_memory(Path(orig_memory_db_path))
     memory_db_path = str(memory_db_path)
     print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
