@@ -757,7 +757,7 @@ class Replication(BaseModel):
                           self.keyword_search(successful_renames_this_iteration)})
             new_renames = [i for i in self.orm_memory.get_all_successful_patterns() if i not in success_renames]
             data_flow_files = [i for i in self.get_linked_files_data_flow(new_renames)
-                               if i in keyword_search_files]
+                               if i not in keyword_search_files]
             new_files = keyword_search_files + data_flow_files
             new_files = [f for f in new_files if f not in inspected_files]
 
