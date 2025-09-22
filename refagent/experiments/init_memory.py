@@ -55,7 +55,9 @@ class InitMemory(BaseModel):
             return no_replication_path
 
     def get_code_element_type(self, seed: RefminerOut):
-        return seed.type.split('Rename ')[-1].lower()
+        name_map = {'attribute': 'field'}
+        key = seed.type.split('Rename ')[-1].lower()
+        return name_map.get(key, key)
 
     def no_replication_path(self, memory_db_path):
         extension = memory_db_path.suffix
