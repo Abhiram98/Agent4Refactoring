@@ -109,19 +109,23 @@ class CritiqueComponent(BaseModel):
                               file_to_check: str) -> bool:
         """Check if an oracle entry matches the suggestion criteria."""
         
-        # 1. Check if it's a rename refactoring
-        # if not isinstance(oracle_entry, refactoring_types.Rename):
-        #     return False
-        
-        # 2. File path match - normalize paths for comparison
-        oracle_file = oracle_entry.leftSideLocations[0].filePath
-        if not self._files_match(oracle_file, file_to_check):
+
+        left_side_file = oracle_entry.leftSideLocations[0].filePath
+        right_side_file = oracle_entry.rightSideLocations[0].filePath
+        # check that the left file or right file matches. Because file maybe renamed as a side effect of rename class.
+        # nit: if the right file matches, it means that:
+        #  There were was a class rename which exactly matched the oracle.
+        #  In that class, there were other renames, which are being matched here.
+        #  However, this is problematic if the tool renames the class in a different way from the oracle,
+        #  leading to potential false reports from this component.
+
+        if self._files_match(left_side_file, file_to_check):
+            oracle_file = left_side_file
+        elif self._files_match(right_side_file, file_to_check):
+            oracle_file = right_side_file
+        else:
             return False
-        
-        # 3. Line number proximity
-        # oracle_line = oracle_entry.leftSideLocations[0].startLine
-        # if abs(oracle_line - line_num) > self.config.line_tolerance:
-        #     return False
+
 
         oracle_start_line = oracle_entry.leftSideLocations[0].startLine
         oracle_end_line = oracle_entry.leftSideLocations[0].endLine
