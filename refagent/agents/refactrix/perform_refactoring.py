@@ -24,7 +24,7 @@ from agents.refactrix.critique import CritiqueResult
 from refagent.agents.refactrix.rename_suggestions import (RenameAnalysis, RenameSuggestion,
                                                           ValidatedRenames,
                                                           RenameSuggestionValidated,
-                                                          RenameAnalysisWithCommentStartLine)
+                                                          RenameAnalysisWithCommentStartLine, CodeElementType)
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
 
 
@@ -214,28 +214,24 @@ class PerformRefactoring(BaseModel):
             )
 
             # Only pass the system prompt to avoid prompt bloating
+            messages: List[BaseMessage] = []
             if self.new_intent is not None:
-                messages = [self.generate_system_prompt(), opened_file_message()]
+                messages.append(self.generate_system_prompt())
             else:
-                messages = [state['messages'][0] , opened_file_message()]
-            if messages:
-                last_msg = messages[-1]
-                if hasattr(last_msg, 'content'):
-                    # Add fresh source code with LINE NUMBERS if available
-                    if current_file_content:
-                        numbered_code = code_utils.add_line_numbers(current_file_content)
-                        last_msg.content += f"\n\n=== CURRENT SOURCE CODE (UPDATED) ===\n{numbered_code}\n=== END SOURCE CODE ===\n"
+                messages.append(state['messages'][0])
 
-                    if memory_constraints:
-                        last_msg.content = last_msg.content + '\nIMPORTANT:\n' + memory_constraints +'\n'
+            example_message = self.get_examples_message()
+            if example_message is not None:
+                messages.append(example_message)
 
-                    last_msg.content += format_instructions
-
-                    # Add memory constraints at the bottom
-
-
-
-
+            file_contents_msg = opened_file_message()
+            if current_file_content:
+                numbered_code = code_utils.add_line_numbers(current_file_content)
+                file_contents_msg.content += f"\n\n=== CURRENT SOURCE CODE (UPDATED) ===\n{numbered_code}\n=== END SOURCE CODE ===\n"
+            if memory_constraints:
+                file_contents_msg.content = file_contents_msg.content + '\nIMPORTANT:\n' + memory_constraints +'\n'
+            file_contents_msg.content += format_instructions
+            messages.append(file_contents_msg)
 
             # Use model without tools for JSON output
             response = prompt_cache.prompt(self.model, messages)
@@ -1030,3 +1026,58 @@ class PerformRefactoring(BaseModel):
                 print(f"pattern {pattern} was not found in file")
 
         return history_based_patterns
+
+    def get_examples_message(self) -> Optional[HumanMessage]:
+        """Create few shot examples based on memory content"""
+        message = ["Here are a few examples:\n"]
+
+        success_renames = self.orm_memory.get_all_successful_patterns()
+        failed_renames = self.orm_memory.get_all_rejected_patterns()
+
+        if len(success_renames) + len(failed_renames) == 0:
+            return None
+
+        for rename in success_renames:
+            message.append(f"=== Code ===")
+            message.append("...")
+            message.append(rename.snippet) # add snippet
+            message.append("...")
+            message.append(f"=== End of Code ===")
+
+            message.append("")
+            message.append("Example response:")
+            expected_response = RenameAnalysis(
+                analysis=f"REFACTORING_NEEDED: Rename {rename.old_name} -> {rename.new_name}, and also Rename ...",
+                rename_suggestions=[RenameSuggestion(
+                    old_name=rename.old_name,
+                    new_name=rename.new_name,
+                    line_num=rename.line_num,
+                    code_element_type=CodeElementType(rename.code_element_type),
+                    reason="This suggestion fits the scope."
+                )],
+            )
+            example_str = json.dumps(expected_response.dict(), indent=4)
+            example_str = example_str.replace("}\n    ]\n}", "},\n    ...\n    ]\n}")
+            message.append(example_str)
+            message.append("")
+
+        for rename in failed_renames:
+            message.append(f"=== Code ===")
+            message.append("...")
+            message.append(rename.snippet)  # add snippet
+            message.append("...")
+            message.append(f"=== End of Code ===")
+
+            message.append("")
+            message.append("Example response:")
+            expected_response = RenameAnalysis(
+                analysis=f"REFACTORING_COMPLETE. Reason: "
+                         f"Renaming {rename.old_name} -> {rename.new_name} does not fit the renaming scope.",
+                rename_suggestions=[],
+            )
+            message.append(
+                json.dumps(expected_response.dict(), indent=4)
+            )
+            message.append("")
+
+        return HumanMessage("\n".join(message))
