@@ -951,10 +951,10 @@ class PerformRefactoring(BaseModel):
                 # Add suggestion to memory
                 memory_entry = self.orm_memory.add_suggestion(
                     benchmark_id=self.benchmark_id,
-                    file_path=self.rel_file_path,
+                    file_path=suggestion.resolved_file_path or self.rel_file_path,
                     old_name=suggestion.old_name,
                     new_name=suggestion.new_name,
-                    line_num=suggestion.line_num,
+                    line_num=suggestion.resolved_start_line or suggestion.start_line_comments or suggestion.line_num,
                     code_element_type=suggestion.code_element_type.value,
                     is_valid=critique_result.is_valid,
                     feedback=critique_result.feedback,
