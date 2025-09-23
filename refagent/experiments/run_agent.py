@@ -16,6 +16,7 @@ import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.react_agent as react_agent
 import refagent.experiments.init_memory as init_memory
+import refagent.agents.refactrix.analysis.scope as scope
 
 import langsmith as ls
 
@@ -76,7 +77,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                      model_name=f'{vendor}:openai-gpt-4o-mini',
                      project=project,
                      plan_component=plan_type,
-                     augmented_intent=augmented_intent,
+                     augmented_intent=scope.RenameScope(pattern=augmented_intent),
                      do_replication=do_replication,
                      enable_critique=enable_critique,
                      enable_memory=enable_memory,

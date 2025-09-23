@@ -27,6 +27,7 @@ import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.refactoring_types.refactorings as refactoring_types
 import refagent.utils.cache.prompt_cache as prompt_cache
 import refagent.agents.memory.orm_memory as orm_memory
+import refagent.agents.refactrix.analysis.scope as scope
 from agents.memory.memory_models import RefactoringSuggestion
 
 
@@ -135,7 +136,7 @@ class Replication(BaseModel):
             if 'YES' in should_replicate.content:  # should replicate the content
                 self.add_file_to_replication_db(file_path)
                 plan = planning.PlanningComponent(
-                    initial_intent=self.latest_scope + should_replicate.content,
+                    initial_intent=str(self.latest_scope) + should_replicate.content,
                     model=self.model,
                     source_file_path=file_path,
                     source_code=self.project.get_file_contents(file_path),
@@ -854,7 +855,7 @@ class Replication(BaseModel):
         conn.commit()
 
     @property
-    def latest_scope(self) -> str:
+    def latest_scope(self) -> scope.RenameScope:
         latest_scope = self.orm_memory.get_latest_scope()
         assert latest_scope is not None
         return latest_scope
@@ -877,7 +878,7 @@ class SimpleReplication(Replication):
                 plan = planning.RefactoringPlan(
                     steps=[
                         planning.PlanningStep(
-                            reason=self.latest_scope,
+                            reason=str(self.latest_scope),
                             final_code="",
                             refactoring_type=sup_ref.SupportedRefactorings.RENAME,
                             file_path=file_path,

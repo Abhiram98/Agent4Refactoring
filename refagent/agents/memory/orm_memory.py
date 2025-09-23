@@ -13,7 +13,8 @@ import json
 import uuid
 from contextlib import contextmanager
 
-from .memory_models import Base, RefactoringSuggestion, MemorySession, ExamplePair, RenameScope
+from .memory_models import Base, RefactoringSuggestion, MemorySession, ExamplePair, RenameScopeTableEntry
+import refagent.agents.refactrix.analysis.scope as scope
 
 
 class ORMRefactoringMemory:
@@ -416,19 +417,21 @@ class ORMRefactoringMemory:
             response = db.query(RefactoringSuggestion).all()
             return [i for i in response if not i.is_valid]
 
-    def add_rename_scope(self, rename_intent: str):
+    def add_rename_scope(self, rename_scope: scope.RenameScope):
         with self.get_session() as db:
             db.add(
-                RenameScope(
-                    scope=rename_intent
+                RenameScopeTableEntry(
+                    pattern=rename_scope.pattern,
+                    condition=rename_scope.condition
                 )
             )
             db.commit()
 
-    def get_latest_scope(self) -> Optional[str]:
+    def get_latest_scope(self) -> Optional[scope.RenameScope]:
         with self.get_session() as db:
-            all_scopes = db.query(RenameScope).all()
+            all_scopes = db.query(RenameScopeTableEntry).all()
             sorted_scopes = sorted(all_scopes, key=lambda e: e.created_at, reverse=True)
             if len(sorted_scopes) == 0:
                 return None
-            return str(sorted_scopes[0].scope)
+            return scope.RenameScope(pattern=sorted_scopes[0].pattern,
+                                     condition=sorted_scopes[0].condition)

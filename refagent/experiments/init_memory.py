@@ -9,6 +9,8 @@ from agents.memory.orm_memory import ORMRefactoringMemory
 import refactoring_types.refactorings as refactorings
 from refactoring_types.refactorings import RefminerOut
 
+import refagent.agents.refactrix.analysis.scope as scope
+
 
 class InitMemory(BaseModel):
     benchmark_item: benchmark_load.RenameItem
@@ -51,7 +53,10 @@ class InitMemory(BaseModel):
                     llm_iteration=0,
                     snippet=self.get_code_on_line(seed.start_line),
                 )
-                orm_db.add_rename_scope(self.initial_intent)
+
+                orm_db.add_rename_scope(
+                    scope.RenameScope(pattern=self.initial_intent)
+                )
             return no_replication_path
 
     def get_code_element_type(self, seed: RefminerOut):

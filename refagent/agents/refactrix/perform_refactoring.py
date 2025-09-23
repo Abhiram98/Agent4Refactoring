@@ -19,6 +19,7 @@ import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
 import refagent.agents.refactrix.critique as critique
 import refagent.utils.cache.prompt_cache as prompt_cache
+import refagent.agents.refactrix.analysis.scope as scope
 from agents.refactrix.analysis.refine_intent import RefineIntent
 from agents.refactrix.critique import CritiqueResult
 from refagent.agents.refactrix.rename_suggestions import (RenameAnalysis, RenameSuggestion,
@@ -90,7 +91,7 @@ class PerformRefactoring(BaseModel):
         return self._orm_memory
 
     @property
-    def new_intent(self) -> Optional[str]:
+    def new_intent(self) -> Optional[scope.RenameScope]:
         """return the new intent if generated, else none"""
         return self.orm_memory.get_latest_scope()
 
@@ -236,9 +237,6 @@ class PerformRefactoring(BaseModel):
             # Use model without tools for JSON output
             response = prompt_cache.prompt(self.model, messages)
             return {"messages": [response]}
-
-        def generate_system_prompt():
-            return SystemMessage(self.new_intent)
 
         def get_memory_constraints(current_llm_iteration):
             memory_constraints = ""
@@ -600,16 +598,16 @@ class PerformRefactoring(BaseModel):
                 if not critique_result.is_valid:
                     # should_break = True
 
-                    _new_intent = RefineIntent(
+                    _new_scope = RefineIntent(
                         source_code=self.ide_server.call_tool_get("get_source_code"),
-                        original_intent=self.new_intent, # build on the new intent if needed.
+                        original_scope=self.new_intent, # build on the new intent if needed.
                         model=self.model,
                         feedback=self.orm_memory.get_memory_feedback(
                             benchmark_id=self.benchmark_id,
                             file_path=self.rel_file_path
                         )
-                    ).get_new_intent()
-                    self.orm_memory.add_rename_scope(_new_intent)
+                    ).get_new_scope()
+                    self.orm_memory.add_rename_scope(_new_scope)
 
                 # Categorize suggestion based on validation result
                 if critique_result.is_valid:
