@@ -34,7 +34,7 @@ class ReactAgent(ra.Agent):
 
 
         try:
-            graph = self.compile_graph(model=model,
+            graph = self.compile_graph(model=self._reasoning_model,
                                        initial_intent=self.augmented_intent,
                                        plan_step=step,
                                        step_count=0,
@@ -75,7 +75,6 @@ class ReactAgent(ra.Agent):
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=self.augmented_intent,  # pass the augmented intent,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,

@@ -52,7 +52,6 @@ class Replication(BaseModel):
     edited_files: List[Path] = Field(description="Files that have already been edited.")
     project: pm.EvalProject = Field(description="The project object. Used to read file contents")
     example_changes: str = Field(description="The kinds of changes to replicate.")
-    initial_intent: str = Field(description="Intent from the developer")
     ide_server: ij.IntellijServer = Field(description="intellij server to interact with")
     executed_plan: planning.RefactoringPlan = Field(description="executed plan that needs replication")
     starting_file: str = Field(description="The first file that was edited.")
@@ -136,7 +135,7 @@ class Replication(BaseModel):
             if 'YES' in should_replicate.content:  # should replicate the content
                 self.add_file_to_replication_db(file_path)
                 plan = planning.PlanningComponent(
-                    initial_intent=self.initial_intent + should_replicate.content,
+                    initial_intent=self.latest_scope + should_replicate.content,
                     model=self.model,
                     source_file_path=file_path,
                     source_code=self.project.get_file_contents(file_path),
@@ -462,7 +461,7 @@ class Replication(BaseModel):
                                   "for the sake of consistency. "),
                     HumanMessage(
                         f"Here is the intent of the developer: "
-                        f"{self.initial_intent}"
+                        f"{self.latest_scope}"
                         # f"Here are the kinds of refactorings that "
                         # f"need to be replicated. These refactorings were already performed:\n"
                         # f"{examples}"
@@ -854,6 +853,12 @@ class Replication(BaseModel):
         cursor.execute("DELETE FROM replication_files")
         conn.commit()
 
+    @property
+    def latest_scope(self) -> str:
+        latest_scope = self.orm_memory.get_latest_scope()
+        assert latest_scope is not None
+        return latest_scope
+
 
 
 class SimpleReplication(Replication):
@@ -872,7 +877,7 @@ class SimpleReplication(Replication):
                 plan = planning.RefactoringPlan(
                     steps=[
                         planning.PlanningStep(
-                            reason=self.initial_intent,
+                            reason=self.latest_scope,
                             final_code="",
                             refactoring_type=sup_ref.SupportedRefactorings.RENAME,
                             file_path=file_path,
