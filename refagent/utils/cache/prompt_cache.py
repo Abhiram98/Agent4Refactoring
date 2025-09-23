@@ -24,7 +24,8 @@ _cursor.execute(
 _conn.commit()
 
 def prompt(model: BaseChatModel, messages: List[BaseMessage]):
-    key_str = str(model.dict()) + str([i.content for i in messages])
+    model_name = str(model.dict().get('profile', model.dict()))
+    key_str = str(model_name) + str([i.content for i in messages])
     cursor, conn = None, None
     if os.getenv('PROMPT_CACHING'):
         conn = sqlite3.connect(prompt_cache_db)
