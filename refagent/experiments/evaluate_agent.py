@@ -129,6 +129,17 @@ def main():
         precision = len(true_positives) / len(refactorings) if len(refactorings) > 0 else 0
         overall_precision += precision
 
+        review_count = result['response'].get('human_review_count')
+        accepted_count = result['response'].get('human_accepted_count')
+        rejected_count = result['response'].get('human_rejected_count')
+        if accepted_count is not None and rejected_count is not None:
+            accepted_rate = accepted_count/ (accepted_count + rejected_count)
+        else:
+            accepted_rate = None
+
+        operated_files_count = result['response']['replication_inspection_data']['operated_files_count']
+        inspected_files_count = result['response']['replication_inspection_data']['inspected_files_count']
+
         print(f"avg recall = {overall_recall / total_oracle}")
         print(f"avg precision = {overall_precision / total_oracle}")
         print(f"{precision=}")
@@ -136,18 +147,17 @@ def main():
         print(f"{len(refactorings)=}")
         print(f"{overall_recall=}")
         print(f"{total_oracle=}")
+        print(f"{accepted_count=}")
+        print(f"{review_count=}")
+        print(f"{accepted_rate=}")
+        print(f"{inspected_files_count=}")
+        print(f"{operated_files_count=}")
+
         print("-----------")
         print()
 
         # assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
         # assert len(refactorings) == len(true_positives) + len(false_positives)
-        review_count = result.get('human_review_count')
-        accepted_count = result.get('human_accepted_count')
-        rejected_count = result.get('human_rejected_count')
-        if accepted_count is not None and rejected_count is not None:
-            accepted_rate = accepted_count/ (accepted_count + rejected_count)
-        else:
-            accepted_rate = None
         report.append(
             {
                 "id": id,
@@ -165,6 +175,8 @@ def main():
                 "human_accepted_count": accepted_count,
                 "human_rejected_count": rejected_count,
                 "human_accepted_rate": accepted_rate,
+                "operated_files_count": operated_files_count,
+                "inspected_files_count": inspected_files_count,
             }
         )
 
