@@ -962,7 +962,7 @@ class PerformRefactoring(BaseModel):
                     agent_iteration=self._retry_iteration,
                     llm_iteration=current_llm_iteration,
                     context_data=context_data,
-                    snippet=self.get_code_on_line(suggestion.line_num)
+                    snippet=self.get_code_snippet(suggestion)
                 )
 
                 if self.enable_memory:
@@ -974,10 +974,13 @@ class PerformRefactoring(BaseModel):
                 print(f"[MEMORY DEBUG] Error storing suggestion in memory: {e}")
                 # Continue processing even if memory storage fails
 
-    def get_code_on_line(self, line_num: int, tolerance: int=4):
-        source_code = self.ide_server.call_tool_get("get_source_code")
-        half_tolerance = int(tolerance / 2)
-        return "\n".join(source_code.splitlines(keepends=True)[line_num-half_tolerance : line_num+half_tolerance])
+    def get_code_snippet(self, suggestion: RenameSuggestionValidated) -> str:
+        return self.ide_server.call_tool("get_source_code_snippet",
+                                  name=suggestion.old_name,
+                                  line_num=suggestion.resolved_start_line or suggestion.start_line_comments or suggestion.line_num,
+                                  code_element_type=suggestion.code_element_type.value,
+                                  file_path=suggestion.resolved_file_path or self.rel_file_path
+                                  )
 
     def _do_critique(self, suggestion: RenameSuggestionValidated) -> CritiqueResult:
         # Perform critique validation

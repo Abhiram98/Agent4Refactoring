@@ -7,6 +7,7 @@ import os
 import refagent.benchmark.load as benchmark_load
 from agents.memory.orm_memory import ORMRefactoringMemory
 import refactoring_types.refactorings as refactorings
+from agents.refactrix.supported_refactorings import CodeElementType
 from refactoring_types.refactorings import RefminerOut
 
 import refagent.agents.refactrix.analysis.scope as scope
@@ -17,7 +18,7 @@ class InitMemory(BaseModel):
     do_replication: bool
     use_seed: bool
     initial_intent: str
-    source_code: str
+    snippet_code: str
 
     def init_memory(self, memory_db_path: Path) -> Path:
         no_replication_path = self.no_replication_path(memory_db_path)
@@ -44,14 +45,14 @@ class InitMemory(BaseModel):
                     old_name=seed_old_name,
                     new_name=seed_new_name,
                     line_num=seed.start_line,
-                    code_element_type=self.get_code_element_type(seed),
+                    code_element_type=CodeElementType.get_rminer_str(seed.type),
                     is_valid=True,
                     feedback="First rename from the developer",
                     critique_reason="",
                     confidence_score=1.0,
                     agent_iteration=0,
                     llm_iteration=0,
-                    snippet=self.get_code_on_line(seed.start_line),
+                    snippet=self.snippet_code
                 )
 
                 orm_db.add_rename_scope(
@@ -59,18 +60,9 @@ class InitMemory(BaseModel):
                 )
             return no_replication_path
 
-    def get_code_element_type(self, seed: RefminerOut):
-        name_map = {'attribute': 'field'}
-        key = seed.type.split('Rename ')[-1].lower()
-        return name_map.get(key, key)
-
     def no_replication_path(self, memory_db_path):
         extension = memory_db_path.suffix
         before_extension = memory_db_path.stem + '-no-replication'
         memory_db_path = Path(before_extension).with_suffix(extension)
         return memory_db_path
-
-    def get_code_on_line(self, line_num: int, tolerance: int=10):
-        half_tolerance = int(tolerance / 2)
-        return "\n".join(self.source_code.splitlines(keepends=True)[line_num-half_tolerance : line_num+half_tolerance])
 

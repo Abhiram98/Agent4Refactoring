@@ -20,6 +20,8 @@ import refagent.agents.refactrix.analysis.scope as scope
 
 import langsmith as ls
 
+from agents.refactrix.supported_refactorings import CodeElementType
+
 
 def setup_and_run(bench_point: bm_load.RenameItem,
                   ij_server: ij.IntellijServer,
@@ -31,6 +33,28 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                   use_seed: bool=False,
                   ):
     project = pm.EvalProject(bench_point.project_name)
+    enable_critique = args.enable_critique.lower() == "true"
+    enable_memory = args.enable_memory.lower() == "true"
+
+    # Memory is automatically disabled when critique is disabled
+    if not enable_critique:
+        enable_memory = False
+        print("[MEMORY] Memory disabled because critique is disabled")
+
+    # Create memory database path in the same directory as results (even if disabled for logging)
+    results_dir = os.path.dirname(args.run_identifier) if "/" in args.run_identifier else "."
+    # Ensure the directory exists
+    os.makedirs(results_dir, exist_ok=True)
+
+    memory_db_path = initialize_memory(augmented_intent,
+                                       bench_point,
+                                       do_replication,
+                                       ij_server,
+                                       results_dir,
+                                       use_seed,
+                                       project)
+
+
     ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
     checkout_commit(bench_point, initial_commit, project, use_seed, do_replication)
 
@@ -44,33 +68,6 @@ def setup_and_run(bench_point: bm_load.RenameItem,
 
     vendor = 'grazie' # switch to `openai` to use the openai models directly
     # vendor = 'openai'
-
-    enable_critique = args.enable_critique.lower() == "true"
-    enable_memory = args.enable_memory.lower() == "true"
-    
-    # Memory is automatically disabled when critique is disabled
-    if not enable_critique:
-        enable_memory = False
-        print("[MEMORY] Memory disabled because critique is disabled")
-    
-    # Create memory database path in the same directory as results (even if disabled for logging)
-    results_dir = os.path.dirname(args.run_identifier) if "/" in args.run_identifier else "."
-    # Ensure the directory exists
-    os.makedirs(results_dir, exist_ok=True)
-
-    db_name = f"memory_{args.run_identifier.split('/')[-1]}_{bench_point.ref_id}.db"
-    orig_memory_db_path = os.path.join(results_dir, db_name)
-    memory_db_path = init_memory.InitMemory(
-        benchmark_item=bench_point,
-        do_replication=do_replication,
-        use_seed=use_seed,
-        initial_intent=augmented_intent,
-        source_code=project.get_file_content_by_sha(
-            sha1=bench_point.v1_hash,
-            file_path=bench_point.seed_example.leftSideLocations[0].filePath)
-    ).init_memory(Path(orig_memory_db_path))
-    memory_db_path = str(memory_db_path)
-    print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
 
     agent = react_agent.ReactAgent(ide_server=ij_server,
                      reasoning_model_name=f'{vendor}:openai-o4-mini',
@@ -133,6 +130,44 @@ def setup_and_run(bench_point: bm_load.RenameItem,
         }
     )
     results_saver.save()
+
+
+def initialize_memory(augmented_intent: str,
+                      bench_point: bm_load.RenameItem,
+                      do_replication: bool,
+                      ij_server: ij.IntellijServer,
+                      results_dir: str,
+                      use_seed: bool,
+                      project: pm.EvalProject
+                      ):
+    db_name = f"memory_{args.run_identifier.split('/')[-1]}_{bench_point.ref_id}.db"
+    orig_memory_db_path = os.path.join(results_dir, db_name)
+    memory_db_path = init_memory.InitMemory(
+        benchmark_item=bench_point,
+        do_replication=do_replication,
+        use_seed=use_seed,
+        initial_intent=augmented_intent,
+        snippet_code=get_snippet_code(bench_point, project, ij_server),
+    ).init_memory(Path(orig_memory_db_path))
+    memory_db_path = str(memory_db_path)
+    print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
+    return memory_db_path
+
+def get_snippet_code(bench_point: bm_load.RenameItem, project: pm.EvalProject, ij_server: ij.IntellijServer) -> str:
+    ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
+    project.checkout(bench_point.v1_hash, force=True)
+
+    ij_server.open_project(project_path=project.get_project_path())
+    ij_server.reload_project()
+
+    ij_server.open_file(Path(bench_point.seed_example.leftSideLocations[0].filePath))
+    return ij_server.call_tool('get_source_code_snippet',
+                        name=bench_point.seed_example.old_name,
+                        line_num=bench_point.seed_example.start_line,
+                        file_path=bench_point.seed_example.leftSideLocations[0].filePath,
+                        code_element_type=CodeElementType.get_rminer_str(bench_point.seed_example.type)
+                        )
+
 
 
 def checkout_commit(bench_point, initial_commit, project, use_seed, do_replication):
