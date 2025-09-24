@@ -602,10 +602,8 @@ class PerformRefactoring(BaseModel):
                         source_code=self.ide_server.call_tool_get("get_source_code"),
                         original_scope=self.new_intent, # build on the new intent if needed.
                         model=self.model,
-                        feedback=self.orm_memory.get_memory_feedback(
-                            benchmark_id=self.benchmark_id,
-                            file_path=self.rel_file_path
-                        )
+                        accepted_renames=self.orm_memory.get_all_successful_patterns(),
+                        rejected_renames=self.orm_memory.get_all_rejected_patterns()
                     ).get_new_scope()
                     self.orm_memory.add_rename_scope(_new_scope)
 
@@ -1082,3 +1080,5 @@ class PerformRefactoring(BaseModel):
             message.append("")
 
         return HumanMessage("\n".join(message))
+
+
