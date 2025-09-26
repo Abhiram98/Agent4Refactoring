@@ -1,43 +1,65 @@
 import json
 from pathlib import Path
-import pandas as pd
-from langchain_core.utils import print_text
+from time import sleep
+from typing import List
+import re
+
 
 import refagent
 import refagent.benchmark.load as benchmark_load
 import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
-import refagent.benchmark.creation.scrape_renas_dataset as scrape_rename
-import refagent.refactoring_types.refactorings as refactorings
 import refagent.utils.refminer_utils as refminer_utils
-
-def setup_project(project: pm.EvalProject):
-    if project.project_name == 'argouml':
-        with open(refagent.data_folder.joinpath("renas/argouml.iml")) as f:
-            iml_content = f.read()
-        iml_file = project.get_project_path().joinpath(f"{project.project_name}.iml")
-        # if not iml_file.exists():
-        with open(iml_file, 'w') as f:
-            f.write(iml_content)
-        if project.get_project_path().joinpath(".idea").exists():
-            with open(project.get_project_path().joinpath(f".idea/{project.project_name}.iml")
-                    , "w") as f:
-                f.write(iml_content)
+from refagent.refactoring_types.refactorings import RefminerOut
 
 
-def main():
+def parse_name(refactoring_change):
+    old_name = ''
+    new_name = ''
+
+    if refactoring_change.type == 'Rename Class':
+        match = re.search(r"Rename Class .*\.([A-Za-z0-9_]+) renamed to .*\.([A-Za-z0-9_]+)",
+                          refactoring_change.description)
+        if match:
+            old_name = match.group(1)
+            new_name = match.group(2)
+
+    elif refactoring_change.type == 'Rename Method':
+        match = re.search(r"Rename Method .*? ([A-Za-z0-9_]+)\(.*?\)\s*:\s*.*? renamed to .*? ([A-Za-z0-9_]+)\(",
+                          refactoring_change.description)
+        if match:
+            old_name = match.group(1)
+            new_name = match.group(2)
+
+    elif refactoring_change.type == 'Rename Variable':
+        match = re.search(r"Rename Variable ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*?",
+                          refactoring_change.description)
+        if match:
+            old_name = match.group(1)
+            new_name = match.group(2)
+    elif refactoring_change.type == 'Rename Attribute':
+        match = re.search(r"Rename Attribute ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in class",
+                          refactoring_change.description)
+        if match:
+            old_name = match.group(1)
+            new_name = match.group(2)
+    elif refactoring_change.type == 'Rename Parameter':
+        match = re.search(r"Rename Parameter ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in method",
+                          refactoring_change.description)
+        if match:
+            old_name = match.group(1)
+            new_name = match.group(2)
+
+    return old_name, new_name
+
+def main(input_file_path, output_file_path):
     print("creating seed renames")
 
-    with open(refagent.data_folder.joinpath('ref_miner/rename/camunda-clean2.json')) as f:
+    with open(refagent.data_folder.joinpath(input_file_path)) as f:
         data = json.load(f)
     rename_data = benchmark_load.load_benchmark(data, bench_type=benchmark_load.RenameItem)
     ij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
     seed_hashes = {}
-
-    # df = pd.read_csv(refagent.data_folder.joinpath('renas/manualValidation.csv'))
-    # df_filtered = df[(df['coRename'] != -1) & (df['conceptRename?'] == 'TRUE')]
-    # groups = list(df_filtered.groupby(['commit', 'coRename']))
-    # co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE']) >= 1]
 
     for r in rename_data:
         print(f"Creating seed example for {r.ref_id}")
@@ -45,47 +67,10 @@ def main():
             print(f"Seed computation was completed for {r.ref_id}")
             continue
 
-        # co_rename_df = \
-        # [i[1] for i in co_renames if i[0][0] == r.v2_hash and i[0][1] == r.corename_id][0]
-        # all_concepts = sorted(co_rename_df[['oldName', 'newName', 'type', 'file', 'line']].to_dict(orient='records'),
-        #                  key=scrape_rename.name_sort_key)
-        # concept = all_concepts[0]
-        # for concept in all_concepts:
-        # oracle_renames = [scrape_rename.RenameRecommendation.from_renas_oracle(c) for c in all_concepts]
         project = pm.EvalProject(r.project_name)
-        #
-        rminer_refs = refminer_utils.default_runner.run(project.get_project_path(), r.v2_hash, timeout=300)
-        # filtered_refs = [i for i in rminer_refs if any(k.compare_with_rminer_rename(i)
-        #                                                for k in oracle_renames)]
-        # if len(filtered_refs) != len(r.refactoring_changes):
-        #     print("There was a mismatch in the oracle. updating it.")
-        #     r.refactoring_changes = filtered_refs
-
-        # possible_examples = [i for i in r.refactoring_changes if isinstance(i, refactorings.Rename)
-        #                   and i.old_name == concept['oldName']
-        #                   and i.new_name == concept['newName']
-        #                   and i.start_line == concept['line']
-        #                   and concept['type'].lower() in i.type.lower()
-        #                   and i.leftSideLocations[0].filePath == concept['file']
-        #                   ]
-            # if len(possible_examples) == 1:
-            #     break
-
-
-        # if len(possible_examples) != 1:
-        #     print(f"Couldn't find a seed example for {r.ref_id}")
-        #     print("Assigning the first example")
-        #     if len(r.refactoring_changes) == 0:
-        #         print(f"There were no refactorings in {r.ref_id}!! :/")
-        #         continue
-        #     possible_examples = [r.refactoring_changes[0]]
-            # continue
-        # r.seed_example = possible_examples[0]
-        r.seed_example = r.refactoring_changes[0]
         r.corename_id = 0
 
 
-        # setup_project(project) # create intellij files if missing.
         ij_server.open_project(project_path=project.get_project_path())
 
         ij_server.reset_project_reload_counters()
@@ -93,51 +78,71 @@ def main():
         print(f"checkout success for {r.ref_id} hash {r.v1_hash}")
         ij_server.reload_project()
         print(f"reload success")
-        # ij_server.open_file(Path(r.starting_file))
+
+        candidate = find_seed_candidate(r.refactoring_changes)
+        old_name, new_name = parse_name(candidate)
+
+        seed_rename_json = {"old_name": old_name.strip(' '),
+                            "new_name": new_name.strip(' '),
+                            "line_num": candidate.leftSideLocations[0].startLine,
+                            "code_element_type": candidate.type.lower()}
 
 
-        seed_rename_json = {"old_name": r.hints[0].split('->')[0].strip(' '),
-                       "new_name": r.hints[0].split('->')[1].strip(' '),
-                       "line_num": r.refactoring_changes[0].leftSideLocations[0].startLine,
-                       "code_element_type": r.refactoring_changes[0].type.lower()}
-        file_path = r.refactoring_changes[0].leftSideLocations[0].filePath
-        ij_server.open_file(Path(file_path))
+        ij_server.open_file(Path(candidate.leftSideLocations[0].filePath))
 
         print(f"seed rename json: {seed_rename_json}")
 
         tool_call_status = ij_server.call_tool('rename', **seed_rename_json)
+
         if tool_call_status != 'success':
-            if r.refactoring_changes[0].type.lower() == 'class':
-                tool_call_status = ij_server.call_tool('rename', old_name=r.hints[0].split('->')[0].strip(' '),
-                                                       new_name=r.hints[0].split('->')[1].strip(' '))
-            else:
-                for line in range(r.refactoring_changes[0].leftSideLocations[0].startLine, r.refactoring_changes[0].leftSideLocations[0].startLine + 20):
-                    tool_call_status = ij_server.call_tool('rename', old_name=r.hints[0].split('->')[0].strip(' '),
-                                                           new_name=r.hints[0].split('->')[1].strip(' '), line_num=line)
-                    print(f'tool call status: {tool_call_status} for line {line}')
-                    if tool_call_status == 'success':
-                        break
-                # tool_call_status = ij_server.call_tool('rename', old_name=r.hints[0].split('->')[0].strip(''),
-                #                                        new_name=r.hints[0].split('->')[1].strip(''), line_num=concept['line'] +1)
-        if tool_call_status != 'success':
-            # tool_call_status = ij_server.call_tool('rename', old_name=concept['oldName'],
-            #                                        new_name=concept['newName'])
             print("too call failed.")
             continue
-        assert tool_call_status == 'success'
-        commit_and_write(project, r, rename_data, seed_hashes)
+        else:
+            print("Tool call succeeded")
+            r.seed_example = candidate
+            if candidate.type == 'Rename Class':
+                r.starting_file = candidate.rightSideLocations[0].filePath
+        # assert tool_call_status == 'success'
+        commit_and_write(project, r, rename_data, seed_hashes, output_file_path)
+        sleep(5)
 
 
-def commit_and_write(project, r, rename_data, seed_hashes):
+
+def find_seed_candidate(refactoring_changes: List[RefminerOut]) -> RefminerOut | None:
+    priority = {
+        "Rename Class": 1,
+        "Rename Attribute": 2,
+        "Rename Method": 3,
+        "Rename Parameter": 4,
+        "Rename Variable": 5,
+    }
+
+    def compute_priority(r: RefminerOut) -> tuple[int, int]:
+        # first gives priority by type
+        type_priority = priority.get(r.type, float("inf"))
+
+        # then again deprioritize by test
+        is_test = 1 if "test" in r.leftSideLocations[0].filePath.lower() else 0
+
+        print(f"file: {r.leftSideLocations[0].filePath}, type: {r.type}, is_test: {is_test}")
+        return (is_test, type_priority)
+
+    return min(refactoring_changes, key=compute_priority, default=None)
+
+
+
+def commit_and_write(project, r, rename_data, seed_hashes, output_file_path):
     changed_files = project.get_changed_files()
     project.safe_add(changed_files)
     new_hash = project.git_repo.index.commit(f"seed rename for {r.ref_id}")
     seed_hashes[r.ref_id] = str(new_hash)
     r.seed_hash = str(new_hash)
-    with open(refagent.data_folder.joinpath('ref_miner/rename/camunda-clean2.json'), 'w') as f:
+    with open(refagent.data_folder.joinpath(output_file_path), 'w') as f:
         final_data = [i.to_json() for i in rename_data]
         json.dump(final_data, f, indent=4)
 
 
 if __name__ == '__main__':
-    main()
+    input_file = 'ref_miner/test/one.json'
+    output_file = 'ref_miner/test/one-2.json'
+    main(input_file, output_file)
