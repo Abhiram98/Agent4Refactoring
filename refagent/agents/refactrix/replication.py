@@ -109,7 +109,7 @@ class Replication(BaseModel):
             print(f"Added {len(keyword_search_files)} files from initial API call, total: {len(initial_files_to_inspect)}")
         else:
             print("No initial rename pairs found, skipping new API call")
-
+        initial_files_to_inspect = [i for i in initial_files_to_inspect if i.endswith('.java')]
         if len(initial_files_to_inspect) > 100:
             initial_files_to_inspect = initial_files_to_inspect[:100]
             print("Pruned files to first 100.")
@@ -130,6 +130,10 @@ class Replication(BaseModel):
         try:
             if not self.continue_replication():
                 print("Stopping replication because continue_replication is False")
+                return None
+
+            if not file_path.endswith('.java'):
+                print("Skipping file as not a java file")
                 return None
 
             ask_replicate = self.compile(file_path)  # the edited file?
@@ -763,6 +767,7 @@ class Replication(BaseModel):
                                if i not in keyword_search_files]
             new_files = keyword_search_files + data_flow_files
             new_files = [f for f in new_files if f not in inspected_files]
+            new_files = [f for f in new_files if f.endswith('.java')]
             if len(new_files) > 100:
                 new_files = new_files[:100]
                 print("Pruned files to 100.")
@@ -874,6 +879,9 @@ class SimpleReplication(Replication):
         try:
             if not self.continue_replication():
                 print("Stopping replication because continue_replication is False")
+                return None
+            if not file_path.endswith('.java'):
+                print("Skipping file as not a java file")
                 return None
 
             ask_replicate = self.compile(file_path)
