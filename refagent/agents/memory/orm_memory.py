@@ -435,3 +435,21 @@ class ORMRefactoringMemory:
                 return None
             return scope.RenameScope(pattern=sorted_scopes[0].pattern,
                                      condition=sorted_scopes[0].condition)
+
+    def get_uninspected_rejected_suggestions_count(self) -> int:
+        with self.get_session() as db:
+            response = db.query(RefactoringSuggestion).all()
+            return len([i for i in response if not i.inspected and not i.is_valid])
+
+    def set_all_inspected(self):
+        with self.get_session() as db:
+            db.query(RefactoringSuggestion).update(
+                {
+                    RefactoringSuggestion.inspected: True,
+                    RefactoringSuggestion.updated_at: datetime.now(timezone.utc)
+                },
+                synchronize_session=False
+            )
+            db.commit()
+
+

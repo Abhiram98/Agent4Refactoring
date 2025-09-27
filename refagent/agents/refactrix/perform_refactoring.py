@@ -596,16 +596,18 @@ class PerformRefactoring(BaseModel):
                                            rename_analysis, suggestion)
 
                 if not critique_result.is_valid:
-                    # should_break = True
-
-                    _new_scope = RefineIntent(
-                        source_code=self.ide_server.call_tool_get("get_source_code"),
-                        original_scope=self.new_intent, # build on the new intent if needed.
-                        model=self.model,
-                        accepted_renames=self.orm_memory.get_all_successful_patterns(),
-                        rejected_renames=self.orm_memory.get_all_rejected_patterns()
-                    ).get_new_scope()
-                    self.orm_memory.add_rename_scope(_new_scope)
+                    if self.orm_memory.get_uninspected_rejected_suggestions_count() >= 3:
+                        should_break = True
+                        # refine intent only when are there are more than threshold number of rejections.
+                        _new_scope = RefineIntent(
+                            source_code=self.ide_server.call_tool_get("get_source_code"),
+                            original_scope=self.new_intent, # build on the new intent if needed.
+                            model=self.model,
+                            accepted_renames=self.orm_memory.get_all_successful_patterns(),
+                            rejected_renames=self.orm_memory.get_all_rejected_patterns()
+                        ).get_new_scope()
+                        self.orm_memory.add_rename_scope(_new_scope)
+                        self.orm_memory.set_all_inspected()
 
                 # Categorize suggestion based on validation result
                 if critique_result.is_valid:

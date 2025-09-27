@@ -25,13 +25,12 @@ class RefineIntent(BaseModel):
             model=self.model,
             messages=[
                 SystemMessage("Analyze the accepted and rejected renames and "
-                              "come up with a black list condition that prevents such rejections in the future."),
+                              "come up with a condition that prevents the pattern of rejection."),
                 HumanMessage("I was asked to perform renames according to this pattern: "
-                             f"{self.original_scope.pattern}. However, a few of my operations were rejected. "
-                             f"Please see below"),
+                             f"{self.original_scope.pattern}. However, a few of my suggestions were rejected. "
+                             f"Please see below:"),
                 self.feedback,
-                HumanMessage(f"Respond with a condition that reads like this "
-                             f"(limit to 1-2 sentences): "
+                HumanMessage(f"Respond with a specific condition that reads like this "
                              f"'Do not apply this pattern in cases where ... '")
             ]
         )

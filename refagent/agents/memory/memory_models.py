@@ -38,6 +38,7 @@ class RefactoringSuggestion(Base):
     agent_iteration = Column(Integer, nullable=True)
     retry_count = Column(Integer, default=0)
     llm_iteration = Column(Integer, nullable=True)  # Track which LLM call iteration this was
+    inspected = Column(Boolean, default=False) # whether this case was inspected by the prompt refinement
 
     # Additional context (JSON field for flexibility)
     context_data = Column(Text, nullable=True)  # JSON string

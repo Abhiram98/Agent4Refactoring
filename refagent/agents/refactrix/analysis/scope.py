@@ -10,5 +10,5 @@ class RenameScope(BaseModel):
     def __str__(self) -> str:
         s = self.pattern
         if self.condition is not None:
-            s += f"\n. Apply renames when this condition is met: {self.condition}"
+            s += f". {self.condition}"
         return s
