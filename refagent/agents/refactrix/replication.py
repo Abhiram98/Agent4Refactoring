@@ -110,6 +110,9 @@ class Replication(BaseModel):
         else:
             print("No initial rename pairs found, skipping new API call")
 
+        if len(initial_files_to_inspect) > 100:
+            initial_files_to_inspect = initial_files_to_inspect[:100]
+            print("Pruned files to first 100.")
         _files_in_oracle = self.filter_files_by_oracle(initial_files_to_inspect)
 
         should_replicate_msg = self.should_replicate()
@@ -421,7 +424,7 @@ class Replication(BaseModel):
                                 if file_path.endswith('.java') and file_path not in results:
                                     results.append(SearchResult(**result))
 
-                        print(f"[Search File API] Finished search for {old_name}]. total files found: {len(results)}. files: {results} ")
+                        print(f"[Search File API] Finished search for {old_name}. total files found: {len(results)}. files: {results} ")
                     except json.JSONDecodeError as e:
                         print(f"Failed to parse JSON response: {e}")
                         print(f"Raw response: '{response}'")
@@ -760,6 +763,9 @@ class Replication(BaseModel):
                                if i not in keyword_search_files]
             new_files = keyword_search_files + data_flow_files
             new_files = [f for f in new_files if f not in inspected_files]
+            if len(new_files) > 100:
+                new_files = new_files[:100]
+                print("Pruned files to 100.")
 
             if not new_files:
                 print(f"[ITERATIVE REPLICATION] No new files found in iteration {iteration + 1}, stopping")
