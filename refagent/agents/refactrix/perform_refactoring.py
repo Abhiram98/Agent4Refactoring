@@ -289,7 +289,7 @@ class PerformRefactoring(BaseModel):
                     print(f"[JSON DEBUG] Suggestion {i}: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.line_num} - type {suggestion.code_element_type}")
 
                 # augment suggestions
-                rename_analysis.rename_suggestions += self.get_augmented_suggestions()
+                rename_analysis.rename_suggestions += self.get_auto_suggestions()
 
                 rename_analysis.rename_suggestions \
                     = self.validate_rename_objects(rename_analysis.rename_suggestions)
@@ -1012,8 +1012,10 @@ class PerformRefactoring(BaseModel):
             )
         return critique_result
 
-    def get_augmented_suggestions(self) -> List[RenameSuggestion]:
+    def get_auto_suggestions(self) -> List[RenameSuggestion]:
         # query history to get rename patterns
+        if self.new_intent.condition is not None:
+            return []
         history_based_patterns = []
         success_patterns = self.orm_memory.get_all_successful_patterns()
         for pattern in success_patterns:
@@ -1026,6 +1028,8 @@ class PerformRefactoring(BaseModel):
             except JSONDecodeError:
                 print(f"pattern {pattern} was not found in file")
 
+        if self.new_intent.condition is not None:
+            return self.filter_auto_suggestions(history_based_patterns)
         return history_based_patterns
 
     def get_examples_message(self) -> Optional[HumanMessage]:
@@ -1082,5 +1086,20 @@ class PerformRefactoring(BaseModel):
             message.append("")
 
         return HumanMessage("\n".join(message))
+
+    def filter_auto_suggestions(self, history_based_patterns: List[RenameSuggestion]) -> List[RenameSuggestion]:
+        filtered_patterns = []
+        current_file_content = self.ide_server.call_tool_get("get_source_code")
+        numbered_file_content = code_utils.add_line_numbers(current_file_content)
+        for suggestion in history_based_patterns:
+            response = prompt_cache.prompt(
+                self.model,
+                [self.generate_system_prompt(),
+                 HumanMessage(numbered_file_content),
+                 HumanMessage(f"Answer YES or NO: Should {suggestion.old_name} on line {suggestion.line_num} be renamed?")]
+            )
+            if 'YES' in response.content:
+                filtered_patterns.append(suggestion)
+        return filtered_patterns
 
 
