@@ -73,3 +73,35 @@ class RefineIntent(BaseModel):
         return HumanMessage("\n".join(message))
 
 
+class GeneralizedScopeCreator(BaseModel):
+    model: BaseChatModel
+    old_name: str
+    new_name: str
+
+    def get_generalized_intent(self) -> scope.RenameScope:
+        # assert len(self.accepted_renames) == 1 and len(self.rejected_renames) == 0
+        response = prompt_cache.prompt(
+            model=self.model,
+            messages=[
+                SystemMessage("Analyse the seed rename performed by the developer and come up with a pattern. Respond with a pattern only."),
+                HumanMessage("Here are a few examples on how to perform your task:\n"
+                             ""
+                             "seed rename: 'JoinHintsResolver' -> 'QueryHintsResolver'\n"
+                             "pattern: 'JoinHints' -> 'QueryHints'\n\n"
+                             ""
+                             "seed rename: 'deprecatedRestoreMode' -> 'deprecatedRecoveryClaimMode'\n"
+                             "pattern: 'RestoreMode' -> 'RecoveryClaimMode'\n\n"
+                             ""
+                             "seed rename: 'rescaleManager' -> 'stateTransitionManager'\n"
+                             "pattern: 'rescaleManager' -> 'stateTransitionManager'\n\n"
+                             ""
+                             "seed rename: 'trackLatencyOnIteratorInit' -> 'trackMetricsOnIteratorInit'\n"
+                             "pattern: 'Latency' -> 'Metrics'\n\n"
+                             ""
+                             "seed rename: 'getOperatorID' -> 'getOperatorIdentifier'\n"
+                             "pattern: 'OperatorID' -> 'OperatorIdentifier'\n\n"
+                             ),
+                HumanMessage(f"seed rename: '{self.old_name}' -> '{self.new_name}'"),
+            ]
+        )
+        return scope.RenameScope(pattern=f"Perform renames that follow this general pattern: {response.content}")
