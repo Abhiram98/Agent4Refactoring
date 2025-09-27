@@ -155,7 +155,6 @@ def run_and_parse_refminer_output(project, commit_hash):
     refactorings = [i for i in refactorings if i.type.split()[0] == 'Rename']
     return refactorings
 
-2
 
 if __name__ == "__main__":
     file_path = 'ref_miner/test/flink-clean-large.json'
