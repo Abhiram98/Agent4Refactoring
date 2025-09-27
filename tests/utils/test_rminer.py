@@ -52,4 +52,8 @@ def test_ratpack_557():
     changes = rminer.default_runner.run(project.get_project_path(), '30b186e119df5bf959a4234f640a2dbab406db71')
     print(changes)
     assert len(changes) > 0
-    #
+
+def test_rminer_flink_2341():
+    project = pm.EvalProject('flink')
+    changes = rminer.default_runner.run(project.get_project_path(), '84444d5071984a8543a81574dc69c0c9849a8a4a')
+    assert len(changes)>0

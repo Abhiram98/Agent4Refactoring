@@ -38,6 +38,7 @@ class RefactoringSuggestion(Base):
     agent_iteration = Column(Integer, nullable=True)
     retry_count = Column(Integer, default=0)
     llm_iteration = Column(Integer, nullable=True)  # Track which LLM call iteration this was
+    inspected = Column(Boolean, default=False) # whether this case was inspected by the prompt refinement
 
     # Additional context (JSON field for flexibility)
     context_data = Column(Text, nullable=True)  # JSON string
@@ -133,9 +134,10 @@ class ExamplePair(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
-class RenameScope(Base):
+class RenameScopeTableEntry(Base):
     __tablename__ = 'rename_scopes'
     id = Column(Integer, primary_key=True, autoincrement=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    scope = Column(String, nullable=False)
+    pattern= Column(String, nullable=False)
+    condition = Column(String, nullable=True)
 

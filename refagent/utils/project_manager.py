@@ -191,9 +191,13 @@ class EvalProject:
             self.git_repo.git.add(files_changed)
 
     def safe_add(self, files_changed):
-        actual_files = [file for file in files_changed if
-                        os.path.exists(self.get_project_path().joinpath(file))]
-        self.git_repo.git.add(actual_files)
+        for file in files_changed:
+            try:
+                subprocess.run(['git', '-C', self.get_project_path(), 'add', file])
+            except Exception as e:
+                print(e)
+                print("Failed to add file {}".format(file))
+
 
     def get_git_diff(self, file_path: str, head_count: int=None) -> str:
         if head_count is not None:

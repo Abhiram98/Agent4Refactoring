@@ -1,23 +1,29 @@
-import argparse
-from idlelib.configdialog import changes 
 import os
 from pathlib import Path
 import json
 from typing import Optional, List
 import traceback
-# import refagent.agents.simple_agent as simple_agent
+
+from grazie_langchain_utils.language_models.grazie import ChatGrazie
+from pydantic.v1 import SecretStr
+from grazie.api.client.endpoints import GrazieApiGatewayUrls
+from grazie.api.client.gateway import AuthType
+
 import refagent.benchmark.load as bm_load
 import refagent
 import refagent.experiments.results_manager as rm
 import refagent.utils.project_manager as pm
 import argparse
-import refagent.agents.refactrix.refactoring_agent as ra
 import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.react_agent as react_agent
 import refagent.experiments.init_memory as init_memory
+import refagent.agents.refactrix.analysis.scope as scope
+import refagent.agents.refactrix.analysis.refine_intent as refine_intent
 
 import langsmith as ls
+
+from agents.refactrix.supported_refactorings import CodeElementType
 
 
 def setup_and_run(bench_point: bm_load.RenameItem,
@@ -25,11 +31,32 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                   results_saver: rm.ResultsManager,
                   do_replication: bool,
                   plan: Optional[planning.RefactoringPlan],
-                  augmented_intent: Optional[str],
                   initial_commit: Optional[str]=None,
                   use_seed: bool=False,
                   ):
     project = pm.EvalProject(bench_point.project_name)
+    enable_critique = args.enable_critique.lower() == "true"
+    enable_memory = args.enable_memory.lower() == "true"
+
+    # Memory is automatically disabled when critique is disabled
+    if not enable_critique:
+        enable_memory = False
+        print("[MEMORY] Memory disabled because critique is disabled")
+
+    # Create memory database path in the same directory as results (even if disabled for logging)
+    # Ensure the directory exists
+    augmented_intent = gen_augmented_intent(
+        old_name=bench_point.seed_example.old_name,
+        new_name=bench_point.seed_example.new_name,
+    )
+    memory_db_path = initialize_memory(augmented_intent,
+                                       bench_point,
+                                       do_replication,
+                                       ij_server,
+                                       use_seed,
+                                       project)
+
+
     ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
     checkout_commit(bench_point, initial_commit, project, use_seed, do_replication)
 
@@ -44,37 +71,12 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     vendor = 'grazie' # switch to `openai` to use the openai models directly
     # vendor = 'openai'
 
-    enable_critique = args.enable_critique.lower() == "true"
-    enable_memory = args.enable_memory.lower() == "true"
-    
-    # Memory is automatically disabled when critique is disabled
-    if not enable_critique:
-        enable_memory = False
-        print("[MEMORY] Memory disabled because critique is disabled")
-    
-    # Create memory database path in the same directory as results (even if disabled for logging)
-    results_dir = os.path.dirname(args.run_identifier) if "/" in args.run_identifier else "."
-    # Ensure the directory exists
-    os.makedirs(results_dir, exist_ok=True)
-
-    db_name = f"memory_{args.run_identifier.split('/')[-1]}_{bench_point.ref_id}.db"
-    orig_memory_db_path = os.path.join(results_dir, db_name)
-    memory_db_path = init_memory.InitMemory(
-        benchmark_item=bench_point,
-        do_replication=do_replication,
-        use_seed=use_seed,
-        initial_intent=augmented_intent,
-        source_code=project.get_file_contents(bench_point.starting_file)
-    ).init_memory(Path(orig_memory_db_path))
-    memory_db_path = str(memory_db_path)
-    print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
-
     agent = react_agent.ReactAgent(ide_server=ij_server,
                      reasoning_model_name=f'{vendor}:openai-o4-mini',
                      model_name=f'{vendor}:openai-gpt-4o-mini',
                      project=project,
                      plan_component=plan_type,
-                     augmented_intent=augmented_intent,
+                     augmented_intent=scope.RenameScope(pattern=augmented_intent),
                      do_replication=do_replication,
                      enable_critique=enable_critique,
                      enable_memory=enable_memory,
@@ -132,6 +134,61 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     results_saver.save()
 
 
+def initialize_memory(augmented_intent: str,
+                      bench_point: bm_load.RenameItem,
+                      do_replication: bool,
+                      ij_server: ij.IntellijServer,
+                      use_seed: bool,
+                      project: pm.EvalProject
+                      ):
+    db_name = f"memory_{args.run_identifier.split('/')[-1]}_{bench_point.ref_id}.db"
+    orig_memory_db_path = str(refagent.repo_root.joinpath('logs').joinpath(db_name))
+    memory_db_path = init_memory.InitMemory(
+        benchmark_item=bench_point,
+        do_replication=do_replication,
+        use_seed=use_seed,
+        initial_intent=augmented_intent,
+        snippet_code=get_snippet_code(bench_point, project, ij_server),
+    ).init_memory(Path(orig_memory_db_path))
+    memory_db_path = str(memory_db_path)
+    print(f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}")
+    return memory_db_path
+
+def gen_augmented_intent(
+        old_name: str,
+        new_name: str,
+) -> str:
+    grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
+    model = ChatGrazie(grazie_jwt_token=SecretStr(grazie_token),
+                       client_auth_type=AuthType.APPLICATION,
+                       client_url=GrazieApiGatewayUrls.PRODUCTION,
+                       profile='openai-o4-mini',
+                       client_agent_name='ref-agent',
+                       client_agent_version='0.1')
+
+    return refine_intent.GeneralizedScopeCreator(
+        model=model,
+        old_name=old_name,
+        new_name=new_name
+    ).get_generalized_intent().pattern
+
+def get_snippet_code(bench_point: bm_load.RenameItem, project: pm.EvalProject, ij_server: ij.IntellijServer) -> str:
+    ij_server.reset_project_reload_counters()  # reset the counters, before checking out branch
+    project.checkout(bench_point.v1_hash, force=True)
+
+    ij_server.open_project(project_path=project.get_project_path())
+    ij_server.reload_project()
+
+    ij_server.open_file(Path(bench_point.seed_example.leftSideLocations[0].filePath))
+    return ij_server.call_tool('get_source_code_snippet',
+                        name=bench_point.seed_example.old_name,
+                        line_num=bench_point.seed_example.start_line,
+                        file_path=bench_point.seed_example.leftSideLocations[0].filePath,
+                        code_element_type=CodeElementType.get_rminer_str(bench_point.seed_example.type)
+                        )
+
+
+
 def checkout_commit(bench_point, initial_commit, project, use_seed, do_replication):
     project.restore_changes()
 
@@ -180,8 +237,6 @@ if __name__ == '__main__':
     parser.add_argument('-run_identifier', type=str, help='An identifier to '
                                                           'checkpoint the performance of the agent',
                         default="default")
-    parser.add_argument('-planning_results_file', type=str, help='Use results from previous planning '
-                                                                 'run to avoid double work.', default=None)
     parser.add_argument('--benchmark_file', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
     parser.add_argument('--benchmark_type', type=str, help='default/rename',
                         default='default')
@@ -215,15 +270,6 @@ if __name__ == '__main__':
     ij_server = ij.IntellijServer(server_url=args.ij_server_url)
 
     planning_results = {}
-    augmented_intents = {}
-    if args.planning_results_file is not None:
-        with open(refagent.data_folder.joinpath(args.planning_results_file)) as f:
-            json_ = json.load(f)
-            planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) if i['response']['plan'] is not None else None
-                                for i in json_}
-            planning_results = {i['id']: planning.RefactoringPlan(**i['response']['plan']) if i['response']['plan'] is not None else None
-                                for i in json_}
-            augmented_intents = {i['id']: i['response']['augmented_intent'] for i in json_}
 
     initial_save_file = rm.ResultsManager(run_identifier=args.run_identifier, save_file="no-replication.json").save_file_path
     initial_commits={}
@@ -267,6 +313,5 @@ if __name__ == '__main__':
                       tags=[args.run_identifier]) as tracer:
             setup_and_run(bench_point, ij_server, results_saver, do_replication,
                           plan=planning_results.get(bench_point.ref_id),
-                          augmented_intent=bench_point.change_summary if args.use_change_summary.lower() == "true" else augmented_intents.get(bench_point.ref_id),
                           initial_commit=initial_commits.get(bench_point.ref_id),
                           use_seed=args.use_seed)

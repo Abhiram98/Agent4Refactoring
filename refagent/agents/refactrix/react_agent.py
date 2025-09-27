@@ -34,8 +34,7 @@ class ReactAgent(ra.Agent):
 
 
         try:
-            graph = self.compile_graph(model=model,
-                                       initial_intent=self.augmented_intent,
+            graph = self.compile_graph(model=self._reasoning_model,
                                        plan_step=step,
                                        step_count=0,
                                        ask_finished_first_iteration=True)
@@ -61,7 +60,7 @@ class ReactAgent(ra.Agent):
         return planning.RefactoringPlan(
             steps=[
                 planning.PlanningStep(
-                    reason=self.augmented_intent,
+                    reason=str(self.augmented_intent),
                     execution_details="",
                     final_code="",
                     refactoring_type=sup_refs.SupportedRefactorings.RENAME,
@@ -75,7 +74,6 @@ class ReactAgent(ra.Agent):
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=self.augmented_intent,  # pass the augmented intent,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,
@@ -87,7 +85,7 @@ class ReactAgent(ra.Agent):
             benchmark_id=self.benchmark_id,
             memory_database_url=self.memory_database_url
         )
-        self.MAX_GRAPH_ITERATION = 2
+        self.MAX_GRAPH_ITERATION = 2 # nit: are these changes to hyperparameters necessary?
         self.MAX_FAILING_TOOL_CALLS = 1
         for plan in replicator.compile_and_run():
             try:

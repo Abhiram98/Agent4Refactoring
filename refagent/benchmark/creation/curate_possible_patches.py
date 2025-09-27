@@ -127,7 +127,7 @@ class PatchCurator(BaseModel):
                 self.agent_output.append(
                     {
                         "ref_id": i.ref_id,
-                        "augmented_intent": agent.augmented_intent,
+                        "augmented_intent": str(agent.augmented_intent),
                         "recommendations": agent.files_and_planning
                     }
                 )

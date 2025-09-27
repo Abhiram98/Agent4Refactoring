@@ -41,6 +41,7 @@ import refagent.agents.refactrix.replication as replication
 import refagent.agents.refactrix.error_fixing as error_fixing
 import refagent.agents.refactrix.quality_check as quality_check
 import refagent.agents.refactrix.critique as critique
+import refagent.agents.refactrix.analysis.scope as scope
 
 
 class SelectedRefactoring(BaseModel):
@@ -64,7 +65,7 @@ class Agent(BaseModel):
                                                    default=planning.PlanningComponent)
 
     max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
-    augmented_intent: Optional[str] = Field(description="the intent to be refactored", default=None)
+    augmented_intent: Optional[scope.RenameScope] = Field(description="the intent to be refactored", default=None)
     do_replication: bool = Field(description="whether to run replication", default=True)
     enable_critique: bool = Field(description="whether to enable oracle-based critique", default=True)
     enable_memory: bool = Field(description="whether to enable memory component for storing and retrieving suggestions", default=True)
@@ -163,7 +164,7 @@ class Agent(BaseModel):
 
         if self.augmented_intent is None:
             self.augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
-        current_intent = self.augmented_intent
+        current_intent = str(self.augmented_intent)
 
         current_intent, ref_plan = self.run_agentic_loop(current_intent, model, starting_file)
 
@@ -196,7 +197,7 @@ class Agent(BaseModel):
         else:
             print("Critique component disabled or no oracle data provided")
 
-    def run_agentic_loop(self, current_intent, model, starting_file):
+    def run_agentic_loop(self, current_intent: str, model, starting_file):
         for _ in range(self.max_iterations):
             self.update_starting_file(starting_file)
             self._source_code = self.project.get_file_contents(self._starting_file)
@@ -229,16 +230,18 @@ class Agent(BaseModel):
             ide_server=self.ide_server,
             original_code=self._original_source_code,
             refactored_code=self._source_code,
-            intent=self.augmented_intent
+            intent=str(self.augmented_intent)
         ).compile_and_run()
         return quality_result
 
-    def perform_replication(self, current_intent, model, ref_plan):
+    def perform_replication(self,
+                            current_intent: str,
+                            model,
+                            ref_plan):
         replicator = replication.Replication(
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=self.augmented_intent,  # pass the augmented intent,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,
@@ -271,7 +274,7 @@ class Agent(BaseModel):
 
         return diff
 
-    def analyze_developer_intent(self, initial_intent, model, starting_file):
+    def analyze_developer_intent(self, initial_intent, model, starting_file) -> scope.RenameScope:
         """Analyze the developer intent and return the refactoring type and reason."""
 
         old_name = initial_intent.split(" -> ")[0].split(" ")[-1]
@@ -288,7 +291,7 @@ class Agent(BaseModel):
         )
         analysis_report = analysis_component.run()
         analysis_report = analysis_report.augmented_intent
-        return analysis_report
+        return scope.RenameScope(pattern=analysis_report)
 
     def generate_initial_plan(self, analysis_report):
         planning_component = self.plan_component(
@@ -317,7 +320,6 @@ class Agent(BaseModel):
             self._failing_tool_call_count = 0
             try:
                 graph = self.compile_graph(model=model,
-                                           initial_intent=initial_intent,
                                            plan_step=step,
                                            step_count=i,
                                            ask_finished_first_iteration=ask_finished_first_iteration)
@@ -470,7 +472,6 @@ class Agent(BaseModel):
         return self._source_code == ''
 
     def compile_graph(self, model: BaseChatModel,
-                      initial_intent: str,
                       plan_step: planning.PlanningStep,
                       step_count: int,
                       ask_finished_first_iteration: bool
