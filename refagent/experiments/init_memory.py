@@ -63,6 +63,6 @@ class InitMemory(BaseModel):
     def no_replication_path(self, memory_db_path):
         extension = memory_db_path.suffix
         before_extension = memory_db_path.stem + '-no-replication'
-        memory_db_path = Path(before_extension).with_suffix(extension)
-        return memory_db_path
+        new_memory_db_path = Path(before_extension).with_suffix(extension)
+        return memory_db_path.parent.joinpath(new_memory_db_path)
 
