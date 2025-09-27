@@ -55,3 +55,14 @@ def test_flink_snippet():
     print(f"{response=}")
     assert response is not None
     assert len(response.splitlines()) > 100
+
+    _json = {
+        "name": "setupClassloader",
+        "line_num": 117,
+        "code_element_type": "field",
+        "file_path": "flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java"
+    }
+    response = intellij_server.call_tool('get_source_code_snippet',
+                                         **_json)
+    print(f"{response=}")
+    assert response is not None
