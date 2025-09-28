@@ -137,8 +137,8 @@ def main():
         else:
             accepted_rate = None
 
-        operated_files_count = result['response']['replication_inspection_data']['operated_files_count']
-        inspected_files_count = result['response']['replication_inspection_data']['inspected_files_count']
+        operated_files_count = result['response']['replication_inspection_data'].get('operated_files_count')
+        inspected_files_count = result['response']['replication_inspection_data'].get('inspected_files_count')
 
         print(f"avg recall = {overall_recall / total_oracle}")
         print(f"avg precision = {overall_precision / total_oracle}")
