@@ -1,14 +1,16 @@
 import json
 from pathlib import Path
+from time import sleep
 from typing import List
 import re
+import sys
 
 import refagent
 import refagent.benchmark.load as benchmark_load
 import refagent.utils.project_manager as pm
 import refagent.utils.intellij_server as ij
 import refagent.refactoring_types.refactorings as refactorings
-from agents.refactrix.supported_refactorings import CodeElementType
+from refagent.agents.refactrix.supported_refactorings import CodeElementType
 from refagent.refactoring_types.refactorings import RefminerOut
 
 
@@ -75,14 +77,6 @@ def main(bench_file_path, output_file_path):
 
     for r in rename_data:
         print(f"Creating seed example for {r.ref_id}")
-        # if r.ref_id != 502:
-        #     print("Skipping less than 513")
-        #     continue
-        # if r.project_name!='ratpack':
-        #     print("Skipping project name other than 'ratpack'")
-        # if r.seed_hash is not None:
-        #     print(f"Seed computation was completed for {r.ref_id}")
-        #     continue
 
         project = pm.EvalProject(r.project_name)
 
@@ -122,9 +116,11 @@ def main(bench_file_path, output_file_path):
             r.seed_example = candidate
             if candidate.type == 'Rename Class':
                 r.starting_file = candidate.rightSideLocations[0].filePath
+            else:
+                r.starting_file = candidate.leftSideLocations[0].filePath
         # assert tool_call_status == 'success'
         commit_and_write(project, r, rename_data, seed_hashes, output_file_path)
-        # sleep(5)
+        sleep(5)
 
 
 def find_seed_candidate(refactoring_changes: List[RefminerOut]) -> RefminerOut | None:
@@ -137,11 +133,11 @@ def find_seed_candidate(refactoring_changes: List[RefminerOut]) -> RefminerOut |
     }
 
     def compute_priority(r: RefminerOut) -> tuple[int, int]:
-        # first gives priority by type
-        type_priority = priority.get(r.type, float("inf"))
-
-        # then again deprioritize by test
+        # first deprioritize by "is it in test class?"
         is_test = 1 if "test" in r.leftSideLocations[0].filePath.lower() else 0
+
+        # then again prioritize by type
+        type_priority = priority.get(r.type, float("inf"))
 
         print(f"file: {r.leftSideLocations[0].filePath}, type: {r.type}, is_test: {is_test}")
         return (is_test, type_priority)
@@ -162,7 +158,6 @@ def commit_and_write(project, r, rename_data, seed_hashes, bench_file_path: str)
 
 
 if __name__ == '__main__':
-    import sys
     bench_file_path = str(sys.argv[1])
     output_file_path = str(sys.argv[2]) if len(sys.argv) > 2 else bench_file_path
     main(bench_file_path, output_file_path)
