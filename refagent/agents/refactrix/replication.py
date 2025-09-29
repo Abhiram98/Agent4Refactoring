@@ -56,7 +56,6 @@ class Replication(BaseModel):
     ide_server: ij.IntellijServer = Field(description="intellij server to interact with")
     executed_plan: planning.RefactoringPlan = Field(description="executed plan that needs replication")
     starting_file: str = Field(description="The first file that was edited.")
-    refactoring_commit: Commit = Field(description="The commit that was edited.")
     oracle_data: Optional[List[refactoring_types.RefminerOut]] = Field(description="Oracle refactoring data for filtering files", default=None)
     
     # Memory system parameters

@@ -247,7 +247,6 @@ class Agent(BaseModel):
             project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
-            refactoring_commit=self._internal_commits[0],
             oracle_data=self._oracle_data,  # Pass oracle data for file filtering,
             memory_database_url=self.memory_database_url
         )
@@ -259,9 +258,6 @@ class Agent(BaseModel):
         self._replication_inspection_data = replicator.get_files_inspection_data()
 
     def get_important_files_diff(self):
-        # important_files = [str(i) for i in
-        #                    self.compute_most_important(self._files_changed)
-        #                    ]
         important_files = [self._starting_file]
 
         diff = ""
@@ -344,27 +340,6 @@ class Agent(BaseModel):
                 final_state = {'messages': [HumanMessage(f"Execution of step {i + 1} failed.")]}
 
         return final_state
-
-    def compute_most_important(self, file_changed) -> list[Path]:
-        # Compute the relevant files that were changed.
-        changes = []
-        if len(self._internal_commits) > 0:
-            changes += self.project.get_changes(str(self._internal_commits[-1]))
-        changes += self.project.get_unstaged_changes() + self.project.get_staged_changes()
-        for change in changes:
-            if (change.git_diff.a_path is None
-                    and change.git_diff.b_path is not None
-                    and change.git_diff.b_path.endswith('.java')
-            ):
-                # newly created file
-                self._directly_edited_files.add(Path(change.git_diff.b_path))
-            if (change.git_diff.a_path is not None and change.git_diff.b_path is not None
-                    and change.git_diff.b_path != change.git_diff.a_path
-                    and change.git_diff.b_path.endswith('.java')
-            ):
-                # file renamed. Hueristic - files renamed are often important files to look at
-                self._directly_edited_files.add(Path(change.git_diff.b_path))
-        return list(self._directly_edited_files)
 
     def get_changed_file_contents(self) -> HumanMessage:
         self.ide_server.call_tool('save_all_changes')
@@ -661,9 +636,6 @@ class Agent(BaseModel):
         for c in changes[::-1]:  # reverse order, so that the staged changes are considered first.
             if c.git_diff.a_path == starting_file:
                 self._starting_file = c.git_diff.b_path
-                if len(uncommited_changes) > 0:
-                    self._internal_commits.pop()
-                    self.project.reset_head(1)  # reset the uncommited changes.
                 return c.git_diff.b_path
         return starting_file
 

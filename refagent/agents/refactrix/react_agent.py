@@ -79,7 +79,6 @@ class ReactAgent(ra.Agent):
             project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
-            refactoring_commit=self._internal_commits[0],
             oracle_data=self._oracle_data,
             # Pass memory parameters for iterative replication
             benchmark_id=self.benchmark_id,
