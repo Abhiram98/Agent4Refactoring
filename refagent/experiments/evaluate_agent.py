@@ -132,6 +132,12 @@ def main():
         review_count = result['response'].get('human_review_count')
         accepted_count = result['response'].get('human_accepted_count')
         rejected_count = result['response'].get('human_rejected_count')
+
+        if IGNORE_SEED and review_count is not None:
+            review_count -= 1
+        if IGNORE_SEED and accepted_count is not None:
+            accepted_count -= 1
+
         if accepted_count is not None and rejected_count is not None:
             accepted_rate = accepted_count/ (accepted_count + rejected_count)
         else:
