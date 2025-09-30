@@ -139,7 +139,10 @@ def main():
             accepted_count -= 1
 
         if accepted_count is not None and rejected_count is not None:
-            accepted_rate = accepted_count/ (accepted_count + rejected_count)
+            try:
+                accepted_rate = accepted_count/ (accepted_count + rejected_count)
+            except ZeroDivisionError:
+                accepted_rate = 0
         else:
             accepted_rate = None
 
