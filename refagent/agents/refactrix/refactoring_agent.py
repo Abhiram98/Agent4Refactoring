@@ -69,6 +69,7 @@ class Agent(BaseModel):
     do_replication: bool = Field(description="whether to run replication", default=True)
     enable_hula: bool = Field(description="whether to enable oracle-based critique", default=True)
     enable_memory: bool = Field(description="whether to enable memory component for storing and retrieving suggestions", default=True)
+    disable_scope_refinement: bool = Field(description="whether to disable scope refactoring", default=False)
     critique_config: Optional[critique.CritiqueConfig] = Field(description="critique component configuration", default=None)
     
     # Memory parameters
@@ -502,6 +503,7 @@ class Agent(BaseModel):
                 replication_enabled=self.do_replication,
                 enable_memory=self.enable_memory,
                 critique_component=self._critique_component, # Pass critique component to the executor,
+                disable_scope_refinement=self.disable_scope_refinement
             )
             perform_refactoring_graph = executor.compile()
             self.get_changed_file_contents() # nit: this call exists to update the changed files list. this is tech debt
