@@ -35,11 +35,11 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                   use_seed: bool=False,
                   ):
     project = pm.EvalProject(bench_point.project_name)
-    enable_critique = args.enable_critique.lower() == "true"
+    enable_hula = args.enable_critique.lower() == "true"
     enable_memory = args.enable_memory.lower() == "true"
 
     # Memory is automatically disabled when critique is disabled
-    if not enable_critique:
+    if not enable_hula:
         enable_memory = False
         print("[MEMORY] Memory disabled because critique is disabled")
 
@@ -78,7 +78,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                      plan_component=plan_type,
                      augmented_intent=scope.RenameScope(pattern=augmented_intent),
                      do_replication=do_replication,
-                     enable_critique=enable_critique,
+                     enable_hula=enable_hula,
                      enable_memory=enable_memory,
                      benchmark_id=bench_point.ref_id,  
                      memory_database_url=f"sqlite:///{memory_db_path}")
@@ -87,9 +87,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     try:
         if not do_replication:
             agent.initialize_agent(starting_file=bench_point.starting_file)
-            if enable_critique:
-                print("Critique Enabled")
-                agent.initialize_critique_component(bench_point.refactoring_changes)
+            agent.initialize_critique_component(bench_point.refactoring_changes)
             final_message = agent.run(initial_intent=bench_point.improved_commit_message,
                                       starting_file=bench_point.starting_file)  # run the agent with commit message
         else:
@@ -97,8 +95,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
             agent.add_internal_commit(project.git_repo.commit(initial_commit))
             agent.initialize_agent(starting_file=bench_point.starting_file)
             # Re-initialize critique component after agent initialization
-            if enable_critique:
-                agent.initialize_critique_component(bench_point.refactoring_changes)
+            agent.initialize_critique_component(bench_point.refactoring_changes)
             agent.perform_replication(augmented_intent, agent.create_model(f'{vendor}:openai-gpt-4o-mini'), agent.generate_initial_plan(augmented_intent))
     except Exception as e:
         print("Agent execution failed ;/")
@@ -249,8 +246,8 @@ if __name__ == '__main__':
                              "If true, the change summary is used to improve the intent. "
                              "If false, the change summary is not used.", default='False')
     parser.add_argument("--use_seed", action='store_true')
-    parser.add_argument("--enable_critique", type=str, 
-                        help="Whether to enable oracle-based critique component. "
+    parser.add_argument("--enable_hula", type=str,
+                        help="Whether to enable oracle-based human-in-the-loop component. "
                              "If true, agent suggestions are validated against oracle data before execution.",
                         default="true")
     parser.add_argument("--enable_memory", type=str,
