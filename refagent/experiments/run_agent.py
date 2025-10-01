@@ -35,9 +35,9 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                   use_seed: bool=False,
                   ):
     project = pm.EvalProject(bench_point.project_name)
-    enable_hula = not args.disable_hula.lower() == "true"
+    enable_hula = not args.disable_hula
     enable_memory = args.enable_memory.lower() == "true"
-    disable_scope_refinement = args.disable_scope_refinement.lower() == "true"
+    disable_scope_refinement = args.disable_scope_refinement
 
     # Memory is automatically disabled when critique is disabled
     if not enable_hula:
@@ -249,11 +249,11 @@ if __name__ == '__main__':
                              "If true, the change summary is used to improve the intent. "
                              "If false, the change summary is not used.", default='False')
     parser.add_argument("--use_seed", action='store_true')
-    parser.add_argument("--disable_hula", type=str,
+    parser.add_argument("--disable_hula",
                         help="Whether to diable oracle-based human-in-the-loop component. "
                              "If true, agent suggestions are NOT validated against oracle data before execution.",
                         action='store_true')
-    parser.add_argument("--disable_scope_refinement", type=str,
+    parser.add_argument("--disable_scope_refinement",
                         help="Whether to enable Scope refinement loop. "
                              "If true, agent will not do scope refinement.",
                         action='store_true')
