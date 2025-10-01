@@ -452,8 +452,38 @@
                 ]
             }
         ],
-        "recall": 0.14285714285714285,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Class",
+                "description": "Rename Class org.apache.flink.table.types.inference.utils.AdaptedCallContext renamed to org.apache.flink.table.types.inference.utils.CastCallContext",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/utils/AdaptedCallContext.java",
+                        "startLine": 37,
+                        "endLine": 127,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "org.apache.flink.table.types.inference.utils.AdaptedCallContext"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/utils/AdaptedCallContext.java",
+                        "startLine": 37,
+                        "endLine": 127,
+                        "startColumn": 0,
+                        "endColumn": 0,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "org.apache.flink.table.types.inference.utils.CastCallContext"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2012,
@@ -660,8 +690,38 @@
                 ]
             }
         ],
-        "recall": 0.16666666666666666,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute ASYNC_STATE_BUFFER_SIZE : ConfigOption<Integer> to ASYNC_STATE_ACTIVE_BUFFER_SIZE : ConfigOption<Integer> in class org.apache.flink.configuration.ExecutionOptions",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-core/src/main/java/org/apache/flink/configuration/ExecutionOptions.java",
+                        "startLine": 217,
+                        "endLine": 225,
+                        "startColumn": 47,
+                        "endColumn": 144,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "ASYNC_STATE_BUFFER_SIZE : ConfigOption<Integer>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-core/src/main/java/org/apache/flink/configuration/ExecutionOptions.java",
+                        "startLine": 217,
+                        "endLine": 225,
+                        "startColumn": 47,
+                        "endColumn": 144,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "ASYNC_STATE_ACTIVE_BUFFER_SIZE : ConfigOption<Integer>"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2051,
@@ -960,7 +1020,8 @@
         "new_commit_hash": "1e6b4473af98f146344d4017335f6242194f5340",
         "detected_refactorings": [],
         "recall": 0.0,
-        "precision": 0.0
+        "precision": 0.0,
+        "true_positives": []
     },
     {
         "id": 2052,
@@ -1519,8 +1580,182 @@
                 ]
             }
         ],
-        "recall": 0.6666666666666666,
-        "precision": 0.8
+        "recall": 0.6,
+        "precision": 0.75,
+        "true_positives": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable scalingIntervalMin : Duration to executingCooldownTimeout : Duration in method public of(configuration Configuration, checkpointingConfiguration JobCheckpointingSettings) : Settings from class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 233,
+                        "endLine": 234,
+                        "startColumn": 28,
+                        "endColumn": 88,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 233,
+                        "endLine": 234,
+                        "startColumn": 13,
+                        "endColumn": 89,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 280,
+                        "endLine": 294,
+                        "startColumn": 13,
+                        "endColumn": 54,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 232,
+                        "endLine": 233,
+                        "startColumn": 28,
+                        "endColumn": 88,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "executingCooldownTimeout : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 232,
+                        "endLine": 233,
+                        "startColumn": 13,
+                        "endColumn": 89,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 279,
+                        "endLine": 293,
+                        "startColumn": 13,
+                        "endColumn": 54,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter scalingIntervalMin : Duration to executingCooldownTimeout : Duration in method private Settings(executionMode SchedulerExecutionMode, initialResourceAllocationTimeout Duration, resourceStabilizationTimeout Duration, slotIdleTimeout Duration, executingCooldownTimeout Duration, scalingResourceStabilizationTimeout Duration, maximumDelayForTriggeringRescale Duration, rescaleOnFailedCheckpointCount int) from class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 311,
+                        "endLine": 311,
+                        "startColumn": 17,
+                        "endColumn": 44,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 319,
+                        "endLine": 319,
+                        "startColumn": 13,
+                        "endColumn": 58,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 310,
+                        "endLine": 310,
+                        "startColumn": 17,
+                        "endColumn": 50,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "executingCooldownTimeout : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 318,
+                        "endLine": 318,
+                        "startColumn": 13,
+                        "endColumn": 70,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute scalingIntervalMin : Duration to executingCooldownTimeout : Duration in class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 301,
+                        "endLine": 301,
+                        "startColumn": 32,
+                        "endColumn": 50,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 300,
+                        "endLine": 300,
+                        "startColumn": 32,
+                        "endColumn": 56,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "executingCooldownTimeout : Duration"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public getScalingIntervalMin() : Duration renamed to public getExecutingCooldownTimeout() : Duration in class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 341,
+                        "endLine": 343,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public getScalingIntervalMin() : Duration"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 340,
+                        "endLine": 342,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public getExecutingCooldownTimeout() : Duration"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2053,
@@ -1723,7 +1958,8 @@
         "new_commit_hash": "81a1c529c67af8820925b58782fb64e079ceeae5",
         "detected_refactorings": [],
         "recall": 0.0,
-        "precision": 0.0
+        "precision": 0.0,
+        "true_positives": []
     },
     {
         "id": 2054,
@@ -1998,8 +2234,114 @@
                 ]
             }
         ],
-        "recall": 0.75,
-        "precision": 0.75
+        "recall": 0.6666666666666666,
+        "precision": 0.6666666666666666,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter resourceStabilizationTimeout : Duration to submissionResourceStabilizationTimeout : Duration in method private Settings(executionMode SchedulerExecutionMode, initialResourceAllocationTimeout Duration, submissionResourceStabilizationTimeout Duration, slotIdleTimeout Duration, scalingIntervalMin Duration, scalingResourceStabilizationTimeout Duration, maximumDelayForTriggeringRescale Duration, rescaleOnFailedCheckpointCount int) from class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 309,
+                        "endLine": 309,
+                        "startColumn": 17,
+                        "endColumn": 54,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "resourceStabilizationTimeout : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 317,
+                        "endLine": 317,
+                        "startColumn": 13,
+                        "endColumn": 78,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 308,
+                        "endLine": 308,
+                        "startColumn": 17,
+                        "endColumn": 64,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "submissionResourceStabilizationTimeout : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 316,
+                        "endLine": 316,
+                        "startColumn": 13,
+                        "endColumn": 98,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute resourceStabilizationTimeout : Duration to submissionResourceStabilizationTimeout : Duration in class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 299,
+                        "endLine": 299,
+                        "startColumn": 32,
+                        "endColumn": 60,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "resourceStabilizationTimeout : Duration"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 298,
+                        "endLine": 298,
+                        "startColumn": 32,
+                        "endColumn": 70,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "submissionResourceStabilizationTimeout : Duration"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public getResourceStabilizationTimeout() : Duration renamed to public getSubmissionResourceStabilizationTimeout() : Duration in class org.apache.flink.runtime.scheduler.adaptive.AdaptiveScheduler.Settings",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 333,
+                        "endLine": 335,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public getResourceStabilizationTimeout() : Duration"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/AdaptiveScheduler.java",
+                        "startLine": 332,
+                        "endLine": 334,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public getSubmissionResourceStabilizationTimeout() : Duration"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2063,
@@ -2342,8 +2684,86 @@
                 ]
             }
         ],
-        "recall": 0.3333333333333333,
-        "precision": 0.6666666666666666
+        "recall": 0.2,
+        "precision": 0.5,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter expectedBuffersPerGate : int to requiredFloatingBuffers : int in method package GateBuffersSpec(effectiveExclusiveBuffersPerChannel int, requiredFloatingBuffers int, minBuffersPerGate int, maxBuffersPerGate int) from class org.apache.flink.runtime.io.network.partition.consumer.GateBuffersSpec",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/consumer/GateBuffersSpec.java",
+                        "startLine": 37,
+                        "endLine": 37,
+                        "startColumn": 13,
+                        "endColumn": 39,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "expectedBuffersPerGate : int"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/consumer/GateBuffersSpec.java",
+                        "startLine": 41,
+                        "endLine": 41,
+                        "startColumn": 9,
+                        "endColumn": 62,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/consumer/GateBuffersSpec.java",
+                        "startLine": 37,
+                        "endLine": 37,
+                        "startColumn": 13,
+                        "endColumn": 40,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "requiredFloatingBuffers : int"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/consumer/GateBuffersSpec.java",
+                        "startLine": 41,
+                        "endLine": 41,
+                        "startColumn": 9,
+                        "endColumn": 64,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute expectedBuffersPerGate : int to requiredFloatingBuffers : int in class org.apache.flink.runtime.io.network.partition.consumer.GateBuffersSpec",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/consumer/GateBuffersSpec.java",
+                        "startLine": 29,
+                        "endLine": 29,
+                        "startColumn": 23,
+                        "endColumn": 45,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "expectedBuffersPerGate : int"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/consumer/GateBuffersSpec.java",
+                        "startLine": 29,
+                        "endLine": 29,
+                        "startColumn": 23,
+                        "endColumn": 46,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "requiredFloatingBuffers : int"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2121,
@@ -3474,8 +3894,38 @@
                 ]
             }
         ],
-        "recall": 0.02564102564102564,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Class",
+                "description": "Rename Class org.apache.flink.runtime.state.metrics.LatencyTrackingAggregatingState renamed to org.apache.flink.runtime.state.metrics.MetricsTrackingAggregatingState",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/state/metrics/LatencyTrackingAggregatingState.java",
+                        "startLine": 26,
+                        "endLine": 147,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "org.apache.flink.runtime.state.metrics.LatencyTrackingAggregatingState"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/state/metrics/LatencyTrackingAggregatingState.java",
+                        "startLine": 26,
+                        "endLine": 147,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "org.apache.flink.runtime.state.metrics.MetricsTrackingAggregatingState"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2132,
@@ -3950,8 +4400,214 @@
                 ]
             }
         ],
-        "recall": 0.75,
-        "precision": 0.75
+        "recall": 0.6666666666666666,
+        "precision": 0.6666666666666666,
+        "true_positives": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable sinkWriter : TestSinkV2.DefaultSinkWriter<Integer> to writer : TestSinkV2.DefaultSinkWriter<Integer> in method package sinkWithState(withState boolean, stateName String) : InspectableSink from class org.apache.flink.streaming.runtime.operators.sink.SinkV2SinkWriterOperatorTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 154,
+                        "endLine": 155,
+                        "startColumn": 47,
+                        "endColumn": 61,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "sinkWriter : TestSinkV2.DefaultSinkWriter<Integer>"
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 154,
+                        "endLine": 155,
+                        "startColumn": 9,
+                        "endColumn": 62,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 156,
+                        "endLine": 160,
+                        "startColumn": 9,
+                        "endColumn": 48,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 154,
+                        "endLine": 155,
+                        "startColumn": 47,
+                        "endColumn": 61,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "writer : TestSinkV2.DefaultSinkWriter<Integer>"
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 154,
+                        "endLine": 155,
+                        "startColumn": 9,
+                        "endColumn": 62,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 156,
+                        "endLine": 160,
+                        "startColumn": 9,
+                        "endColumn": 44,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable sinkWriter : TestSinkV2.DefaultSinkWriter<Integer> to writer : TestSinkV2.DefaultSinkWriter<Integer> in method package sinkWithTimeBasedWriter() : InspectableSink from class org.apache.flink.streaming.runtime.operators.sink.SinkV2SinkWriterOperatorTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 145,
+                        "endLine": 145,
+                        "startColumn": 47,
+                        "endColumn": 94,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "sinkWriter : TestSinkV2.DefaultSinkWriter<Integer>"
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 145,
+                        "endLine": 145,
+                        "startColumn": 9,
+                        "endColumn": 95,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 146,
+                        "endLine": 150,
+                        "startColumn": 9,
+                        "endColumn": 35,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 145,
+                        "endLine": 145,
+                        "startColumn": 47,
+                        "endColumn": 90,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "writer : TestSinkV2.DefaultSinkWriter<Integer>"
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 145,
+                        "endLine": 145,
+                        "startColumn": 9,
+                        "endColumn": 91,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 146,
+                        "endLine": 150,
+                        "startColumn": 9,
+                        "endColumn": 35,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable sinkWriter : TestSinkV2.DefaultSinkWriter<Integer> to writer : TestSinkV2.DefaultSinkWriter<Integer> in method package sinkWithCommitter() : InspectableSink from class org.apache.flink.streaming.runtime.operators.sink.SinkV2SinkWriterOperatorTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 135,
+                        "endLine": 136,
+                        "startColumn": 47,
+                        "endColumn": 63,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "sinkWriter : TestSinkV2.DefaultSinkWriter<Integer>"
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 135,
+                        "endLine": 136,
+                        "startColumn": 9,
+                        "endColumn": 64,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 137,
+                        "endLine": 141,
+                        "startColumn": 9,
+                        "endColumn": 35,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 135,
+                        "endLine": 136,
+                        "startColumn": 47,
+                        "endColumn": 63,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "writer : TestSinkV2.DefaultSinkWriter<Integer>"
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 135,
+                        "endLine": 136,
+                        "startColumn": 9,
+                        "endColumn": 64,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-streaming-java/src/test/java/org/apache/flink/streaming/runtime/operators/sink/SinkV2SinkWriterOperatorTest.java",
+                        "startLine": 137,
+                        "endLine": 141,
+                        "startColumn": 9,
+                        "endColumn": 35,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2151,
@@ -4422,8 +5078,38 @@
                 ]
             }
         ],
-        "recall": 0.1111111111111111,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Class",
+                "description": "Rename Class org.apache.flink.runtime.metrics.filter.MetricFilter renamed to org.apache.flink.runtime.metrics.filter.ReporterFilter",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/metrics/filter/MetricFilter.java",
+                        "startLine": 22,
+                        "endLine": 37,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "org.apache.flink.runtime.metrics.filter.MetricFilter"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/metrics/filter/MetricFilter.java",
+                        "startLine": 22,
+                        "endLine": 38,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "org.apache.flink.runtime.metrics.filter.ReporterFilter"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2161,
@@ -4838,8 +5524,38 @@
                 ]
             }
         ],
-        "recall": 0.16666666666666666,
-        "precision": 0.5
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Class",
+                "description": "Rename Class org.apache.flink.table.operations.utils.CalculatedTableFactory renamed to org.apache.flink.table.operations.utils.CorrelatedFunctionTableFactory",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/operations/utils/CalculatedTableFactory.java",
+                        "startLine": 45,
+                        "endLine": 165,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "org.apache.flink.table.operations.utils.CalculatedTableFactory"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/operations/utils/CalculatedTableFactory.java",
+                        "startLine": 45,
+                        "endLine": 166,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "org.apache.flink.table.operations.utils.CorrelatedFunctionTableFactory"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2171,
@@ -5046,8 +5762,66 @@
                 ]
             }
         ],
-        "recall": 0.4,
-        "precision": 1.0
+        "recall": 0.25,
+        "precision": 1.0,
+        "true_positives": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public deserializeResultSubpartitionStateHandle(dis DataInputStream, context DeserializationContext) : StateObjectCollection<OutputStateHandle> renamed to public deserializeOutputStateHandle(dis DataInputStream, context DeserializationContext) : StateObjectCollection<OutputStateHandle> in class org.apache.flink.runtime.checkpoint.metadata.MetadataV3Serializer",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 210,
+                        "endLine": 216,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public deserializeResultSubpartitionStateHandle(dis DataInputStream, context DeserializationContext) : StateObjectCollection<OutputStateHandle>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 211,
+                        "endLine": 217,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public deserializeOutputStateHandle(dis DataInputStream, context DeserializationContext) : StateObjectCollection<OutputStateHandle>"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public deserializeResultSubpartitionStateHandle(dis DataInputStream) : StateObjectCollection<OutputStateHandle> renamed to public deserializeOutputStateHandle(dis DataInputStream) : StateObjectCollection<OutputStateHandle> in class org.apache.flink.runtime.checkpoint.metadata.MetadataV3Serializer",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 300,
+                        "endLine": 304,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public deserializeResultSubpartitionStateHandle(dis DataInputStream) : StateObjectCollection<OutputStateHandle>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 301,
+                        "endLine": 305,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public deserializeOutputStateHandle(dis DataInputStream) : StateObjectCollection<OutputStateHandle>"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2172,
@@ -5282,8 +6056,94 @@
                 ]
             }
         ],
-        "recall": 0.6,
-        "precision": 1.0
+        "recall": 0.5,
+        "precision": 1.0,
+        "true_positives": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public deserializeInputChannelStateHandle(dis DataInputStream, context DeserializationContext) : StateObjectCollection<InputStateHandle> renamed to public deserializeInputStateHandle(dis DataInputStream, context DeserializationContext) : StateObjectCollection<InputStateHandle> in class org.apache.flink.runtime.checkpoint.metadata.MetadataV3Serializer",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 225,
+                        "endLine": 231,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public deserializeInputChannelStateHandle(dis DataInputStream, context DeserializationContext) : StateObjectCollection<InputStateHandle>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 226,
+                        "endLine": 232,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public deserializeInputStateHandle(dis DataInputStream, context DeserializationContext) : StateObjectCollection<InputStateHandle>"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public deserializeInputChannelStateHandle(dis DataInputStream) : StateObjectCollection<InputStateHandle> renamed to public deserializeInputStateHandle(dis DataInputStream) : StateObjectCollection<InputStateHandle> in class org.apache.flink.runtime.checkpoint.metadata.MetadataV3Serializer",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 294,
+                        "endLine": 298,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public deserializeInputChannelStateHandle(dis DataInputStream) : StateObjectCollection<InputStateHandle>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 295,
+                        "endLine": 299,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public deserializeInputStateHandle(dis DataInputStream) : StateObjectCollection<InputStateHandle>"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public serializeInputChannelStateHandle(handle InputStateHandle, dos DataOutputStream) : void renamed to public serializeInputStateHandle(handle InputStateHandle, dos DataOutputStream) : void in class org.apache.flink.runtime.checkpoint.metadata.MetadataV3Serializer",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 218,
+                        "endLine": 223,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public serializeInputChannelStateHandle(handle InputStateHandle, dos DataOutputStream) : void"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/metadata/MetadataV3Serializer.java",
+                        "startLine": 219,
+                        "endLine": 224,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public serializeInputStateHandle(handle InputStateHandle, dos DataOutputStream) : void"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2201,
@@ -5926,8 +6786,66 @@
                 ]
             }
         ],
-        "recall": 0.16666666666666666,
-        "precision": 1.0
+        "recall": 0.09090909090909091,
+        "precision": 1.0,
+        "true_positives": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private createJobGraph(env StreamExecutionEnvironment, jobName String) : JobGraph renamed to private createStreamGraph(env StreamExecutionEnvironment, jobName String) : JobGraph in class org.apache.flink.test.scheduling.JMFailoverITCase",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+                        "startLine": 449,
+                        "endLine": 472,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private createJobGraph(env StreamExecutionEnvironment, jobName String) : JobGraph"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+                        "startLine": 450,
+                        "endLine": 473,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private createStreamGraph(env StreamExecutionEnvironment, jobName String) : JobGraph"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private createJobGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env StreamExecutionEnvironment, jobName String) : JobGraph renamed to private createStreamGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env StreamExecutionEnvironment, jobName String) : JobGraph in class org.apache.flink.test.scheduling.JMFailoverITCase",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+                        "startLine": 474,
+                        "endLine": 504,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private createJobGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env StreamExecutionEnvironment, jobName String) : JobGraph"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-tests/src/test/java/org/apache/flink/test/scheduling/JMFailoverITCase.java",
+                        "startLine": 475,
+                        "endLine": 505,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private createStreamGraphWithUnsupportedBatchSnapshotOperatorCoordinator(env StreamExecutionEnvironment, jobName String) : JobGraph"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2211,
@@ -6751,7 +7669,8 @@
             }
         ],
         "recall": 0.0,
-        "precision": 0.0
+        "precision": 0.0,
+        "true_positives": []
     },
     {
         "id": 2221,
@@ -7054,8 +7973,38 @@
                 ]
             }
         ],
-        "recall": 0.125,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Class",
+                "description": "Rename Class org.apache.flink.runtime.jobgraph.JobGraphUtils renamed to org.apache.flink.runtime.jobgraph.ExecutionPlanUtils",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobGraphUtils.java",
+                        "startLine": 36,
+                        "endLine": 95,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "ENUM_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "org.apache.flink.runtime.jobgraph.JobGraphUtils"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobGraphUtils.java",
+                        "startLine": 36,
+                        "endLine": 95,
+                        "startColumn": 0,
+                        "endColumn": 0,
+                        "codeElementType": "ENUM_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "org.apache.flink.runtime.jobgraph.ExecutionPlanUtils"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2222,
@@ -7506,8 +8455,118 @@
                 ]
             }
         ],
-        "recall": 0.25,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable jobGraph : JobGraph to streamGraph : JobGraph in method private submitAndGetJobClientFuture(pipeline Pipeline, configuration Configuration, userCodeClassloader ClassLoader) : CompletableFuture<JobClient> from class org.apache.flink.client.deployment.application.executors.EmbeddedExecutor",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 142,
+                        "endLine": 143,
+                        "startColumn": 24,
+                        "endColumn": 96,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "jobGraph : JobGraph"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 142,
+                        "endLine": 143,
+                        "startColumn": 9,
+                        "endColumn": 97,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 144,
+                        "endLine": 144,
+                        "startColumn": 9,
+                        "endColumn": 55,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 153,
+                        "endLine": 154,
+                        "startColumn": 9,
+                        "endColumn": 80,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 180,
+                        "endLine": 181,
+                        "startColumn": 33,
+                        "endColumn": 88,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 142,
+                        "endLine": 143,
+                        "startColumn": 24,
+                        "endColumn": 96,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "streamGraph : JobGraph"
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 142,
+                        "endLine": 143,
+                        "startColumn": 9,
+                        "endColumn": 97,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 144,
+                        "endLine": 144,
+                        "startColumn": 9,
+                        "endColumn": 58,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 153,
+                        "endLine": 154,
+                        "startColumn": 9,
+                        "endColumn": 83,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-clients/src/main/java/org/apache/flink/client/deployment/application/executors/EmbeddedExecutor.java",
+                        "startLine": 180,
+                        "endLine": 181,
+                        "startColumn": 33,
+                        "endColumn": 91,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2234,
@@ -7938,8 +8997,38 @@
                 ]
             }
         ],
-        "recall": 0.25,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public getTestEnvironment() : TestEnvironment renamed to public getTestStreamEnvironment() : TestEnvironment in class org.apache.flink.test.util.MiniClusterWithClientResource",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-test-utils-parent/flink-test-utils/src/main/java/org/apache/flink/test/util/MiniClusterWithClientResource.java",
+                        "startLine": 58,
+                        "endLine": 60,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public getTestEnvironment() : TestEnvironment"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-test-utils-parent/flink-test-utils/src/main/java/org/apache/flink/test/util/MiniClusterWithClientResource.java",
+                        "startLine": 58,
+                        "endLine": 60,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public getTestStreamEnvironment() : TestEnvironment"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2241,
@@ -8442,8 +9531,146 @@
                 ]
             }
         ],
-        "recall": 0.5,
-        "precision": 0.4
+        "recall": 0.3333333333333333,
+        "precision": 0.25,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter backend : StateBackend to configuration : StateBackend in method private validateBootstrap(configuration StateBackend, savepointPath String) : void from class org.apache.flink.state.api.SavepointWriterITCase",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 136,
+                        "endLine": 136,
+                        "startColumn": 36,
+                        "endColumn": 56,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "backend : StateBackend"
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 140,
+                        "endLine": 140,
+                        "startColumn": 13,
+                        "endColumn": 42,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 139,
+                        "endLine": 141,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 49,
+                        "endLine": 49,
+                        "startColumn": 13,
+                        "endColumn": 39,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "configuration : StateBackend"
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 54,
+                        "endLine": 54,
+                        "startColumn": 13,
+                        "endColumn": 48,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 53,
+                        "endLine": 55,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter backend : StateBackend to configuration : StateBackend in method private validateModification(configuration StateBackend, savepointPath String) : void from class org.apache.flink.state.api.SavepointWriterITCase",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 188,
+                        "endLine": 188,
+                        "startColumn": 39,
+                        "endColumn": 59,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "backend : StateBackend"
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 191,
+                        "endLine": 191,
+                        "startColumn": 13,
+                        "endColumn": 43,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 190,
+                        "endLine": 192,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 106,
+                        "endLine": 106,
+                        "startColumn": 13,
+                        "endColumn": 39,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "configuration : StateBackend"
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 110,
+                        "endLine": 110,
+                        "startColumn": 13,
+                        "endColumn": 49,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/test/java/org/apache/flink/state/api/SavepointWriterITCase.java",
+                        "startLine": 109,
+                        "endLine": 111,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "IF_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2243,
@@ -8998,7 +10225,8 @@
         "new_commit_hash": "b2c331f20b035a789957cf1cd058b1c6ca3edd0c",
         "detected_refactorings": [],
         "recall": 0.0,
-        "precision": 0.0
+        "precision": 0.0,
+        "true_positives": []
     },
     {
         "id": 2283,
@@ -9421,8 +10649,86 @@
                 ]
             }
         ],
-        "recall": 0.5,
-        "precision": 0.4
+        "recall": 0.3333333333333333,
+        "precision": 0.25,
+        "true_positives": [
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute scalingIntervalMin : Duration to cooldownTimeout : Duration in class org.apache.flink.runtime.scheduler.adaptive.DefaultRescaleManager.Factory",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/DefaultRescaleManager.java",
+                        "startLine": 196,
+                        "endLine": 196,
+                        "startColumn": 32,
+                        "endColumn": 50,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/DefaultRescaleManager.java",
+                        "startLine": 200,
+                        "endLine": 200,
+                        "startColumn": 32,
+                        "endColumn": 47,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "cooldownTimeout : Duration"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter scalingIntervalMin : Duration to cooldownTimeout : Duration in method package DefaultRescaleManager(initializationTime Temporal, rescaleContext RescaleManager.Context, cooldownTimeout Duration, scalingIntervalMax Duration, maxTriggerDelay Duration) from class org.apache.flink.runtime.scheduler.adaptive.DefaultRescaleManager",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/DefaultRescaleManager.java",
+                        "startLine": 87,
+                        "endLine": 87,
+                        "startColumn": 13,
+                        "endColumn": 40,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "scalingIntervalMin : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/DefaultRescaleManager.java",
+                        "startLine": 90,
+                        "endLine": 96,
+                        "startColumn": 9,
+                        "endColumn": 34,
+                        "codeElementType": "CONSTRUCTOR_INVOCATION",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/DefaultRescaleManager.java",
+                        "startLine": 91,
+                        "endLine": 91,
+                        "startColumn": 13,
+                        "endColumn": 37,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "cooldownTimeout : Duration"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/DefaultRescaleManager.java",
+                        "startLine": 94,
+                        "endLine": 100,
+                        "startColumn": 9,
+                        "endColumn": 34,
+                        "codeElementType": "CONSTRUCTOR_INVOCATION",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2292,
@@ -9809,8 +11115,98 @@
                 ]
             }
         ],
-        "recall": 0.16666666666666666,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable shortVector : HeapShortVector to heapShortVector : HeapShortVector in method private fillColumnVector(type LogicalType, lcv HeapArrayVector, valueList List<Object>, elementNum int) : void from class org.apache.flink.formats.parquet.vector.reader.ArrayColumnReader",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-formats/flink-parquet/src/main/java/org/apache/flink/formats/parquet/vector/reader/ArrayColumnReader.java",
+                        "startLine": 340,
+                        "endLine": 340,
+                        "startColumn": 33,
+                        "endColumn": 73,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "shortVector : HeapShortVector"
+                    },
+                    {
+                        "filePath": "flink-formats/flink-parquet/src/main/java/org/apache/flink/formats/parquet/vector/reader/ArrayColumnReader.java",
+                        "startLine": 340,
+                        "endLine": 340,
+                        "startColumn": 17,
+                        "endColumn": 74,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-formats/flink-parquet/src/main/java/org/apache/flink/formats/parquet/vector/reader/ArrayColumnReader.java",
+                        "startLine": 341,
+                        "endLine": 341,
+                        "startColumn": 17,
+                        "endColumn": 37,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-formats/flink-parquet/src/main/java/org/apache/flink/formats/parquet/vector/reader/ArrayColumnReader.java",
+                        "startLine": 342,
+                        "endLine": 342,
+                        "startColumn": 17,
+                        "endColumn": 43,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-formats/flink-parquet/src/main/java/org/apache/flink/formats/parquet/vector/reader/ArrayColumnReader.java",
+                        "startLine": 342,
+                        "endLine": 342,
+                        "startColumn": 33,
+                        "endColumn": 77,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "heapShortVector : HeapShortVector"
+                    },
+                    {
+                        "filePath": "flink-formats/flink-parquet/src/main/java/org/apache/flink/formats/parquet/vector/reader/ArrayColumnReader.java",
+                        "startLine": 342,
+                        "endLine": 342,
+                        "startColumn": 17,
+                        "endColumn": 78,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-formats/flink-parquet/src/main/java/org/apache/flink/formats/parquet/vector/reader/ArrayColumnReader.java",
+                        "startLine": 343,
+                        "endLine": 343,
+                        "startColumn": 17,
+                        "endColumn": 41,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-formats/flink-parquet/src/main/java/org/apache/flink/formats/parquet/vector/reader/ArrayColumnReader.java",
+                        "startLine": 344,
+                        "endLine": 344,
+                        "startColumn": 17,
+                        "endColumn": 47,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2311,
@@ -10409,7 +11805,8 @@
         "new_commit_hash": "68ef8c7c3bc08337e5b330e395d2e8eb6ed8065f",
         "detected_refactorings": [],
         "recall": 0.0,
-        "precision": 0.0
+        "precision": 0.0,
+        "true_positives": []
     },
     {
         "id": 2321,
@@ -10752,8 +12149,162 @@
                 ]
             }
         ],
-        "recall": 0.8,
-        "precision": 1.0
+        "recall": 0.75,
+        "precision": 1.0,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter tmpPath : Path to stagingPath : Path in method public setTempPath(stagingPath Path) : Builder<T> from class org.apache.flink.connector.file.table.FileSystemOutputFormat.Builder",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 261,
+                        "endLine": 261,
+                        "startColumn": 39,
+                        "endColumn": 51,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "tmpPath : Path"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 262,
+                        "endLine": 262,
+                        "startColumn": 13,
+                        "endColumn": 36,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 261,
+                        "endLine": 261,
+                        "startColumn": 39,
+                        "endColumn": 55,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "stagingPath : Path"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 262,
+                        "endLine": 262,
+                        "startColumn": 13,
+                        "endColumn": 44,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute tmpPath : Path to stagingPath : Path in class org.apache.flink.connector.file.table.FileSystemOutputFormat.Builder",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 206,
+                        "endLine": 206,
+                        "startColumn": 22,
+                        "endColumn": 29,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "tmpPath : Path"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 206,
+                        "endLine": 206,
+                        "startColumn": 22,
+                        "endColumn": 33,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "stagingPath : Path"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter tmpPath : Path to stagingPath : Path in method private FileSystemOutputFormat(fsFactory FileSystemFactory, msFactory TableMetaStoreFactory, overwrite boolean, isToLocal boolean, stagingPath Path, partitionColumns String[], dynamicGrouped boolean, staticPartitions LinkedHashMap<String,String>, formatFactory OutputFormatFactory<T>, computer PartitionComputer<T>, outputFileConfig OutputFileConfig, identifier ObjectIdentifier, partitionCommitPolicyFactory PartitionCommitPolicyFactory) from class org.apache.flink.connector.file.table.FileSystemOutputFormat",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 77,
+                        "endLine": 77,
+                        "startColumn": 13,
+                        "endColumn": 25,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "tmpPath : Path"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 90,
+                        "endLine": 90,
+                        "startColumn": 9,
+                        "endColumn": 32,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 77,
+                        "endLine": 77,
+                        "startColumn": 13,
+                        "endColumn": 29,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "stagingPath : Path"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 90,
+                        "endLine": 90,
+                        "startColumn": 9,
+                        "endColumn": 40,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute tmpPath : Path to stagingPath : Path in class org.apache.flink.connector.file.table.FileSystemOutputFormat",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 59,
+                        "endLine": 59,
+                        "startColumn": 24,
+                        "endColumn": 31,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "tmpPath : Path"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/main/java/org/apache/flink/connector/file/table/FileSystemOutputFormat.java",
+                        "startLine": 59,
+                        "endLine": 59,
+                        "startColumn": 24,
+                        "endColumn": 35,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "stagingPath : Path"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2322,
@@ -11505,7 +13056,341 @@
             }
         ],
         "recall": 1.0,
-        "precision": 0.6666666666666666
+        "precision": 0.6,
+        "true_positives": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable content : Map<File,String> to fileToContent : Map<File,String> in method package testOverrideNonPartition() : void from class org.apache.flink.connector.file.table.FileSystemOutputFormatTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 130,
+                        "endLine": 130,
+                        "startColumn": 27,
+                        "endColumn": 69,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "content : Map<File,String>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 130,
+                        "endLine": 130,
+                        "startColumn": 9,
+                        "endColumn": 70,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 131,
+                        "endLine": 131,
+                        "startColumn": 9,
+                        "endColumn": 40,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 132,
+                        "endLine": 133,
+                        "startColumn": 9,
+                        "endColumn": 89,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 137,
+                        "endLine": 137,
+                        "startColumn": 27,
+                        "endColumn": 75,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "fileToContent : Map<File,String>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 137,
+                        "endLine": 137,
+                        "startColumn": 9,
+                        "endColumn": 76,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 138,
+                        "endLine": 138,
+                        "startColumn": 9,
+                        "endColumn": 46,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 139,
+                        "endLine": 140,
+                        "startColumn": 9,
+                        "endColumn": 89,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable content : Map<File,String> to fileToContent : Map<File,String> in method package testStaticPartition() : void from class org.apache.flink.connector.file.table.FileSystemOutputFormatTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 155,
+                        "endLine": 155,
+                        "startColumn": 27,
+                        "endColumn": 69,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "content : Map<File,String>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 155,
+                        "endLine": 155,
+                        "startColumn": 9,
+                        "endColumn": 70,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 156,
+                        "endLine": 156,
+                        "startColumn": 9,
+                        "endColumn": 40,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 157,
+                        "endLine": 157,
+                        "startColumn": 9,
+                        "endColumn": 100,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 158,
+                        "endLine": 158,
+                        "startColumn": 9,
+                        "endColumn": 97,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 162,
+                        "endLine": 162,
+                        "startColumn": 27,
+                        "endColumn": 75,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "fileToContent : Map<File,String>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 162,
+                        "endLine": 162,
+                        "startColumn": 9,
+                        "endColumn": 76,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 163,
+                        "endLine": 163,
+                        "startColumn": 9,
+                        "endColumn": 46,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 164,
+                        "endLine": 165,
+                        "startColumn": 9,
+                        "endColumn": 25,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 166,
+                        "endLine": 167,
+                        "startColumn": 9,
+                        "endColumn": 60,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable content : Map<File,String> to fileToContent : Map<File,String> in method package testDynamicPartition() : void from class org.apache.flink.connector.file.table.FileSystemOutputFormatTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 172,
+                        "endLine": 172,
+                        "startColumn": 27,
+                        "endColumn": 69,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "content : Map<File,String>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 172,
+                        "endLine": 172,
+                        "startColumn": 9,
+                        "endColumn": 70,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 174,
+                        "endLine": 174,
+                        "startColumn": 9,
+                        "endColumn": 92,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 181,
+                        "endLine": 181,
+                        "startColumn": 27,
+                        "endColumn": 75,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "fileToContent : Map<File,String>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 181,
+                        "endLine": 181,
+                        "startColumn": 9,
+                        "endColumn": 76,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 183,
+                        "endLine": 183,
+                        "startColumn": 9,
+                        "endColumn": 98,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable content : Map<File,String> to fileToContent : Map<File,String> in method package testGroupedDynamicPartition() : void from class org.apache.flink.connector.file.table.FileSystemOutputFormatTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 198,
+                        "endLine": 198,
+                        "startColumn": 27,
+                        "endColumn": 69,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "content : Map<File,String>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 198,
+                        "endLine": 198,
+                        "startColumn": 9,
+                        "endColumn": 70,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 200,
+                        "endLine": 200,
+                        "startColumn": 9,
+                        "endColumn": 92,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 207,
+                        "endLine": 207,
+                        "startColumn": 27,
+                        "endColumn": 75,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "fileToContent : Map<File,String>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 207,
+                        "endLine": 207,
+                        "startColumn": 9,
+                        "endColumn": 76,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 209,
+                        "endLine": 209,
+                        "startColumn": 9,
+                        "endColumn": 98,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2323,
@@ -12229,7 +14114,361 @@
             }
         ],
         "recall": 1.0,
-        "precision": 0.8
+        "precision": 0.75,
+        "true_positives": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable ref : AtomicReference<FileSystemOutputFormat<Row>> to outputFormat : AtomicReference<FileSystemOutputFormat<Row>> in method package testOverrideNonPartition() : void from class org.apache.flink.connector.file.table.FileSystemOutputFormatTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 122,
+                        "endLine": 122,
+                        "startColumn": 54,
+                        "endColumn": 83,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "ref : AtomicReference<FileSystemOutputFormat<Row>>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 122,
+                        "endLine": 122,
+                        "startColumn": 9,
+                        "endColumn": 84,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 129,
+                        "endLine": 129,
+                        "startColumn": 9,
+                        "endColumn": 55,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 123,
+                        "endLine": 127,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 129,
+                        "endLine": 129,
+                        "startColumn": 54,
+                        "endColumn": 92,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "outputFormat : AtomicReference<FileSystemOutputFormat<Row>>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 129,
+                        "endLine": 129,
+                        "startColumn": 9,
+                        "endColumn": 93,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 136,
+                        "endLine": 136,
+                        "startColumn": 9,
+                        "endColumn": 64,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 130,
+                        "endLine": 134,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable ref : AtomicReference<FileSystemOutputFormat<Row>> to outputFormat : AtomicReference<FileSystemOutputFormat<Row>> in method package testStaticPartition() : void from class org.apache.flink.connector.file.table.FileSystemOutputFormatTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 139,
+                        "endLine": 139,
+                        "startColumn": 54,
+                        "endColumn": 83,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "ref : AtomicReference<FileSystemOutputFormat<Row>>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 139,
+                        "endLine": 139,
+                        "startColumn": 9,
+                        "endColumn": 84,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 154,
+                        "endLine": 154,
+                        "startColumn": 9,
+                        "endColumn": 55,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 142,
+                        "endLine": 152,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 146,
+                        "endLine": 146,
+                        "startColumn": 54,
+                        "endColumn": 92,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "outputFormat : AtomicReference<FileSystemOutputFormat<Row>>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 146,
+                        "endLine": 146,
+                        "startColumn": 9,
+                        "endColumn": 93,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 161,
+                        "endLine": 161,
+                        "startColumn": 9,
+                        "endColumn": 64,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 149,
+                        "endLine": 159,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable ref : AtomicReference<FileSystemOutputFormat<Row>> to outputFormat : AtomicReference<FileSystemOutputFormat<Row>> in method package testDynamicPartition() : void from class org.apache.flink.connector.file.table.FileSystemOutputFormatTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 164,
+                        "endLine": 164,
+                        "startColumn": 54,
+                        "endColumn": 83,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "ref : AtomicReference<FileSystemOutputFormat<Row>>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 164,
+                        "endLine": 164,
+                        "startColumn": 9,
+                        "endColumn": 84,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 171,
+                        "endLine": 171,
+                        "startColumn": 9,
+                        "endColumn": 55,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 165,
+                        "endLine": 169,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 171,
+                        "endLine": 171,
+                        "startColumn": 54,
+                        "endColumn": 92,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "outputFormat : AtomicReference<FileSystemOutputFormat<Row>>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 171,
+                        "endLine": 171,
+                        "startColumn": 9,
+                        "endColumn": 93,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 178,
+                        "endLine": 178,
+                        "startColumn": 9,
+                        "endColumn": 64,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 172,
+                        "endLine": 176,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable ref : AtomicReference<FileSystemOutputFormat<Row>> to outputFormat : AtomicReference<FileSystemOutputFormat<Row>> in method package testGroupedDynamicPartition() : void from class org.apache.flink.connector.file.table.FileSystemOutputFormatTest",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 184,
+                        "endLine": 184,
+                        "startColumn": 54,
+                        "endColumn": 83,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "ref : AtomicReference<FileSystemOutputFormat<Row>>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 184,
+                        "endLine": 184,
+                        "startColumn": 9,
+                        "endColumn": 84,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 197,
+                        "endLine": 197,
+                        "startColumn": 9,
+                        "endColumn": 55,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 185,
+                        "endLine": 195,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 191,
+                        "endLine": 191,
+                        "startColumn": 54,
+                        "endColumn": 92,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "outputFormat : AtomicReference<FileSystemOutputFormat<Row>>"
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 191,
+                        "endLine": 191,
+                        "startColumn": 9,
+                        "endColumn": 93,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 204,
+                        "endLine": 204,
+                        "startColumn": 9,
+                        "endColumn": 64,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-connectors/flink-connector-files/src/test/java/org/apache/flink/connector/file/table/FileSystemOutputFormatTest.java",
+                        "startLine": 192,
+                        "endLine": 202,
+                        "startColumn": 9,
+                        "endColumn": 10,
+                        "codeElementType": "TRY_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2331,
@@ -12380,7 +14619,8 @@
         "new_commit_hash": "5d02599f0b9be89a7ee2505f0b0eab2cccd414e9",
         "detected_refactorings": [],
         "recall": 0.0,
-        "precision": 0.0
+        "precision": 0.0,
+        "true_positives": []
     },
     {
         "id": 2332,
@@ -13103,8 +15343,166 @@
                 ]
             }
         ],
-        "recall": 0.2857142857142857,
-        "precision": 1.0
+        "recall": 0.16666666666666666,
+        "precision": 1.0,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter biRel : BiRel to node : BiRel in method protected visitBiRel(node BiRel) : RelNode from class org.apache.flink.table.planner.hint.CapitalizeQueryHintsShuttle",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 35,
+                        "endLine": 35,
+                        "startColumn": 34,
+                        "endColumn": 45,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "biRel : BiRel"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 36,
+                        "endLine": 36,
+                        "startColumn": 9,
+                        "endColumn": 44,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 74,
+                        "endLine": 74,
+                        "startColumn": 13,
+                        "endColumn": 39,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 17,
+                        "endLine": 17,
+                        "startColumn": 34,
+                        "endColumn": 44,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "node : BiRel"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 18,
+                        "endLine": 18,
+                        "startColumn": 9,
+                        "endColumn": 42,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 56,
+                        "endLine": 56,
+                        "startColumn": 13,
+                        "endColumn": 38,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable hBiRel : Hintable to hNode : Hintable in method protected visitBiRel(node BiRel) : RelNode from class org.apache.flink.table.planner.hint.CapitalizeQueryHintsShuttle",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 36,
+                        "endLine": 36,
+                        "startColumn": 18,
+                        "endColumn": 43,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "hBiRel : Hintable"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 36,
+                        "endLine": 36,
+                        "startColumn": 9,
+                        "endColumn": 44,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 38,
+                        "endLine": 69,
+                        "startColumn": 9,
+                        "endColumn": 55,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 72,
+                        "endLine": 72,
+                        "startColumn": 13,
+                        "endColumn": 77,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 18,
+                        "endLine": 18,
+                        "startColumn": 18,
+                        "endColumn": 41,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "hNode : Hintable"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 18,
+                        "endLine": 18,
+                        "startColumn": 9,
+                        "endColumn": 42,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 20,
+                        "endLine": 51,
+                        "startColumn": 9,
+                        "endColumn": 55,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/hint/CapitalizeQueryHintsShuttle.java",
+                        "startLine": 54,
+                        "endLine": 54,
+                        "startColumn": 13,
+                        "endColumn": 76,
+                        "codeElementType": "RETURN_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2342,
@@ -13535,8 +15933,38 @@
                 ]
             }
         ],
-        "recall": 0.07692307692307693,
-        "precision": 0.5
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter executionConfig : ExecutionConfig to config : ExecutionConfig in method public createSerializer(config ExecutionConfig) : TypeSerializer<T> from class org.apache.flink.api.java.typeutils.WritableTypeInfo",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-hadoop-compatibility/src/main/java/org/apache/flink/api/java/typeutils/WritableTypeInfo.java",
+                        "startLine": 115,
+                        "endLine": 115,
+                        "startColumn": 47,
+                        "endColumn": 78,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "executionConfig : ExecutionConfig"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-connectors/flink-hadoop-compatibility/src/main/java/org/apache/flink/api/java/typeutils/WritableTypeInfo.java",
+                        "startLine": 115,
+                        "endLine": 115,
+                        "startColumn": 47,
+                        "endColumn": 69,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "config : ExecutionConfig"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 2351,
@@ -13803,8 +16231,114 @@
                 ]
             }
         ],
-        "recall": 0.75,
-        "precision": 1.0
+        "recall": 0.6666666666666666,
+        "precision": 1.0,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter jarFile : String to jars : String in method package StandaloneApplicationClusterConfiguration(configDir String, dynamicProperties Properties, args String[], hostname String, restPort int, savepointRestoreSettings SavepointRestoreSettings, jobId JobID, jobClassName String, jars String) from class org.apache.flink.container.entrypoint.StandaloneApplicationClusterConfiguration",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-container/src/main/java/org/apache/flink/container/entrypoint/StandaloneApplicationClusterConfiguration.java",
+                        "startLine": 52,
+                        "endLine": 52,
+                        "startColumn": 13,
+                        "endColumn": 37,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "jarFile : String"
+                    },
+                    {
+                        "filePath": "flink-container/src/main/java/org/apache/flink/container/entrypoint/StandaloneApplicationClusterConfiguration.java",
+                        "startLine": 58,
+                        "endLine": 58,
+                        "startColumn": 9,
+                        "endColumn": 32,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-container/src/main/java/org/apache/flink/container/entrypoint/StandaloneApplicationClusterConfiguration.java",
+                        "startLine": 56,
+                        "endLine": 56,
+                        "startColumn": 13,
+                        "endColumn": 34,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "jars : String"
+                    },
+                    {
+                        "filePath": "flink-container/src/main/java/org/apache/flink/container/entrypoint/StandaloneApplicationClusterConfiguration.java",
+                        "startLine": 62,
+                        "endLine": 62,
+                        "startColumn": 9,
+                        "endColumn": 26,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute jarFile : String to jars : String in class org.apache.flink.container.entrypoint.StandaloneApplicationClusterConfiguration",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-container/src/main/java/org/apache/flink/container/entrypoint/StandaloneApplicationClusterConfiguration.java",
+                        "startLine": 41,
+                        "endLine": 41,
+                        "startColumn": 36,
+                        "endColumn": 43,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "jarFile : String"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-container/src/main/java/org/apache/flink/container/entrypoint/StandaloneApplicationClusterConfiguration.java",
+                        "startLine": 45,
+                        "endLine": 45,
+                        "startColumn": 26,
+                        "endColumn": 30,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "jars : String"
+                    }
+                ]
+            },
+            {
+                "type": "Rename Method",
+                "description": "Rename Method package getJarFile() : String renamed to package getJars() : String in class org.apache.flink.container.entrypoint.StandaloneApplicationClusterConfiguration",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-container/src/main/java/org/apache/flink/container/entrypoint/StandaloneApplicationClusterConfiguration.java",
+                        "startLine": 76,
+                        "endLine": 79,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "package getJarFile() : String"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-container/src/main/java/org/apache/flink/container/entrypoint/StandaloneApplicationClusterConfiguration.java",
+                        "startLine": 80,
+                        "endLine": 83,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "package getJars() : String"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 122411,
@@ -14347,8 +16881,38 @@
                 ]
             }
         ],
-        "recall": 0.05555555555555555,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Class",
+                "description": "Rename Class org.apache.flink.streaming.runtime.operators.asyncprocessing.AsyncStateProcessingOperator renamed to org.apache.flink.streaming.runtime.operators.asyncprocessing.AsyncKeyOrderedProcessingOperator",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/streaming/runtime/operators/asyncprocessing/AsyncStateProcessingOperator.java",
+                        "startLine": 27,
+                        "endLine": 69,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "org.apache.flink.streaming.runtime.operators.asyncprocessing.AsyncStateProcessingOperator"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/streaming/runtime/operators/asyncprocessing/AsyncStateProcessingOperator.java",
+                        "startLine": 27,
+                        "endLine": 69,
+                        "startColumn": 0,
+                        "endColumn": 0,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "org.apache.flink.streaming.runtime.operators.asyncprocessing.AsyncKeyOrderedProcessingOperator"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 122421,
@@ -16251,8 +18815,38 @@
                 ]
             }
         ],
-        "recall": 0.043478260869565216,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Class",
+                "description": "Rename Class org.apache.flink.runtime.asyncprocessing.ContextStateFutureImpl renamed to org.apache.flink.runtime.asyncprocessing.ContextAsyncFutureImpl",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/asyncprocessing/ContextStateFutureImpl.java",
+                        "startLine": 23,
+                        "endLine": 92,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "original type declaration",
+                        "codeElement": "org.apache.flink.runtime.asyncprocessing.ContextStateFutureImpl"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/asyncprocessing/ContextStateFutureImpl.java",
+                        "startLine": 23,
+                        "endLine": 92,
+                        "startColumn": 0,
+                        "endColumn": 2,
+                        "codeElementType": "TYPE_DECLARATION",
+                        "description": "renamed type declaration",
+                        "codeElement": "org.apache.flink.runtime.asyncprocessing.ContextAsyncFutureImpl"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 122422,
@@ -16487,8 +19081,38 @@
                 ]
             }
         ],
-        "recall": 0.14285714285714285,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method public createStateRequestContainer() : StateRequestContainer renamed to public createRequestContainer() : StateRequestContainer in class org.apache.flink.state.forst.ForStStateExecutor",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-state-backends/flink-statebackend-forst/src/main/java/org/apache/flink/state/forst/ForStStateExecutor.java",
+                        "startLine": 235,
+                        "endLine": 239,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public createStateRequestContainer() : StateRequestContainer"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-state-backends/flink-statebackend-forst/src/main/java/org/apache/flink/state/forst/ForStStateExecutor.java",
+                        "startLine": 235,
+                        "endLine": 239,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "public createRequestContainer() : StateRequestContainer"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 122491,
@@ -16879,8 +19503,86 @@
                 ]
             }
         ],
-        "recall": 0.25,
-        "precision": 1.0
+        "recall": 0.14285714285714285,
+        "precision": 1.0,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter keyFormat : String to keyTypeInfo : String in method public SavepointDataStreamScanProvider(stateBackendType String, statePath String, operatorIdentifier OperatorIdentifier, keyTypeInfo String, keyValueProjections Tuple2<Integer,List<StateValueColumnConfiguration>>, rowType RowType) from class org.apache.flink.state.table.SavepointDataStreamScanProvider",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/table/SavepointDataStreamScanProvider.java",
+                        "startLine": 59,
+                        "endLine": 59,
+                        "startColumn": 13,
+                        "endColumn": 35,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "keyFormat : String"
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/table/SavepointDataStreamScanProvider.java",
+                        "startLine": 65,
+                        "endLine": 65,
+                        "startColumn": 9,
+                        "endColumn": 36,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/table/SavepointDataStreamScanProvider.java",
+                        "startLine": 60,
+                        "endLine": 60,
+                        "startColumn": 13,
+                        "endColumn": 37,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "keyTypeInfo : String"
+                    },
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/table/SavepointDataStreamScanProvider.java",
+                        "startLine": 66,
+                        "endLine": 66,
+                        "startColumn": 9,
+                        "endColumn": 40,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute keyFormat : String to keyTypeInfo : String in class org.apache.flink.state.table.SavepointDataStreamScanProvider",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/table/SavepointDataStreamScanProvider.java",
+                        "startLine": 51,
+                        "endLine": 51,
+                        "startColumn": 26,
+                        "endColumn": 35,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "keyFormat : String"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-libraries/flink-state-processing-api/src/main/java/org/apache/flink/state/table/SavepointDataStreamScanProvider.java",
+                        "startLine": 52,
+                        "endLine": 52,
+                        "startColumn": 26,
+                        "endColumn": 37,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "keyTypeInfo : String"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 133021,
@@ -17675,8 +20377,138 @@
                 ]
             }
         ],
-        "recall": 0.14285714285714285,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Variable",
+                "description": "Rename Variable spanBuilder : SpanBuilder to eventBuilder : SpanBuilder in method private reportJobFailure(timestamp long, canRestart Boolean, isGlobal Boolean, failureLabels Map<String,String>) : void from class org.apache.flink.runtime.scheduler.adaptive.JobFailureMetricReporter",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 64,
+                        "endLine": 67,
+                        "startColumn": 21,
+                        "endColumn": 51,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "original variable declaration",
+                        "codeElement": "spanBuilder : SpanBuilder"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 64,
+                        "endLine": 67,
+                        "startColumn": 9,
+                        "endColumn": 52,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 70,
+                        "endLine": 70,
+                        "startColumn": 13,
+                        "endColumn": 80,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 74,
+                        "endLine": 74,
+                        "startColumn": 13,
+                        "endColumn": 83,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 79,
+                        "endLine": 80,
+                        "startColumn": 13,
+                        "endColumn": 88,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 82,
+                        "endLine": 82,
+                        "startColumn": 9,
+                        "endColumn": 42,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 64,
+                        "endLine": 67,
+                        "startColumn": 21,
+                        "endColumn": 51,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "renamed variable declaration",
+                        "codeElement": "eventBuilder : SpanBuilder"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 64,
+                        "endLine": 67,
+                        "startColumn": 9,
+                        "endColumn": 52,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 70,
+                        "endLine": 70,
+                        "startColumn": 13,
+                        "endColumn": 81,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 74,
+                        "endLine": 74,
+                        "startColumn": 13,
+                        "endColumn": 84,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 79,
+                        "endLine": 80,
+                        "startColumn": 13,
+                        "endColumn": 88,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/scheduler/adaptive/JobFailureMetricReporter.java",
+                        "startLine": 82,
+                        "endLine": 82,
+                        "startColumn": 9,
+                        "endColumn": 43,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 133451,
@@ -17995,8 +20827,38 @@
                 ]
             }
         ],
-        "recall": 0.1,
-        "precision": 1.0
+        "recall": 0.0,
+        "precision": 0.0,
+        "true_positives": [
+            {
+                "type": "Rename Method",
+                "description": "Rename Method private areSplittableTimersConfigured() : boolean renamed to private areInterruptibleTimersConfigured() : boolean in class org.apache.flink.streaming.api.operators.AbstractStreamOperator",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/streaming/api/operators/AbstractStreamOperator.java",
+                        "startLine": 360,
+                        "endLine": 364,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "private areSplittableTimersConfigured() : boolean"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/streaming/api/operators/AbstractStreamOperator.java",
+                        "startLine": 362,
+                        "endLine": 366,
+                        "startColumn": 5,
+                        "endColumn": 6,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "renamed method declaration",
+                        "codeElement": "private areInterruptibleTimersConfigured() : boolean"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 142761,
@@ -18603,8 +21465,202 @@
                 ]
             }
         ],
-        "recall": 0.5,
-        "precision": 1.0
+        "recall": 0.42857142857142855,
+        "precision": 1.0,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter inputUpsertKeys : List<List<int[]>> to inputUniqueKeys : List<List<int[]>> in method private validateInputs(inputProperties List<InputProperty>, joinTypes List<FlinkJoinType>, joinConditions List<? extends @Nullable RexNode>, inputUniqueKeys List<List<int[]>>) : void from class org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecMultiJoin",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 171,
+                        "endLine": 171,
+                        "startColumn": 13,
+                        "endColumn": 52,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "inputUpsertKeys : List<List<int[]>>"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 180,
+                        "endLine": 182,
+                        "startColumn": 9,
+                        "endColumn": 77,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 168,
+                        "endLine": 168,
+                        "startColumn": 13,
+                        "endColumn": 52,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "inputUniqueKeys : List<List<int[]>>"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 177,
+                        "endLine": 179,
+                        "startColumn": 9,
+                        "endColumn": 77,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter inputUpsertKeys : List<List<int[]>> to inputUniqueKeys : List<List<int[]>> in method public StreamExecMultiJoin(tableConfig ReadableConfig, joinTypes List<FlinkJoinType>, joinConditions List<? extends @Nullable RexNode>, multiJoinCondition RexNode, joinAttributeMap Map<Integer,List<ConditionAttributeRef>>, inputUniqueKeys List<List<int[]>>, stateTtlFromHint Map<Integer,Long>, inputProperties List<InputProperty>, outputType RowType, description String) from class org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecMultiJoin",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 119,
+                        "endLine": 119,
+                        "startColumn": 13,
+                        "endColumn": 52,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "inputUpsertKeys : List<List<int[]>>"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 124,
+                        "endLine": 137,
+                        "startColumn": 9,
+                        "endColumn": 30,
+                        "codeElementType": "CONSTRUCTOR_INVOCATION",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 119,
+                        "endLine": 119,
+                        "startColumn": 13,
+                        "endColumn": 52,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "inputUniqueKeys : List<List<int[]>>"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 124,
+                        "endLine": 137,
+                        "startColumn": 9,
+                        "endColumn": 30,
+                        "codeElementType": "CONSTRUCTOR_INVOCATION",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter inputUpsertKeys : List<List<int[]>> to inputUniqueKeys : List<List<int[]>> in method public StreamExecMultiJoin(id int, context ExecNodeContext, persistedConfig ReadableConfig, joinTypes List<FlinkJoinType>, joinConditions List<? extends @Nullable RexNode>, multiJoinCondition RexNode, joinAttributeMap Map<Integer,List<ConditionAttributeRef>>, inputUniqueKeys List<List<int[]>>, stateMetadataList List<StateMetadata>, inputProperties List<InputProperty>, outputType RowType, description String) from class org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecMultiJoin",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 152,
+                        "endLine": 152,
+                        "startColumn": 13,
+                        "endColumn": 96,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "inputUpsertKeys : List<List<int[]>>"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 158,
+                        "endLine": 158,
+                        "startColumn": 9,
+                        "endColumn": 85,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 163,
+                        "endLine": 163,
+                        "startColumn": 9,
+                        "endColumn": 62,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 149,
+                        "endLine": 149,
+                        "startColumn": 13,
+                        "endColumn": 96,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "inputUniqueKeys : List<List<int[]>>"
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 155,
+                        "endLine": 155,
+                        "startColumn": 9,
+                        "endColumn": 85,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    },
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 160,
+                        "endLine": 160,
+                        "startColumn": 9,
+                        "endColumn": 62,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Attribute",
+                "description": "Rename Attribute inputUpsertKeys : List<List<int[]>> to inputUniqueKeys : List<List<int[]>> in class org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecMultiJoin",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 107,
+                        "endLine": 107,
+                        "startColumn": 37,
+                        "endColumn": 52,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "original attribute declaration",
+                        "codeElement": "inputUpsertKeys : List<List<int[]>>"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/stream/StreamExecMultiJoin.java",
+                        "startLine": 107,
+                        "endLine": 107,
+                        "startColumn": 37,
+                        "endColumn": 52,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "renamed attribute declaration",
+                        "codeElement": "inputUniqueKeys : List<List<int[]>>"
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 160961,
@@ -19067,8 +22123,106 @@
                 ]
             }
         ],
-        "recall": 0.4,
-        "precision": 0.5
+        "recall": 0.25,
+        "precision": 0.3333333333333333,
+        "true_positives": [
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter metricFetcher : MetricFetcher to jobMetrics : MetricFetcher in method private createJobDetailsInfo(executionGraph AccessExecutionGraph, jobMetrics MetricFetcher) : JobDetailsInfo from class org.apache.flink.runtime.rest.handler.job.JobDetailsHandler",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/rest/handler/job/JobDetailsHandler.java",
+                        "startLine": 103,
+                        "endLine": 103,
+                        "startColumn": 50,
+                        "endColumn": 87,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "metricFetcher : MetricFetcher"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/rest/handler/job/JobDetailsHandler.java",
+                        "startLine": 125,
+                        "endLine": 130,
+                        "startColumn": 13,
+                        "endColumn": 44,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/rest/handler/job/JobDetailsHandler.java",
+                        "startLine": 103,
+                        "endLine": 103,
+                        "startColumn": 50,
+                        "endColumn": 84,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "jobMetrics : MetricFetcher"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/rest/handler/job/JobDetailsHandler.java",
+                        "startLine": 125,
+                        "endLine": 130,
+                        "startColumn": 13,
+                        "endColumn": 41,
+                        "codeElementType": "VARIABLE_DECLARATION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            },
+            {
+                "type": "Rename Parameter",
+                "description": "Rename Parameter metricFetcher : MetricFetcher to jobMetrics : MetricFetcher in method private createJobVertexDetailsInfo(ejv AccessExecutionJobVertex, now long, jobId JobID, jobMetrics MetricFetcher) : JobDetailsInfo.JobVertexDetailsInfo from class org.apache.flink.runtime.rest.handler.job.JobDetailsHandler",
+                "leftSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/rest/handler/job/JobDetailsHandler.java",
+                        "startLine": 169,
+                        "endLine": 169,
+                        "startColumn": 66,
+                        "endColumn": 93,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "original variable declaration",
+                        "codeElement": "metricFetcher : MetricFetcher"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/rest/handler/job/JobDetailsHandler.java",
+                        "startLine": 218,
+                        "endLine": 222,
+                        "startColumn": 13,
+                        "endColumn": 54,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the original variable",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/rest/handler/job/JobDetailsHandler.java",
+                        "startLine": 169,
+                        "endLine": 169,
+                        "startColumn": 66,
+                        "endColumn": 90,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "renamed variable declaration",
+                        "codeElement": "jobMetrics : MetricFetcher"
+                    },
+                    {
+                        "filePath": "flink-runtime/src/main/java/org/apache/flink/runtime/rest/handler/job/JobDetailsHandler.java",
+                        "startLine": 218,
+                        "endLine": 222,
+                        "startColumn": 13,
+                        "endColumn": 54,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement referencing the renamed variable",
+                        "codeElement": null
+                    }
+                ]
+            }
+        ]
     },
     {
         "id": 163651,
@@ -19327,6 +22481,7 @@
         "new_commit_hash": "9ad1fa4d8d532b27e07b52c010673a741605f831",
         "detected_refactorings": [],
         "recall": 0.0,
-        "precision": 0.0
+        "precision": 0.0,
+        "true_positives": []
     }
 ]
