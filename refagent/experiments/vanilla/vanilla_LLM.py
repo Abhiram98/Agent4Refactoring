@@ -255,8 +255,8 @@ Return only the modified code with the variable renamed.
                                 true_positives.append(detected)
                                 break  # Found a match, move to next oracle
 
-                recall = len(true_positives) / len(oracle_objects) if oracle_objects else 0.0
-                precision = len(true_positives) / len(detected_refactorings) if detected_refactorings else 0.0
+                recall = (len(true_positives) - 1) / (len(oracle_objects) - 1) if (len(oracle_objects) > 1 and len(true_positives) > 1) else 0.0
+                precision = (len(true_positives) - 1) / (len(detected_refactorings) - 1) if (len(detected_refactorings) > 1 and len(true_positives) > 1) else 0.0
 
                 print(f"[Eval] ⌛️ : Evaluation: {len(true_positives)} true positives")
                 print(f"[Eval] ⌛️ : Oracle renames: {len(oracle_objects)}, Detected renames: {len(detected_refactorings)}")
