@@ -196,7 +196,6 @@ def checkout_commit(bench_point, initial_commit, project, use_seed, do_replicati
         assert initial_commit is not None, "initial commit must be provided for replication"
         project.checkout(initial_commit, force=True)
         project.restore_changes()
-        project.reset_head(1)
         return
 
     # checkout the right commit so that agent can resume execution

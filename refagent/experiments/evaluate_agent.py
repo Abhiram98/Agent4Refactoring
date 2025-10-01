@@ -132,13 +132,22 @@ def main():
         review_count = result['response'].get('human_review_count')
         accepted_count = result['response'].get('human_accepted_count')
         rejected_count = result['response'].get('human_rejected_count')
+
+        if IGNORE_SEED and review_count is not None:
+            review_count -= 1
+        if IGNORE_SEED and accepted_count is not None:
+            accepted_count -= 1
+
         if accepted_count is not None and rejected_count is not None:
-            accepted_rate = accepted_count/ (accepted_count + rejected_count)
+            try:
+                accepted_rate = accepted_count/ (accepted_count + rejected_count)
+            except ZeroDivisionError:
+                accepted_rate = 0
         else:
             accepted_rate = None
 
-        operated_files_count = result['response']['replication_inspection_data']['operated_files_count']
-        inspected_files_count = result['response']['replication_inspection_data']['inspected_files_count']
+        operated_files_count = result['response']['replication_inspection_data'].get('operated_files_count')
+        inspected_files_count = result['response']['replication_inspection_data'].get('inspected_files_count')
 
         print(f"avg recall = {overall_recall / total_oracle}")
         print(f"avg precision = {overall_precision / total_oracle}")
