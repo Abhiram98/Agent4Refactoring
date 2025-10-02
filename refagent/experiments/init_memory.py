@@ -22,6 +22,7 @@ class InitMemory(BaseModel):
 
     def init_memory(self, memory_db_path: Path) -> Path:
         no_replication_path = self.no_replication_path(memory_db_path)
+        os.makedirs(no_replication_path.parent, exist_ok=True)
         if self.do_replication:
             # copy from no-replication_file
             shutil.copyfile(no_replication_path, memory_db_path)
@@ -60,7 +61,7 @@ class InitMemory(BaseModel):
                 )
             return no_replication_path
 
-    def no_replication_path(self, memory_db_path):
+    def no_replication_path(self, memory_db_path) -> Path:
         extension = memory_db_path.suffix
         before_extension = memory_db_path.stem + '-no-replication'
         new_memory_db_path = Path(before_extension).with_suffix(extension)

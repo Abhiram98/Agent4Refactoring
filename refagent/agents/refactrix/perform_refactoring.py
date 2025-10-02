@@ -39,6 +39,7 @@ class PerformRefactoring(BaseModel):
     ide_server: ij.IntellijServer = Field(description="ide server object. Used to open files.")
     refactoring_success: bool = Field(description="whether the refactoring was successful or not.", default=False)
     critique_component: Optional[critique.CritiqueComponent] = Field(description="Critique component for validating suggestions", default=None)
+    disable_scope_refinement: bool = Field(description="whether to disable scope refactoring", default=False)
 
 
     _file_open_status: bool = PrivateAttr(default=False)
@@ -595,7 +596,8 @@ class PerformRefactoring(BaseModel):
                                            previously_invalid,
                                            rename_analysis, suggestion)
 
-                if not critique_result.is_valid:
+                if (not self.disable_scope_refinement and
+                        not critique_result.is_valid): # go here only if scope refinement is enabled.
                     if self.orm_memory.get_uninspected_rejected_suggestions_count() >= 3:
                         should_break = True
                         # refine intent only when are there are more than threshold number of rejections.

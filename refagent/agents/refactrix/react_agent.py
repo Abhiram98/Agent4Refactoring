@@ -93,7 +93,7 @@ class ReactAgent(ra.Agent):
             except:
                 traceback.print_exc()
                 print(f"Execution of replication for file {plan.steps[0].file_path} failed.")
-                break
+                continue
             self.update_changed_files()
 
         # Capture replication inspection data

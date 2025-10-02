@@ -30,8 +30,21 @@ class RefineIntent(BaseModel):
                              f"{self.original_scope.pattern}. However, a few of my suggestions were rejected. "
                              f"Please see below:"),
                 self.feedback,
-                HumanMessage(f"Respond with a specific condition that reads like this "
-                             f"'Do not apply this pattern in cases where ... '")
+                HumanMessage(f""
+                             f""
+                             f""
+                             f"Respond with a specific condition explaining the pattern of rejections. "
+                             f"Analyze the roles and responsibilities of the identifiers for which there is feedback - "
+                             f"this includes classes, methods, and fields - "
+                             f"before coming up with a condition. "
+                             f"When forming conditions, avoid making blanket statements like “rename only classes.” - "
+                             f"keep in mind that there may be other methods/variables which are part of the scope but no feedback is available for them. "
+                             f""
+                             # f"Here are some examples of the kind of conditions I am looking for:"
+                             # f""
+                             f"Base the condition on responsibilities. Respond with a condition like this (2 sentences maximum): \n"
+                             f"Focus on renaming identifiers who's role is ... "
+                             f"Do not apply this pattern for identifiers who's role is ...'")
             ]
         )
         return scope.RenameScope(pattern=self.original_scope.pattern, condition=response.content)
@@ -87,36 +100,39 @@ class GeneralizedScopeCreator(BaseModel):
                 HumanMessage("Here are a few examples on how to perform your task:\n"
                              ""
                              "seed rename: 'JoinHintsResolver' -> 'QueryHintsResolver'\n"
-                             "pattern: 'Join' -> 'Query'\n\n"
+                             "pattern: 'join' -> 'query'\n\n"
                              ""
                              "seed rename: 'deprecatedRestoreMode' -> 'deprecatedRecoveryClaimMode'\n"
-                             "pattern: 'Restore' -> 'RecoveryClaim'\n\n"
+                             "pattern: 'restore' -> 'recoveryClaim'\n\n"
                              ""
                              "seed rename: 'rescaleManager' -> 'stateTransitionManager'\n"
                              "pattern: 'rescale' -> 'stateTransition'\n\n"
                              ""
                              "seed rename: 'trackLatencyOnIteratorInit' -> 'trackMetricsOnIteratorInit'\n"
-                             "pattern: 'Latency' -> 'Metrics'\n\n"
+                             "pattern: 'latency' -> 'metrics'\n\n"
                              ""
                              "For seed renames with word additions, pick up the specific concept:\n"
                              "seed rename: 'testDropMaterializedTable' -> 'testDropMaterializedTableInContinuousMode'\n"
-                             "pattern: 'Table' -> 'TableInContinuousMode'\n\n"
+                             "pattern: 'table' -> 'tableInContinuousMode'\n\n"
                              ""
                              "seed rename: 'testEnvironment' -> 'testStreamEnvironment'\n"
-                             "pattern: 'Environment' -> 'StreamEnvironment'\n\n"
+                             "pattern: 'environment' -> 'streamEnvironment'\n\n"
                              ""
                              "For seed renames with word deletions, pick up the specific concept:\n"
                              "seed rename: 'extractExplicitTable' -> 'extractTableOperand'\n"
-                             "pattern: 'ExplicitTable' -> 'Table'\n"
+                             "pattern: 'explicitTable' -> 'Table'\n"
                              ""
                              ""
                              "For seed renames of constant keywords (all upper case), convert the pattern to camelCase:\n"
                              "seed rename: 'ASYNC_INFLIGHT_RECORDS_LIMIT' -> 'ASYNC_STATE_TOTAL_BUFFER_SIZE'\n"
-                             "pattern: 'Inflight' -> 'State'\n\n"
+                             "pattern: 'inflight' -> 'state'\n\n"
                              ""
                              ""
                              ),
                 HumanMessage(f"seed rename: '{self.old_name}' -> '{self.new_name}'"),
             ]
         )
-        return scope.RenameScope(pattern=f"Perform renames that follow this general pattern: {response.content}")
+        pattern = response.content
+        if response.content.startswith("pattern: "):
+            pattern = response.content[len("pattern: "):]
+        return scope.RenameScope(pattern=f"Perform renames that follow this general pattern (case-insensitive): {pattern}")

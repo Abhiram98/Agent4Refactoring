@@ -67,8 +67,9 @@ class Agent(BaseModel):
     max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
     augmented_intent: Optional[scope.RenameScope] = Field(description="the intent to be refactored", default=None)
     do_replication: bool = Field(description="whether to run replication", default=True)
-    enable_critique: bool = Field(description="whether to enable oracle-based critique", default=True)
+    enable_hula: bool = Field(description="whether to enable oracle-based critique", default=True)
     enable_memory: bool = Field(description="whether to enable memory component for storing and retrieving suggestions", default=True)
+    disable_scope_refinement: bool = Field(description="whether to disable scope refactoring", default=False)
     critique_config: Optional[critique.CritiqueConfig] = Field(description="critique component configuration", default=None)
     
     # Memory parameters
@@ -187,7 +188,7 @@ class Agent(BaseModel):
         # Store oracle data for use in replication
         self._oracle_data = oracle_data
         
-        if self.enable_critique and oracle_data:
+        if self.enable_hula and oracle_data:
             config = self.critique_config if self.critique_config else critique.CritiqueConfig()
             self._critique_component = critique.CritiqueComponent(
                 oracle_data=oracle_data,
@@ -195,7 +196,11 @@ class Agent(BaseModel):
             )
             print(f"Initialized critique component with {len(oracle_data)} oracle entries")
         else:
-            print("Critique component disabled or no oracle data provided")
+            print("Dummy Critique component enabled. all suggestions will be accepted.")
+            self._critique_component = critique.DummyCritiqueComponent(
+                oracle_data=[],
+                config=critique.CritiqueConfig()
+            )
 
     def run_agentic_loop(self, current_intent: str, model, starting_file):
         for _ in range(self.max_iterations):
@@ -498,6 +503,7 @@ class Agent(BaseModel):
                 replication_enabled=self.do_replication,
                 enable_memory=self.enable_memory,
                 critique_component=self._critique_component, # Pass critique component to the executor,
+                disable_scope_refinement=self.disable_scope_refinement
             )
             perform_refactoring_graph = executor.compile()
             self.get_changed_file_contents() # nit: this call exists to update the changed files list. this is tech debt

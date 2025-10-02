@@ -237,3 +237,11 @@ class CritiqueComponent(BaseModel):
             return "No rename refactorings expected in this file"
         
         return ", ".join(file_renames[:3]) + ("..." if len(file_renames) > 3 else "")
+
+
+class DummyCritiqueComponent(CritiqueComponent):
+
+    def validate_rename_suggestion(self, old_name: str, new_name: str,
+                                 line_num: int, code_element_type: str,
+                                 file_to_check: str) -> CritiqueResult:
+        return CritiqueResult(is_valid=True)
