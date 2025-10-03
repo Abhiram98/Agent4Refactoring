@@ -1,4 +1,5 @@
 import copy
+import datetime
 import json
 import traceback
 from collections import defaultdict
@@ -396,8 +397,6 @@ class Replication(BaseModel):
                     continue
 
                 old_name, new_name = rename_pair
-                if len(old_name) < 6:
-                    continue
                 print(f"[Search File API] Searching for {old_name}")
 
                 try:
@@ -722,10 +721,9 @@ class Replication(BaseModel):
         files_to_process = initial_files.copy()
         
         while files_to_process and iteration < max_iterations:
+            start_time = datetime.datetime.now(datetime.timezone.utc)
             print(f"[ITERATIVE REPLICATION] Iteration {iteration + 1}, processing {len(files_to_process)} files")
             
-            # Process current batch of files
-            successful_renames_this_iteration: List[RefactoringSuggestion] = []
             count_inspected_files_i = 0
             self.clear_files_in_db()
             
@@ -744,16 +742,14 @@ class Replication(BaseModel):
                         yield result
                         operated_files.add(file_path)
                         count_inspected_files_i += 1
-                        # Extract successful renames from this file's operation
-                        # todo: change this to have a just call all renames and fiter
-                        file_renames = self.extract_successful_renames_from_completed_file(file_path)
-                        successful_renames_this_iteration += file_renames
 
                     inspected_files.add(file_path)
 
-            print(f"[ITERATIVE REPLICATION] Iteration {iteration + 1} completed. Found {len(successful_renames_this_iteration)} successful renames")
+
+            successful_renames_this_iteration = self.orm_memory.get_successful_renames_after_time(start_time)
+            print(
+                f"[ITERATIVE REPLICATION] Iteration {iteration + 1} completed. Found {len(successful_renames_this_iteration)} successful renames")
             print(f"[ITERATIVE REPLICATION] Rename instances {successful_renames_this_iteration} successful renames")
-            
             # If no successful renames, stop iterating
             if len(successful_renames_this_iteration) == 0:
                 print(f"[ITERATIVE REPLICATION] No successful renames in iteration {iteration + 1}, stopping")
@@ -778,7 +774,6 @@ class Replication(BaseModel):
                 
             print(f"[ITERATIVE REPLICATION] Found {len(new_files)} new files for next iteration")
             files_to_process = new_files
-            current_rename_pairs = successful_renames_this_iteration
             iteration += 1
         
         print(f"[ITERATIVE REPLICATION] Completed after {iteration} iterations")
