@@ -82,7 +82,8 @@ class ReactAgent(ra.Agent):
             oracle_data=self._oracle_data,
             # Pass memory parameters for iterative replication
             benchmark_id=self.benchmark_id,
-            memory_database_url=self.memory_database_url
+            memory_database_url=self.memory_database_url,
+            replication_max_iters=self.replication_max_iters
         )
         self.MAX_GRAPH_ITERATION = 2 # nit: are these changes to hyperparameters necessary?
         self.MAX_FAILING_TOOL_CALLS = 1

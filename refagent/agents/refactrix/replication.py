@@ -57,6 +57,7 @@ class Replication(BaseModel):
     executed_plan: planning.RefactoringPlan = Field(description="executed plan that needs replication")
     starting_file: str = Field(description="The first file that was edited.")
     oracle_data: Optional[List[refactoring_types.RefminerOut]] = Field(description="Oracle refactoring data for filtering files", default=None)
+    replication_max_iters: int = Field(description="The maximum number of iterations to perform", default=3)
     
     # Memory system parameters
     benchmark_id: Optional[int] = Field(description="Benchmark ID for memory isolation", default=None)
@@ -714,7 +715,7 @@ class Replication(BaseModel):
         inspected_files = set() # total files that were inspected.
         operated_files = set()  # Track files that were actually operated on
         iteration = 0
-        max_iterations = 3  # Prevent runaway discovery
+        max_iterations = self.replication_max_iters  # Prevent runaway discovery
         THRESHOLD_FILES_PER_ITERATION = 25
 
         # Start with initial files
