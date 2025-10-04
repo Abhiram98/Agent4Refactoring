@@ -371,6 +371,17 @@ class ORMRefactoringMemory:
             
             return [s for s in suggestions]
 
+    def get_successful_renames_after_time(self, time: datetime) -> List[RefactoringSuggestion]:
+        with self.get_session() as db:
+            query = db.query(RefactoringSuggestion).filter(
+                and_(
+                    RefactoringSuggestion.created_at >= time,
+                    RefactoringSuggestion.is_valid == True
+                )
+            )
+            suggestions = query.order_by(RefactoringSuggestion.created_at.desc()).all()
+            return suggestions
+
     def get_most_successful_patterns(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get the most successful transformation patterns across all benchmarks."""
 

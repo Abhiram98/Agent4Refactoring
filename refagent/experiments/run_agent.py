@@ -38,11 +38,12 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     enable_hula = not args.disable_hula
     enable_memory = args.enable_memory.lower() == "true"
     disable_scope_refinement = args.disable_scope_refinement
+    replication_max_iters = args.replication_max_iters
 
     # Memory is automatically disabled when critique is disabled
     if not enable_hula:
         enable_memory = False
-        print("[MEMORY] Memory disabled because critique is disabled")
+        # print("[MEMORY] Memory disabled because critique is disabled")
 
     # Create memory database path in the same directory as results (even if disabled for logging)
     # Ensure the directory exists
@@ -83,7 +84,8 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                      enable_memory=enable_memory,
                      benchmark_id=bench_point.ref_id,  
                      memory_database_url=f"sqlite:///{memory_db_path}",
-                     disable_scope_refinement=disable_scope_refinement
+                     disable_scope_refinement=disable_scope_refinement,
+                    replication_max_iters=replication_max_iters
                     )
 
     
@@ -243,6 +245,10 @@ if __name__ == '__main__':
                         help="Whether to run the replication component or not. "
                              "If true, ONLY the replication is performed, starting from an initial commit. "
                              "If false, ONLY the initial agent is run (to edit only the starting file)", default=True
+                        )
+
+    parser.add_argument("--replication_max_iters", type=int,
+                        help="Maximum number of iterations of the replication component", default=3
                         )
     parser.add_argument("--use_change_summary", type=str,
                         help="Whether to use the change summary or not. "

@@ -1,4 +1,5 @@
 import copy
+import datetime
 import json
 import traceback
 from collections import defaultdict
@@ -57,6 +58,7 @@ class Replication(BaseModel):
     executed_plan: planning.RefactoringPlan = Field(description="executed plan that needs replication")
     starting_file: str = Field(description="The first file that was edited.")
     oracle_data: Optional[List[refactoring_types.RefminerOut]] = Field(description="Oracle refactoring data for filtering files", default=None)
+    replication_max_iters: int = Field(description="The maximum number of iterations to perform", default=3)
     
     # Memory system parameters
     benchmark_id: Optional[int] = Field(description="Benchmark ID for memory isolation", default=None)
@@ -395,8 +397,6 @@ class Replication(BaseModel):
                     continue
 
                 old_name, new_name = rename_pair
-                if len(old_name) < 6:
-                    continue
                 print(f"[Search File API] Searching for {old_name}")
 
                 try:
@@ -714,17 +714,16 @@ class Replication(BaseModel):
         inspected_files = set() # total files that were inspected.
         operated_files = set()  # Track files that were actually operated on
         iteration = 0
-        max_iterations = 3  # Prevent runaway discovery
+        max_iterations = self.replication_max_iters  # Prevent runaway discovery
         THRESHOLD_FILES_PER_ITERATION = 25
 
         # Start with initial files
         files_to_process = initial_files.copy()
         
         while files_to_process and iteration < max_iterations:
+            start_time = datetime.datetime.now(datetime.timezone.utc)
             print(f"[ITERATIVE REPLICATION] Iteration {iteration + 1}, processing {len(files_to_process)} files")
             
-            # Process current batch of files
-            successful_renames_this_iteration: List[RefactoringSuggestion] = []
             count_inspected_files_i = 0
             self.clear_files_in_db()
             
@@ -743,19 +742,21 @@ class Replication(BaseModel):
                         yield result
                         operated_files.add(file_path)
                         count_inspected_files_i += 1
-                        # Extract successful renames from this file's operation
-                        # todo: change this to have a just call all renames and fiter
-                        file_renames = self.extract_successful_renames_from_completed_file(file_path)
-                        successful_renames_this_iteration += file_renames
 
                     inspected_files.add(file_path)
 
-            print(f"[ITERATIVE REPLICATION] Iteration {iteration + 1} completed. Found {len(successful_renames_this_iteration)} successful renames")
+
+            successful_renames_this_iteration = self.orm_memory.get_successful_renames_after_time(start_time)
+            print(
+                f"[ITERATIVE REPLICATION] Iteration {iteration + 1} completed. Found {len(successful_renames_this_iteration)} successful renames")
             print(f"[ITERATIVE REPLICATION] Rename instances {successful_renames_this_iteration} successful renames")
-            
             # If no successful renames, stop iterating
             if len(successful_renames_this_iteration) == 0:
                 print(f"[ITERATIVE REPLICATION] No successful renames in iteration {iteration + 1}, stopping")
+                break
+
+            if iteration + 1  >= max_iterations:
+                print(f"[ITERATIVE REPLICATION] Stopping iteration, as limit reached.")
                 break
                 
             # prioritize keyword search files because it searches in same directory.
@@ -777,7 +778,6 @@ class Replication(BaseModel):
                 
             print(f"[ITERATIVE REPLICATION] Found {len(new_files)} new files for next iteration")
             files_to_process = new_files
-            current_rename_pairs = successful_renames_this_iteration
             iteration += 1
         
         print(f"[ITERATIVE REPLICATION] Completed after {iteration} iterations")

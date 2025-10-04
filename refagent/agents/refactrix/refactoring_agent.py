@@ -70,6 +70,7 @@ class Agent(BaseModel):
     enable_hula: bool = Field(description="whether to enable oracle-based critique", default=True)
     enable_memory: bool = Field(description="whether to enable memory component for storing and retrieving suggestions", default=True)
     disable_scope_refinement: bool = Field(description="whether to disable scope refactoring", default=False)
+    replication_max_iters: int = Field(description="maximum number of iterations to run the agent for", default=3)
     critique_config: Optional[critique.CritiqueConfig] = Field(description="critique component configuration", default=None)
     
     # Memory parameters
@@ -253,7 +254,8 @@ class Agent(BaseModel):
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
             oracle_data=self._oracle_data,  # Pass oracle data for file filtering,
-            memory_database_url=self.memory_database_url
+            memory_database_url=self.memory_database_url,
+            replication_max_iters=self.replication_max_iters
         )
         for plan in replicator.compile_and_run():
             self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
