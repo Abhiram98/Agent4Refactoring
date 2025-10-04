@@ -754,6 +754,10 @@ class Replication(BaseModel):
             if len(successful_renames_this_iteration) == 0:
                 print(f"[ITERATIVE REPLICATION] No successful renames in iteration {iteration + 1}, stopping")
                 break
+
+            if iteration + 1  >= max_iterations:
+                print(f"[ITERATIVE REPLICATION] Stopping iteration, as limit reached.")
+                break
                 
             # prioritize keyword search files because it searches in same directory.
             keyword_search_files = list({i.file_path for i in
