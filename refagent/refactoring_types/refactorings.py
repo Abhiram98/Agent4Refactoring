@@ -393,3 +393,67 @@ class ExtractClass(RefminerOut):
         # TODO: match at least one of the extracted fields/methods.
         #  This information is available in the leftSideLocations.
         return extracted_name_self == extracted_name_other
+
+class MoveAndRenameClass(RefminerOut):
+    TYPE: ClassVar[str] = 'Move And Rename Class'
+
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement.split('.')[-1]
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement.split('.')[-1]
+
+    @property
+    def file_path(self):
+        return self.leftSideLocations[0].filePath
+
+    @property
+    def start_line(self):
+        return self.leftSideLocations[0].startLine
+
+    def __eq__(self, other):
+        if isinstance(other, RenameClass):
+            return self.old_name == other.old_name
+        elif isinstance(other, MoveAndRenameClass):
+            return self.old_name == other.old_name and self.file_path == other.file_path
+        return False
+
+
+class MoveAndRenameMethod(RefminerOut):
+    TYPE: ClassVar[str] = 'Move And Rename Method'
+
+
+    def get_name(self, method_str):
+        return method_str.split('(')[0].split(' ')[-1]
+
+    @property
+    def old_name(self):
+        return self.get_name(self.leftSideLocations[0].codeElement)
+
+    @property
+    def new_name(self):
+        return self.get_name(self.rightSideLocations[0].codeElement)
+
+    @property
+    def file_path(self):
+        return self.leftSideLocations[0].filePath
+
+    @property
+    def start_line(self):
+        return self.leftSideLocations[0].startLine
+
+    def __eq__(self, other):
+        if isinstance(other, RenameMethod):
+            # raise NotImplementedError("Should implement __eq__ between RenameMethod and MoveAndRenameMethod")
+            return (self.old_name == other.old_name and
+                    self.file_path == other.leftSideLocations[0].filePath and
+                    self.start_line == other.start_line
+                    )
+        elif isinstance(other, MoveAndRenameMethod):
+            # raise NotImplementedError("Should implement __eq__ between MoveAndRenameMethod and MoveAndRenameMethod")
+            return (self.old_name == other.old_name and self.start_line == other.start_line
+                    and self.file_path == other.file_path)
+        return False
+
