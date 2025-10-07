@@ -7,7 +7,7 @@ import refagent.agents.refactrix.replication as replication
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, BaseMessage
 import traceback
 
-from agents.refactrix import quality_check
+from refagent.agents.refactrix import quality_check
 
 
 class ReactPerformer(perform_refactoring.PerformRefactoring):
