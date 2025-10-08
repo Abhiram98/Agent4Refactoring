@@ -559,12 +559,18 @@ class PerformRefactoring(BaseModel):
             rename_analysis = RenameAnalysisWithCommentStartLine(**rename_analysis_data)
 
             print(f"[CRITIQUE DEBUG] Found {len(rename_analysis.rename_suggestions)} suggestions to validate")
-
+            accepted_lines = [i.line_num for i in self.orm_memory.get_successful_renames_for_file(self.rel_file_path)]
+            # rename_analysis.rename_suggestions = self.sort_suggestions(accepted_lines, rename_analysis.rename_suggestions)
+            suggestion_iterator = SuggestionIterator(suggestions=rename_analysis.rename_suggestions)
             # Validate each rename suggestion
             valid_suggestions = []
             invalid_suggestions = []
-
-            for suggestion in rename_analysis.rename_suggestions:
+            # for suggestion in rename_analysis.rename_suggestions:
+            suggestion = rename_analysis.rename_suggestions[0] if len(rename_analysis.rename_suggestions) > 0 else None
+            while suggestion is not None:
+                suggestion = suggestion_iterator.get_next(self.rel_file_path, self.orm_memory)
+                if suggestion is None:
+                    break
                 should_break = False
                 print(
                     f"[CRITIQUE DEBUG] Validating: {suggestion.old_name} → {suggestion.new_name} at line {suggestion.start_line_comments or suggestion.line_num}")
@@ -596,19 +602,24 @@ class PerformRefactoring(BaseModel):
                                            previously_invalid,
                                            rename_analysis, suggestion)
 
-                if (not self.disable_scope_refinement and
-                        not critique_result.is_valid): # go here only if scope refinement is enabled.
-                    if self.orm_memory.get_uninspected_rejected_suggestions_count() >= 3:
+                MAX_FAILING_REVIEWS = 10 #if len(self.orm_memory.get_all_rejected_patterns()) <=3 else 5
+                if not critique_result.is_valid: # go here only if scope refinement is enabled.
+                    if self.orm_memory.get_uninspected_rejected_suggestions_count() >= MAX_FAILING_REVIEWS:
                         should_break = True
-                        # refine intent only when are there are more than threshold number of rejections.
-                        _new_scope = RefineIntent(
-                            source_code=self.ide_server.call_tool_get("get_source_code"),
-                            original_scope=self.new_intent, # build on the new intent if needed.
-                            model=self.model,
-                            accepted_renames=self.orm_memory.get_all_successful_patterns(),
-                            rejected_renames=self.orm_memory.get_all_rejected_patterns()
-                        ).get_new_scope()
-                        self.orm_memory.add_rename_scope(_new_scope)
+                        if not self.disable_scope_refinement:
+                            # refine intent only when are there are more than threshold number of rejections.
+                            _new_scope = RefineIntent(
+                                source_code=self.ide_server.call_tool_get("get_source_code"),
+                                original_scope=self.new_intent, # build on the new intent if needed.
+                                model=self.model,
+                                accepted_renames=self.orm_memory.get_all_successful_patterns(),
+                                rejected_renames=self.orm_memory.get_all_rejected_patterns()
+                            ).get_new_scope()
+                            self.orm_memory.add_rename_scope(_new_scope)
+                        else:
+                            _new_scope = self.new_intent
+                            _new_scope.condition = "Refer examples while suggesting names" # this swtiches off the auto-sug
+                            self.orm_memory.add_rename_scope(_new_scope)
                         self.orm_memory.set_all_inspected()
 
                 # Categorize suggestion based on validation result
@@ -1104,4 +1115,21 @@ class PerformRefactoring(BaseModel):
                 filtered_patterns.append(suggestion)
         return filtered_patterns
 
+    def sort_suggestions(self, accepted_lines: List[int], rename_suggestions: List[RenameSuggestionValidated]) -> List[RenameSuggestionValidated]:
+        def key_func(suggestion: RenameSuggestionValidated):
+            return min((abs(suggestion.line_num - i) for i in accepted_lines))
+        return sorted(rename_suggestions, key=key_func)
 
+
+class SuggestionIterator(BaseModel):
+    suggestions: List[RenameSuggestionValidated]
+
+    def get_next(self, rel_file_path: str, orm_memory: ORMRefactoringMemory) -> Optional[RenameSuggestionValidated]:
+        if len(self.suggestions) == 0:
+            return None
+
+        accepted_lines = [i.line_num for i in orm_memory.get_successful_renames_for_file(rel_file_path)]
+        def key_func(suggestion: RenameSuggestionValidated):
+            return min((abs(suggestion.line_num - i) for i in accepted_lines))
+        self.suggestions.sort(key=key_func)
+        return self.suggestions.pop(0)
