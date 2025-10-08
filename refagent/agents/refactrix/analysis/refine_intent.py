@@ -20,6 +20,13 @@ class RefineIntent(BaseModel):
 
 
     def get_new_scope(self) -> scope.RenameScope:
+        if len(self.rejected_renames) <= 3:
+            print("Got the first rejection. Attempting to refine pattern.")
+            minimal_edit_str = ("Look for relevant keywords, concepts, and patterns around the accepted renames "
+                                "to come up with the pattern. Look at how the accepted/rejected identifiers are being used. "
+                                "DO NOT make blanket statements like 'rename only private identifiers.'")
+        else:
+            minimal_edit_str = ""
 
         response = prompt_cache.prompt(
             model=self.model,
@@ -40,10 +47,11 @@ class RefineIntent(BaseModel):
                              f"When forming conditions, avoid making blanket statements like “rename only classes.” - "
                              f"keep in mind that there may be other methods/variables which are part of the scope but no feedback is available for them. "
                              f""
+                             f"{minimal_edit_str}"
                              # f"Here are some examples of the kind of conditions I am looking for:"
                              # f""
                              f"Base the condition on responsibilities. Respond with a condition like this (2 sentences maximum): \n"
-                             f"Focus on renaming identifiers who's role is ... "
+                             # f"Focus on renaming identifiers who's role is ... "
                              f"Do not apply this pattern for identifiers who's role is ...'")
             ]
         )
