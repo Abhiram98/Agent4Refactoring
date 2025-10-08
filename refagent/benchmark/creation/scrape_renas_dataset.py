@@ -101,6 +101,7 @@ def curate_dataset():
     starting_id = 900
 
     processed_dataset = []
+    ids_to_check = []
 
     for i, co_rename in enumerate(co_renames):
         print()
@@ -124,19 +125,35 @@ def curate_dataset():
         new_concept = concept[0]['newName']
         starting_file = concept[0]['file']
 
-
         refactoring_changes = rminer.default_runner.run(project.get_project_path(), v2_hash)
-        filtered_refactorings: List[refactoring_types.Rename] = [i for i in refactoring_changes if isinstance(i, refactoring_types.Rename)]
-        move_and_renames = [i for i in refactoring_changes if i.type=='Move and Rename Class'
-                            and any(old_name in i.description and new_name in i.description for old_name, new_name in name_map.items())]
-        filtered_refactorings = ([i for i in filtered_refactorings if
-                                  any([old_name in i.old_name and new_name in i.new_name for old_name, new_name in name_map.items()])]
-                                 + move_and_renames)
+        rename_refactorings: List[refactoring_types.Rename] = [i for i in refactoring_changes if isinstance(i, refactoring_types.Rename)]
+
+        expected_renames = list(
+            zip(
+                co_rename_df['oldName'].tolist(),
+                co_rename_df['newName'].tolist(),
+                co_rename_df['line'].tolist(),
+                co_rename_df['file'].tolist(),
+                co_rename_df['type'].tolist()
+            )
+        )
+
+        # Track matched tuples
+        matched_tuples, matching_refactorings = match_refactorings(expected_renames, rename_refactorings, refactoring_changes)
+
+        filtered_refactorings = matching_refactorings
+        # Collect not matched
+        not_matched = [t for t in expected_renames if t not in matched_tuples]
+
         print(f"{len(filtered_refactorings)=}")
         print(f"{len(old_names)=}")
         print(f"matched refactorings? {len(filtered_refactorings) >= len(old_names)}")
         if len(filtered_refactorings) != len(old_names):
             print("something wrong. each one from the old names should be a refactoring change")
+            print(f"validation: {len(old_names)- len(filtered_refactorings) == len(not_matched)}")
+            # print(f"Double check {starting_id + i}")
+            ids_to_check.append(starting_id + i)
+            filtered_refactorings += create_refactoring(not_matched)
 
 
         item = bm_load.RenameItem(
@@ -160,6 +177,83 @@ def curate_dataset():
 
         with open(refagent.data_folder.joinpath(f'renas/{project_name}.json'), "w") as f:
             json.dump(processed_dataset, f, indent=4)
+
+    print("ids_to_check", ids_to_check)
+
+def create_refactoring(not_matched: List) -> List[refactoring_types.Rename]:
+    """
+    Create synthetic Rename refactorings for unmatched (old_name, new_name, line_number, file_path).
+    """
+    synthetic_refactorings: List[refactoring_types.Rename] = []
+
+    for old_name, new_name, line_number, file_path, type_str in not_matched:
+        # Build minimal CodeLocation entries
+        left_loc = refactoring_types.CodeLocation(
+            filePath=file_path,
+            startLine=line_number,
+            endLine=line_number,
+            startColumn=0,
+            endColumn=0,
+            codeElementType=type_str,   # Could be refined: METHOD/CLASS/VARIABLE depending on context
+            description=f"Old element {old_name}",
+            codeElement=old_name
+        )
+        right_loc = refactoring_types.CodeLocation(
+            filePath=file_path,
+            startLine=line_number,
+            endLine=line_number,
+            startColumn=0,
+            endColumn=0,
+            codeElementType=type_str,
+            description=f"New element {new_name}",
+            codeElement=new_name
+        )
+
+        # Construct a synthetic Rename
+        rename = refactoring_types.Rename(
+            type=f"Rename {type_str.capitalize()}",
+            description=f"Synthetic rename {old_name} -> {new_name} at {file_path}:{line_number}",
+            leftSideLocations=[left_loc],
+            rightSideLocations=[right_loc],
+        )
+
+        synthetic_refactorings.append(rename)
+
+    return synthetic_refactorings
+
+
+
+def match_refactorings(expected_renames, filtered_refactorings: List[refactoring_types.Rename], refactoring_changes):
+    matched_tuples = set()
+    final_refactorings = []
+    for i in filtered_refactorings:
+        for (old, new, line, file, type_str) in expected_renames:
+            if (
+                    old == i.old_name and
+                    new == i.new_name and
+                    line == i.start_line and
+                    file == i.leftSideLocations[0].filePath and
+                    type_str in i.type
+            ):
+                final_refactorings.append(i)
+                matched_tuples.add((old, new, line, file, type_str))
+    # Handle Move And Rename cases with strict match (ignoring line number if tool doesn’t report it)
+    move_and_renames = []
+    for i in refactoring_changes:
+        if i.type == 'Move And Rename Class':
+            for (old, new, line, file, type_str) in expected_renames:
+                if old == i.old_name and file == i.file_path:
+                    move_and_renames.append(i)
+                    matched_tuples.add((old, new, line, file, type_str))
+
+        elif i.type == 'Move And Rename Method':
+            for (old, new, line, file, type_str) in expected_renames:
+                if (type_str=='Method' and old == i.old_name and file == i.file_path and
+                        i.leftSideLocations[0].startLine == line):
+                    move_and_renames.append(i)
+                    matched_tuples.add((old, new, line, file, type_str))
+    final_refactorings.extend(move_and_renames)
+    return matched_tuples, final_refactorings
 
 
 def update_intent():
@@ -521,7 +615,7 @@ def get_renas_corenames(oracle_commits, project_name):
 
 if __name__ == '__main__':
     # compute_renas_recall()
-    # curate_dataset()
-    compute_overlap()
+    curate_dataset()
+    # compute_overlap()
 
 

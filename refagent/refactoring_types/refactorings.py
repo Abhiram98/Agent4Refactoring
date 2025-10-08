@@ -55,11 +55,23 @@ class RefminerOut(BaseModel):
     def base_eq(self, other):
         if not isinstance(other, RefminerOut):
             return False
-        if self.type != other.type:
+        if self.type != other.type or self.comparable_types(self.type, other.type):
             return False
         if self.leftSideLocations[0].filePath != other.leftSideLocations[0].filePath:
             return False
         return True
+
+    def comparable_types(self, type1: str, type2:str) -> bool:
+        # comparable_types = {
+        #     'Move And Rename Class': 'Rename Class',
+        #     'Move And Rename Method': 'Rename Method'
+        # }
+        # return comparable_types[type1] == comparable_types[type2]
+        return False
+
+    @property
+    def is_synthetic(self) -> bool:
+        return self.description.startswith('Synthetic')
 
     def __eq__(self, other):
         if not self.base_eq(other):
@@ -125,10 +137,6 @@ class Rename(RefminerOut):
     @property
     def start_line(self):
         return self.leftSideLocations[0].startLine
-
-    @property
-    def has_type_change(self) -> bool:
-        return False
 
     @property
     def has_type_change(self) -> bool:
@@ -214,6 +222,9 @@ class RenameMethod(Rename):
         return self.old_return_type != self.new_return_type
 
     def __eq__(self, other):
+        if self.is_synthetic or other.is_synthetic:
+            return self.base_eq(other) and self.start_line == other.start_line and self.old_name == other.old_name
+
         res = (super().__eq__(other) and
                 self.start_line == other.start_line and self.parameters == other.parameters and self.return_type == other.return_type)
         return res
@@ -263,6 +274,8 @@ class RenameVariable(Rename):
         return self.old_type != self.new_type
 
     def __eq__(self, other):
+        if self.is_synthetic or other.is_synthetic:
+            return self.base_eq(other) and self.start_line == other.start_line and self.old_name == other.old_name
         return (super().__eq__(other) and self.start_line == other.start_line)
 
 
@@ -299,6 +312,10 @@ class RenameParameter(Rename):
         return self.old_type != self.new_type
 
     def __eq__(self, other):
+        if self.is_synthetic or other.is_synthetic:
+            return (self.base_eq(other) and
+                    self.old_name == other.old_name and
+                    self.start_line == other.start_line)
         res = (super().__eq__(other) and
                 (self.start_line == other.start_line
                  and self.old_param_name == other.old_param_name)
@@ -324,6 +341,18 @@ class RenameClass(Rename):
     @property
     def new_name(self):
         return self.rightSideLocations[0].codeElement.split(".")[-1]
+
+    def compare_synthetic(self, other: "RenameClass"):
+        return self.old_name == other.old_name
+
+    def __eq__(self, other: RefminerOut):
+        if not self.base_eq(other):  # Call the parent class equality check
+            return False
+        if self.is_synthetic or other.is_synthetic:
+            return self.compare_synthetic(other)
+        # true if the same code element was renamed.
+        return self.leftSideLocations[0].codeElement == other.leftSideLocations[0].codeElement
+
 
     TYPE: ClassVar[str] = 'Rename Class'
 
@@ -359,6 +388,8 @@ class RenameAttribute(Rename):
     TYPE: ClassVar[str] = 'Rename Attribute'
 
     def __eq__(self, other):
+        if self.is_synthetic or other.is_synthetic:
+            return self.base_eq(other) and self.old_name == other.old_name and self.start_line == other.start_line
         res = (super().__eq__(other) and
                 (self.start_line == other.start_line
                  and self.old_name == other.old_name)
@@ -393,3 +424,67 @@ class ExtractClass(RefminerOut):
         # TODO: match at least one of the extracted fields/methods.
         #  This information is available in the leftSideLocations.
         return extracted_name_self == extracted_name_other
+
+class MoveAndRenameClass(RefminerOut):
+    TYPE: ClassVar[str] = 'Move And Rename Class'
+
+    @property
+    def old_name(self):
+        return self.leftSideLocations[0].codeElement.split('.')[-1]
+
+    @property
+    def new_name(self):
+        return self.rightSideLocations[0].codeElement.split('.')[-1]
+
+    @property
+    def file_path(self):
+        return self.leftSideLocations[0].filePath
+
+    @property
+    def start_line(self):
+        return self.leftSideLocations[0].startLine
+
+    def __eq__(self, other):
+        if isinstance(other, RenameClass):
+            return self.old_name == other.old_name and self.file_path == other.leftSideLocations[0].filePath
+        elif isinstance(other, MoveAndRenameClass):
+            return self.old_name == other.old_name and self.file_path == other.file_path
+        return False
+
+
+class MoveAndRenameMethod(RefminerOut):
+    TYPE: ClassVar[str] = 'Move And Rename Method'
+
+
+    def get_name(self, method_str):
+        return method_str.split('(')[0].split(' ')[-1]
+
+    @property
+    def old_name(self):
+        return self.get_name(self.leftSideLocations[0].codeElement)
+
+    @property
+    def new_name(self):
+        return self.get_name(self.rightSideLocations[0].codeElement)
+
+    @property
+    def file_path(self):
+        return self.leftSideLocations[0].filePath
+
+    @property
+    def start_line(self):
+        return self.leftSideLocations[0].startLine
+
+    def __eq__(self, other):
+        if isinstance(other, RenameMethod):
+            # raise NotImplementedError("Should implement __eq__ between RenameMethod and MoveAndRenameMethod")
+            return (self.old_name == other.old_name and
+                    self.file_path == other.leftSideLocations[0].filePath and
+                    self.start_line == other.start_line
+                    )
+        elif isinstance(other, MoveAndRenameMethod):
+            # raise NotImplementedError("Should implement __eq__ between MoveAndRenameMethod and MoveAndRenameMethod")
+            return (self.old_name == other.old_name and self.start_line == other.start_line
+                    and self.file_path == other.file_path)
+        return False
+

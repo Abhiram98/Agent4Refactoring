@@ -225,14 +225,13 @@ class CritiqueComponent(BaseModel):
         """Get a summary of expected renames in the current file for feedback."""
         file_renames = []
         for oracle_entry in self.oracle_data:
-            if (isinstance(oracle_entry, refactoring_types.Rename) and 
-                self._files_match(oracle_entry.leftSideLocations[0].filePath, file_to_check)):
-                
-                old_name = self._extract_name_from_code_element(oracle_entry.leftSideLocations[0])
-                new_name = self._extract_name_from_code_element(oracle_entry.rightSideLocations[0])
+            if (self._files_match(oracle_entry.leftSideLocations[0].filePath, file_to_check)
+                    or self._files_match(oracle_entry.rightSideLocations[0].filePath, file_to_check)):
+                old_name = oracle_entry.old_name
+                new_name = oracle_entry.new_name
                 line_num = oracle_entry.leftSideLocations[0].startLine
                 file_renames.append(f"'{old_name}' → '{new_name}' at line {line_num}")
-        
+
         if not file_renames:
             return "No rename refactorings expected in this file"
         

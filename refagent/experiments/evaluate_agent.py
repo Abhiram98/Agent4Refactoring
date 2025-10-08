@@ -63,6 +63,7 @@ def main():
         bench_point = bench_points[0]
 
         id = result['id']
+        print(f"{id=}")
 
         assert id == bench_point.ref_id
         commit = result['response']['commit_hash']
@@ -85,9 +86,9 @@ def main():
         if len(oracle_refactorings) == 0:
             continue
 
-        if len(refactorings) == 0:
-            compute_from_trajectory(id, oracle_refactorings, report, result)
-            continue
+        # if len(refactorings) == 0:
+        #     compute_from_trajectory(id, oracle_refactorings, report, result)
+        #     continue
 
         if IGNORE_SEED:
             print("ignoring seed")
