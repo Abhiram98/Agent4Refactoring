@@ -20,8 +20,8 @@ import refagent.utils.code_utils as code_utils
 import refagent.agents.refactrix.critique as critique
 import refagent.utils.cache.prompt_cache as prompt_cache
 import refagent.agents.refactrix.analysis.scope as scope
-from agents.refactrix.analysis.refine_intent import RefineIntent
-from agents.refactrix.critique import CritiqueResult
+from refagent.agents.refactrix.analysis.refine_intent import RefineIntent
+from refagent.agents.refactrix.critique import CritiqueResult
 from refagent.agents.refactrix.rename_suggestions import (RenameAnalysis, RenameSuggestion,
                                                           ValidatedRenames,
                                                           RenameSuggestionValidated,

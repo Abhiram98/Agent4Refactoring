@@ -29,7 +29,7 @@ import refagent.refactoring_types.refactorings as refactoring_types
 import refagent.utils.cache.prompt_cache as prompt_cache
 import refagent.agents.memory.orm_memory as orm_memory
 import refagent.agents.refactrix.analysis.scope as scope
-from agents.memory.memory_models import RefactoringSuggestion
+from refagent.agents.memory.memory_models import RefactoringSuggestion
 
 
 class CodeElement(BaseModel):

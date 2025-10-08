@@ -5,10 +5,10 @@ from pathlib import Path
 import os
 
 import refagent.benchmark.load as benchmark_load
-from agents.memory.orm_memory import ORMRefactoringMemory
-import refactoring_types.refactorings as refactorings
-from agents.refactrix.supported_refactorings import CodeElementType
-from refactoring_types.refactorings import RefminerOut
+from refagent.agents.memory.orm_memory import ORMRefactoringMemory
+import refagent.refactoring_types.refactorings as refactorings
+from refagent.agents.refactrix.supported_refactorings import CodeElementType
+from refagent.refactoring_types.refactorings import RefminerOut
 
 import refagent.agents.refactrix.analysis.scope as scope
 

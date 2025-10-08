@@ -23,7 +23,7 @@ import refagent.agents.refactrix.analysis.refine_intent as refine_intent
 
 import langsmith as ls
 
-from agents.refactrix.supported_refactorings import CodeElementType
+from refagent.agents.refactrix.supported_refactorings import CodeElementType
 
 
 def setup_and_run(bench_point: bm_load.RenameItem,
