@@ -16,13 +16,14 @@ if __name__ == "__main__":
     file_groups = defaultdict(list)
     for i in rename_bench:
         if i.ref_id == id:
+            print("startingfile=", i.starting_file)
             for i in i.refactoring_changes:
                 file_groups[i.leftSideLocations[0].filePath].append(i)
 
     for file_name in file_groups:
         print(file_name)
         for rename in file_groups[file_name]:
-            print(rename.description)
+            print(rename.description, rename.leftSideLocations[0].startLine)
         print("----")
 
     print("all files renamed:")
