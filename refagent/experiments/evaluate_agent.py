@@ -1,4 +1,5 @@
 import argparse
+import copy
 import json
 
 import refagent
@@ -7,11 +8,12 @@ import refagent.utils.project_manager as pm
 import refagent.utils.refminer_utils as rminer
 import refagent.refactoring_types.refactorings as refactoring_types
 import pandas as pd
-from typing import List
+from typing import List, Tuple
 from pathlib import Path
 
 import refagent.benchmark.creation.scrape_renas_dataset as scrape_rename
-
+import refagent.refactoring_types.refactorings as refactorings
+import refagent.agents.memory.orm_memory as orm_memory
 
 def find_similar(change, diffs):
     pass
@@ -26,6 +28,80 @@ def compute_recall(bench_point: bm_load.BenchmarkItem, diffs: list[pm.MyDiff]):
         recall_points += similarity_score
 
     return recall_points / total_changes_by_developer
+
+
+def group_by_first_file(oracle_refactorings: List[refactorings.RefminerOut],
+                        false_positives: List[refactorings.RefminerOut],
+                        true_positives: List[refactorings.RefminerOut],
+                        starting_file: str,
+                        refactorings_no_replication: List[refactorings.RefminerOut]) -> (
+        Tuple)[float, float, float, float, int, int, int, int]:
+
+    false_positives = copy.copy(false_positives)
+    true_positives = copy.copy(true_positives)
+
+
+    oracle_starting_file = [i for i in oracle_refactorings if i.leftSideLocations[0].filePath==starting_file]
+    oracle_secondary_files = [i for i in oracle_refactorings if i.leftSideLocations[0].filePath!=starting_file]
+
+    false_positives_starting_file = []
+    for i in false_positives:
+        if i.leftSideLocations[0].filePath==starting_file:
+            false_positives_starting_file.append(i)
+        if any(i==j for j in refactorings_no_replication):
+            false_positives_starting_file.append(i)
+
+    # false_positives_starting_file = [i for i in false_positives if i.leftSideLocations[0].filePath==starting_file]
+    # false_positives_secondary_files = [i for i in false_positives if i.leftSideLocations[0].filePath!=starting_file]
+    false_positives_secondary_files = [i for i in false_positives if i not in false_positives_starting_file]
+
+    true_positives_starting_file = []
+    for i in true_positives:
+        if i.leftSideLocations[0].filePath==starting_file:
+            true_positives_starting_file.append(i)
+        if any(i==j for j in refactorings_no_replication):
+            true_positives_starting_file.append(i)
+            # oracle_starting_file.append(i)
+    # true_positives_starting_file = [i for i in true_positives if i.leftSideLocations[0].filePath==starting_file]
+    # true_positives_secondary_files = [i for i in true_positives if i.leftSideLocations[0].filePath!=starting_file]
+    true_positives_secondary_files = [i for i in true_positives if i not in true_positives_starting_file]
+
+    recall_starting_file = len(true_positives_starting_file)/len(oracle_starting_file) if len(oracle_starting_file) > 0 else 0
+    precision_starting_file = len(true_positives_starting_file)/(len(true_positives_starting_file) + len(false_positives_starting_file)) if (len(true_positives_starting_file) + len(false_positives_starting_file)) > 0 else 0
+
+    recall_secondary_files = len(true_positives_secondary_files)/len(oracle_secondary_files) if len(oracle_secondary_files)>0 else None
+    precision_secondary_files = len(true_positives_secondary_files)/(len(true_positives_secondary_files) + len(false_positives_secondary_files)) if (len(true_positives_secondary_files) + len(false_positives_secondary_files)) > 0 else 0
+
+    return (precision_starting_file, recall_starting_file, precision_secondary_files, recall_secondary_files,
+            len(true_positives_starting_file), len(true_positives_secondary_files),
+            len(false_positives_starting_file), len(false_positives_secondary_files))
+
+def group_acc_rate(bench_point: bm_load.RenameItem, run_id: str):
+    db_name = f'memory_{run_id}_{bench_point.ref_id}-no-replication.db'
+    memory_no_replication = orm_memory.ORMRefactoringMemory(f"sqlite:///"
+                                             f"{refagent.repo_root.joinpath('logs').joinpath(db_name)}")
+    accepted_starting_file = memory_no_replication.get_all_successful_patterns()
+    rejected_starting_file = memory_no_replication.get_all_rejected_patterns()
+
+    precision_starting_file = len(accepted_starting_file)/(len(accepted_starting_file)+len(rejected_starting_file)) \
+        if len(accepted_starting_file)+len(rejected_starting_file) > 0 else 0
+    db_name_2 = f'memory_{run_id}_{bench_point.ref_id}.db'
+    memory_replication = orm_memory.ORMRefactoringMemory(f"sqlite:///"
+                                             f"{refagent.repo_root.joinpath('logs').joinpath(db_name_2)}")
+    accepted = memory_replication.get_all_successful_patterns()
+    rejected = memory_replication.get_all_rejected_patterns()
+    accepted_secondary_files = [i for i in accepted if i not in accepted_starting_file]
+    rejected_secondary_files = [i for i in rejected if i not in rejected_starting_file]
+    precision_secondary_files = len(accepted_secondary_files)/(len(accepted_secondary_files) + len(rejected_secondary_files)) \
+        if len(accepted_secondary_files) + len(rejected_secondary_files) > 0 else 0
+
+    tp_starting_files = len(accepted_starting_file)
+    tp_secondary_files = len(accepted_secondary_files)
+    fp_starting_files = len(rejected_starting_file)
+    fp_secondary_files = len(rejected_secondary_files)
+    return (precision_starting_file, precision_secondary_files,
+            tp_starting_files, tp_secondary_files, fp_starting_files, fp_secondary_files)
+
 
 
 def main():
@@ -44,6 +120,10 @@ def main():
     name = Path(args.agent_outfile_path).name.replace(".json", "")
     report_file_path = Path(args.agent_outfile_path).parent.joinpath(f"report-{name}.json")
     report = []
+    run_id = Path(args.agent_outfile_path).parent.name
+    no_replication_file = str(Path(args.agent_outfile_path)).replace('post-', 'no-')
+    with open(no_replication_file) as f:
+        no_replication_data = json.load(f)
 
     overall_recall = 0
     total_oracle = 0
@@ -61,6 +141,7 @@ def main():
         bench_points = [i for i in benchmark if i.ref_id==result['id']]
         # assert len(bench_points) == 1
         bench_point = bench_points[0]
+        no_replication_hash = [i for i in no_replication_data if bench_point.ref_id==i['id']][0]['response']['commit_hash']
 
         id = result['id']
         print(f"{id=}")
@@ -70,6 +151,8 @@ def main():
         project = pm.EvalProject(bench_point.project_name)
         refactorings = rminer.default_runner.run(project.get_project_path(), commit)
         refactorings = [i for i in refactorings if i.type.split()[0] == 'Rename']
+        refactorings_no_replication = rminer.default_runner.run(project.get_project_path(), no_replication_hash)
+        refactorings_no_replication = [i for i in refactorings_no_replication if i.type.split()[0] == 'Rename']
 
         # len = len(refactorings)
         # index = 0
@@ -96,6 +179,7 @@ def main():
             assert seed_example is not None
             oracle_refactorings = [i for i in bench_point.refactoring_changes if i!=seed_example]
             refactorings = [i for i in refactorings if i!=seed_example]
+            refactorings_no_replication = [i for i in refactorings_no_replication if i!=seed_example]
         if len(oracle_refactorings) == 0:
             continue
 
@@ -149,12 +233,21 @@ def main():
 
         operated_files_count = result['response']['replication_inspection_data'].get('operated_files_count')
         inspected_files_count = result['response']['replication_inspection_data'].get('inspected_files_count')
+        (first_file_precision, first_file_recall,
+         secondary_files_precision, secondary_files_recall,
+         tp_starting_file, tp_sec_files, fp_starting_file, fp_sec_files) = (
+            group_by_first_file(oracle_refactorings, false_positives, true_positives, bench_point.starting_file, refactorings_no_replication))
+        (accepted_starting_file, accepted_secondary_files,
+         count_acc_starting_file, count_acc_secondary_files,
+         count_rej_starting_file, count_rej_secondary_files) = group_acc_rate(bench_point, run_id)
 
         print(f"avg recall = {overall_recall / total_oracle}")
         print(f"avg precision = {overall_precision / total_oracle}")
         print(f"{precision=}")
         print(f"{len(oracle_refactorings)=}")
         print(f"{len(refactorings)=}")
+        print(f"{len(true_positives)=}")
+        print(f"{len(false_positives)=}")
         print(f"{overall_recall=}")
         print(f"{total_oracle=}")
         print(f"{accepted_count=}")
@@ -162,6 +255,12 @@ def main():
         print(f"{accepted_rate=}")
         print(f"{inspected_files_count=}")
         print(f"{operated_files_count=}")
+        print(f"{first_file_precision=}")
+        print(f"{first_file_recall=}")
+        print(f"{secondary_files_precision=}")
+        print(f"{secondary_files_recall=}")
+        print(f"{accepted_starting_file=}")
+        print(f"{accepted_secondary_files=}")
 
         print("-----------")
         print()
@@ -187,6 +286,22 @@ def main():
                 "human_accepted_rate": accepted_rate,
                 "operated_files_count": operated_files_count,
                 "inspected_files_count": inspected_files_count,
+
+                "first_file_precision": first_file_precision,
+                "first_file_recall": first_file_recall,
+                "tp_starting_file": tp_starting_file,
+                "tp_sec_files": tp_sec_files,
+                "fp_starting_file": fp_starting_file,
+                "fp_sec_files": fp_sec_files,
+                "secondary_files_precision": secondary_files_precision,
+                "secondary_files_recall": secondary_files_recall,
+
+                "accepted_starting_file": accepted_starting_file,
+                "accepted_secondary_files": accepted_secondary_files,
+                "count_acc_starting_file": count_acc_starting_file,
+                "count_acc_secondary_files": count_acc_secondary_files,
+                "count_rej_starting_file": count_rej_starting_file,
+                "count_rej_secondary_files": count_rej_secondary_files
             }
         )
 
