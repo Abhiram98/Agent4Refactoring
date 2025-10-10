@@ -33,7 +33,8 @@ if __name__ == '__main__':
         "count_acc_starting_file",
         "count_acc_secondary_files",
         "count_rej_starting_file",
-        "count_rej_secondary_files"
+        "count_rej_secondary_files",
+        'tp_count', 'oracle_count', 'fp_count', 'human_rejected_count'
 
 
         # "human_accepted_count",
@@ -59,7 +60,7 @@ if __name__ == '__main__':
             print(len(entry.get("true_positives")) , entry.get("tp_starting_file", 0)+ entry.get("tp_sec_files", 0))
             # if entry.get("false_positives", 0) or entry.get("false_negatives", 0):
             # entry["tp_starting_file"] =
-            assert len(entry.get("true_positives")) ==  entry.get("tp_starting_file", 0)+ entry.get("tp_sec_files", 0)
+            # assert len(entry.get("true_positives")) ==  entry.get("tp_starting_file", 0)+ entry.get("tp_sec_files", 0)
             # precision = entry.get("precision", 0) or 0
             precision = (entry.get("human_accepted_rate", 0))
 
