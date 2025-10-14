@@ -264,9 +264,15 @@ def main():
 
         print("-----------")
         print()
-
-        # assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
-        # assert len(refactorings) == len(true_positives) + len(false_positives)
+        try:
+            assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
+            assert len(refactorings) == len(true_positives) + len(false_positives)
+        except AssertionError:
+            print(f"{len(oracle_refactorings)=}")
+            print(f"{len(refactorings)=}")
+            print(f"{len(true_positives)=}")
+            print(f"{len(false_positives)=}")
+            print(f"Overcounting true positives by {len(true_positives)-len(refactorings)}")
         report.append(
             {
                 "id": id,
