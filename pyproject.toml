@@ -32,11 +32,35 @@ PyGithub = "*"
 pytest = "*"
 pytest-mock = "*"
 
+[tool.poetry.group.dev.dependencies]
+black = "^24.0.0"
+
 
 [[tool.poetry.source]]
 name = "space-ai-agents"
 url = "https://packages.jetbrains.team/pypi/p/ml-4-se-lab/ai-agents/simple"
 priority = "supplemental"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | __pycache__
+)/
+'''
 
 [build-system]
 requires = ["poetry-core"]
