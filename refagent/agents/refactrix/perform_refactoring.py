@@ -1,9 +1,8 @@
-import os
 from collections import defaultdict
 from json import JSONDecodeError
 
 from pydantic.v1 import BaseModel, Field, PrivateAttr # to comply with grazie models
-from typing import List, Callable, Dict, Optional, Any
+from typing import List, Dict, Optional
 from langchain_core.output_parsers import PydanticOutputParser
 import json
 from langchain_core.language_models import BaseChatModel
@@ -17,11 +16,11 @@ from pathlib import Path
 import refagent.agents.refactrix.supported_refactorings as sup_ref
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
-import refagent.agents.refactrix.critique as critique
+import refagent.agents.refactrix.review.critique as critique
 import refagent.utils.cache.prompt_cache as prompt_cache
 import refagent.agents.refactrix.analysis.scope as scope
 from refagent.agents.refactrix.analysis.refine_intent import RefineIntent
-from refagent.agents.refactrix.critique import CritiqueResult
+from refagent.agents.refactrix.review.critique import CritiqueResult
 from refagent.agents.refactrix.rename_suggestions import (RenameAnalysis, RenameSuggestion,
                                                           ValidatedRenames,
                                                           RenameSuggestionValidated,
@@ -587,7 +586,7 @@ class PerformRefactoring(BaseModel):
                     except Exception as e:
                         print(f"[MEMORY DEBUG] Error checking previous suggestions: {e}")
 
-                critique_result = self._do_critique(suggestion)
+                critique_result = self.critique_component.validate_suggestion(suggestion=suggestion, rel_file_path=self.rel_file_path)
 
                 print(
                     f"[CRITIQUE DEBUG] Validation result: is_valid={critique_result.is_valid}, feedback='{critique_result.feedback}'")
@@ -983,36 +982,6 @@ class PerformRefactoring(BaseModel):
                                   code_element_type=suggestion.code_element_type.value,
                                   file_path=suggestion.resolved_file_path or self.rel_file_path
                                   )
-
-    def _do_critique(self, suggestion: RenameSuggestionValidated) -> CritiqueResult:
-        # Perform critique validation
-        critique_result = self.critique_component.validate_rename_suggestion(
-            suggestion.old_name,
-            suggestion.new_name,
-            suggestion.resolved_start_line or suggestion.start_line_comments or suggestion.line_num,  # use the start line with comments if possible,
-            #  so that refactoring miner based oracle is happy
-            suggestion.code_element_type.value,
-            file_to_check=suggestion.resolved_file_path or self.rel_file_path
-        )
-        if not critique_result.is_valid:
-            # try with the start_line without comments.
-            critique_result = self.critique_component.validate_rename_suggestion(
-                suggestion.old_name,
-                suggestion.new_name,
-                suggestion.line_num,
-                suggestion.code_element_type.value,
-                file_to_check=suggestion.resolved_file_path or self.rel_file_path
-            )
-        if not critique_result.is_valid and suggestion.llm_start_line_num is not None:
-            # try with Llm suggested line
-            critique_result = self.critique_component.validate_rename_suggestion(
-                suggestion.old_name,
-                suggestion.new_name,
-                suggestion.llm_start_line_num,
-                suggestion.code_element_type.value,
-                file_to_check=suggestion.resolved_file_path or self.rel_file_path
-            )
-        return critique_result
 
     def get_auto_suggestions(self) -> List[RenameSuggestion]:
         # query history to get rename patterns

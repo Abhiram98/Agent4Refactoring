@@ -43,6 +43,12 @@ def setup_and_run(bench_point: bm_load.RenameItem,
     # Memory is automatically disabled when critique is disabled
     if not enable_hula:
         enable_memory = False
+    if args.human_validator:
+        hula_type = 'real_human'
+    elif enable_hula:
+        hula_type = 'oracle_simulation'
+    else:
+        hula_type = 'none'
         # print("[MEMORY] Memory disabled because critique is disabled")
 
     # Create memory database path in the same directory as results (even if disabled for logging)
@@ -80,7 +86,7 @@ def setup_and_run(bench_point: bm_load.RenameItem,
                      plan_component=plan_type,
                      augmented_intent=scope.RenameScope(pattern=augmented_intent),
                      do_replication=do_replication,
-                     enable_hula=enable_hula,
+                     hula_type=hula_type,
                      enable_memory=enable_memory,
                      benchmark_id=bench_point.ref_id,  
                      memory_database_url=f"sqlite:///{memory_db_path}",
@@ -244,7 +250,7 @@ if __name__ == '__main__':
     parser.add_argument("--replication", type=str,
                         help="Whether to run the replication component or not. "
                              "If true, ONLY the replication is performed, starting from an initial commit. "
-                             "If false, ONLY the initial agent is run (to edit only the starting file)", default=True
+                             "If false, ONLY the initial agent is run (to edit only the starting file)", default='true'
                         )
 
     parser.add_argument("--replication_max_iters", type=int,
@@ -258,6 +264,9 @@ if __name__ == '__main__':
     parser.add_argument("--disable_hula",
                         help="Whether to diable oracle-based human-in-the-loop component. "
                              "If true, agent suggestions are NOT validated against oracle data before execution.",
+                        action='store_true')
+    parser.add_argument("--human_validator",
+                        help="Whether to use the human as a reviewer. If set, the tool expects a human to be working live. ",
                         action='store_true')
     parser.add_argument("--disable_scope_refinement",
                         help="Whether to enable Scope refinement loop. "

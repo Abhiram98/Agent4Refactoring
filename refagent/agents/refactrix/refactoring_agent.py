@@ -27,7 +27,7 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie.api.client.chat.response import Credit
 
-from typing import Annotated, Optional, Type, List, Dict
+from typing import Annotated, Optional, Type, List, Dict, Literal
 
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
@@ -38,9 +38,9 @@ import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.analysis.component as analysis
 import refagent.utils.project_manager as pm
 import refagent.agents.refactrix.replication as replication
-import refagent.agents.refactrix.error_fixing as error_fixing
 import refagent.agents.refactrix.quality_check as quality_check
-import refagent.agents.refactrix.critique as critique
+import refagent.agents.refactrix.review.critique as critique
+import refagent.agents.refactrix.review.human_validator as human_validator
 import refagent.agents.refactrix.analysis.scope as scope
 
 
@@ -67,7 +67,7 @@ class Agent(BaseModel):
     max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
     augmented_intent: Optional[scope.RenameScope] = Field(description="the intent to be refactored", default=None)
     do_replication: bool = Field(description="whether to run replication", default=True)
-    enable_hula: bool = Field(description="whether to enable oracle-based critique", default=True)
+    hula_type: Literal["none", "oracle_simulation", "real_human"] = Field(description="How to work with the human in the loop", default="oracle_simulation")
     enable_memory: bool = Field(description="whether to enable memory component for storing and retrieving suggestions", default=True)
     disable_scope_refinement: bool = Field(description="whether to disable scope refactoring", default=False)
     replication_max_iters: int = Field(description="maximum number of iterations to run the agent for", default=3)
@@ -188,15 +188,20 @@ class Agent(BaseModel):
         """Initialize the critique component with oracle data."""
         # Store oracle data for use in replication
         self._oracle_data = oracle_data
-        
-        if self.enable_hula and oracle_data:
+        if self.hula_type == 'oracle_simulation' and oracle_data:
             config = self.critique_config if self.critique_config else critique.CritiqueConfig()
             self._critique_component = critique.CritiqueComponent(
                 oracle_data=oracle_data,
                 config=config
             )
             print(f"Initialized critique component with {len(oracle_data)} oracle entries")
-        else:
+        elif self.hula_type == 'real_human':
+            config = self.critique_config if self.critique_config else critique.CritiqueConfig()
+            self._critique_component = human_validator.HumanValidator(
+                oracle_data=oracle_data,
+                config=config
+            )
+        elif self.hula_type == 'none':
             print("Dummy Critique component enabled. all suggestions will be accepted.")
             self._critique_component = critique.DummyCritiqueComponent(
                 oracle_data=[],

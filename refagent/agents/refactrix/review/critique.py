@@ -5,6 +5,8 @@ import refagent.agents.refactrix.supported_refactorings as sup_refs
 from pathlib import Path
 import re
 
+from agents.refactrix.rename_suggestions import RenameSuggestionValidated
+
 
 class CritiqueResult(BaseModel):
     """Result of critiquing a refactoring suggestion against oracle data."""
@@ -33,6 +35,36 @@ class CritiqueComponent(BaseModel):
     
     class Config:
         arbitrary_types_allowed = True
+
+    def validate_suggestion(self, suggestion: RenameSuggestionValidated, rel_file_path) -> CritiqueResult:
+        critique_result = self.validate_rename_suggestion(
+            suggestion.old_name,
+            suggestion.new_name,
+            suggestion.resolved_start_line or suggestion.start_line_comments or suggestion.line_num,
+            # use the start line with comments if possible,
+            #  so that refactoring miner based oracle is happy
+            suggestion.code_element_type.value,
+            file_to_check=suggestion.resolved_file_path or rel_file_path
+        )
+        if not critique_result.is_valid:
+            # try with the start_line without comments.
+            critique_result = self.validate_rename_suggestion(
+                suggestion.old_name,
+                suggestion.new_name,
+                suggestion.line_num,
+                suggestion.code_element_type.value,
+                file_to_check=suggestion.resolved_file_path or rel_file_path
+            )
+        if not critique_result.is_valid and suggestion.llm_start_line_num is not None:
+            # try with Llm suggested line
+            critique_result = self.validate_rename_suggestion(
+                suggestion.old_name,
+                suggestion.new_name,
+                suggestion.llm_start_line_num,
+                suggestion.code_element_type.value,
+                file_to_check=suggestion.resolved_file_path or rel_file_path
+            )
+        return critique_result
 
     def validate_rename_suggestion(self, old_name: str, new_name: str, 
                                  line_num: int, code_element_type: str,
