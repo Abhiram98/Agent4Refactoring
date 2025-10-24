@@ -73,7 +73,12 @@ def main():
 
         if len(possible_examples) != 1:
             print(f"Couldn't find a seed example for {r.ref_id}")
-            continue
+            print("Assigning the first example")
+            if len(r.refactoring_changes) == 0:
+                print(f"There were no refactorings in {r.ref_id}!! :/")
+                continue
+            possible_examples = [r.refactoring_changes[0]]
+            # continue
         r.seed_example = possible_examples[0]
 
 

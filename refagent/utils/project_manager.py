@@ -159,13 +159,17 @@ class EvalProject:
         return [MyDiff(d) for d in diffs]
 
     def get_staged_changes(self) -> list[MyDiff]:
-        diffs = self.git_repo.head.commit.diff(create_patch=True)
+        diffs = self.git_repo.index.diff('HEAD', create_patch=True)
         return [MyDiff(d) for d in diffs]
 
     def get_changed_files(self) -> list[str]:
         result = subprocess.run(
             ['git', '-C', self.get_project_path(), 'status', '--short'], capture_output=True, text=True, check=True)
         return [i.split(' ')[-1] for i in result.stdout.strip().splitlines()]
+
+    def get_all_uncommitted_changes(self) -> list[MyDiff]:
+        diffs = self.git_repo.head.commit.diff(None, create_patch=True)
+        return [MyDiff(d) for d in diffs]
 
     def replace_contents(self, file_path, new_content):
         try:
@@ -187,9 +191,13 @@ class EvalProject:
             self.git_repo.git.add(files_changed)
 
     def safe_add(self, files_changed):
-        actual_files = [file for file in files_changed if
-                        os.path.exists(self.get_project_path().joinpath(file))]
-        self.git_repo.git.add(actual_files)
+        for file in files_changed:
+            try:
+                subprocess.run(['git', '-C', self.get_project_path(), 'add', file])
+            except Exception as e:
+                print(e)
+                print("Failed to add file {}".format(file))
+
 
     def get_git_diff(self, file_path: str, head_count: int=None) -> str:
         if head_count is not None:
@@ -201,6 +209,26 @@ class EvalProject:
         if result.stdout == '':
             result = subprocess.run(
                 ['git', '-C', self.get_project_path(), 'diff', '--staged', file_path], capture_output=True, text=True, check=True)
+        return result.stdout
+
+    def get_commit_diff(self, file_path_1: str=None, file_path_2: str=None, sha_1: str=None, sha_2: str=None, unified_context: int=None) -> str:
+        git_cmd = ['git', '-C', self.get_project_path(), 'diff']
+
+        if unified_context is not None:
+            git_cmd.append(f'-U{unified_context}')
+
+        if sha_1 is not None:
+            git_cmd.append(sha_1)
+            git_cmd.append(sha_2)
+            git_cmd.append('--')
+            git_cmd.append(file_path_1)
+            git_cmd.append(file_path_2)
+        else:
+            git_cmd.append(sha_2)
+            git_cmd.append('--')
+            git_cmd.append(file_path_2)
+
+        result = subprocess.run(git_cmd, capture_output=True, text=True, check=True)
         return result.stdout
 
     def file_exists(self, file_path: str) -> bool:
@@ -239,25 +267,3 @@ class EvalProject:
         commit = self.git_repo.commit(sha1)
         file_contents = commit.tree[file_path].data_stream.read().decode('utf-8')
         return file_contents
-
-    def get_unified_file_diff_between_commits(self, sha1: str, sha2: str, file_path: str) -> str:
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'diff', '-U100', sha1, sha2, '--', file_path], capture_output=True, text=True, check=True)
-        return result.stdout
-
-    def pull_project(self):
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'pull', 'origin',
-             self.get_master_branch_name()], capture_output=True, text=True, check=True)
-        return result.stdout
-
-    def get_master_branch_name(self):
-        # git symbolic-ref refs/remotes/origin/HEAD
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'symbolic-ref', 'refs/remotes/origin/HEAD'], capture_output=True, text=True, check=True)
-        return result.stdout.split('/')[-1].strip()
-
-    def get_remote_url(self):
-        result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'remote', 'get-url', 'origin'], capture_output=True, text=True, check=True)
-        return result.stdout.strip().rstrip('.git')

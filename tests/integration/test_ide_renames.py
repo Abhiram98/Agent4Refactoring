@@ -414,3 +414,43 @@ def test_flink_method():
                                          **_json)
     assert response == 'success'
 
+
+def test_flink_test_method():
+    project = pm.EvalProject("flink")
+    project.checkout("afe4c79efa15902369d41ef5a6e73d79a2e7d525")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java'))
+    _json = {
+      "old_name": "testDataMatcher",
+      "new_name": "testDataMatcherRaihan",
+      "line_num": 102,
+      "code_element_type": "method"
+    }
+    intellij_server.reset_project_reload_counters()
+    intellij_server.reload_project()
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'
+
+
+
+def test_flink_test_method2():
+    project = pm.EvalProject("flink")
+    project.checkout("afe4c79efa15902369d41ef5a6e73d79a2e7d525")
+    intellij_server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
+    intellij_server.open_project(project_path=project.get_project_path())
+    intellij_server.open_file(
+        rel_file_path=Path('flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java'))
+    _json = {
+      "old_name": "testDataMatcher",
+      "new_name": "testDataMatcherRaihan",
+      "line_num": 179,
+      "code_element_type": "method"
+    }
+    intellij_server.reset_project_reload_counters()
+    intellij_server.reload_project()
+    response = intellij_server.call_tool('rename',
+                                         **_json)
+    assert response == 'success'

@@ -1,0 +1,879 @@
+[
+    {
+        "id": 502,
+        "response": {
+            "changes": [
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/ExecContext.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/ExecContext.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 89,
+                            "old_lines": 9,
+                            "new_start": 89,
+                            "new_lines": 9,
+                            "content": "@@ -89,9 +89,9 @@ public interface ExecContext {\n    * The application foreground.\n    *\n    * @return the application foreground\n-   * @see ratpack.exec.Foreground\n+   * @see ExecController\n    */\n-  Foreground getForeground();\n+  ExecController getForeground();\n \n   <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation);\n "
+                        }
+                    ],
+                    "patch": "@@ -89,9 +89,9 @@ public interface ExecContext {\n    * The application foreground.\n    *\n    * @return the application foreground\n-   * @see ratpack.exec.Foreground\n+   * @see ExecController\n    */\n-  Foreground getForeground();\n+  ExecController getForeground();\n \n   <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation);\n \n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/Foreground.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/ExecController.java",
+                    "renamed": true,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 25,
+                            "old_lines": 7,
+                            "new_start": 25,
+                            "new_lines": 7,
+                            "content": "@@ -25,7 +25,7 @@ import java.util.List;\n /**\n  * The foreground represents the request processing, and computation handling, aspect of an application.\n  */\n-public interface Foreground {\n+public interface ExecController {\n \n   /**\n    * Provides the current context on the current thread."
+                        }
+                    ],
+                    "patch": "@@ -25,7 +25,7 @@ import java.util.List;\n /**\n  * The foreground represents the request processing, and computation handling, aspect of an application.\n  */\n-public interface Foreground {\n+public interface ExecController {\n \n   /**\n    * Provides the current context on the current thread.\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/NoBoundContextException.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/NoBoundContextException.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 19,
+                            "old_lines": 7,
+                            "new_start": 19,
+                            "new_lines": 7,
+                            "content": "@@ -19,7 +19,7 @@ package ratpack.exec;\n /**\n  * Thrown when a request is made for the context in a non request handling thread.\n  *\n- * @see ratpack.exec.Foreground#getContext()\n+ * @see ExecController#getContext()\n  */\n public class NoBoundContextException extends RuntimeException {\n "
+                        }
+                    ],
+                    "patch": "@@ -19,7 +19,7 @@ package ratpack.exec;\n /**\n  * Thrown when a request is made for the context in a non request handling thread.\n  *\n- * @see ratpack.exec.Foreground#getContext()\n+ * @see ExecController#getContext()\n  */\n public class NoBoundContextException extends RuntimeException {\n \n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/internal/AbstractExecContext.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/internal/AbstractExecContext.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 18,
+                            "old_lines": 7,
+                            "new_start": 18,
+                            "new_lines": 7,
+                            "content": "@@ -18,7 +18,7 @@ package ratpack.exec.internal;\n \n import ratpack.exec.ExecContext;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.http.client.HttpClient;\n import ratpack.http.client.HttpClients;"
+                        },
+                        {
+                            "old_start": 31,
+                            "old_lines": 10,
+                            "new_start": 31,
+                            "new_lines": 10,
+                            "content": "@@ -31,10 +31,10 @@ import java.util.concurrent.Callable;\n \n public abstract class AbstractExecContext implements ExecContext {\n \n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final Background background;\n \n-  protected AbstractExecContext(Foreground foreground, Background background) {\n+  protected AbstractExecContext(ExecController foreground, Background background) {\n     this.foreground = foreground;\n     this.background = background;\n   }"
+                        },
+                        {
+                            "old_start": 45,
+                            "old_lines": 7,
+                            "new_start": 45,
+                            "new_lines": 7,
+                            "content": "@@ -45,7 +45,7 @@ public abstract class AbstractExecContext implements ExecContext {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return foreground;\n   }\n "
+                        }
+                    ],
+                    "patch": "@@ -18,7 +18,7 @@ package ratpack.exec.internal;\n \n import ratpack.exec.ExecContext;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.http.client.HttpClient;\n import ratpack.http.client.HttpClients;\n@@ -31,10 +31,10 @@ import java.util.concurrent.Callable;\n \n public abstract class AbstractExecContext implements ExecContext {\n \n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final Background background;\n \n-  protected AbstractExecContext(Foreground foreground, Background background) {\n+  protected AbstractExecContext(ExecController foreground, Background background) {\n     this.foreground = foreground;\n     this.background = background;\n   }\n@@ -45,7 +45,7 @@ public abstract class AbstractExecContext implements ExecContext {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return foreground;\n   }\n \n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultBackground.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultBackground.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 21,
+                            "old_lines": 7,
+                            "new_start": 21,
+                            "new_lines": 7,
+                            "content": "@@ -21,7 +21,7 @@ import com.google.common.util.concurrent.Futures;\n import com.google.common.util.concurrent.ListenableFuture;\n import com.google.common.util.concurrent.ListeningExecutorService;\n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.exec.ExecInterceptor;\n import ratpack.promise.Fulfiller;"
+                        },
+                        {
+                            "old_start": 32,
+                            "old_lines": 10,
+                            "new_start": 32,
+                            "new_lines": 10,
+                            "content": "@@ -32,10 +32,10 @@ import java.util.concurrent.Callable;\n \n public class DefaultBackground implements Background {\n \n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final ListeningExecutorService backgroundExecutor;\n \n-  public DefaultBackground(Foreground foreground, ListeningExecutorService backgroundExecutor) {\n+  public DefaultBackground(ExecController foreground, ListeningExecutorService backgroundExecutor) {\n     this.foreground = foreground;\n     this.backgroundExecutor = backgroundExecutor;\n   }"
+                        }
+                    ],
+                    "patch": "@@ -21,7 +21,7 @@ import com.google.common.util.concurrent.Futures;\n import com.google.common.util.concurrent.ListenableFuture;\n import com.google.common.util.concurrent.ListeningExecutorService;\n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.exec.ExecInterceptor;\n import ratpack.promise.Fulfiller;\n@@ -32,10 +32,10 @@ import java.util.concurrent.Callable;\n \n public class DefaultBackground implements Background {\n \n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final ListeningExecutorService backgroundExecutor;\n \n-  public DefaultBackground(Foreground foreground, ListeningExecutorService backgroundExecutor) {\n+  public DefaultBackground(ExecController foreground, ListeningExecutorService backgroundExecutor) {\n     this.foreground = foreground;\n     this.backgroundExecutor = backgroundExecutor;\n   }\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultForeground.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/exec/internal/DefaultForeground.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 20,
+                            "old_lines": 8,
+                            "new_start": 20,
+                            "new_lines": 8,
+                            "content": "@@ -20,8 +20,8 @@ import com.google.common.util.concurrent.ListeningScheduledExecutorService;\n import com.google.common.util.concurrent.MoreExecutors;\n import io.netty.channel.EventLoopGroup;\n import ratpack.exec.ExecContext;\n+import ratpack.exec.ExecController;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n import ratpack.exec.NoBoundContextException;\n import ratpack.func.Action;\n import ratpack.handling.Context;"
+                        },
+                        {
+                            "old_start": 31,
+                            "old_lines": 7,
+                            "new_start": 31,
+                            "new_lines": 7,
+                            "content": "@@ -31,7 +31,7 @@ import ratpack.util.ExceptionUtils;\n \n import java.util.List;\n \n-public class DefaultForeground implements Foreground {\n+public class DefaultForeground implements ExecController {\n \n   private final ThreadLocal<ExecContext.Supplier> contextSupplierThreadLocal = new ThreadLocal<>();\n   private final ThreadLocal<Runnable> onExecFinish = new ThreadLocal<>();"
+                        }
+                    ],
+                    "patch": "@@ -20,8 +20,8 @@ import com.google.common.util.concurrent.ListeningScheduledExecutorService;\n import com.google.common.util.concurrent.MoreExecutors;\n import io.netty.channel.EventLoopGroup;\n import ratpack.exec.ExecContext;\n+import ratpack.exec.ExecController;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n import ratpack.exec.NoBoundContextException;\n import ratpack.func.Action;\n import ratpack.handling.Context;\n@@ -31,7 +31,7 @@ import ratpack.util.ExceptionUtils;\n \n import java.util.List;\n \n-public class DefaultForeground implements Foreground {\n+public class DefaultForeground implements ExecController {\n \n   private final ThreadLocal<ExecContext.Supplier> contextSupplierThreadLocal = new ThreadLocal<>();\n   private final ThreadLocal<Runnable> onExecFinish = new ThreadLocal<>();\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/handling/Context.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/handling/Context.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 20,
+                            "old_lines": 7,
+                            "new_start": 20,
+                            "new_lines": 7,
+                            "content": "@@ -20,7 +20,7 @@ import ratpack.api.NonBlocking;\n import ratpack.api.Nullable;\n import ratpack.exec.ExecContext;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.handling.direct.DirectChannelAccess;\n import ratpack.http.Request;"
+                        },
+                        {
+                            "old_start": 627,
+                            "old_lines": 7,
+                            "new_start": 627,
+                            "new_lines": 7,
+                            "content": "@@ -627,7 +627,7 @@ public interface Context extends ExecContext, Registry {\n    * {@inheritDoc}\n    */\n   @Override\n-  Foreground getForeground();\n+  ExecController getForeground();\n \n   /**\n    * {@inheritDoc}"
+                        }
+                    ],
+                    "patch": "@@ -20,7 +20,7 @@ import ratpack.api.NonBlocking;\n import ratpack.api.Nullable;\n import ratpack.exec.ExecContext;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.handling.direct.DirectChannelAccess;\n import ratpack.http.Request;\n@@ -627,7 +627,7 @@ public interface Context extends ExecContext, Registry {\n    * {@inheritDoc}\n    */\n   @Override\n-  Foreground getForeground();\n+  ExecController getForeground();\n \n   /**\n    * {@inheritDoc}\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/handling/internal/DefaultContext.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/handling/internal/DefaultContext.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 21,
+                            "old_lines": 8,
+                            "new_start": 21,
+                            "new_lines": 8,
+                            "content": "@@ -21,8 +21,8 @@ import ratpack.error.ClientErrorHandler;\n import ratpack.error.ServerErrorHandler;\n import ratpack.event.internal.EventRegistry;\n import ratpack.exec.ExecContext;\n+import ratpack.exec.ExecController;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n import ratpack.exec.internal.AbstractExecContext;\n import ratpack.file.FileSystemBinding;\n import ratpack.func.Action;"
+                        },
+                        {
+                            "old_start": 289,
+                            "old_lines": 7,
+                            "new_start": 289,
+                            "new_lines": 7,
+                            "content": "@@ -289,7 +289,7 @@ public class DefaultContext extends AbstractExecContext implements Context {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return requestConstants.applicationConstants.launchConfig.getForeground();\n   }\n "
+                        }
+                    ],
+                    "patch": "@@ -21,8 +21,8 @@ import ratpack.error.ClientErrorHandler;\n import ratpack.error.ServerErrorHandler;\n import ratpack.event.internal.EventRegistry;\n import ratpack.exec.ExecContext;\n+import ratpack.exec.ExecController;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n import ratpack.exec.internal.AbstractExecContext;\n import ratpack.file.FileSystemBinding;\n import ratpack.func.Action;\n@@ -289,7 +289,7 @@ public class DefaultContext extends AbstractExecContext implements Context {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return requestConstants.applicationConstants.launchConfig.getForeground();\n   }\n \n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/launch/LaunchConfig.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/launch/LaunchConfig.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 18,
+                            "old_lines": 9,
+                            "new_start": 18,
+                            "new_lines": 9,
+                            "content": "@@ -18,9 +18,9 @@ package ratpack.launch;\n \n import io.netty.buffer.ByteBufAllocator;\n import ratpack.api.Nullable;\n+import ratpack.exec.ExecController;\n import ratpack.file.FileSystemBinding;\n import ratpack.exec.internal.Background;\n-import ratpack.exec.Foreground;\n \n import javax.net.ssl.SSLContext;\n import java.net.InetAddress;"
+                        },
+                        {
+                            "old_start": 96,
+                            "old_lines": 7,
+                            "new_start": 96,
+                            "new_lines": 7,
+                            "content": "@@ -96,7 +96,7 @@ public interface LaunchConfig {\n    * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests and doing computation.\n    * If the value is 0 (default) or less, a thread pool of size {@link Runtime#availableProcessors()} {@code * 2} will be used.\n    * <p>\n-   * This effectively sizes the {@link Foreground#getExecutor()} thread pool size.\n+   * This effectively sizes the {@link ExecController#getExecutor()} thread pool size.\n    *\n    * @return the number of threads for handling application requests.\n    */"
+                        },
+                        {
+                            "old_start": 114,
+                            "old_lines": 9,
+                            "new_start": 114,
+                            "new_lines": 9,
+                            "content": "@@ -114,9 +114,9 @@ public interface LaunchConfig {\n    * The application foreground.\n    *\n    * @return the application foreground\n-   * @see Foreground\n+   * @see ExecController\n    */\n-  public Foreground getForeground();\n+  public ExecController getForeground();\n \n   /**\n    * The allocator for buffers needed by the application."
+                        }
+                    ],
+                    "patch": "@@ -18,9 +18,9 @@ package ratpack.launch;\n \n import io.netty.buffer.ByteBufAllocator;\n import ratpack.api.Nullable;\n+import ratpack.exec.ExecController;\n import ratpack.file.FileSystemBinding;\n import ratpack.exec.internal.Background;\n-import ratpack.exec.Foreground;\n \n import javax.net.ssl.SSLContext;\n import java.net.InetAddress;\n@@ -96,7 +96,7 @@ public interface LaunchConfig {\n    * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests and doing computation.\n    * If the value is 0 (default) or less, a thread pool of size {@link Runtime#availableProcessors()} {@code * 2} will be used.\n    * <p>\n-   * This effectively sizes the {@link Foreground#getExecutor()} thread pool size.\n+   * This effectively sizes the {@link ExecController#getExecutor()} thread pool size.\n    *\n    * @return the number of threads for handling application requests.\n    */\n@@ -114,9 +114,9 @@ public interface LaunchConfig {\n    * The application foreground.\n    *\n    * @return the application foreground\n-   * @see Foreground\n+   * @see ExecController\n    */\n-  public Foreground getForeground();\n+  public ExecController getForeground();\n \n   /**\n    * The allocator for buffers needed by the application.\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/launch/internal/DefaultLaunchConfig.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/launch/internal/DefaultLaunchConfig.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 24,
+                            "old_lines": 7,
+                            "new_start": 24,
+                            "new_lines": 7,
+                            "content": "@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBufAllocator;\n import io.netty.channel.EventLoopGroup;\n import io.netty.channel.nio.NioEventLoopGroup;\n import io.netty.util.concurrent.DefaultThreadFactory;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.exec.internal.DefaultBackground;\n import ratpack.exec.internal.DefaultForeground;"
+                        },
+                        {
+                            "old_start": 50,
+                            "old_lines": 7,
+                            "new_start": 50,
+                            "new_lines": 7,
+                            "content": "@@ -50,7 +50,7 @@ public class DefaultLaunchConfig implements LaunchConfig {\n   private final boolean reloadable;\n   private final int threads;\n   private final Background background;\n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final ByteBufAllocator byteBufAllocator;\n   private final URI publicAddress;\n   private final ImmutableList<String> indexFiles;"
+                        },
+                        {
+                            "old_start": 122,
+                            "old_lines": 7,
+                            "new_start": 122,
+                            "new_lines": 7,
+                            "content": "@@ -122,7 +122,7 @@ public class DefaultLaunchConfig implements LaunchConfig {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return foreground;\n   }\n "
+                        }
+                    ],
+                    "patch": "@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBufAllocator;\n import io.netty.channel.EventLoopGroup;\n import io.netty.channel.nio.NioEventLoopGroup;\n import io.netty.util.concurrent.DefaultThreadFactory;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.exec.internal.DefaultBackground;\n import ratpack.exec.internal.DefaultForeground;\n@@ -50,7 +50,7 @@ public class DefaultLaunchConfig implements LaunchConfig {\n   private final boolean reloadable;\n   private final int threads;\n   private final Background background;\n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final ByteBufAllocator byteBufAllocator;\n   private final URI publicAddress;\n   private final ImmutableList<String> indexFiles;\n@@ -122,7 +122,7 @@ public class DefaultLaunchConfig implements LaunchConfig {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return foreground;\n   }\n \n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/launch/internal/DelegatingLaunchConfig.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/launch/internal/DelegatingLaunchConfig.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 18,
+                            "old_lines": 7,
+                            "new_start": 18,
+                            "new_lines": 7,
+                            "content": "@@ -18,7 +18,7 @@ package ratpack.launch.internal;\n \n import io.netty.buffer.ByteBufAllocator;\n import ratpack.api.Nullable;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.file.FileSystemBinding;\n import ratpack.launch.HandlerFactory;"
+                        },
+                        {
+                            "old_start": 75,
+                            "old_lines": 7,
+                            "new_start": 75,
+                            "new_lines": 7,
+                            "content": "@@ -75,7 +75,7 @@ public class DelegatingLaunchConfig implements LaunchConfig {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return launchConfig.getForeground();\n   }\n "
+                        }
+                    ],
+                    "patch": "@@ -18,7 +18,7 @@ package ratpack.launch.internal;\n \n import io.netty.buffer.ByteBufAllocator;\n import ratpack.api.Nullable;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.file.FileSystemBinding;\n import ratpack.launch.HandlerFactory;\n@@ -75,7 +75,7 @@ public class DelegatingLaunchConfig implements LaunchConfig {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return launchConfig.getForeground();\n   }\n \n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/promise/internal/DefaultSuccessOrErrorPromise.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/promise/internal/DefaultSuccessOrErrorPromise.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 17,
+                            "old_lines": 7,
+                            "new_start": 17,
+                            "new_lines": 7,
+                            "content": "@@ -17,7 +17,7 @@\n package ratpack.promise.internal;\n \n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.exec.ExecInterceptor;\n import ratpack.promise.Fulfiller;"
+                        },
+                        {
+                            "old_start": 30,
+                            "old_lines": 11,
+                            "new_start": 30,
+                            "new_lines": 11,
+                            "content": "@@ -30,11 +30,11 @@ import static ratpack.util.ExceptionUtils.toException;\n \n public class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T> {\n   private final ExecContext context;\n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final List<ExecInterceptor> interceptors;\n   private final Action<? super Fulfiller<T>> action;\n \n-  public DefaultSuccessOrErrorPromise(ExecContext context, Foreground foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action) {\n+  public DefaultSuccessOrErrorPromise(ExecContext context, ExecController foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action) {\n     this.context = context;\n     this.foreground = foreground;\n     this.interceptors = interceptors;"
+                        }
+                    ],
+                    "patch": "@@ -17,7 +17,7 @@\n package ratpack.promise.internal;\n \n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.exec.ExecInterceptor;\n import ratpack.promise.Fulfiller;\n@@ -30,11 +30,11 @@ import static ratpack.util.ExceptionUtils.toException;\n \n public class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T> {\n   private final ExecContext context;\n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final List<ExecInterceptor> interceptors;\n   private final Action<? super Fulfiller<T>> action;\n \n-  public DefaultSuccessOrErrorPromise(ExecContext context, Foreground foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action) {\n+  public DefaultSuccessOrErrorPromise(ExecContext context, ExecController foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action) {\n     this.context = context;\n     this.foreground = foreground;\n     this.interceptors = interceptors;\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/promise/internal/DefaultSuccessPromise.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/promise/internal/DefaultSuccessPromise.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 17,
+                            "old_lines": 7,
+                            "new_start": 17,
+                            "new_lines": 7,
+                            "content": "@@ -17,7 +17,7 @@\n package ratpack.promise.internal;\n \n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.exec.ExecInterceptor;\n import ratpack.promise.Fulfiller;"
+                        },
+                        {
+                            "old_start": 28,
+                            "old_lines": 12,
+                            "new_start": 28,
+                            "new_lines": 12,
+                            "content": "@@ -28,12 +28,12 @@ import java.util.List;\n public class DefaultSuccessPromise<T> implements SuccessPromise<T> {\n \n   private final ExecContext context;\n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final List<ExecInterceptor> interceptors;\n   private final Action<? super Fulfiller<T>> action;\n   private final Action<? super Throwable> operationErrorHandler;\n \n-  public DefaultSuccessPromise(ExecContext context, Foreground foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action, Action<? super Throwable> operationErrorHandler) {\n+  public DefaultSuccessPromise(ExecContext context, ExecController foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action, Action<? super Throwable> operationErrorHandler) {\n     this.context = context;\n     this.foreground = foreground;\n     this.interceptors = interceptors;"
+                        }
+                    ],
+                    "patch": "@@ -17,7 +17,7 @@\n package ratpack.promise.internal;\n \n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.func.Action;\n import ratpack.exec.ExecInterceptor;\n import ratpack.promise.Fulfiller;\n@@ -28,12 +28,12 @@ import java.util.List;\n public class DefaultSuccessPromise<T> implements SuccessPromise<T> {\n \n   private final ExecContext context;\n-  private final Foreground foreground;\n+  private final ExecController foreground;\n   private final List<ExecInterceptor> interceptors;\n   private final Action<? super Fulfiller<T>> action;\n   private final Action<? super Throwable> operationErrorHandler;\n \n-  public DefaultSuccessPromise(ExecContext context, Foreground foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action, Action<? super Throwable> operationErrorHandler) {\n+  public DefaultSuccessPromise(ExecContext context, ExecController foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action, Action<? super Throwable> operationErrorHandler) {\n     this.context = context;\n     this.foreground = foreground;\n     this.interceptors = interceptors;\n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/main/java/ratpack/server/internal/NettyHandlerAdapter.java",
+                    "b_filename": "ratpack-core/src/main/java/ratpack/server/internal/NettyHandlerAdapter.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 29,
+                            "old_lines": 7,
+                            "new_start": 29,
+                            "new_lines": 7,
+                            "content": "@@ -29,7 +29,7 @@ import ratpack.error.internal.ErrorCatchingHandler;\n import ratpack.event.internal.DefaultEventController;\n import ratpack.exec.ExecContext;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.file.FileRenderer;\n import ratpack.file.FileSystemBinding;"
+                        },
+                        {
+                            "old_start": 80,
+                            "old_lines": 7,
+                            "new_start": 80,
+                            "new_lines": 7,
+                            "content": "@@ -80,7 +80,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq\n   private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);\n \n   private final DefaultContext.ApplicationConstants applicationConstants;\n-  private final Foreground foreground;\n+  private final ExecController foreground;\n \n   private Registry registry;\n "
+                        }
+                    ],
+                    "patch": "@@ -29,7 +29,7 @@ import ratpack.error.internal.ErrorCatchingHandler;\n import ratpack.event.internal.DefaultEventController;\n import ratpack.exec.ExecContext;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.file.FileRenderer;\n import ratpack.file.FileSystemBinding;\n@@ -80,7 +80,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq\n   private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);\n \n   private final DefaultContext.ApplicationConstants applicationConstants;\n-  private final Foreground foreground;\n+  private final ExecController foreground;\n \n   private Registry registry;\n \n"
+                },
+                {
+                    "a_filename": "ratpack-core/src/test/groovy/ratpack/handling/ForegroundSpec.groovy",
+                    "b_filename": "ratpack-core/src/test/groovy/ratpack/handling/ForegroundSpec.groovy",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 16,
+                            "old_lines": 7,
+                            "new_start": 16,
+                            "new_lines": 7,
+                            "content": "@@ -16,7 +16,7 @@\n \n package ratpack.handling\n \n-import ratpack.exec.Foreground\n+import ratpack.exec.ExecController\n import ratpack.test.internal.RatpackGroovyDslSpec\n \n class ForegroundSpec extends RatpackGroovyDslSpec {"
+                        },
+                        {
+                            "old_start": 27,
+                            "old_lines": 7,
+                            "new_start": 27,
+                            "new_lines": 7,
+                            "content": "@@ -27,7 +27,7 @@ class ForegroundSpec extends RatpackGroovyDslSpec {\n \n   def \"can use context provider\"() {\n     when:\n-    Foreground foreground = null\n+    ExecController foreground = null\n \n     handlers {\n       handler {"
+                        }
+                    ],
+                    "patch": "@@ -16,7 +16,7 @@\n \n package ratpack.handling\n \n-import ratpack.exec.Foreground\n+import ratpack.exec.ExecController\n import ratpack.test.internal.RatpackGroovyDslSpec\n \n class ForegroundSpec extends RatpackGroovyDslSpec {\n@@ -27,7 +27,7 @@ class ForegroundSpec extends RatpackGroovyDslSpec {\n \n   def \"can use context provider\"() {\n     when:\n-    Foreground foreground = null\n+    ExecController foreground = null\n \n     handlers {\n       handler {\n"
+                },
+                {
+                    "a_filename": "ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyContext.java",
+                    "b_filename": "ratpack-groovy/src/main/java/ratpack/groovy/handling/internal/DefaultGroovyContext.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 20,
+                            "old_lines": 8,
+                            "new_start": 20,
+                            "new_lines": 8,
+                            "content": "@@ -20,8 +20,8 @@ import groovy.lang.Closure;\n import groovy.lang.DelegatesTo;\n import ratpack.api.NonBlocking;\n import ratpack.api.Nullable;\n+import ratpack.exec.ExecController;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n import ratpack.func.Action;\n import ratpack.groovy.handling.GroovyByContentHandler;\n import ratpack.groovy.handling.GroovyByMethodHandler;"
+                        },
+                        {
+                            "old_start": 206,
+                            "old_lines": 7,
+                            "new_start": 206,
+                            "new_lines": 7,
+                            "content": "@@ -206,7 +206,7 @@ public class DefaultGroovyContext implements GroovyContext {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return delegate.getForeground();\n   }\n "
+                        }
+                    ],
+                    "patch": "@@ -20,8 +20,8 @@ import groovy.lang.Closure;\n import groovy.lang.DelegatesTo;\n import ratpack.api.NonBlocking;\n import ratpack.api.Nullable;\n+import ratpack.exec.ExecController;\n import ratpack.exec.ExecInterceptor;\n-import ratpack.exec.Foreground;\n import ratpack.func.Action;\n import ratpack.groovy.handling.GroovyByContentHandler;\n import ratpack.groovy.handling.GroovyByMethodHandler;\n@@ -206,7 +206,7 @@ public class DefaultGroovyContext implements GroovyContext {\n   }\n \n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return delegate.getForeground();\n   }\n \n"
+                },
+                {
+                    "a_filename": "ratpack-guice/src/main/java/ratpack/guice/internal/DefaultRatpackModule.java",
+                    "b_filename": "ratpack-guice/src/main/java/ratpack/guice/internal/DefaultRatpackModule.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 20,
+                            "old_lines": 9,
+                            "new_start": 20,
+                            "new_lines": 9,
+                            "content": "@@ -20,9 +20,9 @@ import com.google.inject.AbstractModule;\n import com.google.inject.OutOfScopeException;\n import com.google.inject.Provides;\n import io.netty.buffer.ByteBufAllocator;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n import ratpack.exec.NoBoundContextException;\n import ratpack.handling.*;\n import ratpack.launch.LaunchConfig;"
+                        },
+                        {
+                            "old_start": 51,
+                            "old_lines": 12,
+                            "new_start": 51,
+                            "new_lines": 12,
+                            "content": "@@ -51,12 +51,12 @@ public class DefaultRatpackModule extends AbstractModule {\n   }\n \n   @Provides\n-  Foreground foreground(LaunchConfig launchConfig) {\n+  ExecController foreground(LaunchConfig launchConfig) {\n     return launchConfig.getForeground();\n   }\n \n   @Provides\n-  ExecContext context(Foreground foreground) {\n+  ExecContext context(ExecController foreground) {\n     try {\n       return foreground.getContext();\n     } catch (NoBoundContextException e) {"
+                        }
+                    ],
+                    "patch": "@@ -20,9 +20,9 @@ import com.google.inject.AbstractModule;\n import com.google.inject.OutOfScopeException;\n import com.google.inject.Provides;\n import io.netty.buffer.ByteBufAllocator;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n import ratpack.exec.NoBoundContextException;\n import ratpack.handling.*;\n import ratpack.launch.LaunchConfig;\n@@ -51,12 +51,12 @@ public class DefaultRatpackModule extends AbstractModule {\n   }\n \n   @Provides\n-  Foreground foreground(LaunchConfig launchConfig) {\n+  ExecController foreground(LaunchConfig launchConfig) {\n     return launchConfig.getForeground();\n   }\n \n   @Provides\n-  ExecContext context(Foreground foreground) {\n+  ExecContext context(ExecController foreground) {\n     try {\n       return foreground.getContext();\n     } catch (NoBoundContextException e) {\n"
+                },
+                {
+                    "a_filename": "ratpack-site/src/main/groovy/ratpack/site/SiteModule.groovy",
+                    "b_filename": "ratpack-site/src/main/groovy/ratpack/site/SiteModule.groovy",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 5,
+                            "old_lines": 7,
+                            "new_start": 5,
+                            "new_lines": 7,
+                            "content": "@@ -5,7 +5,7 @@ import com.google.inject.AbstractModule\n import com.google.inject.Provides\n import ratpack.error.ClientErrorHandler\n import ratpack.error.ServerErrorHandler\n-import ratpack.exec.Foreground\n+import ratpack.exec.ExecController\n import ratpack.launch.LaunchConfig\n import ratpack.site.github.ApiBackedGitHubData\n import ratpack.site.github.GitHubApi"
+                        },
+                        {
+                            "old_start": 50,
+                            "old_lines": 7,
+                            "new_start": 50,
+                            "new_lines": 7,
+                            "content": "@@ -50,7 +50,7 @@ class SiteModule extends AbstractModule {\n \n     @Provides\n     @com.google.inject.Singleton\n-    GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader, Foreground foreground) {\n+    GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader, ExecController foreground) {\n       String authToken = launchConfig.getOther(GITHUB_AUTH, null)\n       if (authToken == null) {\n         System.err.println(\"Warning: using anonymous requests to GitHub, may be rate limited (set github.auth other property)\")"
+                        }
+                    ],
+                    "patch": "@@ -5,7 +5,7 @@ import com.google.inject.AbstractModule\n import com.google.inject.Provides\n import ratpack.error.ClientErrorHandler\n import ratpack.error.ServerErrorHandler\n-import ratpack.exec.Foreground\n+import ratpack.exec.ExecController\n import ratpack.launch.LaunchConfig\n import ratpack.site.github.ApiBackedGitHubData\n import ratpack.site.github.GitHubApi\n@@ -50,7 +50,7 @@ class SiteModule extends AbstractModule {\n \n     @Provides\n     @com.google.inject.Singleton\n-    GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader, Foreground foreground) {\n+    GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader, ExecController foreground) {\n       String authToken = launchConfig.getOther(GITHUB_AUTH, null)\n       if (authToken == null) {\n         System.err.println(\"Warning: using anonymous requests to GitHub, may be rate limited (set github.auth other property)\")\n"
+                },
+                {
+                    "a_filename": "ratpack-site/src/main/groovy/ratpack/site/github/GitHubApi.groovy",
+                    "b_filename": "ratpack-site/src/main/groovy/ratpack/site/github/GitHubApi.groovy",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 23,
+                            "old_lines": 7,
+                            "new_start": 23,
+                            "new_lines": 7,
+                            "content": "@@ -23,7 +23,7 @@ import com.google.common.cache.CacheBuilder\n import com.google.common.cache.CacheLoader\n import com.google.common.cache.LoadingCache\n import groovy.transform.CompileStatic\n-import ratpack.exec.Foreground\n+import ratpack.exec.ExecController\n \n import java.util.concurrent.TimeUnit\n "
+                        },
+                        {
+                            "old_start": 36,
+                            "old_lines": 7,
+                            "new_start": 36,
+                            "new_lines": 7,
+                            "content": "@@ -36,7 +36,7 @@ class GitHubApi {\n \n   private final LoadingCache<String, rx.Observable<ArrayNode>> cache\n \n-  GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader, Foreground foreground) {\n+  GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader, ExecController foreground) {\n     this.api = api\n     this.authToken = authToken\n "
+                        }
+                    ],
+                    "patch": "@@ -23,7 +23,7 @@ import com.google.common.cache.CacheBuilder\n import com.google.common.cache.CacheLoader\n import com.google.common.cache.LoadingCache\n import groovy.transform.CompileStatic\n-import ratpack.exec.Foreground\n+import ratpack.exec.ExecController\n \n import java.util.concurrent.TimeUnit\n \n@@ -36,7 +36,7 @@ class GitHubApi {\n \n   private final LoadingCache<String, rx.Observable<ArrayNode>> cache\n \n-  GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader, Foreground foreground) {\n+  GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader, ExecController foreground) {\n     this.api = api\n     this.authToken = authToken\n \n"
+                },
+                {
+                    "a_filename": "ratpack-site/src/main/groovy/ratpack/site/github/GithubRequester.groovy",
+                    "b_filename": "ratpack-site/src/main/groovy/ratpack/site/github/GithubRequester.groovy",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 18,
+                            "old_lines": 11,
+                            "new_start": 18,
+                            "new_lines": 10,
+                            "content": "@@ -18,11 +18,10 @@ package ratpack.site.github\n \n import com.fasterxml.jackson.databind.ObjectReader\n import com.fasterxml.jackson.databind.node.ArrayNode\n-import ratpack.exec.Foreground\n+import ratpack.exec.ExecController\n import ratpack.http.client.HttpClient\n import ratpack.http.client.ReceivedResponse\n import ratpack.http.client.RequestSpec\n-import rx.Observable\n import rx.Subscriber\n \n import static ratpack.rx.RxRatpack.observe"
+                        },
+                        {
+                            "old_start": 30,
+                            "old_lines": 9,
+                            "new_start": 29,
+                            "new_lines": 9,
+                            "content": "@@ -30,9 +29,9 @@ import static ratpack.rx.RxRatpack.observe\n class GithubRequester {\n \n   private final ObjectReader objectReader\n-  private final Foreground foreground\n+  private final ExecController foreground\n \n-  GithubRequester(ObjectReader objectReader, Foreground foreground) {\n+  GithubRequester(ObjectReader objectReader, ExecController foreground) {\n     this.objectReader = objectReader\n     this.foreground = foreground\n   }"
+                        }
+                    ],
+                    "patch": "@@ -18,11 +18,10 @@ package ratpack.site.github\n \n import com.fasterxml.jackson.databind.ObjectReader\n import com.fasterxml.jackson.databind.node.ArrayNode\n-import ratpack.exec.Foreground\n+import ratpack.exec.ExecController\n import ratpack.http.client.HttpClient\n import ratpack.http.client.ReceivedResponse\n import ratpack.http.client.RequestSpec\n-import rx.Observable\n import rx.Subscriber\n \n import static ratpack.rx.RxRatpack.observe\n@@ -30,9 +29,9 @@ import static ratpack.rx.RxRatpack.observe\n class GithubRequester {\n \n   private final ObjectReader objectReader\n-  private final Foreground foreground\n+  private final ExecController foreground\n \n-  GithubRequester(ObjectReader objectReader, Foreground foreground) {\n+  GithubRequester(ObjectReader objectReader, ExecController foreground) {\n     this.objectReader = objectReader\n     this.foreground = foreground\n   }\n"
+                },
+                {
+                    "a_filename": "ratpack-test/src/main/java/ratpack/test/MockLaunchConfig.java",
+                    "b_filename": "ratpack-test/src/main/java/ratpack/test/MockLaunchConfig.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 18,
+                            "old_lines": 9,
+                            "new_start": 18,
+                            "new_lines": 9,
+                            "content": "@@ -18,9 +18,9 @@ package ratpack.test;\n \n import io.netty.buffer.ByteBufAllocator;\n import ratpack.api.Nullable;\n+import ratpack.exec.ExecController;\n import ratpack.file.FileSystemBinding;\n import ratpack.exec.internal.Background;\n-import ratpack.exec.Foreground;\n import ratpack.launch.HandlerFactory;\n import ratpack.launch.LaunchConfig;\n "
+                        },
+                        {
+                            "old_start": 117,
+                            "old_lines": 7,
+                            "new_start": 117,
+                            "new_lines": 7,
+                            "content": "@@ -117,7 +117,7 @@ public class MockLaunchConfig implements LaunchConfig {\n    * @return n/a.\n    */\n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return null;\n   }\n "
+                        }
+                    ],
+                    "patch": "@@ -18,9 +18,9 @@ package ratpack.test;\n \n import io.netty.buffer.ByteBufAllocator;\n import ratpack.api.Nullable;\n+import ratpack.exec.ExecController;\n import ratpack.file.FileSystemBinding;\n import ratpack.exec.internal.Background;\n-import ratpack.exec.Foreground;\n import ratpack.launch.HandlerFactory;\n import ratpack.launch.LaunchConfig;\n \n@@ -117,7 +117,7 @@ public class MockLaunchConfig implements LaunchConfig {\n    * @return n/a.\n    */\n   @Override\n-  public Foreground getForeground() {\n+  public ExecController getForeground() {\n     return null;\n   }\n \n"
+                },
+                {
+                    "a_filename": "ratpack-test/src/main/java/ratpack/test/handling/internal/DefaultInvocation.java",
+                    "b_filename": "ratpack-test/src/main/java/ratpack/test/handling/internal/DefaultInvocation.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 29,
+                            "old_lines": 7,
+                            "new_start": 29,
+                            "new_lines": 7,
+                            "content": "@@ -29,7 +29,7 @@ import ratpack.error.ServerErrorHandler;\n import ratpack.event.internal.DefaultEventController;\n import ratpack.event.internal.EventController;\n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.exec.internal.DefaultBackground;\n import ratpack.exec.internal.DefaultForeground;"
+                        },
+                        {
+                            "old_start": 165,
+                            "old_lines": 7,
+                            "new_start": 165,
+                            "new_lines": 7,
+                            "content": "@@ -165,7 +165,7 @@ public class DefaultInvocation implements Invocation {\n     EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory(\"ratpack-group\"));\n     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);\n \n-    final Foreground foreground = new DefaultForeground(eventLoopGroup);\n+    final ExecController foreground = new DefaultForeground(eventLoopGroup);\n     final Background background = new DefaultBackground(foreground, backgroundExecutorService);\n \n     LaunchConfig launchConfig = new MockLaunchConfig() {"
+                        },
+                        {
+                            "old_start": 175,
+                            "old_lines": 7,
+                            "new_start": 175,
+                            "new_lines": 7,
+                            "content": "@@ -175,7 +175,7 @@ public class DefaultInvocation implements Invocation {\n       }\n \n       @Override\n-      public Foreground getForeground() {\n+      public ExecController getForeground() {\n         return foreground;\n       }\n     };"
+                        }
+                    ],
+                    "patch": "@@ -29,7 +29,7 @@ import ratpack.error.ServerErrorHandler;\n import ratpack.event.internal.DefaultEventController;\n import ratpack.event.internal.EventController;\n import ratpack.exec.ExecContext;\n-import ratpack.exec.Foreground;\n+import ratpack.exec.ExecController;\n import ratpack.exec.internal.Background;\n import ratpack.exec.internal.DefaultBackground;\n import ratpack.exec.internal.DefaultForeground;\n@@ -165,7 +165,7 @@ public class DefaultInvocation implements Invocation {\n     EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory(\"ratpack-group\"));\n     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);\n \n-    final Foreground foreground = new DefaultForeground(eventLoopGroup);\n+    final ExecController foreground = new DefaultForeground(eventLoopGroup);\n     final Background background = new DefaultBackground(foreground, backgroundExecutorService);\n \n     LaunchConfig launchConfig = new MockLaunchConfig() {\n@@ -175,7 +175,7 @@ public class DefaultInvocation implements Invocation {\n       }\n \n       @Override\n-      public Foreground getForeground() {\n+      public ExecController getForeground() {\n         return foreground;\n       }\n     };\n"
+                }
+            ],
+            "commit_hash": "68dc1eef2abfcfaf2b897ddaf86e5336c45a7ff1",
+            "trajectory": [
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "[PlanningStep(reason=\"Perform renames that follow this general pattern: 'Foreground' -> 'ExecController'\", final_code='', execution_details='', refactoring_type=<SupportedRefactorings.RENAME: 'rename'>, file_path='ratpack-core/src/main/java/ratpack/exec/ExecController.java')]",
+                        "type": "ai",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "SystemMessage"
+                    ],
+                    "kwargs": {
+                        "content": "You are an expert developer who executes rename refactorings.\nPlease do the following: Perform renames that follow this general pattern: 'Foreground' -> 'ExecController' \nIMPORTANT: Analyze the code and identify ALL locations that need to be renamed. You will be asked to provide your analysis as a JSON response containing all rename suggestions.",
+                        "type": "system",
+                        "id": "3c436ff2-a2ab-4074-b231-c7c76251a2d2"
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "HumanMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Opened file successfully. You are now editing ratpack-core/src/main/java/ratpack/exec/ExecController.java",
+                        "type": "human",
+                        "id": "5306774d-455f-4020-ae23-44645c3486e9"
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "{\n  \"analysis\": \"REFACTORING_COMPLETE: No remaining code identifiers reference the old name 'Foreground'.\",\n  \"rename_suggestions\": []\n}",
+                        "type": "ai",
+                        "id": "2a61412d-8d2b-4606-a7b8-05b7e759950d",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Parsed rename analysis: REFACTORING_COMPLETE: No remaining code identifiers reference the old name 'Foreground'.",
+                        "additional_kwargs": {
+                            "rename_analysis": {
+                                "analysis": "REFACTORING_COMPLETE: No remaining code identifiers reference the old name 'Foreground'.",
+                                "rename_suggestions": []
+                            }
+                        },
+                        "type": "ai",
+                        "id": "4df2f8d8-0b05-491b-abdc-000629819020",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Critique completed: 0 valid suggestions, 0 invalid suggestions\n\n LLM CALL #2: Find what other elements are left to rename. Check the MEMORY info below: use AVOID lines to skip, COMPLETED lines to not repeat, and SUCCESS patterns as guidance.",
+                        "additional_kwargs": {
+                            "validated_renames": {
+                                "valid_suggestions": [],
+                                "invalid_suggestions": [],
+                                "critique_feedback": "Validated 0 valid and 0 invalid suggestions"
+                            }
+                        },
+                        "type": "ai",
+                        "id": "53ab0362-24c8-43cc-a732-76ed3ef51059",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "{\n  \"analysis\": \"REFACTORING_COMPLETE: No further code elements named 'Foreground' found in this file.\",\n  \"rename_suggestions\": []\n}",
+                        "type": "ai",
+                        "id": "f260a124-664d-4ab7-a2c0-4c35fb50a285",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Parsed rename analysis: REFACTORING_COMPLETE: No further code elements named 'Foreground' found in this file.",
+                        "additional_kwargs": {
+                            "rename_analysis": {
+                                "analysis": "REFACTORING_COMPLETE: No further code elements named 'Foreground' found in this file.",
+                                "rename_suggestions": []
+                            }
+                        },
+                        "type": "ai",
+                        "id": "bb1eeea6-8f09-48ef-a667-0f244c34c13d",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Critique completed: 0 valid suggestions, 0 invalid suggestions\n\n LLM CALL #3: Find what other elements are left to rename. Check the MEMORY info below: use AVOID lines to skip, COMPLETED lines to not repeat, and SUCCESS patterns as guidance.",
+                        "additional_kwargs": {
+                            "validated_renames": {
+                                "valid_suggestions": [],
+                                "invalid_suggestions": [],
+                                "critique_feedback": "Validated 0 valid and 0 invalid suggestions"
+                            }
+                        },
+                        "type": "ai",
+                        "id": "cade0b4d-f983-44e4-b709-306e25cf955a",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "{\n  \"analysis\": \"REFACTORING_COMPLETE: No further code elements named 'Foreground' found in this file.\",\n  \"rename_suggestions\": []\n}",
+                        "type": "ai",
+                        "id": "8fca0ddb-5138-420c-9367-fcecca48dc3b",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Parsed rename analysis: REFACTORING_COMPLETE: No further code elements named 'Foreground' found in this file.",
+                        "additional_kwargs": {
+                            "rename_analysis": {
+                                "analysis": "REFACTORING_COMPLETE: No further code elements named 'Foreground' found in this file.",
+                                "rename_suggestions": []
+                            }
+                        },
+                        "type": "ai",
+                        "id": "bc416018-9a67-4cf4-ae28-9c3cb51564e6",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Critique completed: 0 valid suggestions, 0 invalid suggestions",
+                        "additional_kwargs": {
+                            "validated_renames": {
+                                "valid_suggestions": [],
+                                "invalid_suggestions": [],
+                                "critique_feedback": "Validated 0 valid and 0 invalid suggestions"
+                            }
+                        },
+                        "type": "ai",
+                        "id": "06b340a3-0aec-444b-89e6-b671efb1a879",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "AIMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Stopping LLM calls after 3 total iterations. Unable to generate valid rename suggestions.",
+                        "type": "ai",
+                        "id": "341476f6-3116-475a-a0b9-26a57d913290",
+                        "tool_calls": [],
+                        "invalid_tool_calls": []
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "HumanMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Cannot perform this refactoring. LLM was unable to generate valid rename suggestions after multiple attempts. The code may not contain the expected patterns for this refactoring.",
+                        "type": "human",
+                        "id": "0f7a5f3d-d019-4e74-a984-908e9915b6d7"
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "SystemMessage"
+                    ],
+                    "kwargs": {
+                        "content": "You are an expert developer who executes rename refactorings.\nPlease do the following: Perform renames that follow this general pattern: 'Foreground' -> 'ExecController' \nIMPORTANT: Analyze the code and identify ALL locations that need to be renamed. You will be asked to provide your analysis as a JSON response containing all rename suggestions.",
+                        "type": "system",
+                        "id": "3c436ff2-a2ab-4074-b231-c7c76251a2d2"
+                    }
+                },
+                {
+                    "lc": 1,
+                    "type": "constructor",
+                    "id": [
+                        "langchain",
+                        "schema",
+                        "messages",
+                        "HumanMessage"
+                    ],
+                    "kwargs": {
+                        "content": "Cannot perform this refactoring. LLM was unable to generate valid rename suggestions after multiple attempts. The code may not contain the expected patterns for this refactoring.",
+                        "type": "human",
+                        "id": "0f7a5f3d-d019-4e74-a984-908e9915b6d7"
+                    }
+                }
+            ],
+            "performed_refactorings": {
+                "ratpack-core/src/main/java/ratpack/exec/ExecController.java": []
+            },
+            "internal_commits": [
+                "54b94244ea6045abd52901de56383567b1deb1f1"
+            ],
+            "replication_inspection_data": {},
+            "human_review_count": 1,
+            "human_accepted_count": 1,
+            "human_rejected_count": 0
+        }
+    }
+]

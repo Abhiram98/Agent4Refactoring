@@ -7,7 +7,7 @@ from pydantic import BaseModel, PrivateAttr
 from typing import List, Set
 import refagent.benchmark.load as bm_load
 import refagent.benchmark.creation.scrape_project as scrape
-from datetime import datetime, UTC, timedelta
+from datetime import datetime, UTC, timedelta, timezone
 from pathlib import Path
 import traceback
 from slack_sdk import WebClient
@@ -46,6 +46,7 @@ class Monitor(BaseModel):
     def process_project(self, project: pm.EvalProject) -> List[bm_load.BenchmarkItem]:
         monitoring_data = []
         print("pulling repo")
+        project.checkout_main()
         project.pull_project()
         print("done pulling repo")
 
@@ -147,7 +148,8 @@ class Monitor(BaseModel):
 def main():
     parser = argparse.ArgumentParser(description='monitor different projects')
     parser.add_argument('project_names_file', type=str, help='File containing project names to monitor')
-    parser.add_argument('--cutoff_date', type=str, default='2025-05-01', help='Cutoff date for commits to monitor from')
+    parser.add_argument('--cutoff_date', type=str,
+                        default=(datetime.now(timezone.utc) - timedelta(days=2)).date().isoformat(), help='Cutoff date for commits to monitor from')
     args = parser.parse_args()
 
     with open(args.project_names_file) as f:

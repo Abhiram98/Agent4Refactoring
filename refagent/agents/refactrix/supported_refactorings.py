@@ -21,6 +21,12 @@ class CodeElementType(Enum):
     PARAMETER = "parameter"
     VARIABLE = "variable"
 
+    @staticmethod
+    def get_rminer_str(rminer_type: str):
+        name_map = {'attribute': 'field'}
+        key = rminer_type.split('Rename ')[-1].lower()
+        return name_map.get(key, key)
+
 class SupportedRefactorings(Enum):
     EXTRACT_METHOD = "extract_method"
     RENAME = "rename"

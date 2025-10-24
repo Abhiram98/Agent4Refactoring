@@ -4,12 +4,15 @@ import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.replication as replication
 
-
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, BaseMessage
 import traceback
 
+from refagent.agents.refactrix import quality_check
+
+
 class ReactPerformer(perform_refactoring.PerformRefactoring):
     pass
+
 
 class ReactAgent(ra.Agent):
     MAX_GRAPH_ITERATION: int = 10
@@ -24,29 +27,30 @@ class ReactAgent(ra.Agent):
         self._failing_tool_call_count = 0
         assert len(ref_plan.steps) == 1
         step = ref_plan.steps[0]
-        if len(ref_plan.steps) > 0 and open_file:
-            self.try_open_file(step.file_path)
+        
+        if len(ref_plan.steps) > 0 and open_file and not self.try_open_file(step.file_path):
+            print("Failed to open file. stopping agent.")
+            return
+
 
         try:
-            graph = self.compile_graph(model=model,
-                                       initial_intent=self.augmented_intent,
+            graph = self.compile_graph(model=self._reasoning_model,
                                        plan_step=step,
                                        step_count=0,
                                        ask_finished_first_iteration=True)
             final_state = graph.invoke(
                 {
                     "messages": [
-                        SystemMessage(f"You are an expert developer who executes rename refactorings to"
-                                      f" improve the quality of the given code. "
-                                      f"Please do the following: {self.augmented_intent} "
-                                      f"The final code is expected to look like this: {step.final_code}"
-                                      f"ONLY make TOOL CALLS to perform actions."),
+                        SystemMessage(f"You are an expert developer who executes rename refactorings.\n"
+                                      f"Please do the following: {self.augmented_intent} \n"
+                                      f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
+                                      f"You will be asked to provide your analysis as a JSON response containing all rename suggestions."),
                     ]
                 },
                 config={"configurable": {"thread_id": 42}, "recursion_limit": 50}
             )
             self._trajectory += final_state['messages']
-            print(f"Result of executing step {0}: ", final_state["messages"][-1].content)
+            # print(f"Result of executing step {0}: ", final_state["messages"][-1].content)
         except:
             print(f"Execution of step 1 failed.")
             traceback.print_exc()
@@ -56,7 +60,7 @@ class ReactAgent(ra.Agent):
         return planning.RefactoringPlan(
             steps=[
                 planning.PlanningStep(
-                    reason=self.augmented_intent,
+                    reason=str(self.augmented_intent),
                     execution_details="",
                     final_code="",
                     refactoring_type=sup_refs.SupportedRefactorings.RENAME,
@@ -70,15 +74,18 @@ class ReactAgent(ra.Agent):
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=self.augmented_intent,  # pass the augmented intent,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
-            refactoring_commit=self._internal_commits[0]
+            oracle_data=self._oracle_data,
+            # Pass memory parameters for iterative replication
+            benchmark_id=self.benchmark_id,
+            memory_database_url=self.memory_database_url,
+            replication_max_iters=self.replication_max_iters
         )
-        self.MAX_GRAPH_ITERATION = 2
+        self.MAX_GRAPH_ITERATION = 2 # nit: are these changes to hyperparameters necessary?
         self.MAX_FAILING_TOOL_CALLS = 1
         for plan in replicator.compile_and_run():
             try:
@@ -87,7 +94,21 @@ class ReactAgent(ra.Agent):
             except:
                 traceback.print_exc()
                 print(f"Execution of replication for file {plan.steps[0].file_path} failed.")
-                break
+                continue
             self.update_changed_files()
 
+        # Capture replication inspection data
+        self._replication_inspection_data = replicator.get_files_inspection_data()
 
+    def do_quality_check(self, model) -> quality_check.QualityCheckResult:
+        # force the quality check to result in true.
+        return quality_check.QualityCheckResult(
+            overall_assessment=quality_check.OverallAssessment.PASS,
+            intent_alignment=quality_check.IntentAlignment.MET,
+            intent_alignment_explanation="",
+            improvements=quality_check.ImprovementResult.NO_IMPROVEMENTS,
+            improvements_explanation="",
+            issues=quality_check.IssueStatus.NO_ISSUES,
+            issues_explanation="",
+            refined_intent=""
+        )

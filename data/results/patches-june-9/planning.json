@@ -516,5 +516,222 @@
             "plan": null,
             "augmented_intent": "Disambiguate generic parameter names that shadow Java types or Starlark built-ins by appending an 'Arg' suffix. Apply this pattern consistently to all Starlark-exposed parameters (e.g. rename 'map' \u2192 'mapArg', 'set' \u2192 'setArg', 'name' \u2192 'nameArg') so callers and readers immediately know these are user-supplied arguments and avoid naming collisions."
         }
+    },
+    {
+        "id": 11693,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a consistent naming convention by replacing terse abbreviations like `loc` with full descriptive names such as `location` throughout this AlarmWidget class and other code modules, improving code clarity, reducing ambiguity, and adhering to project style guidelines."
+        }
+    },
+    {
+        "id": 116931,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a naming standard by renaming the terse local variable `ro` to the descriptive `routeObject`, and in this file and across the codebase, expand other cryptic, abbreviated locals (e.g., `loc` \u2192 `lastKnownLocation`, `cfg` \u2192 `configuration`) to full domain-relevant names to improve clarity, consistency, and maintainability."
+        }
+    },
+    {
+        "id": 116932,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify and rename all boolean flags that use ambiguous nouns or abbreviations into clear action-oriented names using verbs like 'show' or 'is\u2026Enabled'. For example, rename 'tunnels' to 'showTunnels', 'peds' to 'showPedestrians', or 'speedLimit' to 'showSpeedLimitWarnings' to match existing naming conventions and improve code readability across this file and elsewhere."
+        }
+    },
+    {
+        "id": 11344,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Locate and rename all occurrences of secretName to secretRef across ModelReference and its related code: update the private field, constructor parameters, getters, static factory methods, toString/valueOf logic, Javadoc comments, tests and serialization keys. Ensure the Ref suffix convention is consistently applied to other resourceName fields (e.g. roleName \u2192 roleRef, configName \u2192 configRef). Deprecate the old secretName API elements if backward compatibility must be maintained until the next major version."
+        }
+    },
+    {
+        "id": 11435,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a recipe for a second developer to apply the same prefix-trimming pattern across this file and others: drop the redundant module name from class and file names when the package path already conveys the context; in this file rename the interface and its source file to \u201cApiPlatformConfigurationMapperSpringConfig\u201d, update all imports, references, Spring annotations (e.g. conversionServiceAdapterClassName), tests, documentation, and any config registrations; ensure backward compatibility for public APIs (via deprecation or aliases); then repeat for other classes like `EeAutomationTaskSchedulerConfig` \u2192 `TaskSchedulerConfig`, `EeAutomationUserDetailsAdapter` \u2192 `UserDetailsAdapter`, etc."
+        }
+    },
+    {
+        "id": 11459,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update the local variable named `helper` to `historyHelper` in the deleteSearchHistory() method (line 61) for improved clarity and disambiguation, and extend this pattern elsewhere by renaming all generic `helper` variables to descriptive names reflecting their specific helper classes (e.g., `searchHistoryHelper`, `navigationHistoryHelper`, `targetPointsHelper`, `mapMarkersHelper`) to maintain consistency and readability across the codebase."
+        }
+    },
+    {
+        "id": 11478,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every place across this class and related modules where a variable, field, parameter or setting named `locale` is actually used to store the map\u2010rendering language code. Rename each occurrence to `mapLang` (or `mapLanguageCode`) in variable names, method signatures, constants, settings keys (e.g., MAP_PREFERRED_LOCALE \u2192 MAP_PREFERRED_MAP_LANG), comments and UI labels. Ensure all references\u2014imports, documentation, tests and preference identifiers\u2014are updated so that it\u2019s unambiguous this value controls the map label language rather than the general application locale."
+        }
+    },
+    {
+        "id": 11530,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every variable, parameter, field or method element currently named `type` that actually holds a Java Class<?> reference rather than a domain-level type value, and rename each by appending the suffix `Class` (for example, `type`\u2192`typeClass`, `handler`\u2192`handlerClass`, `dto`\u2192`dtoClass`) to clearly convey that these are Java type literals; update all usages, method signatures, documentation, and tests to match the new names."
+        }
+    },
+    {
+        "id": 11531,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply Java naming conventions by converting any local variable or lambda parameter named in UpperCamelCase to lowerCamelCase. Ensure that identifiers matching class or interface names start with a lowercase letter to clearly distinguish variables from types and maintain consistency across the codebase."
+        }
+    },
+    {
+        "id": 11570,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Update the bundle constant and all its usages to clarify that we\u2019re passing a file path string, not a File object. Rename the declaration `private static final String FILE_KEY = \"file_key\";` to `FILE_PATH_KEY = \"file_path_key\"`, then update every reference (args.putSerializable, args.getSerializable, and any usages in showInstance, onCreate, onDismiss) to use `FILE_PATH_KEY`. Ensure consistency with naming conventions for other bundle keys that carry file paths, and update any related tests or documentation to reflect the new constant name."
+        }
+    },
+    {
+        "id": 11571,
+        "response": {
+            "plan": null,
+            "augmented_intent": "For any constant or variable used as a Bundle/Intent key whose name ends in `_KEY` and is too generic, rename it to include the specific data type or semantics it carries (e.g., change `FILE_KEY` to `FILE_PATH_KEY`, `USER_KEY` to `USER_ID_KEY`, `IMAGE_KEY` to `IMAGE_URI_KEY`). Update every declaration, import, reference, documentation comment, and test case across the codebase to reflect the new names, and ensure consistency with existing naming patterns for extras/keys."
+        }
+    },
+    {
+        "id": 11572,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Establish a refactoring rule to replace single-letter variables used as semantic identifiers (e.g., r for renderer) with descriptive names (e.g., name or rendererName) matching method parameter naming. Apply this consistently across render-related classes and other modules where variables carry domain-specific data (URL, key, file, JSON, etc.) to improve readability. Exclude conventional one-letter names for loop counters (i, j), math coordinates (x, y), exception handlers (e), and concise lambda parameters where their meaning is obvious."
+        }
+    },
+    {
+        "id": 11582,
+        "response": {
+            "plan": null,
+            "augmented_intent": "All static final fields should follow the UPPER_SNAKE_CASE naming convention: rename any static final logger instance to LOGGER, and apply the same uppercase convention to other static final constants (e.g., DEFAULT_TIMEOUT, CONFIG_KEY, EMAIL_PATTERN). Mutable, instance-level, or dependency-injected loggers and non-constant fields remain in lowerCamelCase."
+        }
+    },
+    {
+        "id": 11584,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Summarize the refactoring rule: in local scopes where a qualifier like \u201ccurrent\u201d adds no extra meaning, remove redundant adjectives from variable and parameter names (e.g., rename `currentYear` to `year` to match method parameters and improve readability), apply the same pattern to similar cases (e.g., `currentDate`\u2192`date`, `tempList`\u2192`list`, `reportYear`\u2192`year`), and avoid it when the qualifier disambiguates multiple related values or conveys domain-specific significance (e.g., `startYear` vs. `endYear`, `fiscalYear` vs. `calendarYear`)."
+        }
+    },
+    {
+        "id": 11585,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the generic `mainPanel` field to the more descriptive `topPanel` to reflect its placement in the BorderLayout\u2019s top (CENTER) region. Update the variable declaration, all references, layout constraints, comments, and any related UI builder or resource bindings. Apply this same approach elsewhere by renaming other generic panels to region- or role-specific names (e.g., `headerPanel`, `contentPanel`, `footerPanel`, `leftPanel`) for improved semantic clarity and consistency."
+        }
+    },
+    {
+        "id": 11587,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Replace generic panel names (e.g., mainPanel) with descriptive, position- or function-based names (topPanel, bottomPanel, headerPanel, footerPanel, contentPanel, sidebarPanel, etc.) whenever multiple UI sections are present or anticipated. For each rename: update the variable declaration, all references in code (addActionListener, layout calls, component adds), related resource keys or labels if they reference the panel name, and unit tests or documentation. Follow a consistent naming scheme across dialogs, frames, and panels to reflect layout roles and improve readability and maintainability."
+        }
+    },
+    {
+        "id": 11588,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Define a refactoring strategy: identify all occurrences of variables, methods, and resource bundle keys that refer to the 'glossary' content wrapper, and rename them to reflect 'contents'. For example, rename fullGlossaryWrapper to fullContentsWrapper, scrollFullGlossary to scrollContentsPane, buildGlossaryPane to buildContentsPane. Update Javadoc, comments, UI labels, and resource bundle entries accordingly. Apply the same pattern to similar dialog classes to ensure naming consistency. Use IDE refactoring and test suite to validate changes."
+        }
+    },
+    {
+        "id": 11589,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify all `private static final` fields in this class and across the codebase that do not follow Java constant naming conventions and rename them to ALL_UPPERCASE_WITH_UNDERSCORES. For example, change `logger` to `LOGGER`, `resourceBundle` to `RESOURCE_BUNDLE`, etc., while leaving non-constant or instance-level fields unchanged."
+        }
+    },
+    {
+        "id": 11590,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify every declaration, parameter, local variable, comment, log message, test, and Javadoc reference where the suffix 'Key' is used for the hyperlink command prefix (GLOSSARY or DOCUMENTATION), and rename `commandKey` to the more accurate and concise `command`. Update method signatures, variable declarations, exception messages, and any public API boundaries or serialization keys accordingly. Ensure related constants and resource bundle entries remain consistent or are aliased for backward compatibility, adjust tests and examples, and update comments to reflect the new naming before verifying that all behavior and existing integrations continue to function as before."
+        }
+    },
+    {
+        "id": 11591,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Identify and rename all occurrences of the variable `commandKey` to `command` throughout the hyperlink handler and any similar parsing logic, ensuring it clearly represents an action command rather than a lookup key. Update declarations, method parameters, comments, tests, and documentation. Apply the same drop-\u201cKey\u201d pattern to other variables like `actionKey` or `eventKey` when they hold commands, but preserve the suffix when it denotes a true lookup key or is part of a public API contract."
+        }
+    },
+    {
+        "id": 11592,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide a high-level guideline for renaming generic container variables (e.g., mainPanel, panel1) to descriptive names reflecting their layout position or role (e.g., topPanel, headerPanel, footerPanel, contentPanel) across this file and the codebase. Instruct the developer to: identify panels in BorderLayout, BoxLayout, CardLayout, etc.; choose names that clearly indicate placement or purpose; update all references and event handlers; maintain consistency with existing naming conventions; and, when panels are part of a public API, deprecate old names or provide aliases to avoid breaking changes."
+        }
+    },
+    {
+        "id": 11636,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply a consistent rename of the query parameter and related identifiers from \u201cactions\u201d to \u201ctools\u201d across all affected files. Update @RequestParam(value=\"actions\") and @Parameter(name=\"actions\") to use \"tools\", adjust variable names, method signatures (e.g., getTools), JavaDoc and Swagger/OpenAPI definitions, example JSON snippets, client\u2010SDK mappings, test cases and any code generators or templates. Ensure documentation, controllers, models and filters all reflect the new \u201ctools\u201d concept and maintain backward compatibility or deprecation notices if clients still expect \u201cactions.\u201d"
+        }
+    },
+    {
+        "id": 11674,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Apply this naming pattern wherever an overload threshold is actually based on the number of enqueued requests. Rename any methods, tests, variables, metrics keys, exception messages and documentation that use \u201cSize\u201d in this context to use \u201cQueueLength\u201d for clarity and consistency across the codebase."
+        }
+    },
+    {
+        "id": 11676,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Refactor the test method name and all related identifiers, comments, and documentation where \u2018OverLoadBySize\u2019 describes queue\u2010based overload to use \u2018OverLoadByQueueLength\u2019 instead. Ensure any helper methods, variables, configuration keys or references in this file and across the codebase that imply overload by size are updated to reflect overload by queue length for semantic accuracy and consistency."
+        }
+    },
+    {
+        "id": 11690,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Summarize a renaming guideline: identify tests, methods, or variables whose names use a generic suffix like 'BySize' but whose logic exercises a specific metric. Rename them to reflect that metric (e.g. 'BySize' \u2192 'ByQueueLength', 'ByAge', 'ByByteCount', etc.). Apply this pattern consistently across code, tests, comments, and documentation to ensure identifier names accurately describe the behavior under test."
+        }
+    },
+    {
+        "id": 11736,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Scan for parameters prefixed with \u201cinclude\u201d that no longer act as boolean flags but carry the actual data; for each, drop the \u201cinclude\u201d prefix and rename to a noun-only, lowerCamelCase form matching its type (e.g. includeApiCollections \u2192 apiCollections). Then update all method signatures, overloads, call sites, documentation, and tests to use the new name, ensuring consistency with other parameters of similar form."
+        }
+    },
+    {
+        "id": 11737,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the `outputSchema` field and all related elements (property declarations, getters/setters, @JsonProperty, @Schema names, comments, equals/hashCode/toString references, tests and docs) to `outputResponse` across this file and other modules. Ensure alignment with API terminology by updating OpenAPI spec components, client/server codegen references, and any similar schema-named fields to response-named fields. Maintain backward compatibility by marking the old name as deprecated or providing migration notes where consumers bind to the original property."
+        }
+    },
+    {
+        "id": 11738,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename every occurrence of the misleading FinalResponse identifier to WorkerResponse in this file and across the codebase. This includes: class and method declarations, interface definitions, DTOs, test cases, variable names, import statements, JSON property mappings, API documentation, and log messages. Update package references and comments that mention FinalResponse to reflect WorkerResponse so that it\u2019s clear this type represents a per\u2010worker output rather than the final aggregated result. Ensure all compile and integration tests pass after the renames."
+        }
+    },
+    {
+        "id": 11745,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Provide guidance to developers to apply this pattern in this and other files: identify any methods, variables, or references that handle tunnel-specific simulated locations and rename them by appending ForTunnel to their names (for example getSimulatedLocation -> getSimulatedLocationForTunnel). Update all call sites, tests, documentation, and comments to maintain clear separation between general simulation logic and tunnel-specific logic."
+        }
+    },
+    {
+        "id": 13274,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Rename the class MappingController to MappingRuleController and update all related references across the codebase: adjust the @RequestMapping path to \"/v2/mapping-rules\" if needed, rename import statements and annotations, update DTO types and request/response classes (MappingRuleCreateRequest, MappingRuleResult, MappingRuleSearchQueryRequest, MappingRuleSearchQueryResult, MappingRuleUpdateRequest), refactor RequestMapper/ResponseMapper calls (toMappingDTO, toMappingCreateResponse, toMappingUpdateResponse), update service method calls (createMapping, updateMapping, deleteMapping, getMapping, search), modify test classes, client SDKs, documentation, and any routing or configuration files to reflect the new MappingRuleController name and ensure consistency with the public API."
+        }
+    },
+    {
+        "id": 13423,
+        "response": {
+            "plan": null,
+            "augmented_intent": "Expand abbreviations like Person p -> person and LogEntry e-> logEntry where applicable"
+        }
     }
 ]

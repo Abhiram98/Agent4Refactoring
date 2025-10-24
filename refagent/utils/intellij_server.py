@@ -43,6 +43,13 @@ class IntellijServer(BaseModel):
         else:
             return f"tool call failed - {response.status_code}: {response.text}"
 
+    def call_tool_args(self, tool_name, *args):
+        response = requests.post(f'{self.server_url}/{tool_name}', json=list(args))
+        if response.ok:
+            return response.text
+        else:
+            return f"tool call failed - {response.status_code}: {response.text}"
+
     def call_tool_get(self, tool_name):
         response = requests.get(f'{self.server_url}/{tool_name}')
         if response.ok:

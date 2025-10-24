@@ -1,6 +1,6 @@
 import json
 import traceback
-
+import time
 from git import Commit
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph import StateGraph, START, END
@@ -16,6 +16,9 @@ from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, AI
 from langchain_core.language_models import BaseChatModel
 from collections import defaultdict
 
+import refagent.refactoring_types.refactorings as refactorings
+from refagent.agents.memory.orm_memory import ORMRefactoringMemory
+
 try:
     from grazie_langchain_utils.language_models.grazie import ChatGrazie
 except ImportError:
@@ -24,7 +27,7 @@ from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie.api.client.chat.response import Credit
 
-from typing import Annotated, Optional, Type, List, Dict
+from typing import Annotated, Optional, Type, List, Dict, Literal
 
 import refagent.utils.intellij_server as ij
 import refagent.utils.code_utils as code_utils
@@ -32,11 +35,14 @@ import refagent.agents.refactrix.supported_refactorings as sup_refs
 import refagent.agents.refactrix.perform_refactoring as perform_ref
 import refagent.agents.refactrix.tools as ref_tools
 import refagent.agents.refactrix.planning as planning
-import refagent.agents.refactrix.analysis as analysis
+import refagent.agents.refactrix.analysis.component as analysis
 import refagent.utils.project_manager as pm
 import refagent.agents.refactrix.replication as replication
-import refagent.agents.refactrix.error_fixing as error_fixing
 import refagent.agents.refactrix.quality_check as quality_check
+import refagent.agents.refactrix.review.critique as critique
+import refagent.agents.refactrix.review.human_validator as human_validator
+import refagent.agents.refactrix.analysis.scope as scope
+
 
 class SelectedRefactoring(BaseModel):
     """
@@ -46,23 +52,34 @@ class SelectedRefactoring(BaseModel):
     refactoring_type: sup_refs.SupportedRefactorings = Field(description=f"select the type of refactoring. ")
 
 
-
 class Agent(BaseModel):
+    """A wrapper class for refactoring agents developed in this project.
+    It should ideally have no prompts. Just high level design"""
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
     model_name: str = Field(description="model name")
     reasoning_model_name: str = Field(description="model name for reasoning", default=None)
     project: pm.EvalProject = Field(description="the evaluation project to run the agent on.")
     analysis_component: Type[analysis.AnalysisComponent] = Field(description="the kind of analysis component to use.",
-                                                             default=analysis.AnalysisComponent)
+                                                                 default=analysis.AnalysisComponent)
     plan_component: Type[planning.Planner] = Field(description="the kind of planning component to use.",
                                                    default=planning.PlanningComponent)
 
     max_iterations: int = Field(description="maximum number of iterations to run the agent for", default=1)
-    augmented_intent: Optional[str] = Field(description="the intent to be refactored", default=None)
+    augmented_intent: Optional[scope.RenameScope] = Field(description="the intent to be refactored", default=None)
     do_replication: bool = Field(description="whether to run replication", default=True)
+    hula_type: Literal["none", "oracle_simulation", "real_human"] = Field(description="How to work with the human in the loop", default="oracle_simulation")
+    enable_memory: bool = Field(description="whether to enable memory component for storing and retrieving suggestions", default=True)
+    disable_scope_refinement: bool = Field(description="whether to disable scope refactoring", default=False)
+    replication_max_iters: int = Field(description="maximum number of iterations to run the agent for", default=3)
+    critique_config: Optional[critique.CritiqueConfig] = Field(description="critique component configuration", default=None)
+    
+    # Memory parameters
+    benchmark_id: Optional[int] = Field(description="Benchmark ID for memory isolation", default=None)
+    memory_database_url: str = Field(description="Memory database URL")
 
     MAX_GRAPH_ITERATION: int = Field(description="The maximum number of iterations to run the graph for.", default=5)
-    MAX_FAILING_TOOL_CALLS: int = Field(description="The maximum number of failing tool calls to allow before aborting.", default=1)
+    MAX_FAILING_TOOL_CALLS: int = Field(
+        description="The maximum number of failing tool calls to allow before aborting.", default=1)
 
     _files_changed: set[Path] = PrivateAttr(default=set())
     _directly_edited_files: set[Path] = PrivateAttr(default=set())
@@ -79,7 +96,10 @@ class Agent(BaseModel):
     _starting_file: str = PrivateAttr(default="")
     _original_starting_file: str = PrivateAttr(default="")
     _performed_refactorings: Dict = PrivateAttr(default=defaultdict(list))
-
+    _replication_inspection_data: Dict = PrivateAttr(default={})
+    _critique_component: Optional[critique.CritiqueComponent] = PrivateAttr(default=None)
+    _critique_retry_count: int = PrivateAttr(default=0)
+    _oracle_data: Optional[List] = PrivateAttr(default=None)
 
     class Config:
         arbitrary_types_allowed = True
@@ -101,6 +121,9 @@ class Agent(BaseModel):
     def get_performed_refactorings(self):
         return self._performed_refactorings
 
+    def get_replication_inspection_data(self):
+        return self._replication_inspection_data
+
     def create_model(self, model_name) -> BaseChatModel:
         # Assumes that self.model_name looks like
         # 'openai:gpt-4o', or 'grazie:openai-gpt-4o', or 'anthropic:claude-sonnet'
@@ -110,7 +133,7 @@ class Agent(BaseModel):
             # create grazie model
             return ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
                               client_auth_type=AuthType.APPLICATION,
-                              client_url=GrazieApiGatewayUrls.STAGING,
+                              client_url=GrazieApiGatewayUrls.PRODUCTION,
                               profile=model_name,
                               client_agent_name='ref-agent',
                               client_agent_version='0.1')
@@ -126,17 +149,14 @@ class Agent(BaseModel):
     def internal_commits(self) -> list[Commit]:
         return self._internal_commits
 
-    def try_open_file(self, rel_file_path: str):
+    def try_open_file(self, rel_file_path: str) -> bool:
         response = self.ide_server.try_open_file(Path(rel_file_path))
         if response.startswith('tool call failed '):
-            # TODO: Ask agent if it would like to open a different file, or
-            create_response = self.ide_server.create_file(Path(rel_file_path))
-            if create_response == 'success':
-                open_response = self.ide_server.open_file(Path(rel_file_path))
-            else:
-                raise Exception("Failed to open file and did not create one either.")
+            # raise Exception("Failed to open file and did not create one either.")
+            return False
         self._rel_file_path = rel_file_path
         self._directly_edited_files.add(Path(rel_file_path))
+        return True
 
     def run(self, initial_intent: str, starting_file: str):
         FAKE_LLM = True  # Change to False to invoke the real LLM.
@@ -146,7 +166,7 @@ class Agent(BaseModel):
 
         if self.augmented_intent is None:
             self.augmented_intent = self.analyze_developer_intent(initial_intent, model, starting_file)
-        current_intent = self.augmented_intent
+        current_intent = str(self.augmented_intent)
 
         current_intent, ref_plan = self.run_agentic_loop(current_intent, model, starting_file)
 
@@ -164,7 +184,31 @@ class Agent(BaseModel):
         self._original_source_code = self.project.get_file_contents(self._starting_file)
         return model
 
-    def run_agentic_loop(self, current_intent, model, starting_file):
+    def initialize_critique_component(self, oracle_data: List[refactorings.RefminerOut]):
+        """Initialize the critique component with oracle data."""
+        # Store oracle data for use in replication
+        self._oracle_data = oracle_data
+        if self.hula_type == 'oracle_simulation' and oracle_data:
+            config = self.critique_config if self.critique_config else critique.CritiqueConfig()
+            self._critique_component = critique.CritiqueComponent(
+                oracle_data=oracle_data,
+                config=config
+            )
+            print(f"Initialized critique component with {len(oracle_data)} oracle entries")
+        elif self.hula_type == 'real_human':
+            config = self.critique_config if self.critique_config else critique.CritiqueConfig()
+            self._critique_component = human_validator.HumanValidator(
+                oracle_data=oracle_data,
+                config=config
+            )
+        elif self.hula_type == 'none':
+            print("Dummy Critique component enabled. all suggestions will be accepted.")
+            self._critique_component = critique.DummyCritiqueComponent(
+                oracle_data=[],
+                config=critique.CritiqueConfig()
+            )
+
+    def run_agentic_loop(self, current_intent: str, model, starting_file):
         for _ in range(self.max_iterations):
             self.update_starting_file(starting_file)
             self._source_code = self.project.get_file_contents(self._starting_file)
@@ -179,13 +223,7 @@ class Agent(BaseModel):
             final_state = self.execute_initial_plan(current_intent, model, ref_plan)
             self.update_changed_files()
 
-            quality_result = quality_check.QualityCheck(
-                model=model,
-                ide_server=self.ide_server,
-                original_code=self._original_source_code,
-                refactored_code=self._source_code,
-                intent=self.augmented_intent
-            ).compile_and_run()
+            quality_result = self.do_quality_check(model)
             self._internal_commits = \
                 [self.project.squash_changes(current_intent, len(self._internal_commits))]
 
@@ -197,27 +235,41 @@ class Agent(BaseModel):
                 current_intent = quality_result.refined_intent
         return current_intent, ref_plan
 
-    def perform_replication(self, current_intent, model, ref_plan):
+    def do_quality_check(self, model) -> quality_check.QualityCheckResult:
+        quality_result = quality_check.QualityCheck(
+            model=model,
+            ide_server=self.ide_server,
+            original_code=self._original_source_code,
+            refactored_code=self._source_code,
+            intent=str(self.augmented_intent)
+        ).compile_and_run()
+        return quality_result
+
+    def perform_replication(self,
+                            current_intent: str,
+                            model,
+                            ref_plan):
         replicator = replication.Replication(
             model=self._reasoning_model,
             executed_plan=ref_plan,
             ide_server=self.ide_server,
-            initial_intent=self.augmented_intent,  # pass the augmented intent,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
             project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
-            refactoring_commit=self._internal_commits[0]
+            oracle_data=self._oracle_data,  # Pass oracle data for file filtering,
+            memory_database_url=self.memory_database_url,
+            replication_max_iters=self.replication_max_iters
         )
         for plan in replicator.compile_and_run():
             self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
             self.update_changed_files()
 
+        # Capture replication inspection data
+        self._replication_inspection_data = replicator.get_files_inspection_data()
+
     def get_important_files_diff(self):
-        # important_files = [str(i) for i in
-        #                    self.compute_most_important(self._files_changed)
-        #                    ]
         important_files = [self._starting_file]
 
         diff = ""
@@ -230,7 +282,7 @@ class Agent(BaseModel):
 
         return diff
 
-    def analyze_developer_intent(self, initial_intent, model, starting_file):
+    def analyze_developer_intent(self, initial_intent, model, starting_file) -> scope.RenameScope:
         """Analyze the developer intent and return the refactoring type and reason."""
 
         old_name = initial_intent.split(" -> ")[0].split(" ")[-1]
@@ -247,7 +299,7 @@ class Agent(BaseModel):
         )
         analysis_report = analysis_component.run()
         analysis_report = analysis_report.augmented_intent
-        return analysis_report
+        return scope.RenameScope(pattern=analysis_report)
 
     def generate_initial_plan(self, analysis_report):
         planning_component = self.plan_component(
@@ -268,7 +320,7 @@ class Agent(BaseModel):
         last_file_opened = None
 
         if len(ref_plan.steps) > 0 and open_file:
-            self.try_open_file(ref_plan.steps[0].file_path) # open the file. The edits should happen in only one file.
+            self.try_open_file(ref_plan.steps[0].file_path)  # open the file. The edits should happen in only one file.
 
         for i, step in enumerate(ref_plan.steps):
             print(f"Executing step {i + 1}/{len(ref_plan.steps)} in plan.")
@@ -276,7 +328,6 @@ class Agent(BaseModel):
             self._failing_tool_call_count = 0
             try:
                 graph = self.compile_graph(model=model,
-                                           initial_intent=initial_intent,
                                            plan_step=step,
                                            step_count=i,
                                            ask_finished_first_iteration=ask_finished_first_iteration)
@@ -286,8 +337,9 @@ class Agent(BaseModel):
                             SystemMessage(f"You are an expert developer who executes refactorings to"
                                           f" improve the quality of the given code. "
                                           f"Please do the following: {step.refactoring_type.value}: {step.reason} {step.execution_details} "
-                                          f"The final code is expected to look like this: {step.final_code}"
-                                          f"ONLY make TOOL CALLS to perform actions."),
+                                          f"The final code is expected to look like this: {step.final_code} "
+                                          f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
+                                          f"You will be asked to provide your analysis as a JSON response containing all rename suggestions."),
                         ]
                     },
                     config={"configurable": {"thread_id": 42}, "recursion_limit": 50}
@@ -295,32 +347,11 @@ class Agent(BaseModel):
                 self._trajectory += final_state['messages']
                 print(f"Result of executing step {i}: ", final_state["messages"][-1].content)
             except:
-                print(f"Execution of step {i+1} failed.")
+                print(f"Execution of step {i + 1} failed.")
                 traceback.print_exc()
-                final_state = {'messages': [HumanMessage(f"Execution of step {i+1} failed.")]}
+                final_state = {'messages': [HumanMessage(f"Execution of step {i + 1} failed.")]}
 
         return final_state
-
-    def compute_most_important(self, file_changed) -> list[Path]:
-        # Compute the relevant files that were changed.
-        changes = []
-        if len(self._internal_commits) > 0:
-            changes += self.project.get_changes(str(self._internal_commits[-1]))
-        changes += self.project.get_unstaged_changes() + self.project.get_staged_changes()
-        for change in changes:
-            if (change.git_diff.a_path is None
-                    and change.git_diff.b_path is not None
-                    and change.git_diff.b_path.endswith('.java')
-            ):
-                # newly created file
-                self._directly_edited_files.add(Path(change.git_diff.b_path))
-            if (change.git_diff.a_path is not None and change.git_diff.b_path is not None
-                    and change.git_diff.b_path != change.git_diff.a_path
-                    and change.git_diff.b_path.endswith('.java')
-            ):
-                # file renamed. Hueristic - files renamed are often important files to look at
-                self._directly_edited_files.add(Path(change.git_diff.b_path))
-        return list(self._directly_edited_files)
 
     def get_changed_file_contents(self) -> HumanMessage:
         self.ide_server.call_tool('save_all_changes')
@@ -340,7 +371,7 @@ class Agent(BaseModel):
             if file_contents == "":
                 raise Exception("File is empty.")
             source = code_utils.add_line_numbers(
-                "// This file is empty." if file_contents=="" else file_contents)
+                "// This file is empty." if file_contents == "" else file_contents)
             current_source_code += f"{self._starting_file}: \n{source}"
         except FileNotFoundError:
             raise Exception(f"File {self._starting_file} not found.")
@@ -402,7 +433,7 @@ class Agent(BaseModel):
             self._directly_edited_files.add(Path(self._rel_file_path))
             return [self._tools.get('replace_file_contents')]
 
-        tools = [self._tools.get('no_op')] # Always include the no-op tool. To allow the agent to do nothing.
+        tools = [self._tools.get('no_op')]  # Always include the no-op tool. To allow the agent to do nothing.
 
         if refactoring_type == sup_refs.SupportedRefactorings.UNSUPPORTED:
             return GENERIC_EDITING_TOOLS
@@ -428,7 +459,6 @@ class Agent(BaseModel):
         return self._source_code == ''
 
     def compile_graph(self, model: BaseChatModel,
-                      initial_intent: str,
                       plan_step: planning.PlanningStep,
                       step_count: int,
                       ask_finished_first_iteration: bool
@@ -465,7 +495,7 @@ class Agent(BaseModel):
             refactoring_type = self._selected_refactoring.refactoring_type
             reason = self._selected_refactoring.reason
             rel_file_path = self._rel_file_path
-            self._files_changed.add(Path(rel_file_path))
+            # Don't add to _files_changed yet - wait until we know refactoring succeeded
 
             tools = self.get_available_tools(refactoring_type)
             executor = perform_ref.PerformRefactoring(
@@ -474,17 +504,66 @@ class Agent(BaseModel):
                 reason=reason,
                 refactoring_type=refactoring_type,
                 rel_file_path=rel_file_path,
-                ide_server=self.ide_server
+                ide_server=self.ide_server,
+                benchmark_id=self.benchmark_id,
+                memory_database_url=self.memory_database_url,
+                replication_enabled=self.do_replication,
+                enable_memory=self.enable_memory,
+                critique_component=self._critique_component, # Pass critique component to the executor,
+                disable_scope_refinement=self.disable_scope_refinement
             )
             perform_refactoring_graph = executor.compile()
-            messages = state['messages'] + [
-                AIMessage(f"I would like to perform an {refactoring_type.value}, because: {reason}."),
-                self.get_changed_file_contents()
-            ]
-            state = MessagesState(messages=messages)
+            self.get_changed_file_contents() # nit: this call exists to update the changed files list. this is tech debt
+            state = MessagesState(messages=state['messages'])
             observation = perform_refactoring_graph.invoke(state)
+
+            if executor.new_intent:
+                # call intent refinement to generate a new intent
+                self.augmented_intent = executor.new_intent
+            # Add PerformRefactoring workflow messages to trajectory
+            self._trajectory += observation['messages']
             self._failing_tool_call_count += not executor.refactoring_success  # increment the count if tool calls failed.
             self._performed_refactorings[rel_file_path] += executor.get_performed_refactorings(state)
+            
+            # Only add to _files_changed if refactoring was successful AND file actually changed
+            if executor.refactoring_success:
+                # Force IntelliJ to save all changes and sync with file system
+                print(f"[FILE TRACKING] Forcing IntelliJ to save all changes...")
+                self.ide_server.call_tool('save_all_changes')
+                
+                # Add a small delay to allow git to detect file system changes
+                time.sleep(0.5)  # 500ms should be enough for file system sync
+                
+                # Double-check: verify the file actually changed using git status
+                actual_changed_files = set(self.project.get_changed_files())
+                print(f"[FILE TRACKING DEBUG] rel_file_path: '{rel_file_path}'")
+                print(f"[FILE TRACKING DEBUG] actual_changed_files: {actual_changed_files}")
+                
+                # Try exact match first
+                if rel_file_path in actual_changed_files:
+                    self._files_changed.add(Path(rel_file_path))
+                    print(f"[FILE TRACKING] Added {rel_file_path} to changed files (exact match)")
+                else:
+                    # Try to find a matching file (handle path format differences)
+                    matching_file = None
+                    rel_path_normalized = str(Path(rel_file_path))
+                    
+                    for changed_file in actual_changed_files:
+                        changed_file_normalized = str(Path(changed_file))
+                        if rel_path_normalized == changed_file_normalized or rel_file_path == changed_file:
+                            matching_file = changed_file
+                            break
+                    
+                    if matching_file:
+                        self._files_changed.add(Path(rel_file_path))
+                        print(f"[FILE TRACKING] Added {rel_file_path} to changed files (normalized match with {matching_file})")
+                    else:
+                        # If still no match, add the file anyway since refactoring succeeded
+                        # This handles cases where git sync is still delayed
+                        self._files_changed.add(Path(rel_file_path))
+                        print(f"[FILE TRACKING] Added {rel_file_path} to changed files (refactoring succeeded, assuming git sync delay)")
+            else:
+                print(f"[FILE TRACKING] Not adding {rel_file_path} to changed files (refactoring failed)")
 
             last_message = observation['messages'][-1]
             messages = state["messages"]
@@ -492,61 +571,62 @@ class Agent(BaseModel):
 
             return {"messages": messages}
 
-        def finished_refactoring(state: MessagesState):
-            if not ask_finished_first_iteration and step_count == 0 and self._iterations == 0:
-                return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
 
-            if self._iterations >= self.MAX_GRAPH_ITERATION:
-                # Stopping because limit has been reached.
-                return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
-
-            if self._failing_tool_call_count >= self.MAX_FAILING_TOOL_CALLS:
-                return {'messages': [AIMessage(f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
-
-            if self.contains_tool_call_cycle():
-                return {'messages': [AIMessage('finished because tool calls are cycling. DONE')]}
-
-            if self.ide_server.call_tool_get("get_source_code") == '':
-                return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
-
-            response = self._reasoning_model.invoke(state['messages'] +
-                         [HumanMessage('Please reflect whether the original ask has been completed successfully (for the given file)'
-                                       f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
-                                       f'{self.get_changed_file_contents().content}'
-                                       f'Please reflect whether the task is complete, '
-                                       f'by answering the following questions: '
-                                       'Has the original ask been met? '
-                                       'If the answer is no, please specify what needs to be changed (provide details including line numbers). '
-                                       # f'2. Have all appropriate locations within the file {self._rel_file_path} '
-                                       # f'been updated? '
-                                       'Finally, say whether the task is complete '
-                                       'by using the following sentence: "The task is <Status>." '
-                                       'Use the word DONE/INCOMPLETE in place of <Status>. ')])
-            return {'messages': [response]}
-
-        def has_finished_refactoring(state: MessagesState) -> bool:
-            finished = (state['messages'][-1].content.endswith('DONE') or
-                    'INCOMPLETE' not in state['messages'][-1].content)
-            return finished
+        # def finished_refactoring(state: MessagesState):
+        #     if not ask_finished_first_iteration and step_count == 0 and self._iterations == 0:
+        #         return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
+        #
+        #     if self._iterations >= self.MAX_GRAPH_ITERATION:
+        #         # Stopping because limit has been reached.
+        #         return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
+        #
+        #     if self._failing_tool_call_count >= self.MAX_FAILING_TOOL_CALLS:
+        #         return {'messages': [AIMessage(
+        #             f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
+        #
+        #     if self.contains_tool_call_cycle():
+        #         return {'messages': [AIMessage('finished because tool calls are cycling. DONE')]}
+        #
+        #     if self.ide_server.call_tool_get("get_source_code") == '':
+        #         return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
+        #
+        #     response = self._reasoning_model.invoke(state['messages'] +
+        #                                             [HumanMessage(
+        #                                                 'Please reflect whether the original ask has been completed successfully (for the given file)'
+        #                                                 f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
+        #                                                 f'{self.get_changed_file_contents().content}'
+        #                                                 f'Please reflect whether the task is complete, '
+        #                                                 f'by answering the following questions: '
+        #                                                 'Has the original ask been met? '
+        #                                                 'If the answer is no, please specify what needs to be changed (provide details including line numbers). '
+        #                                                 # f'2. Have all appropriate locations within the file {self._rel_file_path} '
+        #                                                 # f'been updated? '
+        #                                                 'Finally, say whether the task is complete '
+        #                                                 'by using the following sentence: "The task is <Status>." '
+        #                                                 'Use the word DONE/INCOMPLETE in place of <Status>. ')])
+        #     return {'messages': [response]}
+        #
+        # def has_finished_refactoring(state: MessagesState) -> bool:
+        #     finished = (state['messages'][-1].content.endswith('DONE') or
+        #                 'INCOMPLETE' not in state['messages'][-1].content)
+        #     return finished
 
         workflow = StateGraph(MessagesState)
         # Add nodes
         # workflow.add_node("curate_tests", curate_tests)
         workflow.add_node("select_refactoring", select_refactoring)
         workflow.add_node("perform_refactoring", perform_selected_refactoring)
-        workflow.add_node("finished_refactoring", finished_refactoring)
-        # Add edges to connect nodes
-        workflow.add_edge(START, "finished_refactoring")
-        def has_tool_call(state: MessagesState) -> bool:
-            return self._selected_refactoring.refactoring_type!=sup_refs.SupportedRefactorings.UNSUPPORTED
+        
+        # Simplified workflow: START → select_refactoring → perform_refactoring → END
+        workflow.add_edge(START, "select_refactoring")
 
-        workflow.add_conditional_edges("finished_refactoring", has_finished_refactoring,
-                                       {True: END, False: "select_refactoring"})
+        def has_tool_call(state: MessagesState) -> bool:
+            return self._selected_refactoring.refactoring_type != sup_refs.SupportedRefactorings.UNSUPPORTED
+
         workflow.add_conditional_edges(
             "select_refactoring", has_tool_call, {True: "perform_refactoring", False: END}
         )
-        workflow.add_edge("perform_refactoring", "finished_refactoring")
-
+        workflow.add_edge("perform_refactoring", END)
 
         # Compile
         graph = workflow.compile()
@@ -561,17 +641,14 @@ class Agent(BaseModel):
         if len(self._internal_commits) > 0:
             changes += self.project.get_changes(str(self._internal_commits[-1]))
         uncommited_changes = (self.project.get_unstaged_changes() +
-                    self.project.get_staged_changes())
+                              self.project.get_staged_changes())
         if len(uncommited_changes) > 0:
             self.commit_changes("commit changes for analysis")
             changes += self.project.get_changes(str(self._internal_commits[-1]))
 
-        for c in changes[::-1]: # reverse order, so that the staged changes are considered first.
+        for c in changes[::-1]:  # reverse order, so that the staged changes are considered first.
             if c.git_diff.a_path == starting_file:
                 self._starting_file = c.git_diff.b_path
-                if len(uncommited_changes) > 0:
-                    self._internal_commits.pop()
-                    self.project.reset_head(1) # reset the uncommited changes.
                 return c.git_diff.b_path
         return starting_file
 
@@ -584,7 +661,7 @@ class Agent(BaseModel):
 
         try:
             tool_calls_args = [tc['tool_call']['args'] for tc in self._performed_refactorings[self._starting_file]
-                          if tc['tool_call']['name']=='rename' and tc['result']=='success']
+                               if tc['tool_call']['name'] == 'rename' and tc['result'] == 'success']
 
             args_map = defaultdict(int)
             for arg in tool_calls_args:
@@ -600,6 +677,19 @@ class Agent(BaseModel):
                     return True
 
         except:
-            return  False
+            return False
+
+    @property
+    def orm_memory(self) -> ORMRefactoringMemory:
+        return ORMRefactoringMemory(self.memory_database_url)
+
+    def human_review_count(self):
+        return len(self.orm_memory.get_all_rejected_patterns()) + len(self.orm_memory.get_all_successful_patterns())
+
+    def human_accepted_count(self):
+        return len(self.orm_memory.get_all_successful_patterns())
+
+    def human_rejected_count(self):
+        return len(self.orm_memory.get_all_rejected_patterns())
 
 
