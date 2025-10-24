@@ -3,15 +3,18 @@ import os
 from typing import Literal
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import MemorySaver
+
 # from langgraph.prebuilt import create_react_agent
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
+
 # from langchain_openai import ChatOpenAI
 # from langchain_ollama import ChatOllama
 
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
+
 #
 # from pydantic import BaseModel, Field, root_validator
 
@@ -35,13 +38,14 @@ class Agent:
     #                    client_url=GrazieApiGatewayUrls.STAGING,
     #                    profile="openai-gpt-4o"
     #                    )
-    model = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
-                       client_auth_type=AuthType.APPLICATION,
-                       client_url=GrazieApiGatewayUrls.STAGING,
-                       profile="openai-gpt-4o-mini",
-                       client_agent_name='vanilla-ref-agent',
-                       client_agent_version='0.1'
-                       )
+    model = ChatGrazie(
+        grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+        client_auth_type=AuthType.APPLICATION,
+        client_url=GrazieApiGatewayUrls.STAGING,
+        profile="openai-gpt-4o-mini",
+        client_agent_name="vanilla-ref-agent",
+        client_agent_version="0.1",
+    )
 
     # model = ChatOpenAI(model="gpt-4o-mini")
     # model = ChatOllama(model="llama3.1", temperature=0)
@@ -61,7 +65,7 @@ class Agent:
             print(f"replacing file contents - {file_path}")
             status = current_project.replace_contents(file_path, new_content)
             self.files_changed.append(file_path)
-            return 'SUCCESS' if status else 'FAIL'
+            return "SUCCESS" if status else "FAIL"
 
         @tool
         def read_file_contents(file_path: str) -> str:
@@ -83,7 +87,7 @@ class Agent:
 
         # Define the function that determines whether to continue or not
         def should_continue(state: MessagesState) -> Literal["tools", END]:
-            messages = state['messages']
+            messages = state["messages"]
             last_message = messages[-1]
             # If the LLM makes a tool call, then we route to the "tools" node
             if last_message.tool_calls:
@@ -93,11 +97,11 @@ class Agent:
 
         # Define the function that calls the model
         def call_model(state: MessagesState):
-            messages = state['messages']
+            messages = state["messages"]
             response = model.invoke(messages)
             # We return a list, because this will get added to the existing list
-            if 'spent' in response.additional_kwargs:
-                del response.additional_kwargs['spent']
+            if "spent" in response.additional_kwargs:
+                del response.additional_kwargs["spent"]
             return {"messages": [response]}
 
         # Define a new graph
@@ -122,7 +126,7 @@ class Agent:
 
         # We now add a normal edge from `tools` to `agent`.
         # This means that after `tools` is called, `agent` node is called next.
-        workflow.add_edge("tools", 'agent')
+        workflow.add_edge("tools", "agent")
 
         # Initialize memory to persist state between graph runs
         checkpointer = MemorySaver()
@@ -134,9 +138,9 @@ class Agent:
         app = workflow.compile(checkpointer=checkpointer)
 
         system_message = "Suggest changes to improve the quality of this java code. "
-        if bench_point.improved_commit_message != '':
+        if bench_point.improved_commit_message != "":
             system_message += f"Please perform the following action - {bench_point.improved_commit_message}"
-        if bench_point.change_summary != '':
+        if bench_point.change_summary != "":
             system_message += f". {bench_point.change_summary}\n"
         system_message += "ONLY USE TOOL CALLS to perform changes. "
 
@@ -147,11 +151,13 @@ class Agent:
 
         # Use the agent
         final_state = app.invoke(
-            {"messages":
-                 [{"role": "system", "content": system_message},
-                  {"role": "user", "content": message}]
-             },
-            config={"configurable": {"thread_id": 42}, "recursion_limit": 10}
+            {
+                "messages": [
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": message},
+                ]
+            },
+            config={"configurable": {"thread_id": 42}, "recursion_limit": 10},
         )
         print(final_state["messages"][-1].content)
 

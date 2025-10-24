@@ -4,10 +4,13 @@ import refagent.benchmark.load as bm_load
 import refagent.utils.project_manager as pm
 from typing import List
 
+
 def main():
     with open(refagent.data_folder.joinpath("renas/renas_oracle.json")) as f:
         data = json.load(f)
-    benchmark: List[bm_load.RenameItem] = bm_load.load_benchmark(data, bm_load.RenameItem)
+    benchmark: List[bm_load.RenameItem] = bm_load.load_benchmark(
+        data, bm_load.RenameItem
+    )
 
     for i in benchmark:
         project = pm.EvalProject(i.project_name)
@@ -19,6 +22,5 @@ def main():
             project.push_upstream_branch(branch_name)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

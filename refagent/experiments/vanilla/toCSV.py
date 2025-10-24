@@ -2,21 +2,26 @@ import json
 import csv
 import argparse
 
+
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Convert JSON refactoring results to CSV format with precision, recall, and F1 statistics',
-        add_help=True)
-    parser.add_argument('--input-file', type=str, default='refactoring_results.json',
-                        help='Input JSON file to process (default: refactoring_results.json)')
+        description="Convert JSON refactoring results to CSV format with precision, recall, and F1 statistics",
+        add_help=True,
+    )
+    parser.add_argument(
+        "--input-file",
+        type=str,
+        default="refactoring_results.json",
+        help="Input JSON file to process (default: refactoring_results.json)",
+    )
 
     args = parser.parse_args()
-    
+
     # Determine file names
     input_file = args.input_file
-    output_file = input_file[:-5] + '.csv'
-    
-    
+    output_file = input_file[:-5] + ".csv"
+
     try:
         with open(input_file, "r") as f:
             data = json.load(f)
@@ -35,11 +40,11 @@ def main():
     results = []
 
     for d in data:
-        id = d['id']
-        precision = d['precision']
-        recall = d['recall']
-        oracle_count = len(d['refactoring_changes'])
-        llm_refactoring_count = len(d['detected_refactorings'])
+        id = d["id"]
+        precision = d["precision"]
+        recall = d["recall"]
+        oracle_count = len(d["refactoring_changes"])
+        llm_refactoring_count = len(d["detected_refactorings"])
 
         # Calculate F1 score
         if precision + recall > 0:
@@ -49,14 +54,16 @@ def main():
 
         f1_sum += f1_score
         # Add to results list
-        results.append({
-            'id': id,
-            'precision': precision,
-            'recall': recall,
-            'f1_score': f1_score,
-            'llm_refactoring_count': llm_refactoring_count,
-            'oracle_count': oracle_count
-        })
+        results.append(
+            {
+                "id": id,
+                "precision": precision,
+                "recall": recall,
+                "f1_score": f1_score,
+                "llm_refactoring_count": llm_refactoring_count,
+                "oracle_count": oracle_count,
+            }
+        )
 
         # Add to sums for averages
         precision_sum += precision
@@ -70,14 +77,21 @@ def main():
 
     # Save results to CSV
     try:
-        with open(output_file, "w", newline='') as csvfile:
-            fieldnames = ['id', 'precision', 'recall', 'f1_score', 'llm_refactoring_count', 'oracle_count']
+        with open(output_file, "w", newline="") as csvfile:
+            fieldnames = [
+                "id",
+                "precision",
+                "recall",
+                "f1_score",
+                "llm_refactoring_count",
+                "oracle_count",
+            ]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
             writer.writeheader()
             for result in results:
                 writer.writerow(result)
-        
+
         print(f"Results saved to: {output_file}")
     except Exception as e:
         print(f"Error writing to CSV file: {e}")
@@ -88,5 +102,5 @@ def main():
     print(f"average f1 score: {avg_f1:.4f}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

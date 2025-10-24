@@ -2,7 +2,7 @@ import json
 import csv
 import os
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     input_file = "/Users/moul7361/Desktop/AI-Agents/Agent4Refactoring/data/results/camunda-oct-1-smaller-model/report-post-replication.json"
     output_file = os.path.splitext(input_file)[0] + ".csv"
 
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         for entry in data:
             recall = entry.get("recall", 0) or 0
             # precision = entry.get("precision", 0) or 0
-            precision = (entry.get("human_accepted_rate", 0))
+            precision = entry.get("human_accepted_rate", 0)
 
             # Calculate F1 score
             if (precision + recall) > 0:

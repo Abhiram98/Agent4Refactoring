@@ -20,12 +20,12 @@ from pathlib import Path
 
 
 RENAME_TYPES = {
-    'Rename Class',
-    'Rename Method',
-    'Rename Variable',
-    'Rename Parameter',
-    'Rename Attribute',
-    'Rename Package'
+    "Rename Class",
+    "Rename Method",
+    "Rename Variable",
+    "Rename Parameter",
+    "Rename Attribute",
+    "Rename Package",
 }
 
 
@@ -50,7 +50,7 @@ def process_jsonl(input_file, output_dir=".", project="temp"):
     print(f"Reading from {input_file}...")
 
     try:
-        with open(input_file, 'r', encoding='utf-8') as f:
+        with open(input_file, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:  # Skip empty lines
@@ -61,12 +61,12 @@ def process_jsonl(input_file, output_dir=".", project="temp"):
                     record = json.loads(line)
 
                     renames = []
-                    for refactoring_changes in record['refactoring_changes']:
-                        if refactoring_changes['type'] in RENAME_TYPES:
+                    for refactoring_changes in record["refactoring_changes"]:
+                        if refactoring_changes["type"] in RENAME_TYPES:
                             renames.append(refactoring_changes)
 
                     if len(renames) > 5:
-                        record['refactoring_changes'] = renames
+                        record["refactoring_changes"] = renames
                         res.append(record)
                     line_count += 1
 
@@ -83,7 +83,7 @@ def process_jsonl(input_file, output_dir=".", project="temp"):
     output_file = output_path / f"{project}.json"
     try:
         if len(res) > 0:
-            with open(output_file, 'w', encoding='utf-8') as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(res, f, indent=4)
         else:
             print("Not saved because there are no renames over 5 records")
@@ -91,11 +91,12 @@ def process_jsonl(input_file, output_dir=".", project="temp"):
         print(f"Error writing file: {e}")
 
 
-
 def main():
     """Main function to handle command line arguments."""
     if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: python convert_to_benchmark.py <input_file.jsonl> [output_directory]")
+        print(
+            "Usage: python convert_to_benchmark.py <input_file.jsonl> [output_directory]"
+        )
         print("\nExample:")
         print("  python convert_to_benchmark.py temp_eo.jsonl")
         print("  python convert_to_benchmark.py temp_eo.jsonl ./output")
@@ -104,10 +105,10 @@ def main():
     input_file = sys.argv[1]
     output_dir = sys.argv[2] if len(sys.argv) == 3 else "."
 
-    project_name = input_file.split('/')[-1].split('.')[0]
+    project_name = input_file.split("/")[-1].split(".")[0]
 
     # Validate file extension
-    if not input_file.endswith('.jsonl'):
+    if not input_file.endswith(".jsonl"):
         print("Warning: Input file should have .jsonl extension")
 
     process_jsonl(input_file, output_dir, project_name)

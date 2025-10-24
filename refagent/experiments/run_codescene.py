@@ -13,21 +13,25 @@ class CodeSceneSmell(BaseModel):
     description: str
     indication: int
 
+
 class CodeSceneReview(BaseModel):
     score: Optional[float] = None
     review: List[CodeSceneSmell]
 
 
-
 def run_codescene(filepath) -> CodeSceneReview:
     result = subprocess.run(
-        ['cs', 'review', '--output-format', 'json', filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        ["cs", "review", "--output-format", "json", filepath],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
     out_ = json.loads(result.stdout)
     return CodeSceneReview(**out_)
 
 
-def process_benchmark(benchmark: List[benchmark_load.BenchmarkItem]) -> List[benchmark_load.BenchmarkItem]:
+def process_benchmark(
+    benchmark: List[benchmark_load.BenchmarkItem],
+) -> List[benchmark_load.BenchmarkItem]:
 
     bench_with_smells = []
 
@@ -53,27 +57,37 @@ def process_benchmark(benchmark: List[benchmark_load.BenchmarkItem]) -> List[ben
                     print("codescene failed. skipping")
                     continue
 
-                if (review_before.score is not None and review_after.score is not None and
-                        review_before.score < review_after.score):
+                if (
+                    review_before.score is not None
+                    and review_after.score is not None
+                    and review_before.score < review_after.score
+                ):
                     print("Smell improved!")
                     print(f"before: {review_before.score}")
                     print(f"after: {review_after.score}")
-                    print(f"file: {d.git_diff.b_path} and {d.git_diff.a_path} with smells: {review_before.review} -> {review_after.review}")
+                    print(
+                        f"file: {d.git_diff.b_path} and {d.git_diff.a_path} with smells: {review_before.review} -> {review_after.review}"
+                    )
                     bench_with_smells.append(
-                        {"benchmark": bench.to_json(),
-                         "a_file": d.git_diff.a_path,
-                         "b_file": d.git_diff.b_path,
-                         "before": json.loads(review_before.model_dump_json()),
-                         "after": json.loads(review_after.model_dump_json())})
+                        {
+                            "benchmark": bench.to_json(),
+                            "a_file": d.git_diff.a_path,
+                            "b_file": d.git_diff.b_path,
+                            "before": json.loads(review_before.model_dump_json()),
+                            "after": json.loads(review_after.model_dump_json()),
+                        }
+                    )
                     break
                 else:
-                    print(f"skipping {d.git_diff.b_path} and {d.git_diff.a_path} because they are not smelly.")
+                    print(
+                        f"skipping {d.git_diff.b_path} and {d.git_diff.a_path} because they are not smelly."
+                    )
     return bench_with_smells
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     benchmark = benchmark_load.load_benchmark(refagent.benchmark_full_json)
     processed = process_benchmark(benchmark)
     print(f"{len(processed)} = ")
     with open(str(refagent.benchmark_full_file) + ".codescene.json", "w") as f:
         json.dump(processed, f, indent=4)
-

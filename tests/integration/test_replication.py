@@ -15,65 +15,76 @@ import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.supported_refactorings as sup_ref
 
+
 def test_flink_5(mocker):
-    project = pm.EvalProject('flink')
-    project.checkout('30970f56a598b63ace991ff8a89a3409e8d4cb6a', force=True)
+    project = pm.EvalProject("flink")
+    project.checkout("30970f56a598b63ace991ff8a89a3409e8d4cb6a", force=True)
 
     plan = planning.RefactoringPlan(
         steps=[
-        {
-            "reason": "To improve clarity and convey that the variable represents a range of indices.",
-            "final_code": "int subpartitionIndexStart, subpartitionIndexEnd;",
-            "execution_details": "Rename variable 'subpartitionIndexSetStart' to 'subpartitionIndexStart' and 'subpartitionIndexSetEnd' to 'subpartitionIndexEnd' in the scope of the ResultPartitionManager class. Ensure all occurrences are updated accordingly.",
-            "refactoring_type": "rename",
-            "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java"
-        },
-        {
-            "reason": "To encapsulate the start and end indices into a single object for better structure and maintainability, allowing for easier handling of subpartition index ranges.",
-            "final_code": "public class SubpartitionIndexSet { private final int start; private final int end; public SubpartitionIndexSet(int start, int end) { this.start = start; this.end = end; } public int getStart() { return start; } public int getEnd() { return end; } public boolean isEmpty() { return start > end; } public int size() { return end - start + 1; }}",
-            "execution_details": "Create a new class 'SubpartitionIndexSet' in the specified file path. Move the fields 'start' and 'end' from the host class to this new class. Update all references to the start and end indices in the host class to use the new 'SubpartitionIndexSet' class. Ensure to implement additional methods like 'isEmpty()' and 'size()' for better usability.",
-            "refactoring_type": "extract_class",
-            "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/SubpartitionIndexSet.java"
-        },
-        {
-            "reason": "To replace the use of two separate integers with the new SubpartitionIndexSet object, improving code readability and maintainability.",
-            "final_code": "SubpartitionIndexSet subpartitionIndexSet = new SubpartitionIndexSet(subpartitionIndexStart, subpartitionIndexEnd);",
-            "execution_details": "Update all occurrences of 'subpartitionIndexStart' and 'subpartitionIndexEnd' to use the new 'subpartitionIndexSet' object. Ensure that any logic that previously operated on the individual indices is updated to use the methods provided by 'SubpartitionIndexSet', such as 'getStart()' and 'getEnd()'. Additionally, review any method signatures that previously accepted two integers and update them to accept 'SubpartitionIndexSet' instead.",
-            "refactoring_type": "type_change",
-            "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java"
-        },
-        {
-            "reason": "To ensure that the method signature of 'createSubpartitionView' is updated to accept the new 'SubpartitionIndexSet' object instead of separate indices, allowing for better encapsulation and readability.",
-            "final_code": "subpartitionView = partition.createSubpartitionView(subpartitionIndexSet, availabilityListener);",
-            "execution_details": "Update the method signature of 'createSubpartitionView' in the ResultPartition class to accept a 'SubpartitionIndexSet' parameter instead of two integers. Ensure that the implementation of 'createSubpartitionView' is modified accordingly to handle the new parameter. Review all calls to this method throughout the codebase to ensure they are updated to match the new signature.",
-            "refactoring_type": "change_method_signature",
-            "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java"
-        }
-    ]
+            {
+                "reason": "To improve clarity and convey that the variable represents a range of indices.",
+                "final_code": "int subpartitionIndexStart, subpartitionIndexEnd;",
+                "execution_details": "Rename variable 'subpartitionIndexSetStart' to 'subpartitionIndexStart' and 'subpartitionIndexSetEnd' to 'subpartitionIndexEnd' in the scope of the ResultPartitionManager class. Ensure all occurrences are updated accordingly.",
+                "refactoring_type": "rename",
+                "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java",
+            },
+            {
+                "reason": "To encapsulate the start and end indices into a single object for better structure and maintainability, allowing for easier handling of subpartition index ranges.",
+                "final_code": "public class SubpartitionIndexSet { private final int start; private final int end; public SubpartitionIndexSet(int start, int end) { this.start = start; this.end = end; } public int getStart() { return start; } public int getEnd() { return end; } public boolean isEmpty() { return start > end; } public int size() { return end - start + 1; }}",
+                "execution_details": "Create a new class 'SubpartitionIndexSet' in the specified file path. Move the fields 'start' and 'end' from the host class to this new class. Update all references to the start and end indices in the host class to use the new 'SubpartitionIndexSet' class. Ensure to implement additional methods like 'isEmpty()' and 'size()' for better usability.",
+                "refactoring_type": "extract_class",
+                "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/SubpartitionIndexSet.java",
+            },
+            {
+                "reason": "To replace the use of two separate integers with the new SubpartitionIndexSet object, improving code readability and maintainability.",
+                "final_code": "SubpartitionIndexSet subpartitionIndexSet = new SubpartitionIndexSet(subpartitionIndexStart, subpartitionIndexEnd);",
+                "execution_details": "Update all occurrences of 'subpartitionIndexStart' and 'subpartitionIndexEnd' to use the new 'subpartitionIndexSet' object. Ensure that any logic that previously operated on the individual indices is updated to use the methods provided by 'SubpartitionIndexSet', such as 'getStart()' and 'getEnd()'. Additionally, review any method signatures that previously accepted two integers and update them to accept 'SubpartitionIndexSet' instead.",
+                "refactoring_type": "type_change",
+                "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java",
+            },
+            {
+                "reason": "To ensure that the method signature of 'createSubpartitionView' is updated to accept the new 'SubpartitionIndexSet' object instead of separate indices, allowing for better encapsulation and readability.",
+                "final_code": "subpartitionView = partition.createSubpartitionView(subpartitionIndexSet, availabilityListener);",
+                "execution_details": "Update the method signature of 'createSubpartitionView' in the ResultPartition class to accept a 'SubpartitionIndexSet' parameter instead of two integers. Ensure that the implementation of 'createSubpartitionView' is modified accordingly to handle the new parameter. Review all calls to this method throughout the codebase to ensure they are updated to match the new signature.",
+                "refactoring_type": "change_method_signature",
+                "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/ResultPartitionManager.java",
+            },
+        ]
     )
 
-    planning_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan')
+    planning_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan"
+    )
     planning_patch.return_value = plan
 
-    execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
+    execution_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan"
+    )
     execution_patch.return_value = AIMessage("Successfullly performed the refactoring")
-
 
     # create IJ server connection
     server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
     server.open_project(project_path=project.get_project_path())
-    rel_file_path = Path("flink-runtime/src/main/java/org/apache/flink/"
-                         "runtime/io/network/partition/ResultPartitionManager.java")
+    rel_file_path = Path(
+        "flink-runtime/src/main/java/org/apache/flink/"
+        "runtime/io/network/partition/ResultPartitionManager.java"
+    )
     server.open_file(rel_file_path)
 
     # create agent
-    with ls.trace(name=f"refactoring agent test - test_replication:test_flink_5",
-                  tags=["test"]) as tracer:
-        agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
-        output = agent.run(initial_intent="Modify subpartitionIndex to subpartitionIndexSet (start to end index). "
-                                          "Encapsulate int in special object which contains "
-                                          "start and end index information.",
-                       starting_file=str(rel_file_path))
+    with ls.trace(
+        name=f"refactoring agent test - test_replication:test_flink_5", tags=["test"]
+    ) as tracer:
+        agent = ra.Agent(
+            ide_server=server, model_name="grazie:openai-gpt-4o-mini", project=project
+        )
+        output = agent.run(
+            initial_intent="Modify subpartitionIndex to subpartitionIndexSet (start to end index). "
+            "Encapsulate int in special object which contains "
+            "start and end index information.",
+            starting_file=str(rel_file_path),
+        )
     print(output)
 
     source_code = server.call_tool_get("get_source_code")
@@ -82,105 +93,130 @@ def test_flink_5(mocker):
 
 
 def test_flink_4(mocker):
-    '''Renaming channel to subpartition'''
-    project = pm.EvalProject('flink')
-    project.checkout('c4b51d92ad4', force=True)
+    """Renaming channel to subpartition"""
+    project = pm.EvalProject("flink")
+    project.checkout("c4b51d92ad4", force=True)
     project.reset_head()
 
     plan = planning.RefactoringPlan(
         steps=[
             {
-                    "reason": "To improve clarity and maintainability of the code by using a more appropriate term.",
-                    "final_code": "public class SortBufferAccumulator implements BufferAccumulator {\n    /** The number of the subpartitions. */\n    private final int numSubpartitions;\n    /** The total number of the buffers used by the {@link SortBufferAccumulator}. */\n    private final int numBuffers;\n    /** The byte size of one single buffer. */\n    private final int bufferSizeBytes;\n    /** The empty buffers without storing data. */\n    private final LinkedList<MemorySegment> freeSegments = new LinkedList<>();\n    /** The memory manager of the tiered storage. */\n    private final TieredStorageMemoryManager memoryManager;\n    @Nullable private DataBuffer currentDataBuffer;\n    @Nullable private BufferRecycler bufferRecycler;\n    @Nullable private BiConsumer<TieredStorageSubpartitionId, List<Buffer>> accumulatedBufferFlusher;\n    private boolean isBroadcastDataBuffer;\n    public SortBufferAccumulator(\n            int numSubpartitions,\n            int numBuffers,\n            int bufferSizeBytes,\n            TieredStorageMemoryManager memoryManager) {\n        this.numSubpartitions = numSubpartitions;\n        this.bufferSizeBytes = bufferSizeBytes;\n        this.numBuffers = numBuffers;\n        this.memoryManager = memoryManager;\n    }\n    @Override\n    public void setup(BiConsumer<TieredStorageSubpartitionId, List<Buffer>> bufferFlusher) {\n        this.accumulatedBufferFlusher = bufferFlusher;\n    }\n    @Override\n    public void receive(\n            ByteBuffer record,\n            TieredStorageSubpartitionId subpartitionId,\n            Buffer.DataType dataType,\n            boolean isBroadcast)\n            throws IOException {\n        int targetSubpartition = subpartitionId.getSubpartitionId();\n        switchCurrentDataBufferIfNeeded(isBroadcast);\n        if (!checkNotNull(currentDataBuffer).append(record, targetSubpartition, dataType)) {\n            return;\n        }\n        if (!currentDataBuffer.hasRemaining()) {\n            currentDataBuffer.release();\n            writeLargeRecord(record, targetSubpartition, dataType);\n            return;\n        }\n        flushDataBuffer();\n        checkState(record.hasRemaining(), \"Empty record.\");\n        receive(record, subpartitionId, dataType, isBroadcast);\n    }\n    @Override\n    public void close() {\n        flushCurrentDataBuffer();\n        releaseFreeBuffers();\n        if (currentDataBuffer != null) {\n            currentDataBuffer.release();\n        }\n    }\n    private void switchCurrentDataBufferIfNeeded(boolean isBroadcast) {\n        if (isBroadcast == isBroadcastDataBuffer\n                && currentDataBuffer != null\n                && !currentDataBuffer.isReleased()\n                && !currentDataBuffer.isFinished()) {\n            return;\n        }\n        isBroadcastDataBuffer = isBroadcast;\n        flushCurrentDataBuffer();\n        currentDataBuffer = createNewDataBuffer();\n    }\n    private DataBuffer createNewDataBuffer() {\n        requestBuffers();\n        int numBuffersForSort = freeSegments.size() / 2;\n        return new TieredStorageSortBuffer(\n                freeSegments,\n                this::recycleBuffer,\n                numSubpartitions,\n                bufferSizeBytes,\n                numBuffersForSort);\n    }\n    private void requestBuffers() {\n        while (freeSegments.size() < numBuffers) {\n            Buffer buffer = requestBuffer();\n            freeSegments.add(checkNotNull(buffer).getMemorySegment());\n            if (bufferRecycler == null) {\n                bufferRecycler = buffer.getRecycler();\n            }\n        }\n    }\n    private void flushDataBuffer() {\n        if (currentDataBuffer == null || currentDataBuffer.isReleased() || !currentDataBuffer.hasRemaining()) {\n            return;\n        }\n        currentDataBuffer.finish();\n        do {\n            MemorySegment freeSegment = getFreeSegment();\n            BufferWithChannel bufferWithChannel = currentDataBuffer.getNextBuffer(freeSegment);\n            if (bufferWithChannel == null) {\n                break;\n            }\n            flushBuffer(bufferWithChannel);\n        } while (true);\n        releaseFreeBuffers();\n        currentDataBuffer.release();\n    }\n    private void flushCurrentDataBuffer() {\n        if (currentDataBuffer != null) {\n            flushDataBuffer();\n            currentDataBuffer = null;\n        }\n    }\n    private void writeLargeRecord(ByteBuffer record, int subpartitionId, Buffer.DataType dataType) {\n        checkState(dataType != Buffer.DataType.EVENT_BUFFER);\n        while (record.hasRemaining()) {\n            int toCopy = Math.min(record.remaining(), bufferSizeBytes);\n            MemorySegment writeBuffer = requestBuffer().getMemorySegment();\n            writeBuffer.put(0, record, toCopy);\n            flushBuffer(\n                    new BufferWithChannel(\n                            new NetworkBuffer(\n                                    writeBuffer, checkNotNull(bufferRecycler), dataType, toCopy),\n                            subpartitionId));\n        }\n        releaseFreeBuffers();\n    }\n    private MemorySegment getFreeSegment() {\n        MemorySegment freeSegment = freeSegments.poll();\n        if (freeSegment == null) {\n            freeSegment = requestBuffer().getMemorySegment();\n        }\n        return freeSegment;\n    }\n    private void flushBuffer(BufferWithChannel bufferWithChannel) {\n        checkNotNull(accumulatedBufferFlusher)\n                .accept(\n                        new TieredStorageSubpartitionId(bufferWithChannel.getChannelIndex()),\n                        Collections.singletonList(bufferWithChannel.getBuffer()));\n    }\n    private Buffer requestBuffer() {\n        BufferBuilder bufferBuilder = memoryManager.requestBufferBlocking(this);\n        BufferConsumer bufferConsumer = bufferBuilder.createBufferConsumerFromBeginning();\n        Buffer buffer = bufferConsumer.build();\n        bufferBuilder.close();\n        bufferConsumer.close();\n        return buffer;\n    }\n    private void releaseFreeBuffers() {\n        freeSegments.forEach(this::recycleBuffer);\n        freeSegments.clear();\n    }\n    private void recycleBuffer(MemorySegment memorySegment) {\n        checkNotNull(bufferRecycler).recycle(memorySegment);\n    }\n}",
-                    "execution_details": "Rename the class 'SortBufferAccumulator' to 'SubpartitionBufferAccumulator' and all instances of 'channel' to 'subpartition' in the class and its methods. Update all references to this class in related files to ensure consistency.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
+                "reason": "To improve clarity and maintainability of the code by using a more appropriate term.",
+                "final_code": 'public class SortBufferAccumulator implements BufferAccumulator {\n    /** The number of the subpartitions. */\n    private final int numSubpartitions;\n    /** The total number of the buffers used by the {@link SortBufferAccumulator}. */\n    private final int numBuffers;\n    /** The byte size of one single buffer. */\n    private final int bufferSizeBytes;\n    /** The empty buffers without storing data. */\n    private final LinkedList<MemorySegment> freeSegments = new LinkedList<>();\n    /** The memory manager of the tiered storage. */\n    private final TieredStorageMemoryManager memoryManager;\n    @Nullable private DataBuffer currentDataBuffer;\n    @Nullable private BufferRecycler bufferRecycler;\n    @Nullable private BiConsumer<TieredStorageSubpartitionId, List<Buffer>> accumulatedBufferFlusher;\n    private boolean isBroadcastDataBuffer;\n    public SortBufferAccumulator(\n            int numSubpartitions,\n            int numBuffers,\n            int bufferSizeBytes,\n            TieredStorageMemoryManager memoryManager) {\n        this.numSubpartitions = numSubpartitions;\n        this.bufferSizeBytes = bufferSizeBytes;\n        this.numBuffers = numBuffers;\n        this.memoryManager = memoryManager;\n    }\n    @Override\n    public void setup(BiConsumer<TieredStorageSubpartitionId, List<Buffer>> bufferFlusher) {\n        this.accumulatedBufferFlusher = bufferFlusher;\n    }\n    @Override\n    public void receive(\n            ByteBuffer record,\n            TieredStorageSubpartitionId subpartitionId,\n            Buffer.DataType dataType,\n            boolean isBroadcast)\n            throws IOException {\n        int targetSubpartition = subpartitionId.getSubpartitionId();\n        switchCurrentDataBufferIfNeeded(isBroadcast);\n        if (!checkNotNull(currentDataBuffer).append(record, targetSubpartition, dataType)) {\n            return;\n        }\n        if (!currentDataBuffer.hasRemaining()) {\n            currentDataBuffer.release();\n            writeLargeRecord(record, targetSubpartition, dataType);\n            return;\n        }\n        flushDataBuffer();\n        checkState(record.hasRemaining(), "Empty record.");\n        receive(record, subpartitionId, dataType, isBroadcast);\n    }\n    @Override\n    public void close() {\n        flushCurrentDataBuffer();\n        releaseFreeBuffers();\n        if (currentDataBuffer != null) {\n            currentDataBuffer.release();\n        }\n    }\n    private void switchCurrentDataBufferIfNeeded(boolean isBroadcast) {\n        if (isBroadcast == isBroadcastDataBuffer\n                && currentDataBuffer != null\n                && !currentDataBuffer.isReleased()\n                && !currentDataBuffer.isFinished()) {\n            return;\n        }\n        isBroadcastDataBuffer = isBroadcast;\n        flushCurrentDataBuffer();\n        currentDataBuffer = createNewDataBuffer();\n    }\n    private DataBuffer createNewDataBuffer() {\n        requestBuffers();\n        int numBuffersForSort = freeSegments.size() / 2;\n        return new TieredStorageSortBuffer(\n                freeSegments,\n                this::recycleBuffer,\n                numSubpartitions,\n                bufferSizeBytes,\n                numBuffersForSort);\n    }\n    private void requestBuffers() {\n        while (freeSegments.size() < numBuffers) {\n            Buffer buffer = requestBuffer();\n            freeSegments.add(checkNotNull(buffer).getMemorySegment());\n            if (bufferRecycler == null) {\n                bufferRecycler = buffer.getRecycler();\n            }\n        }\n    }\n    private void flushDataBuffer() {\n        if (currentDataBuffer == null || currentDataBuffer.isReleased() || !currentDataBuffer.hasRemaining()) {\n            return;\n        }\n        currentDataBuffer.finish();\n        do {\n            MemorySegment freeSegment = getFreeSegment();\n            BufferWithChannel bufferWithChannel = currentDataBuffer.getNextBuffer(freeSegment);\n            if (bufferWithChannel == null) {\n                break;\n            }\n            flushBuffer(bufferWithChannel);\n        } while (true);\n        releaseFreeBuffers();\n        currentDataBuffer.release();\n    }\n    private void flushCurrentDataBuffer() {\n        if (currentDataBuffer != null) {\n            flushDataBuffer();\n            currentDataBuffer = null;\n        }\n    }\n    private void writeLargeRecord(ByteBuffer record, int subpartitionId, Buffer.DataType dataType) {\n        checkState(dataType != Buffer.DataType.EVENT_BUFFER);\n        while (record.hasRemaining()) {\n            int toCopy = Math.min(record.remaining(), bufferSizeBytes);\n            MemorySegment writeBuffer = requestBuffer().getMemorySegment();\n            writeBuffer.put(0, record, toCopy);\n            flushBuffer(\n                    new BufferWithChannel(\n                            new NetworkBuffer(\n                                    writeBuffer, checkNotNull(bufferRecycler), dataType, toCopy),\n                            subpartitionId));\n        }\n        releaseFreeBuffers();\n    }\n    private MemorySegment getFreeSegment() {\n        MemorySegment freeSegment = freeSegments.poll();\n        if (freeSegment == null) {\n            freeSegment = requestBuffer().getMemorySegment();\n        }\n        return freeSegment;\n    }\n    private void flushBuffer(BufferWithChannel bufferWithChannel) {\n        checkNotNull(accumulatedBufferFlusher)\n                .accept(\n                        new TieredStorageSubpartitionId(bufferWithChannel.getChannelIndex()),\n                        Collections.singletonList(bufferWithChannel.getBuffer()));\n    }\n    private Buffer requestBuffer() {\n        BufferBuilder bufferBuilder = memoryManager.requestBufferBlocking(this);\n        BufferConsumer bufferConsumer = bufferBuilder.createBufferConsumerFromBeginning();\n        Buffer buffer = bufferConsumer.build();\n        bufferBuilder.close();\n        bufferConsumer.close();\n        return buffer;\n    }\n    private void releaseFreeBuffers() {\n        freeSegments.forEach(this::recycleBuffer);\n        freeSegments.clear();\n    }\n    private void recycleBuffer(MemorySegment memorySegment) {\n        checkNotNull(bufferRecycler).recycle(memorySegment);\n    }\n}',
+                "execution_details": "Rename the class 'SortBufferAccumulator' to 'SubpartitionBufferAccumulator' and all instances of 'channel' to 'subpartition' in the class and its methods. Update all references to this class in related files to ensure consistency.",
+                "refactoring_type": "rename",
+                "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java",
             }
         ]
     )
 
-    planning_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan')
+    planning_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan"
+    )
     planning_patch.return_value = plan
 
-    execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
+    execution_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan"
+    )
     execution_patch.return_value = AIMessage("Successfullly performed the refactoring")
-
 
     # create IJ server connection
     server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
     server.open_project(project_path=project.get_project_path())
-    rel_file_path = Path("flink-runtime/src/main/java/org/apache/flink/runtime/"
-                         "io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java")
+    rel_file_path = Path(
+        "flink-runtime/src/main/java/org/apache/flink/runtime/"
+        "io/network/partition/hybrid/tiered/storage/SortBufferAccumulator.java"
+    )
     server.open_file(rel_file_path)
 
     # create agent
-    with ls.trace(name=f"refactoring agent test - test_replication:test_flink_4",
-                  tags=["test"]) as tracer:
-        agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
-        output = agent.run(initial_intent="Rename the concept channel to subpartition. "
-                                          "Rename variables, parameters, fields, classes.",
-                           starting_file=str(rel_file_path))
+    with ls.trace(
+        name=f"refactoring agent test - test_replication:test_flink_4", tags=["test"]
+    ) as tracer:
+        agent = ra.Agent(
+            ide_server=server, model_name="grazie:openai-gpt-4o-mini", project=project
+        )
+        output = agent.run(
+            initial_intent="Rename the concept channel to subpartition. "
+            "Rename variables, parameters, fields, classes.",
+            starting_file=str(rel_file_path),
+        )
     print(output)
 
     source_code = server.call_tool_get("get_source_code")
     print(source_code)
     print(agent.get_trajectory())
 
+
 def test_flink_3(mocker):
-    '''Replace long list of params'''
-    project = pm.EvalProject('flink')
-    project.checkout('49337819550', force=True)
+    """Replace long list of params"""
+    project = pm.EvalProject("flink")
+    project.checkout("49337819550", force=True)
     project.reset_head()
 
     plan = planning.RefactoringPlan(
         steps=[
-                {
-                    "reason": "To improve the readability and maintainability of the code by reducing the number of parameters in the createKeyedStateBackend method and to provide better context for the parameters being passed.",
-                    "final_code": "    <K> CheckpointableKeyedStateBackend<K> createKeyedStateBackend(\n            KeyedStateBackendParameters<K> parameters) throws Exception;",
-                    "execution_details": "Refactor the KeyedStateBackendParameters interface to encapsulate related parameters into a single object, possibly creating a new class for configuration settings that can be passed to the createKeyedStateBackend method.",
-                    "refactoring_type": "change_method_signature",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java"
-                },
-                {
-                    "reason": "To encapsulate the parameters for creating a KeyedStateBackend into a single object for better organization and to enhance readability by providing clear accessors for each parameter.",
-                    "final_code": "public class KeyedStateBackendParameters<K> {\n    private final Environment env;\n    private final JobID jobID;\n    private final String operatorIdentifier;\n    private final TypeSerializer<K> keySerializer;\n    private final int numberOfKeyGroups;\n    private final KeyGroupRange keyGroupRange;\n    private final TaskKvStateRegistry kvStateRegistry;\n    private final TtlTimeProvider ttlTimeProvider;\n    private final MetricGroup metricGroup;\n    private final Collection<KeyedStateHandle> stateHandles;\n    private final CloseableRegistry cancelStreamRegistry;\n    private final double managedMemoryFraction;\n    private final CustomInitializationMetrics customInitializationMetrics;\n\n    public KeyedStateBackendParameters(Environment env, JobID jobID, String operatorIdentifier, TypeSerializer<K> keySerializer, int numberOfKeyGroups, KeyGroupRange keyGroupRange, TaskKvStateRegistry kvStateRegistry, TtlTimeProvider ttlTimeProvider, MetricGroup metricGroup, Collection<KeyedStateHandle> stateHandles, CloseableRegistry cancelStreamRegistry, double managedMemoryFraction, CustomInitializationMetrics customInitializationMetrics) {\n        this.env = env;\n        this.jobID = jobID;\n        this.operatorIdentifier = operatorIdentifier;\n        this.keySerializer = keySerializer;\n        this.numberOfKeyGroups = numberOfKeyGroups;\n        this.keyGroupRange = keyGroupRange;\n        this.kvStateRegistry = kvStateRegistry;\n        this.ttlTimeProvider = ttlTimeProvider;\n        this.metricGroup = metricGroup;\n        this.stateHandles = stateHandles;\n        this.cancelStreamRegistry = cancelStreamRegistry;\n        this.managedMemoryFraction = managedMemoryFraction;\n        this.customInitializationMetrics = customInitializationMetrics;\n    }\n\n    // Getters for all fields\n    public Environment getEnv() { return env; }\n    public JobID getJobID() { return jobID; }\n    public String getOperatorIdentifier() { return operatorIdentifier; }\n    public TypeSerializer<K> getKeySerializer() { return keySerializer; }\n    public int getNumberOfKeyGroups() { return numberOfKeyGroups; }\n    public KeyGroupRange getKeyGroupRange() { return keyGroupRange; }\n    public TaskKvStateRegistry getKvStateRegistry() { return kvStateRegistry; }\n    public TtlTimeProvider getTtlTimeProvider() { return ttlTimeProvider; }\n    public MetricGroup getMetricGroup() { return metricGroup; }\n    public Collection<KeyedStateHandle> getStateHandles() { return stateHandles; }\n    public CloseableRegistry getCancelStreamRegistry() { return cancelStreamRegistry; }\n    public double getManagedMemoryFraction() { return managedMemoryFraction; }\n    public CustomInitializationMetrics getCustomInitializationMetrics() { return customInitializationMetrics; }\n}",
-                    "execution_details": "Create a new class named KeyedStateBackendParameters that encapsulates the parameters for creating a KeyedStateBackend. Ensure that all fields are private and provide public getter methods for each field. This enhances encapsulation and allows for easier access to the parameters when needed.",
-                    "refactoring_type": "extract_class",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java"
-                },
-                {
-                    "reason": "To enhance clarity and maintainability by ensuring that the instantiation of KeyedStateBackendParameters is done in a dedicated method, which can also handle any validation or default value assignments if necessary.",
-                    "final_code": "private <K> KeyedStateBackendParameters<K> createKeyedStateBackendParameters(Environment env, JobID jobID, String operatorIdentifier, TypeSerializer<K> keySerializer, int numberOfKeyGroups, KeyGroupRange keyGroupRange, TaskKvStateRegistry kvStateRegistry, TtlTimeProvider ttlTimeProvider, MetricGroup metricGroup, Collection<KeyedStateHandle> stateHandles, CloseableRegistry cancelStreamRegistry, double managedMemoryFraction, CustomInitializationMetrics customInitializationMetrics) {\n    return new KeyedStateBackendParameters<>(env, jobID, operatorIdentifier, keySerializer, numberOfKeyGroups, keyGroupRange, kvStateRegistry, ttlTimeProvider, metricGroup, stateHandles, cancelStreamRegistry, managedMemoryFraction, customInitializationMetrics);\n}",
-                    "execution_details": "Refactor the code to create a private method named createKeyedStateBackendParameters that encapsulates the instantiation of KeyedStateBackendParameters. This method will take the necessary parameters and return a new instance of KeyedStateBackendParameters. This change will improve code readability and allow for future enhancements such as validation or logging.",
-                    "refactoring_type": "extract_method",
-                    "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java"
-                }
-            ]
+            {
+                "reason": "To improve the readability and maintainability of the code by reducing the number of parameters in the createKeyedStateBackend method and to provide better context for the parameters being passed.",
+                "final_code": "    <K> CheckpointableKeyedStateBackend<K> createKeyedStateBackend(\n            KeyedStateBackendParameters<K> parameters) throws Exception;",
+                "execution_details": "Refactor the KeyedStateBackendParameters interface to encapsulate related parameters into a single object, possibly creating a new class for configuration settings that can be passed to the createKeyedStateBackend method.",
+                "refactoring_type": "change_method_signature",
+                "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java",
+            },
+            {
+                "reason": "To encapsulate the parameters for creating a KeyedStateBackend into a single object for better organization and to enhance readability by providing clear accessors for each parameter.",
+                "final_code": "public class KeyedStateBackendParameters<K> {\n    private final Environment env;\n    private final JobID jobID;\n    private final String operatorIdentifier;\n    private final TypeSerializer<K> keySerializer;\n    private final int numberOfKeyGroups;\n    private final KeyGroupRange keyGroupRange;\n    private final TaskKvStateRegistry kvStateRegistry;\n    private final TtlTimeProvider ttlTimeProvider;\n    private final MetricGroup metricGroup;\n    private final Collection<KeyedStateHandle> stateHandles;\n    private final CloseableRegistry cancelStreamRegistry;\n    private final double managedMemoryFraction;\n    private final CustomInitializationMetrics customInitializationMetrics;\n\n    public KeyedStateBackendParameters(Environment env, JobID jobID, String operatorIdentifier, TypeSerializer<K> keySerializer, int numberOfKeyGroups, KeyGroupRange keyGroupRange, TaskKvStateRegistry kvStateRegistry, TtlTimeProvider ttlTimeProvider, MetricGroup metricGroup, Collection<KeyedStateHandle> stateHandles, CloseableRegistry cancelStreamRegistry, double managedMemoryFraction, CustomInitializationMetrics customInitializationMetrics) {\n        this.env = env;\n        this.jobID = jobID;\n        this.operatorIdentifier = operatorIdentifier;\n        this.keySerializer = keySerializer;\n        this.numberOfKeyGroups = numberOfKeyGroups;\n        this.keyGroupRange = keyGroupRange;\n        this.kvStateRegistry = kvStateRegistry;\n        this.ttlTimeProvider = ttlTimeProvider;\n        this.metricGroup = metricGroup;\n        this.stateHandles = stateHandles;\n        this.cancelStreamRegistry = cancelStreamRegistry;\n        this.managedMemoryFraction = managedMemoryFraction;\n        this.customInitializationMetrics = customInitializationMetrics;\n    }\n\n    // Getters for all fields\n    public Environment getEnv() { return env; }\n    public JobID getJobID() { return jobID; }\n    public String getOperatorIdentifier() { return operatorIdentifier; }\n    public TypeSerializer<K> getKeySerializer() { return keySerializer; }\n    public int getNumberOfKeyGroups() { return numberOfKeyGroups; }\n    public KeyGroupRange getKeyGroupRange() { return keyGroupRange; }\n    public TaskKvStateRegistry getKvStateRegistry() { return kvStateRegistry; }\n    public TtlTimeProvider getTtlTimeProvider() { return ttlTimeProvider; }\n    public MetricGroup getMetricGroup() { return metricGroup; }\n    public Collection<KeyedStateHandle> getStateHandles() { return stateHandles; }\n    public CloseableRegistry getCancelStreamRegistry() { return cancelStreamRegistry; }\n    public double getManagedMemoryFraction() { return managedMemoryFraction; }\n    public CustomInitializationMetrics getCustomInitializationMetrics() { return customInitializationMetrics; }\n}",
+                "execution_details": "Create a new class named KeyedStateBackendParameters that encapsulates the parameters for creating a KeyedStateBackend. Ensure that all fields are private and provide public getter methods for each field. This enhances encapsulation and allows for easier access to the parameters when needed.",
+                "refactoring_type": "extract_class",
+                "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java",
+            },
+            {
+                "reason": "To enhance clarity and maintainability by ensuring that the instantiation of KeyedStateBackendParameters is done in a dedicated method, which can also handle any validation or default value assignments if necessary.",
+                "final_code": "private <K> KeyedStateBackendParameters<K> createKeyedStateBackendParameters(Environment env, JobID jobID, String operatorIdentifier, TypeSerializer<K> keySerializer, int numberOfKeyGroups, KeyGroupRange keyGroupRange, TaskKvStateRegistry kvStateRegistry, TtlTimeProvider ttlTimeProvider, MetricGroup metricGroup, Collection<KeyedStateHandle> stateHandles, CloseableRegistry cancelStreamRegistry, double managedMemoryFraction, CustomInitializationMetrics customInitializationMetrics) {\n    return new KeyedStateBackendParameters<>(env, jobID, operatorIdentifier, keySerializer, numberOfKeyGroups, keyGroupRange, kvStateRegistry, ttlTimeProvider, metricGroup, stateHandles, cancelStreamRegistry, managedMemoryFraction, customInitializationMetrics);\n}",
+                "execution_details": "Refactor the code to create a private method named createKeyedStateBackendParameters that encapsulates the instantiation of KeyedStateBackendParameters. This method will take the necessary parameters and return a new instance of KeyedStateBackendParameters. This change will improve code readability and allow for future enhancements such as validation or logging.",
+                "refactoring_type": "extract_method",
+                "file_path": "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java",
+            },
+        ]
     )
 
-    planning_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan')
+    planning_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan"
+    )
     planning_patch.return_value = plan
 
-    execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
+    execution_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan"
+    )
     execution_patch.return_value = AIMessage("Successfullly performed the refactoring")
 
-    important_files_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.compute_most_important')
-    important_files_patch.return_value = ["flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java",
-                                          "flink-runtime/src/main/java/org/apache/flink/runtime/state/KeyedStateBackendParameters.java"]
-
+    important_files_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.compute_most_important"
+    )
+    important_files_patch.return_value = [
+        "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/state/KeyedStateBackendParameters.java",
+    ]
 
     # create IJ server connection
     server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
     server.open_project(project_path=project.get_project_path())
-    rel_file_path = Path("flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java")
+    rel_file_path = Path(
+        "flink-runtime/src/main/java/org/apache/flink/runtime/state/StateBackend.java"
+    )
     server.open_file(rel_file_path)
 
     # create agent
-    with ls.trace(name=f"refactoring agent test - test_replication:test_flink_3",
-                  tags=["test"]) as tracer:
-        agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
-        output = agent.run(initial_intent="Replace long list of parameters with an object.",
-                           starting_file=str(rel_file_path))
+    with ls.trace(
+        name=f"refactoring agent test - test_replication:test_flink_3", tags=["test"]
+    ) as tracer:
+        agent = ra.Agent(
+            ide_server=server, model_name="grazie:openai-gpt-4o-mini", project=project
+        )
+        output = agent.run(
+            initial_intent="Replace long list of parameters with an object.",
+            starting_file=str(rel_file_path),
+        )
     print(output)
 
     source_code = server.call_tool_get("get_source_code")
@@ -189,73 +225,84 @@ def test_flink_3(mocker):
 
 
 def test_flink_35(mocker):
-    '''Renaming channel to subpartition'''
-    project = pm.EvalProject('flink')
-    project.checkout('d13c6b7c6118346fd178579a5e69259162cb60f1', force=True)
+    """Renaming channel to subpartition"""
+    project = pm.EvalProject("flink")
+    project.checkout("d13c6b7c6118346fd178579a5e69259162cb60f1", force=True)
     project.reset_head()
 
     plan = planning.RefactoringPlan(
         steps=[
-                {
-                    "reason": "To standardize naming conventions in the slot management system.",
-                    "final_code": "class DefaultFreeSlotTrackerTest { ... }",
-                    "execution_details": "Rename the class 'DefaultFreeSlotInfoTrackerTest' to 'DefaultFreeSlotTrackerTest'. This involves replacing all occurrences of 'DefaultFreeSlotInfoTrackerTest' with 'DefaultFreeSlotTrackerTest' in the file 'flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java'. Ensure that the class name is updated in the file header, as well as in any references to this class within the same file or related files.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
-                },
-                {
-                    "reason": "To standardize naming conventions in the slot management system.",
-                    "final_code": "final FreeSlotTracker freeSlotTracker = FreeSlotTrackerTestUtils.createDefaultFreeSlotTracker(slots);",
-                    "execution_details": "Rename the variable 'freeSlotInfoTracker' to 'freeSlotTracker' within the method 'testReserveSlot' and 'testCreatedFreeSlotInfoTrackerWithoutBlockedSlots'. This involves replacing all occurrences of 'freeSlotInfoTracker' with 'freeSlotTracker' in the scope of the class 'DefaultFreeSlotTrackerTest'. Ensure that the variable name is updated in the method signatures and any references to this variable within the same file.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
-                },
-                {
-                    "reason": "To standardize naming conventions in the slot management system.",
-                    "final_code": "final FreeSlotTracker freeSlotTrackerWithoutBlockedSlots = freeSlotTracker.createNewFreeSlotTrackerWithoutBlockedSlots(...);",
-                    "execution_details": "Rename the variable 'freeSlotInfoTrackerWithoutBlockedSlots' to 'freeSlotTrackerWithoutBlockedSlots' within the method 'testCreatedFreeSlotInfoTrackerWithoutBlockedSlots'. This involves replacing all occurrences of 'freeSlotInfoTrackerWithoutBlockedSlots' with 'freeSlotTrackerWithoutBlockedSlots' in the scope of the class 'DefaultFreeSlotTrackerTest'. Ensure that the variable name is updated in the method signature and any references to this variable within the same file.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
-                },
-                {
-                    "reason": "To standardize naming conventions in the slot management system.",
-                    "final_code": "SlotInfo selectedSlot = freeSlotTracker.getSlotInfo(candidate);",
-                    "execution_details": "Rename the variable 'selectSlot' to 'selectedSlot' within the method 'testReserveSlot'. This involves replacing all occurrences of 'selectSlot' with 'selectedSlot' in the scope of the class 'DefaultFreeSlotTrackerTest'. Ensure that the variable name is updated in the method signature and any references to this variable within the same file.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
-                },
-                {
-                    "reason": "To standardize naming conventions in the slot management system.",
-                    "final_code": "assertThat(freeSlotTracker.getAvailableSlots()).hasSize(1).containsAnyOf(slotInfo1.getAllocationId(), slotInfo2.getAllocationId());",
-                    "execution_details": "Rename the variable 'freeSlotInfoTracker' to 'freeSlotTracker' in the assertion statement within the method 'testReserveSlot'. This involves replacing all occurrences of 'freeSlotInfoTracker' with 'freeSlotTracker' in the assertion statement on line 30 of the file 'DefaultFreeSlotInfoTrackerTest.java'.",
-                    "refactoring_type": "rename",
-                    "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java"
-                }
-            ]
+            {
+                "reason": "To standardize naming conventions in the slot management system.",
+                "final_code": "class DefaultFreeSlotTrackerTest { ... }",
+                "execution_details": "Rename the class 'DefaultFreeSlotInfoTrackerTest' to 'DefaultFreeSlotTrackerTest'. This involves replacing all occurrences of 'DefaultFreeSlotInfoTrackerTest' with 'DefaultFreeSlotTrackerTest' in the file 'flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java'. Ensure that the class name is updated in the file header, as well as in any references to this class within the same file or related files.",
+                "refactoring_type": "rename",
+                "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java",
+            },
+            {
+                "reason": "To standardize naming conventions in the slot management system.",
+                "final_code": "final FreeSlotTracker freeSlotTracker = FreeSlotTrackerTestUtils.createDefaultFreeSlotTracker(slots);",
+                "execution_details": "Rename the variable 'freeSlotInfoTracker' to 'freeSlotTracker' within the method 'testReserveSlot' and 'testCreatedFreeSlotInfoTrackerWithoutBlockedSlots'. This involves replacing all occurrences of 'freeSlotInfoTracker' with 'freeSlotTracker' in the scope of the class 'DefaultFreeSlotTrackerTest'. Ensure that the variable name is updated in the method signatures and any references to this variable within the same file.",
+                "refactoring_type": "rename",
+                "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java",
+            },
+            {
+                "reason": "To standardize naming conventions in the slot management system.",
+                "final_code": "final FreeSlotTracker freeSlotTrackerWithoutBlockedSlots = freeSlotTracker.createNewFreeSlotTrackerWithoutBlockedSlots(...);",
+                "execution_details": "Rename the variable 'freeSlotInfoTrackerWithoutBlockedSlots' to 'freeSlotTrackerWithoutBlockedSlots' within the method 'testCreatedFreeSlotInfoTrackerWithoutBlockedSlots'. This involves replacing all occurrences of 'freeSlotInfoTrackerWithoutBlockedSlots' with 'freeSlotTrackerWithoutBlockedSlots' in the scope of the class 'DefaultFreeSlotTrackerTest'. Ensure that the variable name is updated in the method signature and any references to this variable within the same file.",
+                "refactoring_type": "rename",
+                "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java",
+            },
+            {
+                "reason": "To standardize naming conventions in the slot management system.",
+                "final_code": "SlotInfo selectedSlot = freeSlotTracker.getSlotInfo(candidate);",
+                "execution_details": "Rename the variable 'selectSlot' to 'selectedSlot' within the method 'testReserveSlot'. This involves replacing all occurrences of 'selectSlot' with 'selectedSlot' in the scope of the class 'DefaultFreeSlotTrackerTest'. Ensure that the variable name is updated in the method signature and any references to this variable within the same file.",
+                "refactoring_type": "rename",
+                "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java",
+            },
+            {
+                "reason": "To standardize naming conventions in the slot management system.",
+                "final_code": "assertThat(freeSlotTracker.getAvailableSlots()).hasSize(1).containsAnyOf(slotInfo1.getAllocationId(), slotInfo2.getAllocationId());",
+                "execution_details": "Rename the variable 'freeSlotInfoTracker' to 'freeSlotTracker' in the assertion statement within the method 'testReserveSlot'. This involves replacing all occurrences of 'freeSlotInfoTracker' with 'freeSlotTracker' in the assertion statement on line 30 of the file 'DefaultFreeSlotInfoTrackerTest.java'.",
+                "refactoring_type": "rename",
+                "file_path": "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotInfoTrackerTest.java",
+            },
+        ]
     )
 
-    planning_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan')
+    planning_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan"
+    )
     planning_patch.return_value = plan
 
-    execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
+    execution_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan"
+    )
     execution_patch.return_value = AIMessage("Successfullly performed the refactoring")
 
     # create IJ server connection
     server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
     server.open_project(project_path=project.get_project_path())
-    rel_file_path = Path("flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotTrackerTest.java")
+    rel_file_path = Path(
+        "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DefaultFreeSlotTrackerTest.java"
+    )
     server.open_file(rel_file_path)
 
     # create agent
-    with ls.trace(name=f"refactoring agent test - test_replication:test_flink_35",
-                  tags=["test"]) as tracer:
-        agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
-        output = agent.run(initial_intent="Refactor FreeSlotInfoTracker to FreeSlotTracker for consistent naming and updated implementations. "
-                                          "This commit refactors the interface from FreeSlotInfoTracker to FreeSlotTracker across various classes "
-                                          "to standardize naming conventions in the slot management system. The changes include method renaming and "
-                                          "adjustment in the implementations accordingly. The motivation behind this is to align with "
-                                          "new slot representation and ensure clarity in code.",
-                           starting_file=str(rel_file_path))
+    with ls.trace(
+        name=f"refactoring agent test - test_replication:test_flink_35", tags=["test"]
+    ) as tracer:
+        agent = ra.Agent(
+            ide_server=server, model_name="grazie:openai-gpt-4o-mini", project=project
+        )
+        output = agent.run(
+            initial_intent="Refactor FreeSlotInfoTracker to FreeSlotTracker for consistent naming and updated implementations. "
+            "This commit refactors the interface from FreeSlotInfoTracker to FreeSlotTracker across various classes "
+            "to standardize naming conventions in the slot management system. The changes include method renaming and "
+            "adjustment in the implementations accordingly. The motivation behind this is to align with "
+            "new slot representation and ensure clarity in code.",
+            starting_file=str(rel_file_path),
+        )
     print(output)
 
     source_code = server.call_tool_get("get_source_code")
@@ -264,58 +311,70 @@ def test_flink_35(mocker):
 
 
 def test_ratpack_205(mocker):
-    project = pm.EvalProject('ratpack')
-    project.checkout('0e2bdfd6a77759b7072f2de98745917938e450de', force=True)
+    project = pm.EvalProject("ratpack")
+    project.checkout("0e2bdfd6a77759b7072f2de98745917938e450de", force=True)
     project.reset_head()
 
     plan = planning.RefactoringPlan(
         steps=[
             {
-              "reason": "To enhance clarity and better express the requirement for client SSL authentication.",
-              "final_code": "private boolean requireClientSslAuth;",
-              "execution_details": "Rename variable 'sslClientAuth' to 'requireClientSslAuth'.",
-              "refactoring_type": "rename",
-              "file_path": "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java"
+                "reason": "To enhance clarity and better express the requirement for client SSL authentication.",
+                "final_code": "private boolean requireClientSslAuth;",
+                "execution_details": "Rename variable 'sslClientAuth' to 'requireClientSslAuth'.",
+                "refactoring_type": "rename",
+                "file_path": "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java",
             },
             {
-              "reason": "To enhance clarity and better express the requirement for client SSL authentication.",
-              "final_code": "public boolean isRequireClientSslAuth() { return requireClientSslAuth; }",
-              "execution_details": "Rename method 'isSslClientAuth' to 'isRequireClientSslAuth'.",
-              "refactoring_type": "rename",
-              "file_path": "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java"
+                "reason": "To enhance clarity and better express the requirement for client SSL authentication.",
+                "final_code": "public boolean isRequireClientSslAuth() { return requireClientSslAuth; }",
+                "execution_details": "Rename method 'isSslClientAuth' to 'isRequireClientSslAuth'.",
+                "refactoring_type": "rename",
+                "file_path": "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java",
             },
             {
-              "reason": "To enhance clarity and better express the requirement for client SSL authentication.",
-              "final_code": "public void setRequireClientSslAuth(boolean requireClientSslAuth) { this.requireClientSslAuth = requireClientSslAuth; }",
-              "execution_details": "Rename method 'setSslClientAuth' to 'setRequireClientSslAuth'.",
-              "refactoring_type": "rename",
-              "file_path": "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java"
-            }
-          ]
+                "reason": "To enhance clarity and better express the requirement for client SSL authentication.",
+                "final_code": "public void setRequireClientSslAuth(boolean requireClientSslAuth) { this.requireClientSslAuth = requireClientSslAuth; }",
+                "execution_details": "Rename method 'setSslClientAuth' to 'setRequireClientSslAuth'.",
+                "refactoring_type": "rename",
+                "file_path": "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java",
+            },
+        ]
     )
 
-    planning_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan')
+    planning_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.generate_initial_plan"
+    )
     planning_patch.return_value = plan
 
-    execution_patch = mocker.patch('refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan')
+    execution_patch = mocker.patch(
+        "refagent.agents.refactrix.refactoring_agent.Agent.execute_initial_plan"
+    )
     execution_patch.return_value = AIMessage("Successfullly performed the refactoring")
 
     # create IJ server connection
     server = ij.IntellijServer(server_url=refagent.IJ_SERVER_URL)
     server.open_project(project_path=project.get_project_path())
-    rel_file_path = Path("ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java")
+    rel_file_path = Path(
+        "ratpack-core/src/main/java/ratpack/server/internal/ServerConfigData.java"
+    )
     server.open_file(rel_file_path)
 
     # create agent
-    with ls.trace(name=f"refactoring agent test - test_replication:test_ratpack_205",
-                  tags=["test"]) as tracer:
-        agent = ra.Agent(ide_server=server, model_name='grazie:openai-gpt-4o-mini', project=project)
-        output = agent.run(initial_intent="Refactor FreeSlotInfoTracker to FreeSlotTracker for consistent naming and updated implementations. "
-                                          "This commit refactors the interface from FreeSlotInfoTracker to FreeSlotTracker across various classes "
-                                          "to standardize naming conventions in the slot management system. The changes include method renaming and "
-                                          "adjustment in the implementations accordingly. The motivation behind this is to align with "
-                                          "new slot representation and ensure clarity in code.",
-                           starting_file=str(rel_file_path))
+    with ls.trace(
+        name=f"refactoring agent test - test_replication:test_ratpack_205",
+        tags=["test"],
+    ) as tracer:
+        agent = ra.Agent(
+            ide_server=server, model_name="grazie:openai-gpt-4o-mini", project=project
+        )
+        output = agent.run(
+            initial_intent="Refactor FreeSlotInfoTracker to FreeSlotTracker for consistent naming and updated implementations. "
+            "This commit refactors the interface from FreeSlotInfoTracker to FreeSlotTracker across various classes "
+            "to standardize naming conventions in the slot management system. The changes include method renaming and "
+            "adjustment in the implementations accordingly. The motivation behind this is to align with "
+            "new slot representation and ensure clarity in code.",
+            starting_file=str(rel_file_path),
+        )
     print(output)
 
     source_code = server.call_tool_get("get_source_code")

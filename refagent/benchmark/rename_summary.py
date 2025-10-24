@@ -8,10 +8,9 @@ from collections import defaultdict
 if __name__ == "__main__":
     file_path = str(sys.argv[1])
     id = int(sys.argv[2])
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         json_ = json.load(f)
     rename_bench = bm_load.load_benchmark(json_, bench_type=bm_load.RenameItem)
-
 
     file_groups = defaultdict(list)
     for i in rename_bench:

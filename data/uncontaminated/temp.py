@@ -1,6 +1,6 @@
 import json
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     with open("data.txt", "r") as file:
         numbers = [int(line.strip()) for line in file if line.strip()]
 
@@ -12,8 +12,8 @@ if __name__ == '__main__':
 
     res = []
     for item in data:
-        if item['id']  in numbers:
-            res.append(item['id'])
+        if item["id"] in numbers:
+            res.append(item["id"])
 
     # print(res)
     # print(f"Total numbers: {len(res)}")

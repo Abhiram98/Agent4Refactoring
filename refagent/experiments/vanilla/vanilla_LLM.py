@@ -18,52 +18,64 @@ import refagent.refactoring_types.refactorings as refactoring_types
 
 # Define rename types for filtering RefactoringMiner output
 RENAME_TYPES = {
-    'Rename Class',
-    'Rename Method',
-    'Rename Variable',
-    'Rename Parameter',
-    'Rename Attribute',
-    'Rename Package'
+    "Rename Class",
+    "Rename Method",
+    "Rename Variable",
+    "Rename Parameter",
+    "Rename Attribute",
+    "Rename Package",
 }
 
+
 def parse_name(refactoring_change):
-    old_name = ''
-    new_name = ''
+    old_name = ""
+    new_name = ""
 
-    if refactoring_change['type'] == 'Rename Class':
-        match = re.search(r"Rename Class .*\.([A-Za-z0-9_]+) renamed to .*\.([A-Za-z0-9_]+)",
-                          refactoring_change['description'])
-        if match:
-            old_name = match.group(1)
-            new_name = match.group(2)
-
-    elif refactoring_change['type'] == 'Rename Method':
-        match = re.search(r"Rename Method .*? ([A-Za-z0-9_]+)\(.*?\)\s*:\s*.*? renamed to .*? ([A-Za-z0-9_]+)\(",
-                          refactoring_change['description'])
+    if refactoring_change["type"] == "Rename Class":
+        match = re.search(
+            r"Rename Class .*\.([A-Za-z0-9_]+) renamed to .*\.([A-Za-z0-9_]+)",
+            refactoring_change["description"],
+        )
         if match:
             old_name = match.group(1)
             new_name = match.group(2)
 
-    elif refactoring_change['type'] == 'Rename Variable':
-        match = re.search(r"Rename Variable ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*?",
-                          refactoring_change['description'])
+    elif refactoring_change["type"] == "Rename Method":
+        match = re.search(
+            r"Rename Method .*? ([A-Za-z0-9_]+)\(.*?\)\s*:\s*.*? renamed to .*? ([A-Za-z0-9_]+)\(",
+            refactoring_change["description"],
+        )
         if match:
             old_name = match.group(1)
             new_name = match.group(2)
-    elif refactoring_change['type'] == 'Rename Attribute':
-        match = re.search(r"Rename Attribute ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in class",
-                          refactoring_change['description'])
+
+    elif refactoring_change["type"] == "Rename Variable":
+        match = re.search(
+            r"Rename Variable ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*?",
+            refactoring_change["description"],
+        )
         if match:
             old_name = match.group(1)
             new_name = match.group(2)
-    elif refactoring_change['type'] == 'Rename Parameter':
-        match = re.search(r"Rename Parameter ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in method",
-                          refactoring_change['description'])
+    elif refactoring_change["type"] == "Rename Attribute":
+        match = re.search(
+            r"Rename Attribute ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in class",
+            refactoring_change["description"],
+        )
+        if match:
+            old_name = match.group(1)
+            new_name = match.group(2)
+    elif refactoring_change["type"] == "Rename Parameter":
+        match = re.search(
+            r"Rename Parameter ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in method",
+            refactoring_change["description"],
+        )
         if match:
             old_name = match.group(1)
             new_name = match.group(2)
 
     return old_name, new_name
+
 
 def create_grazie_model():
     """Create a Grazie LLM model."""
@@ -72,14 +84,14 @@ def create_grazie_model():
         client_auth_type=AuthType.APPLICATION,
         client_url=GrazieApiGatewayUrls.PRODUCTION,
         profile="openai-gpt-4o-mini",
-        client_agent_name='simple-rename-script',
-        client_agent_version='0.1'
+        client_agent_name="simple-rename-script",
+        client_agent_version="0.1",
     )
 
 
 def load_json_data(json_file_path):
     """Load JSON data from file."""
-    with open(json_file_path, 'r') as f:
+    with open(json_file_path, "r") as f:
         data = json.load(f)
     return data
 
@@ -88,17 +100,18 @@ def process_single_item(item_data, intellij_server, model):
     """Process a single item from the JSON data."""
 
     # Step 1: Extract required fields
-    item_id = item_data.get('id', 'unknown')
-    project_name = item_data.get('project')
-    v1_hash = item_data.get('v1_hash')
-    starting_file = item_data.get('starting_file')
-    hints = item_data.get('hints', [])
-    seed_example = item_data.get('seed_example')
+    item_id = item_data.get("id", "unknown")
+    project_name = item_data.get("project")
+    v1_hash = item_data.get("v1_hash")
+    starting_file = item_data.get("starting_file")
+    hints = item_data.get("hints", [])
+    seed_example = item_data.get("seed_example")
 
-    if seed_example['type'] == 'Rename Class':
-        starting_file = seed_example['leftSideLocations'][0]['filePath']
-        print(f"[Setup] ✅ : Rename class is seed -> changed starting_file -> {starting_file}")
-
+    if seed_example["type"] == "Rename Class":
+        starting_file = seed_example["leftSideLocations"][0]["filePath"]
+        print(
+            f"[Setup] ✅ : Rename class is seed -> changed starting_file -> {starting_file}"
+        )
 
     if not project_name:
         print(f"[Setup] ❌ : No project name found in item {item_id}")
@@ -147,7 +160,9 @@ def process_single_item(item_data, intellij_server, model):
             print(f"[Intellij] ❌ : Failed to get file content: {file_content}")
             return False
 
-        print(f"[Intellij] ✅ : Successfully retrieved file content ({len(file_content)} characters)")
+        print(
+            f"[Intellij] ✅ : Successfully retrieved file content ({len(file_content)} characters)"
+        )
 
     except Exception as e:
         print(f"[Intellij] ❌ : Error opening file {starting_file}: {e}")
@@ -168,20 +183,24 @@ def process_single_item(item_data, intellij_server, model):
         print(f"[Seed Example] ⌛️ : Running on {old_name} -> {new_name}")
 
         # Create prompt for LLM
-        system_message = SystemMessage(content="""
+        system_message = SystemMessage(
+            content="""
 You are a code refactoring assistant. Your task is to rename variables in the given code.
 You will be given the current code and instructions to rename a specific variable.
 Return ONLY the modified code with the variable renamed. Do not include any explanations or markdown formatting.
 Make sure to rename ALL occurrences of the variable consistently throughout the code.
-""")
+"""
+        )
 
-        user_message = HumanMessage(content=f"""
+        user_message = HumanMessage(
+            content=f"""
 Please rename the variable '{old_name}' to '{new_name}' in the following code:
 
 {file_content}
 
 Return only the modified code with the variable renamed.
-""")
+"""
+        )
 
         # Get LLM response
         response = model.invoke([system_message, user_message])
@@ -195,14 +214,16 @@ Return only the modified code with the variable renamed.
 
     # Step 5: Replace file contents using IntelliJ API
     try:
-        replace_response = intellij_server.call_tool("replace_file_contents",
-                                                     file_path=starting_file,
-                                                     new_content=modified_code)
+        replace_response = intellij_server.call_tool(
+            "replace_file_contents", file_path=starting_file, new_content=modified_code
+        )
 
         if replace_response and not replace_response.startswith("tool call failed"):
             print("[Intellij] ✅ : Successfully replaced file contents")
         else:
-            print(f"[Intellij] ❌ : Failed to replace file contents: {replace_response}")
+            print(
+                f"[Intellij] ❌ : Failed to replace file contents: {replace_response}"
+            )
             return False
 
     except Exception as e:
@@ -224,15 +245,21 @@ Return only the modified code with the variable renamed.
 
         try:
             print("[RefMiner] ⌛️ : Running RefactoringMiner on new commit...")
-            all_refactorings = rminer.default_runner.run(project.get_project_path(), str(commit_hash))
+            all_refactorings = rminer.default_runner.run(
+                project.get_project_path(), str(commit_hash)
+            )
 
             # Filter for rename refactorings only
-            detected_refactorings = [r for r in all_refactorings if r.type in RENAME_TYPES]
+            detected_refactorings = [
+                r for r in all_refactorings if r.type in RENAME_TYPES
+            ]
             print(f"[RefMiner] 🔎️ : {len(detected_refactorings)} rename refactorings")
 
             # Get original refactoring changes (oracle)
-            oracle_refactorings = item_data.get('refactoring_changes', [])
-            oracle_renames = [r for r in oracle_refactorings if r.get('type') in RENAME_TYPES]
+            oracle_refactorings = item_data.get("refactoring_changes", [])
+            oracle_renames = [
+                r for r in oracle_refactorings if r.get("type") in RENAME_TYPES
+            ]
 
             # Calculate recall and precision
             if oracle_renames or detected_refactorings:
@@ -240,10 +267,14 @@ Return only the modified code with the variable renamed.
                 oracle_objects = []
                 for oracle_dict in oracle_renames:
                     try:
-                        oracle_obj = refactoring_types.RefminerOut.load_from_dictionary(oracle_dict)
+                        oracle_obj = refactoring_types.RefminerOut.load_from_dictionary(
+                            oracle_dict
+                        )
                         oracle_objects.append(oracle_obj)
                     except Exception as e:
-                        print(f"[RefMiner] ❌ : Error converting oracle refactoring: {e}")
+                        print(
+                            f"[RefMiner] ❌ : Error converting oracle refactoring: {e}"
+                        )
                         continue
 
                 # Find matches between oracle and detected refactorings
@@ -255,11 +286,21 @@ Return only the modified code with the variable renamed.
                                 true_positives.append(detected)
                                 break  # Found a match, move to next oracle
 
-                recall = (len(true_positives) - 1) / (len(oracle_objects) - 1) if (len(oracle_objects) > 1 and len(true_positives) > 1) else 0.0
-                precision = (len(true_positives) - 1) / (len(detected_refactorings) - 1) if (len(detected_refactorings) > 1 and len(true_positives) > 1) else 0.0
+                recall = (
+                    (len(true_positives) - 1) / (len(oracle_objects) - 1)
+                    if (len(oracle_objects) > 1 and len(true_positives) > 1)
+                    else 0.0
+                )
+                precision = (
+                    (len(true_positives) - 1) / (len(detected_refactorings) - 1)
+                    if (len(detected_refactorings) > 1 and len(true_positives) > 1)
+                    else 0.0
+                )
 
                 print(f"[Eval] ⌛️ : Evaluation: {len(true_positives)} true positives")
-                print(f"[Eval] ⌛️ : Oracle renames: {len(oracle_objects)}, Detected renames: {len(detected_refactorings)}")
+                print(
+                    f"[Eval] ⌛️ : Oracle renames: {len(oracle_objects)}, Detected renames: {len(detected_refactorings)}"
+                )
                 print(f"[Eval] ⌛️ : Recall: {recall:.2f}, Precision: {precision:.2f}")
             else:
                 print("[Data] ❌ : No oracle or detected refactorings to compare")
@@ -272,11 +313,11 @@ Return only the modified code with the variable renamed.
             "id": item_id,
             "v1_hash": v1_hash,
             "starting_file": starting_file,
-            "refactoring_changes": item_data.get('refactoring_changes', []),
+            "refactoring_changes": item_data.get("refactoring_changes", []),
             "new_commit_hash": str(commit_hash),
             "detected_refactorings": [r.model_dump() for r in detected_refactorings],
             "recall": recall,
-            "precision": precision
+            "precision": precision,
         }
         return result_data
 
@@ -288,16 +329,33 @@ Return only the modified code with the variable renamed.
 def main():
 
     parser = argparse.ArgumentParser(
-        description='Process JSON data to rename variables using LLM and analyze with RefactoringMiner',
-        add_help=True)
-    parser.add_argument('--json-file', type=str, default=str(refagent.benchmark_lite_file),
-                        help='Path to the JSON file to process (default: benchmark_lite_file)')
-    parser.add_argument('--ij-server-url', type=str, default=refagent.IJ_SERVER_URL or "http://localhost:8082",
-                        help='IntelliJ server URL (default: http://localhost:8082)')
-    parser.add_argument('--max-items', type=int, default=5,
-                        help='Maximum number of items to process (default: 5)')
-    parser.add_argument('--output-file', type=str, default='refactoring_results.json',
-                        help='Output JSON file to save results with RefactoringMiner analysis (default: refactoring_results.json)')
+        description="Process JSON data to rename variables using LLM and analyze with RefactoringMiner",
+        add_help=True,
+    )
+    parser.add_argument(
+        "--json-file",
+        type=str,
+        default=str(refagent.benchmark_lite_file),
+        help="Path to the JSON file to process (default: benchmark_lite_file)",
+    )
+    parser.add_argument(
+        "--ij-server-url",
+        type=str,
+        default=refagent.IJ_SERVER_URL or "http://localhost:8082",
+        help="IntelliJ server URL (default: http://localhost:8082)",
+    )
+    parser.add_argument(
+        "--max-items",
+        type=int,
+        default=5,
+        help="Maximum number of items to process (default: 5)",
+    )
+    parser.add_argument(
+        "--output-file",
+        type=str,
+        default="refactoring_results.json",
+        help="Output JSON file to save results with RefactoringMiner analysis (default: refactoring_results.json)",
+    )
 
     args = parser.parse_args()
 
@@ -353,7 +411,7 @@ def main():
     #   ...
     # ]
     if results:
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(results, f, indent=4)
         print(f"Results saved to: {output_file}")
         print(f"Total results: {len(results)} items")
