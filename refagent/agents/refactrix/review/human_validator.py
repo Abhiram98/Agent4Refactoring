@@ -10,11 +10,13 @@ import refagent.utils.intellij_server as ij
 
 class HumanValidator(critique.CritiqueComponent):
 
-    def validate_suggestion(self, suggestion: RenameSuggestionValidated, rel_file_path) -> CritiqueResult:
+    def validate_suggestion(
+        self, suggestion: RenameSuggestionValidated, rel_file_path
+    ) -> CritiqueResult:
         suggestion_dict = json.loads(suggestion.json())
-        suggestion_dict.pop('reason')
-        suggestion_dict.pop('llm_start_line_num')
-        response_str = self.ij_server.call_tool_args('/review/renames', suggestion_dict)
+        suggestion_dict.pop("reason")
+        suggestion_dict.pop("llm_start_line_num")
+        response_str = self.ij_server.call_tool_args("/review/renames", suggestion_dict)
         try:
             response_json = json.loads(response_str)
             return CritiqueResult(is_valid=response_json[0], feedback="", reason="")
@@ -23,7 +25,6 @@ class HumanValidator(critique.CritiqueComponent):
         except JSONDecodeError as e:
             print("Failed to decode json response from human review.")
             return CritiqueResult(is_valid=False)
-
 
     @property
     def ij_server(self) -> ij.IntellijServer:

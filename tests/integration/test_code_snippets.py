@@ -17,16 +17,19 @@ def test_flink_snippet():
     # intellij_server.open_file(
     #     rel_file_path=Path('flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java'))
     _json = {
-      "name": "testDataMatcher",
-      "line_num": 102,
-      "code_element_type": "method",
-      "file_path": "flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java"
+        "name": "testDataMatcher",
+        "line_num": 102,
+        "code_element_type": "method",
+        "file_path": "flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java",
     }
     intellij_server.reset_project_reload_counters()
     intellij_server.reload_project()
-    intellij_server.open_file(Path("flink-core/src/test/java/org/apache/flink/api/java/typeutils/runtime/PojoSerializerUpgradeTestSpecifications.java"))
-    response = intellij_server.call_tool('get_source_code_snippet',
-                                         **_json)
+    intellij_server.open_file(
+        Path(
+            "flink-core/src/test/java/org/apache/flink/api/java/typeutils/runtime/PojoSerializerUpgradeTestSpecifications.java"
+        )
+    )
+    response = intellij_server.call_tool("get_source_code_snippet", **_json)
     print(f"{response=}")
     assert response is not None
 
@@ -34,23 +37,20 @@ def test_flink_snippet():
         "name": "TypeSerializer",
         "line_num": 406,
         "code_element_type": "class",
-        "file_path": "flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java"
+        "file_path": "flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java",
     }
-    response = intellij_server.call_tool('get_source_code_snippet',
-                                         **_json)
+    response = intellij_server.call_tool("get_source_code_snippet", **_json)
 
     print(f"{response=}")
     assert response is not None
-
 
     _json = {
         "name": "TypeSerializer",
         "line_num": 406,
         "code_element_type": "file",
-        "file_path": "flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java"
+        "file_path": "flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java",
     }
-    response = intellij_server.call_tool('get_source_code_snippet',
-                                         **_json)
+    response = intellij_server.call_tool("get_source_code_snippet", **_json)
 
     print(f"{response=}")
     assert response is not None
@@ -60,9 +60,8 @@ def test_flink_snippet():
         "name": "setupClassloader",
         "line_num": 117,
         "code_element_type": "field",
-        "file_path": "flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java"
+        "file_path": "flink-core/src/test/java/org/apache/flink/api/common/typeutils/TypeSerializerUpgradeTestBase.java",
     }
-    response = intellij_server.call_tool('get_source_code_snippet',
-                                         **_json)
+    response = intellij_server.call_tool("get_source_code_snippet", **_json)
     print(f"{response=}")
     assert response is not None

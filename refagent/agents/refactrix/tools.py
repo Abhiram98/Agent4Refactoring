@@ -9,18 +9,31 @@ import refagent.agents.refactrix.supported_refactorings as sup_ref
 
 
 class RefactoringToolProvider(BaseModel):
-    ide_server: Optional[ij_server.IntellijServer] = Field(description="ide server object to interract with")
+    ide_server: Optional[ij_server.IntellijServer] = Field(
+        description="ide server object to interract with"
+    )
 
     def get(self) -> dict[str, BaseTool]:
         @tool
-        def extract_method(start_line: Annotated[int, "The starting line number from which "
-                                                      "the block of code will be extracted. Must be a positive integer."],
-                           end_line: Annotated[int , "The ending line number to which the block of code will "
-                                                     "be extracted. Must be a positive integer greater than "
-                                                     "or equal to `start_line`."],
-                           new_method_name: Annotated[str, "The name of the new method that will contain the "
-                                                            "extracted block of code. Must be a valid "
-                                                            "method name."]):
+        def extract_method(
+            start_line: Annotated[
+                int,
+                "The starting line number from which "
+                "the block of code will be extracted. Must be a positive integer.",
+            ],
+            end_line: Annotated[
+                int,
+                "The ending line number to which the block of code will "
+                "be extracted. Must be a positive integer greater than "
+                "or equal to `start_line`.",
+            ],
+            new_method_name: Annotated[
+                str,
+                "The name of the new method that will contain the "
+                "extracted block of code. Must be a valid "
+                "method name.",
+            ],
+        ):
             """Extracts a method from the specified range of lines in a source code file and creates a new method
             with the given name. This is intended to refactor a block of code within a file, taking the
             lines from `start_line` to `end_line`, inclusive, and moving them into a new method named
@@ -53,153 +66,234 @@ class RefactoringToolProvider(BaseModel):
 
             """
 
-            return self.ide_server.call_tool('extract_method',
-                                      start_line=start_line, end_line=end_line, new_method_name=new_method_name)
-
-
+            return self.ide_server.call_tool(
+                "extract_method",
+                start_line=start_line,
+                end_line=end_line,
+                new_method_name=new_method_name,
+            )
 
         @tool
-        def rename(old_name: Annotated[str, "The name of the variable to be renamed."],
-                   new_name: Annotated[str, "The new name for the variable."],
-                   code_element_type: Annotated[sup_ref.CodeElementType,
-                   "The type of entity to be renamed. Choose from 'variable', 'field', 'class', 'method', 'parameter'."],
-                   line_num:  Annotated[int, "The line number to identify the variable using,"
-                                             "if there are multiple variables with "
-                                             "the same name"]):
+        def rename(
+            old_name: Annotated[str, "The name of the variable to be renamed."],
+            new_name: Annotated[str, "The new name for the variable."],
+            code_element_type: Annotated[
+                sup_ref.CodeElementType,
+                "The type of entity to be renamed. Choose from 'variable', 'field', 'class', 'method', 'parameter'.",
+            ],
+            line_num: Annotated[
+                int,
+                "The line number to identify the variable using,"
+                "if there are multiple variables with "
+                "the same name",
+            ],
+        ):
             """Renames occurrences of an entity (variable, field, class) within the scope of a method/class.
             Please provide a line number to identify the entity at."""
-            return self.ide_server.call_tool("rename", old_name=old_name, new_name=new_name, line_num=line_num, code_element_type=code_element_type.value)
+            return self.ide_server.call_tool(
+                "rename",
+                old_name=old_name,
+                new_name=new_name,
+                line_num=line_num,
+                code_element_type=code_element_type.value,
+            )
 
         @tool
         def replace_file_contents(
-                file_path: Annotated[str, "The path to the file that will be updated."],
-                new_content: Annotated[str, "The replacement text to overwrite the original file contents "
-                                            "with."]
-                                  ):
+            file_path: Annotated[str, "The path to the file that will be updated."],
+            new_content: Annotated[
+                str,
+                "The replacement text to overwrite the original file contents " "with.",
+            ],
+        ):
             """Replace the entire contents of the chosen file with the newly provided contents,
-                 overwriting any existing data."""
-            response = self.ide_server.call_tool("replace_file_contents", file_path=file_path, new_content=new_content)
-            self.ide_server.call_tool('run_code_inspection')
+            overwriting any existing data."""
+            response = self.ide_server.call_tool(
+                "replace_file_contents", file_path=file_path, new_content=new_content
+            )
+            self.ide_server.call_tool("run_code_inspection")
             return response
-
 
         @tool
         def replace_method_contents(
-                file_path: Annotated[str, "The path to the file that will be updated."],
-                method_name: Annotated[str, "The name of the method that will be updated."],
-                new_content: Annotated[str, "The replacement text to overwrite the method's contents with."],
-                line_num: Annotated[Optional[int], "Line number to identify the method at"] = None
+            file_path: Annotated[str, "The path to the file that will be updated."],
+            method_name: Annotated[str, "The name of the method that will be updated."],
+            new_content: Annotated[
+                str, "The replacement text to overwrite the method's contents with."
+            ],
+            line_num: Annotated[
+                Optional[int], "Line number to identify the method at"
+            ] = None,
         ):
             """Replace the entire contents of the chosen method with the newly provided contents, overwriting
-                any existing data. Make sure to include the method's signature while in `new_content` parameter"""
-            return self.ide_server.call_tool("replace_method_contents",
-                                             file_path=file_path, method_name=method_name,
-                                             new_content=new_content, line_num=line_num)
+            any existing data. Make sure to include the method's signature while in `new_content` parameter
+            """
+            return self.ide_server.call_tool(
+                "replace_method_contents",
+                file_path=file_path,
+                method_name=method_name,
+                new_content=new_content,
+                line_num=line_num,
+            )
 
         @tool
         def find_replace(
-                find_text: Annotated[str, "Text to search for"],
-                replace_text: Annotated[str, "Text to replace the found text with"],
-                line_num: Annotated[Optional[int], "The line number to replace the string at. "
-                                                  "If this argument is empty, all occurences of the "
-                                                  "`find_text` will be replaced."]
+            find_text: Annotated[str, "Text to search for"],
+            replace_text: Annotated[str, "Text to replace the found text with"],
+            line_num: Annotated[
+                Optional[int],
+                "The line number to replace the string at. "
+                "If this argument is empty, all occurences of the "
+                "`find_text` will be replaced.",
+            ],
         ):
             """Find and replace text within the file. Optionally, provide a line number to replace the text at.
             If no line number is provided, all occurrences will be replaced.
             """
-            return self.ide_server.call_tool("find_replace",
-                                             find_text=find_text,
-                                             replace_text=replace_text,
-                                             replace_in_comments_only=False,
-                                             line_num=line_num)
+            return self.ide_server.call_tool(
+                "find_replace",
+                find_text=find_text,
+                replace_text=replace_text,
+                replace_in_comments_only=False,
+                line_num=line_num,
+            )
 
         @tool
         def extract_class(
-                extraction_type: Annotated[sup_ref.ExtractionType,
-                                    "Specifies the type of extraction: choose from 'interface', 'super_class', 'class', or 'enum'. "
-                                    "Selecting 'super_class' will make the current class inherit from the extracted one. "
-                                    "Selecting 'class' creates a new class without inheritance."],
-                members: Annotated[list[str], "List of member names (fields or methods) in the current class to move into the extracted class."],
-                new_class_name: Annotated[str, "Name of the new class/interface/superclass/enum to be created"],
-                sub_class_name: Annotated[str, "Name of the updated version of the current class after extraction."]
+            extraction_type: Annotated[
+                sup_ref.ExtractionType,
+                "Specifies the type of extraction: choose from 'interface', 'super_class', 'class', or 'enum'. "
+                "Selecting 'super_class' will make the current class inherit from the extracted one. "
+                "Selecting 'class' creates a new class without inheritance.",
+            ],
+            members: Annotated[
+                list[str],
+                "List of member names (fields or methods) in the current class to move into the extracted class.",
+            ],
+            new_class_name: Annotated[
+                str, "Name of the new class/interface/superclass/enum to be created"
+            ],
+            sub_class_name: Annotated[
+                str,
+                "Name of the updated version of the current class after extraction.",
+            ],
         ):
             """Extracts a new class, interface, superclass, or enum from an existing class.
             This refactoring tool allows you to modularize code by moving selected fields and methods
             from a current class into a newly created type. You can specify what kind of type to extract
             (e.g., superclass or interface), which members to move, and the names of both the new and
             remaining class."""
-            return self.ide_server.call_tool("extract-class",
-                                             extraction_type=extraction_type.value,
-                                             new_class_name=new_class_name,
-                                             sub_class_name=sub_class_name,
-                                             members=members)
-
+            return self.ide_server.call_tool(
+                "extract-class",
+                extraction_type=extraction_type.value,
+                new_class_name=new_class_name,
+                sub_class_name=sub_class_name,
+                members=members,
+            )
 
         @tool
         def pull_up(
-                members: Annotated[List[str], "The members of the class to pull up into super class/ interface"],
-                super_class: Annotated[str, "The name of the super class/interface to move the members into."],
-                make_abstract: Annotated[Optional[bool], "Whether to keep a copy of the member in the current class, "
-                                                         "and make it abstract in the super class/interface."] = True
+            members: Annotated[
+                List[str],
+                "The members of the class to pull up into super class/ interface",
+            ],
+            super_class: Annotated[
+                str, "The name of the super class/interface to move the members into."
+            ],
+            make_abstract: Annotated[
+                Optional[bool],
+                "Whether to keep a copy of the member in the current class, "
+                "and make it abstract in the super class/interface.",
+            ] = True,
         ):
             """Move members of a class (fields/methods) into it's super class/interface.
             If `make_abstract` is True, a copy of the member will be maintained in the current class,
             with an abstract version in the super class.
             """
 
-            return self.ide_server.call_tool('pull-up',
-                                             super_class=super_class,
-                                             members=members,
-                                             make_abstract=make_abstract)
+            return self.ide_server.call_tool(
+                "pull-up",
+                super_class=super_class,
+                members=members,
+                make_abstract=make_abstract,
+            )
 
         @tool
         def push_down(
-                members: Annotated[List[str], "The members of the class to push down into sub class"],
-                keep_abstract: Annotated[Optional[bool], "Whether to keep an abstract copy of "
-                                                         "the member in the super class/interface"] = True
+            members: Annotated[
+                List[str], "The members of the class to push down into sub class"
+            ],
+            keep_abstract: Annotated[
+                Optional[bool],
+                "Whether to keep an abstract copy of "
+                "the member in the super class/interface",
+            ] = True,
         ):
             """Move members of a super-class or interface (fields/methods) into its sub classes.
             If `keep_abstract` is True, an abstract copy of the member will be maintained in the super class/ interface,
             while pushing down the definition into sub classes.
             """
 
-            return self.ide_server.call_tool('push-down',
-                                             members=members,
-                                             keep_abstract=keep_abstract)
+            return self.ide_server.call_tool(
+                "push-down", members=members, keep_abstract=keep_abstract
+            )
 
         @tool
         def change_method_signature(
-                method_name: Annotated[str, "The name of the method whose signature needs to be changed"],
-                method_line_num: Annotated[Optional[int], "The line number to indentify the method at"],
-                new_method_name: Annotated[Optional[str], "The name of the new method"],
-                new_parameters: Annotated[Optional[List[sup_ref.Parameter]], "The updated list of parameters to method"],
-                new_return_type: Annotated[Optional[str], "The new return type of the method"],
-                new_modifier: Annotated[Optional[str], "The new modifiers (private/public/protected) of the method. "]
+            method_name: Annotated[
+                str, "The name of the method whose signature needs to be changed"
+            ],
+            method_line_num: Annotated[
+                Optional[int], "The line number to indentify the method at"
+            ],
+            new_method_name: Annotated[Optional[str], "The name of the new method"],
+            new_parameters: Annotated[
+                Optional[List[sup_ref.Parameter]],
+                "The updated list of parameters to method",
+            ],
+            new_return_type: Annotated[
+                Optional[str], "The new return type of the method"
+            ],
+            new_modifier: Annotated[
+                Optional[str],
+                "The new modifiers (private/public/protected) of the method. ",
+            ],
         ):
             """
             Change the signature of the given method.
             To leave some elements of the method signature unchanged, do not pass any value for them.
             """
 
-            return self.ide_server.call_tool('change_signature',
-                                             method_name=method_name,
-                                             method_line_num=method_line_num,
-                                             new_signature={'method_name': new_method_name,
-                                                            'parameters': [json.loads(i.json()) for i in new_parameters],
-                                                            'return_type': new_return_type,
-                                                            'modifier': new_modifier
-                                                            })
+            return self.ide_server.call_tool(
+                "change_signature",
+                method_name=method_name,
+                method_line_num=method_line_num,
+                new_signature={
+                    "method_name": new_method_name,
+                    "parameters": [json.loads(i.json()) for i in new_parameters],
+                    "return_type": new_return_type,
+                    "modifier": new_modifier,
+                },
+            )
 
         @tool
         def introduce_parameter_object(
-                method_name: Annotated[str, "The name of the method to refactor."],
-                method_line_num: Annotated[Optional[int], "The line number where the method is defined (if known)." 
-                                                          "If None, the method will be located using just its name."],
-                parameter_names: Annotated[List[str], "The list of parameter names "
-                                                  "that should be encapsulated in the new class."],
-                new_class_name: Annotated[str, "The name of the new class "
-                                               "that will encapsulate the specified parameters."]
-
+            method_name: Annotated[str, "The name of the method to refactor."],
+            method_line_num: Annotated[
+                Optional[int],
+                "The line number where the method is defined (if known)."
+                "If None, the method will be located using just its name.",
+            ],
+            parameter_names: Annotated[
+                List[str],
+                "The list of parameter names "
+                "that should be encapsulated in the new class.",
+            ],
+            new_class_name: Annotated[
+                str,
+                "The name of the new class "
+                "that will encapsulate the specified parameters.",
+            ],
         ):
             """
             This refactoring replaces a group of parameters in a method with a single object that encapsulates them.
@@ -211,29 +305,27 @@ class RefactoringToolProvider(BaseModel):
                 method_name=method_name,
                 method_line_num=method_line_num,
                 parameter_names=parameter_names,
-                new_class_name=new_class_name
+                new_class_name=new_class_name,
             )
 
         @tool
         def move_method(
-                method_name: Annotated[str, "The name of the method to move."],
-                target_class: Annotated[str, "The class to move the method to"]
+            method_name: Annotated[str, "The name of the method to move."],
+            target_class: Annotated[str, "The class to move the method to"],
         ):
             """
             Moves a method to a given target class, changing references accordingly.
             """
             return self.ide_server.call_tool(
-                "move-method",
-                method_name=method_name,
-                target_class=target_class
+                "move-method", method_name=method_name, target_class=target_class
             )
 
         @tool
         def extract_field(
-                field_name: Annotated[str, "The name of the newly created field"],
-                make_static: Annotated[bool, "Whether to make the field static?"],
-                expression: Annotated[str, "The expression from which"],
-                line_num: Annotated[int, "The line number to find the expression at"]
+            field_name: Annotated[str, "The name of the newly created field"],
+            make_static: Annotated[bool, "Whether to make the field static?"],
+            expression: Annotated[str, "The expression from which"],
+            line_num: Annotated[int, "The line number to find the expression at"],
         ):
             """
             Extracts a field from the given expression.
@@ -244,7 +336,7 @@ class RefactoringToolProvider(BaseModel):
                     new_field_name=field_name,
                     variable_name=expression,
                     line_num=line_num,
-                    make_static=make_static
+                    make_static=make_static,
                 )
             else:
                 return self.ide_server.call_tool(
@@ -252,15 +344,16 @@ class RefactoringToolProvider(BaseModel):
                     new_field_name=field_name,
                     line_num=line_num,
                     literal_value=expression,
-                    make_static=make_static
+                    make_static=make_static,
                 )
-
 
         @tool
         def type_change(
-                variable_name: Annotated[str, "The variable who's type needs to change"],
-                new_type: Annotated[str, "The new type for the variable"],
-                line_num: Annotated[Optional[int], "A line number to identify the variable at"]
+            variable_name: Annotated[str, "The variable who's type needs to change"],
+            new_type: Annotated[str, "The new type for the variable"],
+            line_num: Annotated[
+                Optional[int], "A line number to identify the variable at"
+            ],
         ):
             """Change the type of a program element to a new type.
             E.g. change the type of a variable, parameter, field"""
@@ -268,7 +361,7 @@ class RefactoringToolProvider(BaseModel):
                 "type_change",
                 variable_name=variable_name,
                 new_type=new_type,
-                line_num=line_num
+                line_num=line_num,
             )
 
         @tool
@@ -277,27 +370,39 @@ class RefactoringToolProvider(BaseModel):
             Use this tool in case there are no suitable tools to call and execute refactoring.
             Explain your reasoning in the `reason` parameter - include the name of the tool that you'd like to use.
             """
-            return 'Failed to perform any refactoring. Reason: ' + reason
+            return "Failed to perform any refactoring. Reason: " + reason
 
         @tool
         def update_comment(
-                find_text: Annotated[str, "Text to search for"],
-                replace_text: Annotated[str, "Text to replace the found text with"],
-                line_num: Annotated[int, "The line number to find the comment at. "]
+            find_text: Annotated[str, "Text to search for"],
+            replace_text: Annotated[str, "Text to replace the found text with"],
+            line_num: Annotated[int, "The line number to find the comment at. "],
         ):
             """This tool updates the comment in the given line number. Use this tool ONLY to update comments.
             Do not use this tool to create a new comment."""
-            return self.ide_server.call_tool("update_comment",
-                                             find_text=find_text,
-                                             replace_text=replace_text,
-                                             line_num=line_num)
+            return self.ide_server.call_tool(
+                "update_comment",
+                find_text=find_text,
+                replace_text=replace_text,
+                line_num=line_num,
+            )
 
-        all_tools: list[BaseTool] = [extract_method, rename, extract_class, pull_up, push_down,
-                                     change_method_signature, introduce_parameter_object, move_method,
-                                     extract_field, type_change,
-                                     replace_file_contents, replace_method_contents, find_replace,
-                                     no_op, update_comment]
+        all_tools: list[BaseTool] = [
+            extract_method,
+            rename,
+            extract_class,
+            pull_up,
+            push_down,
+            change_method_signature,
+            introduce_parameter_object,
+            move_method,
+            extract_field,
+            type_change,
+            replace_file_contents,
+            replace_method_contents,
+            find_replace,
+            no_op,
+            update_comment,
+        ]
 
         return {i.name: i for i in all_tools}
-
-
