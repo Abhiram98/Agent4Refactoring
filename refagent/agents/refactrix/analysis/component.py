@@ -7,19 +7,24 @@ from langchain_core.messages import SystemMessage, HumanMessage, BaseMessage
 
 
 class AugmentedIntent(BaseModel):
-    original_intent: str = Field(description="The original intent provided by the user.")
+    original_intent: str = Field(
+        description="The original intent provided by the user."
+    )
     augmented_intent: str = Field(description="The enriched intent with extra details.")
 
 
 class AnalysisComponent(BaseModel):
     """An agent that takes an initial intent and augments it with additional details."""
+
     initial_intent: str = Field(description="The initial intent provided by the user.")
     old_name: str = Field(description="The name of the variable that was renamed.")
     new_name: str = Field(description="The new name for the variable.")
-    feedback: Optional[str] = Field(description="The feedback provided by the user with accepted and rejected renames.", default=None)
-    context_information: Optional[str] = Field(
+    feedback: Optional[str] = Field(
+        description="The feedback provided by the user with accepted and rejected renames.",
         default=None,
-        description="Optional context to help augment the intent."
+    )
+    context_information: Optional[str] = Field(
+        default=None, description="Optional context to help augment the intent."
     )
     source_code: str = Field(description="Source code to work with")
     source_file_path: Optional[str] = Field(description="Path to the source file.")
@@ -32,7 +37,7 @@ class AnalysisComponent(BaseModel):
         description=(
             "System message for the intent augmentation LLM call. "
             "Return the original intent and the augmented intent in a structured JSON format."
-        )
+        ),
     )
 
     # store the result for retrieval after flow
@@ -64,31 +69,36 @@ class AnalysisComponent(BaseModel):
                 analysis_msg = f"Analyze this identifier transformation: {self.old_name} -> {self.new_name}"
 
             llm_messages.append(
-                HumanMessage(content=f"{analysis_msg}\n\n"
-                                     f"{code_context}\n\n"
-                                     f"Create actionable transformation instructions by completing this template:\n\n"
-                                     f'"Transform identifiers that [PATTERN TO MATCH] by [TRANSFORMATION RULE]. Apply this to [SCOPE/CONTEXT]."\n\n'
-                                     f"Guidelines:\n"
-                                     f"- [PATTERN TO MATCH]: Focus on SEMANTIC PATTERNS (e.g., 'identifiers with verbose suffixes', 'methods containing redundant prefixes') rather than exact identifier names\n"
-                                     f"- [TRANSFORMATION RULE]: Describe changes to word parts/suffixes/prefixes (e.g., 'replacing verbose suffixes with concise equivalents')\n"
-                                     f"- [SCOPE/CONTEXT]: Define the type of code context where this applies using code element terms - avoid specific class or method names\n\n"
-                                     f"CRITICAL: Think about WORD PARTS and SEMANTIC CONCEPTS, not exact identifiers. Focus on what part of the identifier changed (prefix, suffix, middle word) and why that change would apply to similar identifiers.\n\n"
-                                     f"Write exactly 1-2 sentences using this template structure, then provide a concrete example using the given transformation: 'Example: {self.old_name} -> {self.new_name}'."
-                             )
+                HumanMessage(
+                    content=f"{analysis_msg}\n\n"
+                    f"{code_context}\n\n"
+                    f"Create actionable transformation instructions by completing this template:\n\n"
+                    f'"Transform identifiers that [PATTERN TO MATCH] by [TRANSFORMATION RULE]. Apply this to [SCOPE/CONTEXT]."\n\n'
+                    f"Guidelines:\n"
+                    f"- [PATTERN TO MATCH]: Focus on SEMANTIC PATTERNS (e.g., 'identifiers with verbose suffixes', 'methods containing redundant prefixes') rather than exact identifier names\n"
+                    f"- [TRANSFORMATION RULE]: Describe changes to word parts/suffixes/prefixes (e.g., 'replacing verbose suffixes with concise equivalents')\n"
+                    f"- [SCOPE/CONTEXT]: Define the type of code context where this applies using code element terms - avoid specific class or method names\n\n"
+                    f"CRITICAL: Think about WORD PARTS and SEMANTIC CONCEPTS, not exact identifiers. Focus on what part of the identifier changed (prefix, suffix, middle word) and why that change would apply to similar identifiers.\n\n"
+                    f"Write exactly 1-2 sentences using this template structure, then provide a concrete example using the given transformation: 'Example: {self.old_name} -> {self.new_name}'."
+                )
             )
 
             response = self.model.invoke(llm_messages)
             # Get the transformation rule from LLM response
-            transformation_rule = response.content if isinstance(response.content, str) else str(response.content)
+            transformation_rule = (
+                response.content
+                if isinstance(response.content, str)
+                else str(response.content)
+            )
             print(f"DEBUG: LLM Response content: {transformation_rule}")
 
             # Create AugmentedIntent using existing initial_intent and new transformation rule
             self._augmented_intent = AugmentedIntent(
                 original_intent=self.initial_intent,
-                augmented_intent=transformation_rule.strip()
+                augmented_intent=transformation_rule.strip(),
             )
 
-            return {'messages': llm_messages + [response]}
+            return {"messages": llm_messages + [response]}
 
         workflow = StateGraph(MessagesState)
         workflow.add_node("generate_transformation_rule", generate_transformation_rule)
@@ -99,16 +109,17 @@ class AnalysisComponent(BaseModel):
     def run(self) -> AugmentedIntent:
         compiled_flow = self.compile()
         # invoke the graph (initial messages not used in node logic)
-        compiled_flow.invoke({'messages': []})
+        compiled_flow.invoke({"messages": []})
         if self._augmented_intent is None:
-            raise ValueError("Augmented intent was not generated or found in the component.")
+            raise ValueError(
+                "Augmented intent was not generated or found in the component."
+            )
         return self._augmented_intent
-
 
 
 class NaiveAnalysisComponent(AnalysisComponent):
     def run(self) -> AugmentedIntent:
         return AugmentedIntent(
             original_intent=self.initial_intent,
-            augmented_intent=f"Perform renames that follow this pattern: '{self.old_name}' -> '{self.new_name}'"
+            augmented_intent=f"Perform renames that follow this pattern: '{self.old_name}' -> '{self.new_name}'",
         )

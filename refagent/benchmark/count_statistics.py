@@ -18,11 +18,11 @@ if __name__ == "__main__":
     print(f"{count=}")
 
     # filter count with keys >=5
-    filtered_count = {k:v for k,v in count.items() if k>=4}
+    filtered_count = {k: v for k, v in count.items() if k >= 4}
     print(f"{sum(filtered_count.values())=}")
     print(f"{filtered_count=}")
     # print(f"{[i.ref_id for i in tracker.values()]=}")
-    filtered_tracker = {k:v for k,v in tracker.items() if k>=4}
+    filtered_tracker = {k: v for k, v in tracker.items() if k >= 4}
     ids = []
     for v in filtered_tracker:
         ids += [i.ref_id for i in filtered_tracker[v]]
@@ -30,5 +30,3 @@ if __name__ == "__main__":
     print(f"{len(ids)=}")
     print(f"{sorted(ids)=}")
     print(",".join([str(i) for i in sorted(ids)]))
-
-

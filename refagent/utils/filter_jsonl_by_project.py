@@ -46,7 +46,7 @@ def filter_jsonl_by_project(input_file, output_dir="."):
     print(f"Reading from {input_file}...")
 
     try:
-        with open(input_file, 'r', encoding='utf-8') as f:
+        with open(input_file, "r", encoding="utf-8") as f:
             line_count = 0
             for line in f:
                 line = line.strip()
@@ -59,8 +59,8 @@ def filter_jsonl_by_project(input_file, output_dir="."):
                     line_count += 1
 
                     # Extract project field
-                    if 'project' in record:
-                        project = record['project']
+                    if "project" in record:
+                        project = record["project"]
                         projects_data[project].append(record)
                     else:
                         print(f"Warning: Line {line_count} missing 'project' field")
@@ -70,7 +70,9 @@ def filter_jsonl_by_project(input_file, output_dir="."):
                     continue
 
         print(f"Processed {line_count} records")
-        print(f"Found {len(projects_data)} unique projects: {list(projects_data.keys())}")
+        print(
+            f"Found {len(projects_data)} unique projects: {list(projects_data.keys())}"
+        )
 
     except Exception as e:
         print(f"Error reading file: {e}")
@@ -81,11 +83,13 @@ def filter_jsonl_by_project(input_file, output_dir="."):
         output_file = output_path / f"{project}.jsonl"
 
         try:
-            with open(output_file, 'w', encoding='utf-8') as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 for record in records:
-                    f.write(json.dumps(record, ensure_ascii=False) + '\n')
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-            print(f"Saved {len(records)} records for project '{project}' to {output_file}")
+            print(
+                f"Saved {len(records)} records for project '{project}' to {output_file}"
+            )
 
         except Exception as e:
             print(f"Error writing to {output_file}: {e}")
@@ -94,7 +98,9 @@ def filter_jsonl_by_project(input_file, output_dir="."):
 def main():
     """Main function to handle command line arguments."""
     if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: python filter_jsonl_by_project.py <input_file.jsonl> [output_directory]")
+        print(
+            "Usage: python filter_jsonl_by_project.py <input_file.jsonl> [output_directory]"
+        )
         print("\nExample:")
         print("  python filter_jsonl_by_project.py temp_eo.jsonl")
         print("  python filter_jsonl_by_project.py temp_eo.jsonl ./output")
@@ -104,7 +110,7 @@ def main():
     output_dir = sys.argv[2] if len(sys.argv) == 3 else "."
 
     # Validate file extension
-    if not input_file.endswith('.jsonl'):
+    if not input_file.endswith(".jsonl"):
         print("Warning: Input file should have .jsonl extension")
 
     filter_jsonl_by_project(input_file, output_dir)

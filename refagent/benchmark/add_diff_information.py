@@ -15,7 +15,7 @@ def add_diffs(benchmark_items: list[bm_load.BenchmarkItem]):
     return final_data
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import refagent
 
     augmented_data = add_diffs(bm_load.load_benchmark(refagent.benchmark_lite_json))

@@ -1,4 +1,15 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, Text, DateTime, Float, UniqueConstraint, Index
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    Boolean,
+    Text,
+    DateTime,
+    Float,
+    UniqueConstraint,
+    Index,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.sql import func
@@ -13,7 +24,7 @@ Base = declarative_base()
 class RefactoringSuggestion(Base):
     """ORM model for refactoring suggestions with memory."""
 
-    __tablename__ = 'refactoring_suggestions'
+    __tablename__ = "refactoring_suggestions"
 
     # Primary key
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -37,46 +48,60 @@ class RefactoringSuggestion(Base):
     session_id = Column(String(100), nullable=True, index=True)
     agent_iteration = Column(Integer, nullable=True)
     retry_count = Column(Integer, default=0)
-    llm_iteration = Column(Integer, nullable=True)  # Track which LLM call iteration this was
-    inspected = Column(Boolean, default=False) # whether this case was inspected by the prompt refinement
+    llm_iteration = Column(
+        Integer, nullable=True
+    )  # Track which LLM call iteration this was
+    inspected = Column(
+        Boolean, default=False
+    )  # whether this case was inspected by the prompt refinement
 
     # Additional context (JSON field for flexibility)
     context_data = Column(Text, nullable=True)  # JSON string
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Composite unique constraint to prevent duplicates
     __table_args__ = (
-        UniqueConstraint('benchmark_id', 'file_path', 'old_name', 'new_name', 'line_num',
-                         name='uq_suggestion_identity'),
-        Index('idx_benchmark_file', 'benchmark_id', 'file_path'),
-        Index('idx_validity_time', 'is_valid', 'created_at'),
-        Index('idx_session_time', 'session_id', 'created_at'),
+        UniqueConstraint(
+            "benchmark_id",
+            "file_path",
+            "old_name",
+            "new_name",
+            "line_num",
+            name="uq_suggestion_identity",
+        ),
+        Index("idx_benchmark_file", "benchmark_id", "file_path"),
+        Index("idx_validity_time", "is_valid", "created_at"),
+        Index("idx_session_time", "session_id", "created_at"),
     )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
-            'id': self.id,
-            'benchmark_id': self.benchmark_id,
-            'file_path': self.file_path,
-            'old_name': self.old_name,
-            'new_name': self.new_name,
-            'line_num': self.line_num,
-            'code_element_type': self.code_element_type,
-            'is_valid': self.is_valid,
-            'feedback': self.feedback,
-            'critique_reason': self.critique_reason,
-            'confidence_score': self.confidence_score,
-            'session_id': self.session_id,
-            'agent_iteration': self.agent_iteration,
-            'retry_count': self.retry_count,
-            'llm_iteration': self.llm_iteration,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-            'context_data': json.loads(self.context_data) if self.context_data else None
+            "id": self.id,
+            "benchmark_id": self.benchmark_id,
+            "file_path": self.file_path,
+            "old_name": self.old_name,
+            "new_name": self.new_name,
+            "line_num": self.line_num,
+            "code_element_type": self.code_element_type,
+            "is_valid": self.is_valid,
+            "feedback": self.feedback,
+            "critique_reason": self.critique_reason,
+            "confidence_score": self.confidence_score,
+            "session_id": self.session_id,
+            "agent_iteration": self.agent_iteration,
+            "retry_count": self.retry_count,
+            "llm_iteration": self.llm_iteration,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "context_data": (
+                json.loads(self.context_data) if self.context_data else None
+            ),
         }
 
     def get_summary(self, add_context=False, use_line_number=True) -> str:
@@ -92,17 +117,19 @@ class RefactoringSuggestion(Base):
 
     def __eq__(self, other):
         if isinstance(other, RefactoringSuggestion):
-            return (self.old_name == other.old_name
-                    and self.new_name == other.new_name
-                    and self.line_num == other.line_num
-                    and self.file_path == other.file_path)
+            return (
+                self.old_name == other.old_name
+                and self.new_name == other.new_name
+                and self.line_num == other.line_num
+                and self.file_path == other.file_path
+            )
         return False
 
 
 class MemorySession(Base):
     """Track memory sessions for debugging and analysis."""
 
-    __tablename__ = 'memory_sessions'
+    __tablename__ = "memory_sessions"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(100), nullable=False, unique=True, index=True)
@@ -112,13 +139,17 @@ class MemorySession(Base):
     # Session metadata
     started_at = Column(DateTime(timezone=True), server_default=func.now())
     ended_at = Column(DateTime(timezone=True), nullable=True)
-    replication_enabled = Column(Boolean, nullable=True)  # Track if replication was on/off
+    replication_enabled = Column(
+        Boolean, nullable=True
+    )  # Track if replication was on/off
 
     # Statistics
     total_suggestions = Column(Integer, default=0)
     valid_suggestions = Column(Integer, default=0)
     invalid_suggestions = Column(Integer, default=0)
-    total_llm_iterations = Column(Integer, default=0)  # Track total LLM iterations in this session
+    total_llm_iterations = Column(
+        Integer, default=0
+    )  # Track total LLM iterations in this session
 
     # Additional session info
     session_metadata = Column(Text, nullable=True)  # JSON
@@ -130,14 +161,15 @@ class ExamplePair(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     old_name = Column(String, nullable=False)
     new_name = Column(String, nullable=False)
-    is_positive = Column(Boolean, nullable=False)  # True = positive example, False = negative
+    is_positive = Column(
+        Boolean, nullable=False
+    )  # True = positive example, False = negative
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class RenameScopeTableEntry(Base):
-    __tablename__ = 'rename_scopes'
+    __tablename__ = "rename_scopes"
     id = Column(Integer, primary_key=True, autoincrement=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    pattern= Column(String, nullable=False)
+    pattern = Column(String, nullable=False)
     condition = Column(String, nullable=True)
-

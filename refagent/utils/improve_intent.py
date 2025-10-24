@@ -24,13 +24,15 @@ def get_project_root():
 
 def get_chat_grazie_client():
     """Initialize ChatGrazie client"""
-    return ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
-                      client_auth_type=AuthType.APPLICATION,
-                      client_url=GrazieApiGatewayUrls.PRODUCTION,
-                      profile="openai-gpt-4o-mini",
-                      client_agent_name='fix-agent',
-                      client_agent_version='0.1',
-                      temperature=1)
+    return ChatGrazie(
+        grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+        client_auth_type=AuthType.APPLICATION,
+        client_url=GrazieApiGatewayUrls.PRODUCTION,
+        profile="openai-gpt-4o-mini",
+        client_agent_name="fix-agent",
+        client_agent_version="0.1",
+        temperature=1,
+    )
 
 
 def get_chat_openai_client():
@@ -44,43 +46,53 @@ def _get_git_diff(project_name, file_path_1, file_path_2, v1_hash, v2_hash):
         file_path_2=file_path_2,
         sha_1=v1_hash,
         sha_2=v2_hash,
-        unified_context=1000)
+        unified_context=1000,
+    )
 
 
 def create_hint(refactoring_type, change_description):
-    old_name = ''
-    new_name = ''
+    old_name = ""
+    new_name = ""
 
-    if refactoring_type == 'Rename Class':
-        match = re.search(r"Rename Class .*\.([A-Za-z0-9_]+) renamed to .*\.([A-Za-z0-9_]+)",
-                          change_description)
+    if refactoring_type == "Rename Class":
+        match = re.search(
+            r"Rename Class .*\.([A-Za-z0-9_]+) renamed to .*\.([A-Za-z0-9_]+)",
+            change_description,
+        )
         if match:
             old_name = match.group(1)
             new_name = match.group(2)
 
-    elif refactoring_type == 'Rename Method':
+    elif refactoring_type == "Rename Method":
         match = re.search(
             r"Rename Method .*? ([A-Za-z0-9_]+)\(.*?\)\s*:\s*.*? renamed to .*? ([A-Za-z0-9_]+)\(",
-            change_description)
+            change_description,
+        )
         if match:
             old_name = match.group(1)
             new_name = match.group(2)
 
-    elif refactoring_type == 'Rename Variable':
-        match = re.search(r"Rename Variable ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*?",
-                          change_description)
+    elif refactoring_type == "Rename Variable":
+        match = re.search(
+            r"Rename Variable ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*?",
+            change_description,
+        )
         if match:
             old_name = match.group(1)
             new_name = match.group(2)
-    elif refactoring_type == 'Rename Attribute':
-        match = re.search(r"Rename Attribute ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in class",
-                          change_description)
+    elif refactoring_type == "Rename Attribute":
+        match = re.search(
+            r"Rename Attribute ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in class",
+            change_description,
+        )
         if match:
             old_name = match.group(1)
             new_name = match.group(2)
-    elif refactoring_type == 'Rename Parameter':
-        match = re.search(r"Rename Parameter ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in method",
-                          change_description)
+    elif refactoring_type == "Rename Parameter":
+        match = re.search(
+            r"Rename Parameter ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in method",
+            change_description,
+        )
         if match:
             old_name = match.group(1)
             new_name = match.group(2)
@@ -93,34 +105,36 @@ def process_json(json_file_path, project_name, selected_ids):
     chat_client = get_chat_grazie_client()
     # chat_client = get_chat_openai_client()
 
-    with open(json_file_path, 'r') as f:
+    with open(json_file_path, "r") as f:
         data = json.load(f)
 
     updated = False
     for i, entry in enumerate(data):
-        if selected_ids is not None and entry['id'] not in selected_ids:
+        if selected_ids is not None and entry["id"] not in selected_ids:
             continue
 
-        if 'v2_hash' in entry and 'starting_file' in entry:
-            file_1 = entry['starting_file']
-            file_2 = entry['starting_file']
-            v1_hash = entry['v1_hash']
-            v2_hash = entry['v2_hash']
+        if "v2_hash" in entry and "starting_file" in entry:
+            file_1 = entry["starting_file"]
+            file_2 = entry["starting_file"]
+            v1_hash = entry["v1_hash"]
+            v2_hash = entry["v2_hash"]
 
-            hint = entry['hints'][0]
+            hint = entry["hints"][0]
             print(f"\n{'=' * 80}")
             print(f"Processing Entry {i + 1}")
             print(f"{'=' * 80}")
 
             try:
-                diff_output = _get_git_diff(project_name, file_1, file_2, v1_hash, v2_hash)
+                diff_output = _get_git_diff(
+                    project_name, file_1, file_2, v1_hash, v2_hash
+                )
                 ex_left = hint.split(" -> ")[0]
                 ex_right = hint.split(" -> ")[1]
 
                 refactoring_type_in_start_file = None
-                for refactoring_change in entry['refactoring_changes']:
-                    if refactoring_change['leftSideLocations'][0]['filePath'] == file_1:
-                        refactoring_type_in_start_file = refactoring_change['type']
+                for refactoring_change in entry["refactoring_changes"]:
+                    if refactoring_change["leftSideLocations"][0]["filePath"] == file_1:
+                        refactoring_type_in_start_file = refactoring_change["type"]
                         break
 
                 # print(f"type in start file: {refactoring_type_in_start_file}")
@@ -144,20 +158,30 @@ def process_json(json_file_path, project_name, selected_ids):
                 #                 break
 
                 if "deleted file mode" in diff_output:
-                    for refactoring_change in entry['refactoring_changes']:
-                        file_1 = refactoring_change['leftSideLocations'][0]['filePath']
-                        file_2 = refactoring_change['rightSideLocations'][0]['filePath']
-                        v1_hash = entry['v1_hash']
-                        v2_hash = entry['v2_hash']
-                        if create_hint(refactoring_change['type'],
-                                       refactoring_change['description']) is not None:
-                            hint = create_hint(refactoring_change['type'], refactoring_change['description'])
-                            entry['hints'].append(hint)
-                            entry['hints'] = list(reversed(entry['hints']))
+                    for refactoring_change in entry["refactoring_changes"]:
+                        file_1 = refactoring_change["leftSideLocations"][0]["filePath"]
+                        file_2 = refactoring_change["rightSideLocations"][0]["filePath"]
+                        v1_hash = entry["v1_hash"]
+                        v2_hash = entry["v2_hash"]
+                        if (
+                            create_hint(
+                                refactoring_change["type"],
+                                refactoring_change["description"],
+                            )
+                            is not None
+                        ):
+                            hint = create_hint(
+                                refactoring_change["type"],
+                                refactoring_change["description"],
+                            )
+                            entry["hints"].append(hint)
+                            entry["hints"] = list(reversed(entry["hints"]))
                             print(f"Hint: {hint} changed for datapoint {entry['id']}")
-                        diff_output = _get_git_diff(project_name, file_1, file_2, v1_hash, v2_hash)
+                        diff_output = _get_git_diff(
+                            project_name, file_1, file_2, v1_hash, v2_hash
+                        )
                         if "deleted file mode" not in diff_output:
-                            entry['starting_file'] = file_1
+                            entry["starting_file"] = file_1
                             break
 
                 prompt = construct_prompt(hint, diff_output)
@@ -170,7 +194,7 @@ def process_json(json_file_path, project_name, selected_ids):
 
                 # first_sentence = llm_response.split('.')[0].strip() + '.'
                 # entry['change_summary'] = first_sentence
-                entry['change_summary'] = llm_response
+                entry["change_summary"] = llm_response
                 updated = True
 
                 print(f"Updated change_summary for entry {i + 1}")
@@ -179,18 +203,18 @@ def process_json(json_file_path, project_name, selected_ids):
                 print(f"Error processing entry {i + 1}: {e}")
         else:
             missing_fields = []
-            if 'v2_hash' not in entry:
-                missing_fields.append('v2_hash')
-            if 'starting_file' not in entry:
-                missing_fields.append('starting_file')
-            if 'improved_commit_message' not in entry:
-                missing_fields.append('improved_commit_message')
+            if "v2_hash" not in entry:
+                missing_fields.append("v2_hash")
+            if "starting_file" not in entry:
+                missing_fields.append("starting_file")
+            if "improved_commit_message" not in entry:
+                missing_fields.append("improved_commit_message")
             print(f"Entry {i + 1} missing required fields: {', '.join(missing_fields)}")
 
     if updated:
         print(f"\n{'=' * 80}")
         print("Saving updated JSON...")
-        with open(json_file_path, 'w') as f:
+        with open(json_file_path, "w") as f:
             json.dump(data, f, indent=2)
         print(f"Updated JSON saved to {json_file_path}")
         print(f"{'=' * 80}")
@@ -242,15 +266,25 @@ Write exactly 1-2 sentences using this template structure. Focus on what to chan
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Improve intent')
-    parser.add_argument('--project_name', type=str, required=True, help='Project name')
-    parser.add_argument('--json_file_path', type=str, required=True, help='Path to JSON file')
-    parser.add_argument('-run_selected', type=str, help='IDs to run the agent on. '
-                                                        'To be called as a comma separated values.'
-                                                        'e.g "1,2,3,4"', )
+    parser = argparse.ArgumentParser(description="Improve intent")
+    parser.add_argument("--project_name", type=str, required=True, help="Project name")
+    parser.add_argument(
+        "--json_file_path", type=str, required=True, help="Path to JSON file"
+    )
+    parser.add_argument(
+        "-run_selected",
+        type=str,
+        help="IDs to run the agent on. "
+        "To be called as a comma separated values."
+        'e.g "1,2,3,4"',
+    )
     args = parser.parse_args()
 
-    selected_ref_ids = [int(i) for i in args.run_selected.split(',')] if args.run_selected is not None else None
+    selected_ref_ids = (
+        [int(i) for i in args.run_selected.split(",")]
+        if args.run_selected is not None
+        else None
+    )
     project_root = get_project_root()
     print(f"Project root directory: {project_root}")
 
@@ -262,7 +296,11 @@ def main():
         return
 
     print(f"Processing {args.json_file_path}...")
-    process_json(args.json_file_path, project_name=args.project_name, selected_ids=selected_ref_ids)
+    process_json(
+        args.json_file_path,
+        project_name=args.project_name,
+        selected_ids=selected_ref_ids,
+    )
 
 
 if __name__ == "__main__":

@@ -53,17 +53,14 @@ class InitMemory(BaseModel):
                     confidence_score=1.0,
                     agent_iteration=0,
                     llm_iteration=0,
-                    snippet=self.snippet_code
+                    snippet=self.snippet_code,
                 )
 
-                orm_db.add_rename_scope(
-                    scope.RenameScope(pattern=self.initial_intent)
-                )
+                orm_db.add_rename_scope(scope.RenameScope(pattern=self.initial_intent))
             return no_replication_path
 
     def no_replication_path(self, memory_db_path) -> Path:
         extension = memory_db_path.suffix
-        before_extension = memory_db_path.stem + '-no-replication'
+        before_extension = memory_db_path.stem + "-no-replication"
         new_memory_db_path = Path(before_extension).with_suffix(extension)
         return memory_db_path.parent.joinpath(new_memory_db_path)
-

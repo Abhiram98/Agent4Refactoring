@@ -15,6 +15,7 @@ import refagent.benchmark.creation.scrape_renas_dataset as scrape_rename
 import refagent.refactoring_types.refactorings as refactorings
 import refagent.agents.memory.orm_memory as orm_memory
 
+
 def find_similar(change, diffs):
     pass
 
@@ -30,129 +31,204 @@ def compute_recall(bench_point: bm_load.BenchmarkItem, diffs: list[pm.MyDiff]):
     return recall_points / total_changes_by_developer
 
 
-def group_by_first_file(oracle_refactorings: List[refactorings.RefminerOut],
-                        false_positives: List[refactorings.RefminerOut],
-                        true_positives: List[refactorings.RefminerOut],
-                        starting_file: str,
-                        refactorings_no_replication: List[refactorings.RefminerOut]) -> (
-        Tuple)[float, float, float, float, int, int, int, int]:
+def group_by_first_file(
+    oracle_refactorings: List[refactorings.RefminerOut],
+    false_positives: List[refactorings.RefminerOut],
+    true_positives: List[refactorings.RefminerOut],
+    starting_file: str,
+    refactorings_no_replication: List[refactorings.RefminerOut],
+) -> (Tuple)[float, float, float, float, int, int, int, int]:
 
     false_positives = copy.copy(false_positives)
     true_positives = copy.copy(true_positives)
 
-
-    oracle_starting_file = [i for i in oracle_refactorings if i.leftSideLocations[0].filePath==starting_file]
-    oracle_secondary_files = [i for i in oracle_refactorings if i.leftSideLocations[0].filePath!=starting_file]
+    oracle_starting_file = [
+        i
+        for i in oracle_refactorings
+        if i.leftSideLocations[0].filePath == starting_file
+    ]
+    oracle_secondary_files = [
+        i
+        for i in oracle_refactorings
+        if i.leftSideLocations[0].filePath != starting_file
+    ]
 
     false_positives_starting_file = []
     for i in false_positives:
-        if i.leftSideLocations[0].filePath==starting_file:
+        if i.leftSideLocations[0].filePath == starting_file:
             false_positives_starting_file.append(i)
-        if any(i==j for j in refactorings_no_replication):
+        if any(i == j for j in refactorings_no_replication):
             false_positives_starting_file.append(i)
 
     # false_positives_starting_file = [i for i in false_positives if i.leftSideLocations[0].filePath==starting_file]
     # false_positives_secondary_files = [i for i in false_positives if i.leftSideLocations[0].filePath!=starting_file]
-    false_positives_secondary_files = [i for i in false_positives if i not in false_positives_starting_file]
+    false_positives_secondary_files = [
+        i for i in false_positives if i not in false_positives_starting_file
+    ]
 
     true_positives_starting_file = []
     for i in true_positives:
-        if i.leftSideLocations[0].filePath==starting_file:
+        if i.leftSideLocations[0].filePath == starting_file:
             true_positives_starting_file.append(i)
-        if any(i==j for j in refactorings_no_replication):
+        if any(i == j for j in refactorings_no_replication):
             true_positives_starting_file.append(i)
             # oracle_starting_file.append(i)
     # true_positives_starting_file = [i for i in true_positives if i.leftSideLocations[0].filePath==starting_file]
     # true_positives_secondary_files = [i for i in true_positives if i.leftSideLocations[0].filePath!=starting_file]
-    true_positives_secondary_files = [i for i in true_positives if i not in true_positives_starting_file]
+    true_positives_secondary_files = [
+        i for i in true_positives if i not in true_positives_starting_file
+    ]
 
-    recall_starting_file = len(true_positives_starting_file)/len(oracle_starting_file) if len(oracle_starting_file) > 0 else 0
-    precision_starting_file = len(true_positives_starting_file)/(len(true_positives_starting_file) + len(false_positives_starting_file)) if (len(true_positives_starting_file) + len(false_positives_starting_file)) > 0 else 0
+    recall_starting_file = (
+        len(true_positives_starting_file) / len(oracle_starting_file)
+        if len(oracle_starting_file) > 0
+        else 0
+    )
+    precision_starting_file = (
+        len(true_positives_starting_file)
+        / (len(true_positives_starting_file) + len(false_positives_starting_file))
+        if (len(true_positives_starting_file) + len(false_positives_starting_file)) > 0
+        else 0
+    )
 
-    recall_secondary_files = len(true_positives_secondary_files)/len(oracle_secondary_files) if len(oracle_secondary_files)>0 else None
-    precision_secondary_files = len(true_positives_secondary_files)/(len(true_positives_secondary_files) + len(false_positives_secondary_files)) if (len(true_positives_secondary_files) + len(false_positives_secondary_files)) > 0 else 0
+    recall_secondary_files = (
+        len(true_positives_secondary_files) / len(oracle_secondary_files)
+        if len(oracle_secondary_files) > 0
+        else None
+    )
+    precision_secondary_files = (
+        len(true_positives_secondary_files)
+        / (len(true_positives_secondary_files) + len(false_positives_secondary_files))
+        if (len(true_positives_secondary_files) + len(false_positives_secondary_files))
+        > 0
+        else 0
+    )
 
-    return (precision_starting_file, recall_starting_file, precision_secondary_files, recall_secondary_files,
-            len(true_positives_starting_file), len(true_positives_secondary_files),
-            len(false_positives_starting_file), len(false_positives_secondary_files))
+    return (
+        precision_starting_file,
+        recall_starting_file,
+        precision_secondary_files,
+        recall_secondary_files,
+        len(true_positives_starting_file),
+        len(true_positives_secondary_files),
+        len(false_positives_starting_file),
+        len(false_positives_secondary_files),
+    )
+
 
 def group_acc_rate(bench_point: bm_load.RenameItem, run_id: str):
-    db_name = f'memory_{run_id}_{bench_point.ref_id}-no-replication.db'
-    memory_no_replication = orm_memory.ORMRefactoringMemory(f"sqlite:///"
-                                             f"{refagent.repo_root.joinpath('logs').joinpath(db_name)}")
+    db_name = f"memory_{run_id}_{bench_point.ref_id}-no-replication.db"
+    memory_no_replication = orm_memory.ORMRefactoringMemory(
+        f"sqlite:///" f"{refagent.repo_root.joinpath('logs').joinpath(db_name)}"
+    )
     accepted_starting_file = memory_no_replication.get_all_successful_patterns()
     rejected_starting_file = memory_no_replication.get_all_rejected_patterns()
 
-    precision_starting_file = len(accepted_starting_file)/(len(accepted_starting_file)+len(rejected_starting_file)) \
-        if len(accepted_starting_file)+len(rejected_starting_file) > 0 else 0
-    db_name_2 = f'memory_{run_id}_{bench_point.ref_id}.db'
-    memory_replication = orm_memory.ORMRefactoringMemory(f"sqlite:///"
-                                             f"{refagent.repo_root.joinpath('logs').joinpath(db_name_2)}")
+    precision_starting_file = (
+        len(accepted_starting_file)
+        / (len(accepted_starting_file) + len(rejected_starting_file))
+        if len(accepted_starting_file) + len(rejected_starting_file) > 0
+        else 0
+    )
+    db_name_2 = f"memory_{run_id}_{bench_point.ref_id}.db"
+    memory_replication = orm_memory.ORMRefactoringMemory(
+        f"sqlite:///" f"{refagent.repo_root.joinpath('logs').joinpath(db_name_2)}"
+    )
     accepted = memory_replication.get_all_successful_patterns()
     rejected = memory_replication.get_all_rejected_patterns()
     accepted_secondary_files = [i for i in accepted if i not in accepted_starting_file]
     rejected_secondary_files = [i for i in rejected if i not in rejected_starting_file]
-    precision_secondary_files = len(accepted_secondary_files)/(len(accepted_secondary_files) + len(rejected_secondary_files)) \
-        if len(accepted_secondary_files) + len(rejected_secondary_files) > 0 else 0
+    precision_secondary_files = (
+        len(accepted_secondary_files)
+        / (len(accepted_secondary_files) + len(rejected_secondary_files))
+        if len(accepted_secondary_files) + len(rejected_secondary_files) > 0
+        else 0
+    )
 
     tp_starting_files = len(accepted_starting_file)
     tp_secondary_files = len(accepted_secondary_files)
     fp_starting_files = len(rejected_starting_file)
     fp_secondary_files = len(rejected_secondary_files)
-    return (precision_starting_file, precision_secondary_files,
-            tp_starting_files, tp_secondary_files, fp_starting_files, fp_secondary_files)
-
+    return (
+        precision_starting_file,
+        precision_secondary_files,
+        tp_starting_files,
+        tp_secondary_files,
+        fp_starting_files,
+        fp_secondary_files,
+    )
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Evaluate the performance of an agent, given it\'s output file.')
-    parser.add_argument('agent_outfile_path', type=str, help='Path to Agent\'s output file')
-    parser.add_argument('--benchmark_file_path', type=str, help='Path to benchmark file', default=str(refagent.benchmark_full_file))
-    parser.add_argument("--without-seed",
-                        help='If passed, do not use the seed while computing recall and precision',
-                        action='store_true')
+    parser = argparse.ArgumentParser(
+        description="Evaluate the performance of an agent, given it's output file."
+    )
+    parser.add_argument(
+        "agent_outfile_path", type=str, help="Path to Agent's output file"
+    )
+    parser.add_argument(
+        "--benchmark_file_path",
+        type=str,
+        help="Path to benchmark file",
+        default=str(refagent.benchmark_full_file),
+    )
+    parser.add_argument(
+        "--without-seed",
+        help="If passed, do not use the seed while computing recall and precision",
+        action="store_true",
+    )
     args = parser.parse_args()
 
-    print(f'File Path: {args.agent_outfile_path}')
+    print(f"File Path: {args.agent_outfile_path}")
     with open(args.agent_outfile_path) as f:
         agent_results = json.load(f)
 
     name = Path(args.agent_outfile_path).name.replace(".json", "")
-    report_file_path = Path(args.agent_outfile_path).parent.joinpath(f"report-{name}.json")
+    report_file_path = Path(args.agent_outfile_path).parent.joinpath(
+        f"report-{name}.json"
+    )
     report = []
     run_id = Path(args.agent_outfile_path).parent.name
-    no_replication_file = str(Path(args.agent_outfile_path)).replace('post-', 'no-')
+    no_replication_file = str(Path(args.agent_outfile_path)).replace("post-", "no-")
     with open(no_replication_file) as f:
         no_replication_data = json.load(f)
 
     overall_recall = 0
     total_oracle = 0
     overall_precision = 0
-    print(f'{args.without_seed} and type {type(args.without_seed)}')
+    print(f"{args.without_seed} and type {type(args.without_seed)}")
     IGNORE_SEED = args.without_seed
 
     with open(args.benchmark_file_path) as f:
         benchmark_json = json.load(f)
-    benchmark: List[bm_load.RenameItem] = bm_load.load_benchmark(benchmark_json, bench_type=bm_load.RenameItem)
+    benchmark: List[bm_load.RenameItem] = bm_load.load_benchmark(
+        benchmark_json, bench_type=bm_load.RenameItem
+    )
 
     for result in agent_results:
         # if result['id'] != 2281:
         #     continue
-        bench_points = [i for i in benchmark if i.ref_id==result['id']]
+        bench_points = [i for i in benchmark if i.ref_id == result["id"]]
         # assert len(bench_points) == 1
         bench_point = bench_points[0]
-        no_replication_hash = [i for i in no_replication_data if bench_point.ref_id==i['id']][0]['response']['commit_hash']
+        no_replication_hash = [
+            i for i in no_replication_data if bench_point.ref_id == i["id"]
+        ][0]["response"]["commit_hash"]
 
-        id = result['id']
+        id = result["id"]
         print(f"{id=}")
 
         assert id == bench_point.ref_id
-        commit = result['response']['commit_hash']
+        commit = result["response"]["commit_hash"]
         project = pm.EvalProject(bench_point.project_name)
         refactorings = rminer.default_runner.run(project.get_project_path(), commit)
-        refactorings = [i for i in refactorings if i.type.split()[0] == 'Rename']
-        refactorings_no_replication = rminer.default_runner.run(project.get_project_path(), no_replication_hash)
-        refactorings_no_replication = [i for i in refactorings_no_replication if i.type.split()[0] == 'Rename']
+        refactorings = [i for i in refactorings if i.type.split()[0] == "Rename"]
+        refactorings_no_replication = rminer.default_runner.run(
+            project.get_project_path(), no_replication_hash
+        )
+        refactorings_no_replication = [
+            i for i in refactorings_no_replication if i.type.split()[0] == "Rename"
+        ]
 
         # len = len(refactorings)
         # index = 0
@@ -177,9 +253,13 @@ def main():
             print("ignoring seed")
             seed_example = bench_point.seed_example
             assert seed_example is not None
-            oracle_refactorings = [i for i in bench_point.refactoring_changes if i!=seed_example]
-            refactorings = [i for i in refactorings if i!=seed_example]
-            refactorings_no_replication = [i for i in refactorings_no_replication if i!=seed_example]
+            oracle_refactorings = [
+                i for i in bench_point.refactoring_changes if i != seed_example
+            ]
+            refactorings = [i for i in refactorings if i != seed_example]
+            refactorings_no_replication = [
+                i for i in refactorings_no_replication if i != seed_example
+            ]
         if len(oracle_refactorings) == 0:
             continue
 
@@ -202,21 +282,23 @@ def main():
             if status == "false negative":
                 false_negatives.append(oracle)
 
-
-
-        print(f"captured {recall}/{len(oracle_refactorings)} in bench point {bench_point.ref_id}")
+        print(
+            f"captured {recall}/{len(oracle_refactorings)} in bench point {bench_point.ref_id}"
+        )
         print(f"recall={recall/len(oracle_refactorings)}")
         if len(oracle_refactorings) > 0:
-            overall_recall += recall/len(oracle_refactorings)
+            overall_recall += recall / len(oracle_refactorings)
 
         false_positives = [i for i in refactorings if i not in true_positives]
 
-        precision = len(true_positives) / len(refactorings) if len(refactorings) > 0 else 0
+        precision = (
+            len(true_positives) / len(refactorings) if len(refactorings) > 0 else 0
+        )
         overall_precision += precision
 
-        review_count = result['response'].get('human_review_count')
-        accepted_count = result['response'].get('human_accepted_count')
-        rejected_count = result['response'].get('human_rejected_count')
+        review_count = result["response"].get("human_review_count")
+        accepted_count = result["response"].get("human_accepted_count")
+        rejected_count = result["response"].get("human_rejected_count")
 
         if IGNORE_SEED and review_count is not None:
             review_count -= 1
@@ -225,21 +307,42 @@ def main():
 
         if accepted_count is not None and rejected_count is not None:
             try:
-                accepted_rate = accepted_count/ (accepted_count + rejected_count)
+                accepted_rate = accepted_count / (accepted_count + rejected_count)
             except ZeroDivisionError:
                 accepted_rate = 0
         else:
             accepted_rate = None
 
-        operated_files_count = result['response']['replication_inspection_data'].get('operated_files_count')
-        inspected_files_count = result['response']['replication_inspection_data'].get('inspected_files_count')
-        (first_file_precision, first_file_recall,
-         secondary_files_precision, secondary_files_recall,
-         tp_starting_file, tp_sec_files, fp_starting_file, fp_sec_files) = (
-            group_by_first_file(oracle_refactorings, false_positives, true_positives, bench_point.starting_file, refactorings_no_replication))
-        (accepted_starting_file, accepted_secondary_files,
-         count_acc_starting_file, count_acc_secondary_files,
-         count_rej_starting_file, count_rej_secondary_files) = group_acc_rate(bench_point, run_id)
+        operated_files_count = result["response"]["replication_inspection_data"].get(
+            "operated_files_count"
+        )
+        inspected_files_count = result["response"]["replication_inspection_data"].get(
+            "inspected_files_count"
+        )
+        (
+            first_file_precision,
+            first_file_recall,
+            secondary_files_precision,
+            secondary_files_recall,
+            tp_starting_file,
+            tp_sec_files,
+            fp_starting_file,
+            fp_sec_files,
+        ) = group_by_first_file(
+            oracle_refactorings,
+            false_positives,
+            true_positives,
+            bench_point.starting_file,
+            refactorings_no_replication,
+        )
+        (
+            accepted_starting_file,
+            accepted_secondary_files,
+            count_acc_starting_file,
+            count_acc_secondary_files,
+            count_rej_starting_file,
+            count_rej_secondary_files,
+        ) = group_acc_rate(bench_point, run_id)
 
         print(f"avg recall = {overall_recall / total_oracle}")
         print(f"avg precision = {overall_precision / total_oracle}")
@@ -265,14 +368,18 @@ def main():
         print("-----------")
         print()
         try:
-            assert len(oracle_refactorings) == len(true_positives) + len(false_negatives)
+            assert len(oracle_refactorings) == len(true_positives) + len(
+                false_negatives
+            )
             assert len(refactorings) == len(true_positives) + len(false_positives)
         except AssertionError:
             print(f"{len(oracle_refactorings)=}")
             print(f"{len(refactorings)=}")
             print(f"{len(true_positives)=}")
             print(f"{len(false_positives)=}")
-            print(f"Overcounting true positives by {len(true_positives)-len(refactorings)}")
+            print(
+                f"Overcounting true positives by {len(true_positives)-len(refactorings)}"
+            )
         report.append(
             {
                 "id": id,
@@ -280,7 +387,7 @@ def main():
                 "oracle": [i.model_dump() for i in oracle_refactorings],
                 "agent_refactorings": [i.model_dump() for i in refactorings],
                 "agent_refactoring_count": len(refactorings),
-                "recall": recall/len(oracle_refactorings),
+                "recall": recall / len(oracle_refactorings),
                 "precision": precision,
                 "false_negatives": [i.model_dump() for i in false_negatives],
                 "false_positives": [i.model_dump() for i in false_positives],
@@ -292,7 +399,6 @@ def main():
                 "human_accepted_rate": accepted_rate,
                 "operated_files_count": operated_files_count,
                 "inspected_files_count": inspected_files_count,
-
                 "first_file_precision": first_file_precision,
                 "first_file_recall": first_file_recall,
                 "tp_starting_file": tp_starting_file,
@@ -301,39 +407,47 @@ def main():
                 "fp_sec_files": fp_sec_files,
                 "secondary_files_precision": secondary_files_precision,
                 "secondary_files_recall": secondary_files_recall,
-
                 "accepted_starting_file": accepted_starting_file,
                 "accepted_secondary_files": accepted_secondary_files,
                 "count_acc_starting_file": count_acc_starting_file,
                 "count_acc_secondary_files": count_acc_secondary_files,
                 "count_rej_starting_file": count_rej_starting_file,
-                "count_rej_secondary_files": count_rej_secondary_files
+                "count_rej_secondary_files": count_rej_secondary_files,
             }
         )
 
-    with open(report_file_path, 'w') as f:
-        json.dump(sorted(report, key=lambda x: x['id']), f, indent=4)
+    with open(report_file_path, "w") as f:
+        json.dump(sorted(report, key=lambda x: x["id"]), f, indent=4)
 
 
 def compute_from_trajectory(id, oracle_refactorings, report, result):
     tool_calls = []
-    for fname in result['response']['performed_refactorings']:
-        for tool_call in result['response']['performed_refactorings'][fname]:
-            if tool_call['response'] == 'success' and tool_call['tool_call']['name'] == 'rename':
+    for fname in result["response"]["performed_refactorings"]:
+        for tool_call in result["response"]["performed_refactorings"][fname]:
+            if (
+                tool_call["response"] == "success"
+                and tool_call["tool_call"]["name"] == "rename"
+            ):
                 r = scrape_rename.RenameRecommendation(
-                    oldName=tool_call['tool_call']['args']['old_name'],
-                    type=tool_call['tool_call']['args']['code_element_type'].capitalize(),
+                    oldName=tool_call["tool_call"]["args"]["old_name"],
+                    type=tool_call["tool_call"]["args"][
+                        "code_element_type"
+                    ].capitalize(),
                     file=fname,
-                    line=tool_call['tool_call']['args']['line_num']
+                    line=tool_call["tool_call"]["args"]["line_num"],
                 )
                 tool_calls.append(r)
     true_positives = []
     for rename in tool_calls:
-        if any([rename.line == oracle.old_name
+        if any(
+            [
+                rename.line == oracle.old_name
                 and rename.line == oracle.leftSideLocations[0].startLine
                 and rename.file == oracle.leftSideLocations[0].filePath
                 and rename.type in oracle.type
-                for oracle in oracle_refactorings]):
+                for oracle in oracle_refactorings
+            ]
+        ):
             true_positives.append(rename)
     report.append(
         {
@@ -342,8 +456,14 @@ def compute_from_trajectory(id, oracle_refactorings, report, result):
             "oracle": [i.model_dump() for i in oracle_refactorings],
             "agent_refactorings": [tool_call.model_dump() for tool_call in tool_calls],
             "agent_refactoring_count": len(tool_calls),
-            "recall": len(true_positives) / len(oracle_refactorings) if len(oracle_refactorings) > 0 else 0,
-            "precision": len(true_positives) / len(tool_calls) if len(tool_calls) > 0 else 0,
+            "recall": (
+                len(true_positives) / len(oracle_refactorings)
+                if len(oracle_refactorings) > 0
+                else 0
+            ),
+            "precision": (
+                len(true_positives) / len(tool_calls) if len(tool_calls) > 0 else 0
+            ),
             # "false_negatives": [i.model_dump() for i in false_negatives],
             # "false_positives": [i.model_dump() for i in false_positives],
             "true_positives": [i.model_dump() for i in true_positives],
@@ -354,15 +474,19 @@ def compute_from_trajectory(id, oracle_refactorings, report, result):
 
 
 def compute_our_recall():
-    df = pd.read_csv(refagent.data_folder.joinpath('renas/ratpack_manualValidation.csv'))
-    df_filtered = df[(df['coRename'] != -1) & (df['conceptRename?'] == 'TRUE')]
-    groups = list(df_filtered.groupby(['commit', 'coRename']))
-    co_renames = [i for i in groups if len(i[1][i[1]['conceptRename?'] == 'TRUE']) >= 2]
+    df = pd.read_csv(
+        refagent.data_folder.joinpath("renas/ratpack_manualValidation.csv")
+    )
+    df_filtered = df[(df["coRename"] != -1) & (df["conceptRename?"] == "TRUE")]
+    groups = list(df_filtered.groupby(["commit", "coRename"]))
+    co_renames = [i for i in groups if len(i[1][i[1]["conceptRename?"] == "TRUE"]) >= 2]
 
-    with open(refagent.data_folder.joinpath('renas/ratpack.json')) as f:
+    with open(refagent.data_folder.joinpath("renas/ratpack.json")) as f:
         ratpack_data = json.load(f)
 
-    with open("/Users/abhiram/Downloads/icsme2024-renas-dataset/projects/ratpack/recommend.json") as f:
+    with open(
+        "/Users/abhiram/Downloads/icsme2024-renas-dataset/projects/ratpack/recommend.json"
+    ) as f:
         renas_json = json.load(f)
 
     with open("") as f:
@@ -374,37 +498,56 @@ def compute_our_recall():
         commit = co_rename[0][0]
         co_rename_id = co_rename[0][1]
 
-        matching_entry = [i for i in ratpack_data if i['v2_hash'] == commit and i['corename_id'] == co_rename_id]
+        matching_entry = [
+            i
+            for i in ratpack_data
+            if i["v2_hash"] == commit and i["corename_id"] == co_rename_id
+        ]
         assert len(matching_entry) == 1
         matching_entry = matching_entry[0]
 
-
-
         co_rename_df = co_rename[1]
-        concept = sorted(co_rename_df[['oldName', 'newName', 'type', 'file', 'line']].to_dict(orient='records'),
-                         key=scrape_rename.name_sort_key)
-        old_names = co_rename_df['oldName'].tolist()
-        oracle = co_rename_df.to_dict(orient='records')
+        concept = sorted(
+            co_rename_df[["oldName", "newName", "type", "file", "line"]].to_dict(
+                orient="records"
+            ),
+            key=scrape_rename.name_sort_key,
+        )
+        old_names = co_rename_df["oldName"].tolist()
+        oracle = co_rename_df.to_dict(orient="records")
 
-        goldset = renas_json[commit]['goldset']
-        goldset_index = [i['oldname'] == concept[0]['oldName'] for i in goldset].index(True)
-        assert goldset_index!=-1
-        renas_recommendations = renas_json[commit]['renas'][str(goldset_index)]
-        matching_oracle = [i for i in renas_recommendations if scrape_rename.has_match(oracle, i)
-                           # i['name'] in old_names
-                           ]
+        goldset = renas_json[commit]["goldset"]
+        goldset_index = [i["oldname"] == concept[0]["oldName"] for i in goldset].index(
+            True
+        )
+        assert goldset_index != -1
+        renas_recommendations = renas_json[commit]["renas"][str(goldset_index)]
+        matching_oracle = [
+            i
+            for i in renas_recommendations
+            if scrape_rename.has_match(oracle, i)
+            # i['name'] in old_names
+        ]
 
-        renas_recs.append({
-            "id": matching_entry["id"],
-            "renas_recommendations_count": len(renas_recommendations),
-            "renas_recommendations": renas_recommendations,
-            "true_positives": matching_oracle,
-            "precision": len(matching_oracle) / len(renas_recommendations) if len(renas_recommendations) > 0 else 0,
-            "recall": len(matching_oracle) / len(old_names) if len(old_names) > 0 else 0,
-        })
+        renas_recs.append(
+            {
+                "id": matching_entry["id"],
+                "renas_recommendations_count": len(renas_recommendations),
+                "renas_recommendations": renas_recommendations,
+                "true_positives": matching_oracle,
+                "precision": (
+                    len(matching_oracle) / len(renas_recommendations)
+                    if len(renas_recommendations) > 0
+                    else 0
+                ),
+                "recall": (
+                    len(matching_oracle) / len(old_names) if len(old_names) > 0 else 0
+                ),
+            }
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
     # compute_our_recall()

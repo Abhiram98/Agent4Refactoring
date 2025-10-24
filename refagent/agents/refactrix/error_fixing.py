@@ -14,11 +14,16 @@ class ErrorFixing(BaseModel):
 
     refactoring_intent: str = Field(description="The intent of the refactoring.")
     errors: List[ErrorMessage] = Field(description="The errors that need fixing.")
-    tools: List[BaseTool] = Field(description="The tools that can be used to fix the errors.")
-    model: BaseChatModel = Field(description="The model that can be used to fix the code.")
-    ide_server: ij.IntellijServer = Field(description="The IDE server that can be used to fix the code.")
+    tools: List[BaseTool] = Field(
+        description="The tools that can be used to fix the errors."
+    )
+    model: BaseChatModel = Field(
+        description="The model that can be used to fix the code."
+    )
+    ide_server: ij.IntellijServer = Field(
+        description="The IDE server that can be used to fix the code."
+    )
 
     def compile_and_run(self) -> bool:
         """Return True if the code was successfully fixed, False otherwise."""
         return False
-
