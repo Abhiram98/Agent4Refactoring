@@ -25,33 +25,32 @@ class IntellijServer(BaseModel):
 
     def reload_project(self):
         """Reload the project's gradle/maven things + re-indexing."""
-        return self.call_tool('wait_for_reload')
+        return self.call_tool("wait_for_reload")
 
     def reset_project_reload_counters(self):
         """There are some internal counters, that keep track whether the project is in a loading state.
         Sometimes, these get deadlocked, and need to be reset. This is a workaround for other bugs.
         """
-        return self.call_tool('reset_waiting')
-
+        return self.call_tool("reset_waiting")
 
     def call_tool(self, tool_name, **kwargs):
         """call any generic tool on the intellij server."""
 
-        response = requests.post(f'{self.server_url}/{tool_name}', json=kwargs)
+        response = requests.post(f"{self.server_url}/{tool_name}", json=kwargs)
         if response.ok:
             return response.text
         else:
             return f"tool call failed - {response.status_code}: {response.text}"
 
     def call_tool_args(self, tool_name, *args):
-        response = requests.post(f'{self.server_url}/{tool_name}', json=list(args))
+        response = requests.post(f"{self.server_url}/{tool_name}", json=list(args))
         if response.ok:
             return response.text
         else:
             return f"tool call failed - {response.status_code}: {response.text}"
 
     def call_tool_get(self, tool_name):
-        response = requests.get(f'{self.server_url}/{tool_name}')
+        response = requests.get(f"{self.server_url}/{tool_name}")
         if response.ok:
             return response.text
         else:
@@ -59,10 +58,12 @@ class IntellijServer(BaseModel):
 
     def run_code_inspection(self, retry=2):
         for i in range(retry):
-            response = requests.post(f'{self.server_url}/run_code_inspection')
+            response = requests.post(f"{self.server_url}/run_code_inspection")
             if response.status_code == 500:
-                print(f"code inspection failed - {response.status_code}: {response.text}")
+                print(
+                    f"code inspection failed - {response.status_code}: {response.text}"
+                )
                 print("retrying...")
             else:
                 return response.text
-        return "[]" # code inspection failed.
+        return "[]"  # code inspection failed.

@@ -10,13 +10,14 @@ from pydantic import BaseModel, Field, root_validator
 import os
 import subprocess
 
-projects_base_path = pathlib.Path(os.environ.get('PROJECTS_BASE_PATH'))
+projects_base_path = pathlib.Path(os.environ.get("PROJECTS_BASE_PATH"))
 
 
 class Hunk(BaseModel):
     """
     Represents a single hunk in a Git diff.
     """
+
     old_start: int = Field(..., description="Starting line number in the old file")
     old_lines: int = Field(..., description="Number of lines in the old file")
     new_start: int = Field(..., description="Starting line number in the new file")
@@ -54,14 +55,17 @@ class Hunk(BaseModel):
         )
 
     def get_first_edited_line(self):
-        edited_lines = self.content.split('\n')[1:]  # ignore the first line as it is the header
-        new_lines = [i.startswith('+') for i in edited_lines if not i.startswith('-')]
+        edited_lines = self.content.split("\n")[
+            1:
+        ]  # ignore the first line as it is the header
+        new_lines = [i.startswith("+") for i in edited_lines if not i.startswith("-")]
         first_new_line = new_lines.index(True) if True in new_lines else -1
         if first_new_line >= 0:
             return self.new_start + first_new_line
         else:
             # all the lines in the hunk were delete. Return just the starting line
             return self.new_start
+
 
 class MyDiff:
     def __init__(self, git_diff: git.Diff):
@@ -70,14 +74,22 @@ class MyDiff:
 
     def to_json(self):
         return {
-            'a_filename': self.git_diff.a_rawpath.decode('utf-8') if self.git_diff.a_rawpath else None,
-            'b_filename': self.git_diff.b_rawpath.decode('utf-8') if self.git_diff.b_rawpath else None,
-            'renamed': self.git_diff.renamed,
-            'copied': self.git_diff.copied_file,
-            'deleted': self.git_diff.deleted_file,
-            'change_type': self.git_diff.change_type,
-            'hunks': [h.dict() for h in self.hunks],
-            'patch': self.git_diff.diff.decode('utf-8')
+            "a_filename": (
+                self.git_diff.a_rawpath.decode("utf-8")
+                if self.git_diff.a_rawpath
+                else None
+            ),
+            "b_filename": (
+                self.git_diff.b_rawpath.decode("utf-8")
+                if self.git_diff.b_rawpath
+                else None
+            ),
+            "renamed": self.git_diff.renamed,
+            "copied": self.git_diff.copied_file,
+            "deleted": self.git_diff.deleted_file,
+            "change_type": self.git_diff.change_type,
+            "hunks": [h.dict() for h in self.hunks],
+            "patch": self.git_diff.diff.decode("utf-8"),
         }
 
     @staticmethod
@@ -102,11 +114,11 @@ class MyDiff:
         return {}
 
     def compute_hunks(self) -> list[Hunk]:
-        lines = self.git_diff.diff.decode('utf-8').splitlines()
+        lines = self.git_diff.diff.decode("utf-8").splitlines()
         hunks = []
         header = None
         content_lines = []
-        is_hunk_header = lambda x: x.startswith('@@')
+        is_hunk_header = lambda x: x.startswith("@@")
 
         for is_header, group in groupby(lines, is_hunk_header):
             if is_header:
@@ -138,8 +150,7 @@ class EvalProject:
         self.git_repo.git.checkout(sha1, force=force)
 
     def checkout_previous(self, sha1):
-        self.git_repo.git.checkout(
-            self.git_repo.commit(sha1).parents[0])
+        self.git_repo.git.checkout(self.git_repo.commit(sha1).parents[0])
 
     def get_file_contents(self, rel_file_path):
         with open(self.get_project_path().joinpath(rel_file_path)) as f:
@@ -159,13 +170,17 @@ class EvalProject:
         return [MyDiff(d) for d in diffs]
 
     def get_staged_changes(self) -> list[MyDiff]:
-        diffs = self.git_repo.index.diff('HEAD', create_patch=True)
+        diffs = self.git_repo.index.diff("HEAD", create_patch=True)
         return [MyDiff(d) for d in diffs]
 
     def get_changed_files(self) -> list[str]:
         result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'status', '--short'], capture_output=True, text=True, check=True)
-        return [i.split(' ')[-1] for i in result.stdout.strip().splitlines()]
+            ["git", "-C", self.get_project_path(), "status", "--short"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return [i.split(" ")[-1] for i in result.stdout.strip().splitlines()]
 
     def get_all_uncommitted_changes(self) -> list[MyDiff]:
         diffs = self.git_repo.head.commit.diff(None, create_patch=True)
@@ -193,39 +208,64 @@ class EvalProject:
     def safe_add(self, files_changed):
         for file in files_changed:
             try:
-                subprocess.run(['git', '-C', self.get_project_path(), 'add', file])
+                subprocess.run(["git", "-C", self.get_project_path(), "add", file])
             except Exception as e:
                 print(e)
                 print("Failed to add file {}".format(file))
 
-
-    def get_git_diff(self, file_path: str, head_count: int=None) -> str:
+    def get_git_diff(self, file_path: str, head_count: int = None) -> str:
         if head_count is not None:
             result = subprocess.run(
-                ['git', '-C', self.get_project_path(), 'diff', f'HEAD~{head_count}', file_path], capture_output=True, text=True, check=True)
+                [
+                    "git",
+                    "-C",
+                    self.get_project_path(),
+                    "diff",
+                    f"HEAD~{head_count}",
+                    file_path,
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
             return result.stdout
         result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'diff', file_path], capture_output=True, text=True, check=True)
-        if result.stdout == '':
+            ["git", "-C", self.get_project_path(), "diff", file_path],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        if result.stdout == "":
             result = subprocess.run(
-                ['git', '-C', self.get_project_path(), 'diff', '--staged', file_path], capture_output=True, text=True, check=True)
+                ["git", "-C", self.get_project_path(), "diff", "--staged", file_path],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
         return result.stdout
 
-    def get_commit_diff(self, file_path_1: str=None, file_path_2: str=None, sha_1: str=None, sha_2: str=None, unified_context: int=None) -> str:
-        git_cmd = ['git', '-C', self.get_project_path(), 'diff']
+    def get_commit_diff(
+        self,
+        file_path_1: str = None,
+        file_path_2: str = None,
+        sha_1: str = None,
+        sha_2: str = None,
+        unified_context: int = None,
+    ) -> str:
+        git_cmd = ["git", "-C", self.get_project_path(), "diff"]
 
         if unified_context is not None:
-            git_cmd.append(f'-U{unified_context}')
+            git_cmd.append(f"-U{unified_context}")
 
         if sha_1 is not None:
             git_cmd.append(sha_1)
             git_cmd.append(sha_2)
-            git_cmd.append('--')
+            git_cmd.append("--")
             git_cmd.append(file_path_1)
             git_cmd.append(file_path_2)
         else:
             git_cmd.append(sha_2)
-            git_cmd.append('--')
+            git_cmd.append("--")
             git_cmd.append(file_path_2)
 
         result = subprocess.run(git_cmd, capture_output=True, text=True, check=True)
@@ -236,25 +276,37 @@ class EvalProject:
 
     def reset_head(self, count=0) -> str:
         # git reset --soft HEAD^
-        if count==0:
-            head_str = 'HEAD^'
+        if count == 0:
+            head_str = "HEAD^"
         else:
-            head_str = f'HEAD~{count}'
+            head_str = f"HEAD~{count}"
         result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'reset', '--soft', head_str],
-            capture_output=True, text=True, check=True)
+            ["git", "-C", self.get_project_path(), "reset", "--soft", head_str],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         return result.stdout
 
     def restore_changes(self):
         result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'restore', '--staged', '.'],
-            capture_output=True, text=True, check=True)
+            ["git", "-C", self.get_project_path(), "restore", "--staged", "."],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'restore', '.'],
-            capture_output=True, text=True, check=True)
+            ["git", "-C", self.get_project_path(), "restore", "."],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         result = subprocess.run(
-            ['git', '-C', self.get_project_path(), 'clean', '-fd'],
-            capture_output=True, text=True, check=True)
+            ["git", "-C", self.get_project_path(), "clean", "-fd"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         return result.stdout
 
     def squash_changes(self, commit_message: str, count: int) -> Commit:
@@ -265,5 +317,5 @@ class EvalProject:
 
     def get_file_content_by_sha(self, sha1: str, file_path: str) -> str:
         commit = self.git_repo.commit(sha1)
-        file_contents = commit.tree[file_path].data_stream.read().decode('utf-8')
+        file_contents = commit.tree[file_path].data_stream.read().decode("utf-8")
         return file_contents

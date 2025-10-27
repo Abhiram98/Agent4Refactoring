@@ -2,10 +2,11 @@ import json
 import os
 import pathlib
 
-default_save_path = pathlib.Path(__file__).parent.parent.parent.joinpath('data/results')
+default_save_path = pathlib.Path(__file__).parent.parent.parent.joinpath("data/results")
+
 
 class ResultsManager:
-    def __init__(self, run_identifier='default', save_file="results.json"):
+    def __init__(self, run_identifier="default", save_file="results.json"):
         self.responses = []
         self.save_path = default_save_path.joinpath(run_identifier)
         self.save_file = save_file
@@ -18,12 +19,8 @@ class ResultsManager:
             with open(self.save_path.joinpath(self.save_file)) as f:
                 self.responses = json.load(f)
 
-
     def add(self, ref_id, response):
-        self.responses.append({
-            "id": ref_id,
-            "response": response
-        })
+        self.responses.append({"id": ref_id, "response": response})
 
     def update(self, ref_id, response):
         matching_response = [i for i in self.responses if i["id"] == ref_id]
@@ -38,7 +35,7 @@ class ResultsManager:
 
     def exists(self, ref_id: int):
         # checks if the ref id already exists.
-        matches = [i for i in self.responses if i['id'] == ref_id]
+        matches = [i for i in self.responses if i["id"] == ref_id]
         return len(matches) > 0
 
     @property

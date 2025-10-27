@@ -18,43 +18,54 @@ class ReactAgent(ra.Agent):
     MAX_GRAPH_ITERATION: int = 10
     MAX_FAILING_TOOL_CALLS: int = 3
 
-    def execute_plan(self, initial_intent, model, ref_plan,
-                     ask_finished_first_iteration=False,
-                     open_file=False,
-                     ):
+    def execute_plan(
+        self,
+        initial_intent,
+        model,
+        ref_plan,
+        ask_finished_first_iteration=False,
+        open_file=False,
+    ):
         print("Executing a 1 step plan, in a react loop.")
         self._iterations = 0
         self._failing_tool_call_count = 0
         assert len(ref_plan.steps) == 1
         step = ref_plan.steps[0]
-        
-        if len(ref_plan.steps) > 0 and open_file and not self.try_open_file(step.file_path):
+
+        if (
+            len(ref_plan.steps) > 0
+            and open_file
+            and not self.try_open_file(step.file_path)
+        ):
             print("Failed to open file. stopping agent.")
             return
 
-
         try:
-            graph = self.compile_graph(model=self._reasoning_model,
-                                       plan_step=step,
-                                       step_count=0,
-                                       ask_finished_first_iteration=True)
+            graph = self.compile_graph(
+                model=self._reasoning_model,
+                plan_step=step,
+                step_count=0,
+                ask_finished_first_iteration=True,
+            )
             final_state = graph.invoke(
                 {
                     "messages": [
-                        SystemMessage(f"You are an expert developer who executes rename refactorings.\n"
-                                      f"Please do the following: {self.augmented_intent} \n"
-                                      f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
-                                      f"You will be asked to provide your analysis as a JSON response containing all rename suggestions."),
+                        SystemMessage(
+                            f"You are an expert developer who executes rename refactorings.\n"
+                            f"Please do the following: {self.augmented_intent} \n"
+                            f"IMPORTANT: Analyze the code and identify ALL locations that need to be renamed. "
+                            f"You will be asked to provide your analysis as a JSON response containing all rename suggestions."
+                        ),
                     ]
                 },
-                config={"configurable": {"thread_id": 42}, "recursion_limit": 50}
+                config={"configurable": {"thread_id": 42}, "recursion_limit": 50},
             )
-            self._trajectory += final_state['messages']
+            self._trajectory += final_state["messages"]
             # print(f"Result of executing step {0}: ", final_state["messages"][-1].content)
         except:
             print(f"Execution of step 1 failed.")
             traceback.print_exc()
-            final_state = {'messages': [HumanMessage(f"Execution of step 1 failed.")]}
+            final_state = {"messages": [HumanMessage(f"Execution of step 1 failed.")]}
 
     def generate_initial_plan(self, analysis_report):
         return planning.RefactoringPlan(
@@ -64,7 +75,7 @@ class ReactAgent(ra.Agent):
                     execution_details="",
                     final_code="",
                     refactoring_type=sup_refs.SupportedRefactorings.RENAME,
-                    file_path=self._original_starting_file
+                    file_path=self._original_starting_file,
                 )
             ]
         )
@@ -83,17 +94,29 @@ class ReactAgent(ra.Agent):
             # Pass memory parameters for iterative replication
             benchmark_id=self.benchmark_id,
             memory_database_url=self.memory_database_url,
-            replication_max_iters=self.replication_max_iters
+            replication_max_iters=self.replication_max_iters,
         )
-        self.MAX_GRAPH_ITERATION = 2 # nit: are these changes to hyperparameters necessary?
+        self.MAX_GRAPH_ITERATION = (
+            2  # nit: are these changes to hyperparameters necessary?
+        )
         self.MAX_FAILING_TOOL_CALLS = 1
         for plan in replicator.compile_and_run():
             try:
-                self.initialize_agent(plan.steps[0].file_path)  # try to reset the starting file to the new point.
-                self.execute_plan(current_intent, model, plan, ask_finished_first_iteration=True, open_file=True)
+                self.initialize_agent(
+                    plan.steps[0].file_path
+                )  # try to reset the starting file to the new point.
+                self.execute_plan(
+                    current_intent,
+                    model,
+                    plan,
+                    ask_finished_first_iteration=True,
+                    open_file=True,
+                )
             except:
                 traceback.print_exc()
-                print(f"Execution of replication for file {plan.steps[0].file_path} failed.")
+                print(
+                    f"Execution of replication for file {plan.steps[0].file_path} failed."
+                )
                 continue
             self.update_changed_files()
 
@@ -110,5 +133,5 @@ class ReactAgent(ra.Agent):
             improvements_explanation="",
             issues=quality_check.IssueStatus.NO_ISSUES,
             issues_explanation="",
-            refined_intent=""
+            refined_intent="",
         )

@@ -10,6 +10,7 @@ import refagent.utils.project_manager as pm
 import refagent.experiments.results_manager as results_manager
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
+
 try:
     from grazie_langchain_utils.language_models.grazie import ChatGrazie
 except ImportError:
@@ -32,7 +33,9 @@ rm = results_manager.ResultsManager()
 for bench_point in benchmark_lite:
     print(f"processing benchmark - {bench_point.ref_id}")
     project = pm.EvalProject(bench_point.project_name)
-    project.git_repo.git.reset("--hard", "HEAD") # Perform a hard reset to drop any uncommit changes.
+    project.git_repo.git.reset(
+        "--hard", "HEAD"
+    )  # Perform a hard reset to drop any uncommit changes.
     project.checkout_previous(bench_point.v2_hash)
 
     message = ""
@@ -40,9 +43,9 @@ for bench_point in benchmark_lite:
     message += f"{bench_point.starting_file} - {contents}"
 
     system_message = "Suggest changes to improve the quality of this java code."
-    if bench_point.improved_commit_message != '':
+    if bench_point.improved_commit_message != "":
         system_message += f" Please perform the following action - {bench_point.improved_commit_message}"
-    if USE_SUMMARY and bench_point.change_summary!= '':
+    if USE_SUMMARY and bench_point.change_summary != "":
         system_message += f". {bench_point.change_summary}\n"
     messages = [
         SystemMessage(system_message),

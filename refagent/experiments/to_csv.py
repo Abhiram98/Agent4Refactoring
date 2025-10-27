@@ -5,10 +5,14 @@ import refagent
 import sys
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     name = "mek-oct-1-full-tool-2"
 
-    input_file = str(refagent.repo_root.joinpath(f"data/results/{sys.argv[1]}/report-post-replication.json"))
+    input_file = str(
+        refagent.repo_root.joinpath(
+            f"data/results/{sys.argv[1]}/report-post-replication.json"
+        )
+    )
     output_file = os.path.splitext(input_file)[0] + ".csv"
 
     with open(input_file, "r", encoding="utf-8") as f:
@@ -34,21 +38,20 @@ if __name__ == '__main__':
         "count_acc_secondary_files",
         "count_rej_starting_file",
         "count_rej_secondary_files",
-        'tp_count', 'oracle_count', 'fp_count', 'human_rejected_count'
-
-
+        "tp_count",
+        "oracle_count",
+        "fp_count",
+        "human_rejected_count",
         # "human_accepted_count",
         # "human_rejected_count",
         # "human_accepted_rate"
     ]
-
 
     def fmt(value):
         """Format floats to 4 decimals, leave others unchanged."""
         if isinstance(value, float):
             return round(value, 6)
         return value
-
 
     # Write to CSV
     with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
@@ -57,12 +60,15 @@ if __name__ == '__main__':
 
         for entry in data:
             recall = entry.get("recall", 0) or 0
-            print(len(entry.get("true_positives")) , entry.get("tp_starting_file", 0)+ entry.get("tp_sec_files", 0))
+            print(
+                len(entry.get("true_positives")),
+                entry.get("tp_starting_file", 0) + entry.get("tp_sec_files", 0),
+            )
             # if entry.get("false_positives", 0) or entry.get("false_negatives", 0):
             # entry["tp_starting_file"] =
             # assert len(entry.get("true_positives")) ==  entry.get("tp_starting_file", 0)+ entry.get("tp_sec_files", 0)
             # precision = entry.get("precision", 0) or 0
-            precision = (entry.get("human_accepted_rate", 0))
+            precision = entry.get("human_accepted_rate", 0)
 
             # Calculate F1 score
             if (precision + recall) > 0:
@@ -83,7 +89,7 @@ if __name__ == '__main__':
                 "oracle_count": entry.get("oracle_count", 0),
                 "human_review_count": entry.get("human_review_count", 0),
                 "human_rejected_count": entry.get("human_rejected_count", 0),
-                "first_file_precision":  entry.get("first_file_precision", 0),
+                "first_file_precision": entry.get("first_file_precision", 0),
                 "first_file_recall": entry.get("first_file_recall", 0),
                 "tp_starting_file": entry.get("tp_starting_file", 0),
                 "tp_sec_files": entry.get("tp_sec_files", 0),

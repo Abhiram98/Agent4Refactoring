@@ -12,13 +12,14 @@ from grazie.api.client.gateway import GrazieApiGatewayUrls, AuthType
 import langsmith
 import json
 
+
 def process_benchmark() -> List[bm_load.BenchmarkItem]:
     new_data = []
     for bench_point in bench_data:
         project = pm.EvalProject(bench_point.project_name)
 
         processor = scrape.CommitProcessor(
-            id_counter=bench_point.ref_id-1,
+            id_counter=bench_point.ref_id - 1,
             commit=project.git_repo.commit(bench_point.v2_hash),
             project=project,
             model=grazie_llm,
@@ -29,19 +30,19 @@ def process_benchmark() -> List[bm_load.BenchmarkItem]:
     return new_data
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     bench_data = bm_load.load_benchmark(refagent.benchmark_lite_json)
-    grazie_llm = ChatGrazie(grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
-                            client_auth_type=AuthType.APPLICATION,
-                            client_url=GrazieApiGatewayUrls.STAGING,
-                            profile="openai-gpt-4o-mini",
-                            client_agent_name='ref-agent',
-                            client_agent_version='0.1'
-                            )
+    grazie_llm = ChatGrazie(
+        grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+        client_auth_type=AuthType.APPLICATION,
+        client_url=GrazieApiGatewayUrls.STAGING,
+        profile="openai-gpt-4o-mini",
+        client_agent_name="ref-agent",
+        client_agent_version="0.1",
+    )
     with langsmith.trace(name="reprocess benchmark", tags=["reprocess"]) as tracer:
         new_benchmark = process_benchmark()
 
-    with open(str(refagent.benchmark_lite_file) + "improved", 'w') as f:
+    with open(str(refagent.benchmark_lite_file) + "improved", "w") as f:
         json.dump([i.to_json() for i in new_benchmark], f, indent=4)
-
