@@ -3,6 +3,7 @@ from json import JSONDecodeError
 
 import refagent
 import refagent.agents.refactrix.review.critique as critique
+from agents.refactrix.analysis.scope import RenameScope
 from agents.refactrix.rename_suggestions import RenameSuggestionValidated
 from agents.refactrix.review.critique import CritiqueResult
 import refagent.utils.intellij_server as ij
@@ -23,6 +24,11 @@ class HumanValidator(critique.CritiqueComponent):
         except JSONDecodeError as e:
             print("Failed to decode json response from human review.")
             return CritiqueResult(is_valid=False)
+
+    def review_scope(self, _new_scope: RenameScope) -> RenameScope:
+        response = self.ij_server.call_tool('review/scope', pattern=_new_scope.pattern, condition=_new_scope.condition)
+        json_response = json.loads(response)
+        return RenameScope(**json_response)
 
 
     @property
