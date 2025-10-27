@@ -5,6 +5,7 @@ import refagent.agents.refactrix.supported_refactorings as sup_refs
 from pathlib import Path
 import re
 
+from agents.refactrix.analysis.scope import RenameScope
 from agents.refactrix.rename_suggestions import RenameSuggestionValidated
 
 
@@ -333,6 +334,9 @@ class CritiqueComponent(BaseModel):
             return "No rename refactorings expected in this file"
 
         return ", ".join(file_renames[:3]) + ("..." if len(file_renames) > 3 else "")
+
+    def review_scope(self, _new_scope: RenameScope) -> RenameScope:
+        return _new_scope
 
 
 class DummyCritiqueComponent(CritiqueComponent):

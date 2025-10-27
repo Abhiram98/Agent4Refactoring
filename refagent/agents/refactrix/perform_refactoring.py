@@ -289,6 +289,9 @@ class PerformRefactoring(BaseModel):
             file_contents_msg.content += format_instructions
             messages.append(file_contents_msg)
 
+            self.ide_server.call_tool(
+                "/review/noop"
+            )  # call this to set log message in server
             # Use model without tools for JSON output
             response = prompt_cache.prompt(self.model, messages)
             return {"messages": [response]}
@@ -790,7 +793,10 @@ class PerformRefactoring(BaseModel):
                             accepted_renames=self.orm_memory.get_all_successful_patterns(),
                             rejected_renames=self.orm_memory.get_all_rejected_patterns(),
                         ).get_new_scope()
-                        self.orm_memory.add_rename_scope(_new_scope)
+                        reviewed_scope = self.critique_component.review_scope(
+                            _new_scope
+                        )
+                        self.orm_memory.add_rename_scope(reviewed_scope)
                         self.orm_memory.set_all_inspected()
 
                 # Categorize suggestion based on validation result
