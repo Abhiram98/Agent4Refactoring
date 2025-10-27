@@ -28,7 +28,9 @@ class HumanValidator(critique.CritiqueComponent):
             return CritiqueResult(is_valid=False)
 
     def review_scope(self, _new_scope: RenameScope) -> RenameScope:
-        response = self.ij_server.call_tool('review/scope', pattern=_new_scope.pattern, condition=_new_scope.condition)
+        response = self.ij_server.call_tool(
+            "review/scope", pattern=_new_scope.pattern, condition=_new_scope.condition
+        )
         json_response = json.loads(response)
         return RenameScope(**json_response)
 
