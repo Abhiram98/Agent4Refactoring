@@ -1,4 +1,5 @@
 import shutil
+from typing import Optional
 
 from pydantic import BaseModel
 from pathlib import Path
@@ -14,11 +15,11 @@ import refagent.agents.refactrix.analysis.scope as scope
 
 
 class InitMemory(BaseModel):
-    benchmark_item: benchmark_load.RenameItem
+    benchmark_item: Optional[benchmark_load.RenameItem]
     do_replication: bool
     use_seed: bool
-    initial_intent: str
-    snippet_code: str
+    initial_intent: Optional[str]
+    snippet_code: Optional[str]
 
     def init_memory(self, memory_db_path: Path) -> Path:
         no_replication_path = self.no_replication_path(memory_db_path)
@@ -28,6 +29,9 @@ class InitMemory(BaseModel):
             shutil.copyfile(no_replication_path, memory_db_path)
             return memory_db_path
         else:
+            assert self.initial_intent is not None, "Initial intent must be provided"
+            assert self.snippet_code is not None, "Snippet code must be provided"
+            assert self.benchmark_item is not None, "Benchmark item must be provided"
             # delete it to run it again.
             if Path(no_replication_path).exists():
                 os.remove(no_replication_path)
