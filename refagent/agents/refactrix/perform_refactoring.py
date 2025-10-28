@@ -69,6 +69,9 @@ class PerformRefactoring(BaseModel):
         description="whether to disable scope refactoring", default=False
     )
 
+    trigger_renames: bool = Field(description="whether to actually trigger renames from the agent side",
+                                  default=True)
+
     _file_open_status: bool = PrivateAttr(default=False)
     _active_tool_call: List = PrivateAttr(default="")
     _retry_iteration: int = PrivateAttr(default=1)
@@ -940,10 +943,13 @@ class PerformRefactoring(BaseModel):
                     "id": f"call_rename_{i}_{suggestion.old_name}_{suggestion.line_num}",
                     "type": "tool_call",
                 }
-                tool_calls.append(tool_call)
-                print(
-                    f"[TOOL GEN DEBUG] Generated tool call: {suggestion.old_name} → {suggestion.new_name}"
-                )
+                if self.trigger_renames:
+                    tool_calls.append(tool_call)
+                    print(
+                        f"[TOOL GEN DEBUG] Generated tool call: {suggestion.old_name} → {suggestion.new_name}"
+                    )
+                else:
+                    print("Skipping tool call, because running agent with real human.")
 
             # Create AIMessage with tool calls
             tool_call_message = AIMessage(
