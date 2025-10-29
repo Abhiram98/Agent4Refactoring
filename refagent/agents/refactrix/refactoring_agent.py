@@ -238,7 +238,9 @@ class Agent(BaseModel):
             if self.reasoning_model_name
             else model
         )
-        self._original_source_code = self.project.get_file_contents(self._starting_file)
+        self._original_source_code = self.ide_server.get_file_contents(
+            self._starting_file
+        )
         return model
 
     def initialize_critique_component(
@@ -277,7 +279,7 @@ class Agent(BaseModel):
     def run_agentic_loop(self, current_intent: str, model, starting_file):
         for _ in range(self.max_iterations):
             self.update_starting_file(starting_file)
-            self._source_code = self.project.get_file_contents(self._starting_file)
+            self._source_code = self.ide_server.get_file_contents(self._starting_file)
 
             self._iterations = 0
             self._files_changed.add(Path(self._starting_file))
@@ -324,7 +326,6 @@ class Agent(BaseModel):
             ide_server=self.ide_server,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
-            project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
             oracle_data=self._oracle_data,  # Pass oracle data for file filtering,
@@ -346,17 +347,10 @@ class Agent(BaseModel):
 
     def get_important_files_diff(self):
         important_files = [self._starting_file]
-
         diff = ""
-        for commit in self._internal_commits:
-            changes = self.project.get_changes(str(commit))
-            for c in changes:
-                if (
-                    c.git_diff.b_path in important_files
-                    or c.git_diff.a_path in important_files
-                ):
-                    diff += "\n".join([h.content for h in c.hunks])
-                    diff += "\n"
+        changes = self.ide_server.get_changes()
+        for file in important_files:
+            diff += changes.get(file, "")
 
         return diff
 
@@ -464,7 +458,7 @@ class Agent(BaseModel):
         # important_files = self.compute_most_important(self._files_changed)
         # for rel_file_path in important_files:
         try:
-            file_contents = self.project.get_file_contents(self._starting_file)
+            file_contents = self.ide_server.get_file_contents(self._starting_file)
             if file_contents == "":
                 raise Exception("File is empty.")
             source = code_utils.add_line_numbers(
@@ -477,17 +471,12 @@ class Agent(BaseModel):
         return HumanMessage(content=current_source_code)
 
     def update_changed_files(self):
-        changed_files = set(self.project.get_changed_files())
+        changed_files = set(self.ide_server.get_changed_files())
         try:
             self.project.add_files(list(changed_files))
         except:
             self.project.safe_add(changed_files)
         self._files_changed = self._files_changed.union(changed_files)
-
-    def commit_changes(self, commit_message: str):
-        self.project.safe_add(self._files_changed)
-        new_hash = self.project.git_repo.index.commit(commit_message)
-        self._internal_commits.append(new_hash)
 
     def update_source_code(self) -> bool:
         """Call the environment to fetch the current version
@@ -621,7 +610,7 @@ class Agent(BaseModel):
                 enable_memory=self.enable_memory,
                 critique_component=self._critique_component,  # Pass critique component to the executor,
                 disable_scope_refinement=self.disable_scope_refinement,
-                trigger_renames=self.hula_type!='real_human'
+                trigger_renames=self.hula_type != "real_human",
             )
             perform_refactoring_graph = executor.compile()
             self.get_changed_file_contents()  # nit: this call exists to update the changed files list. this is tech debt
@@ -650,7 +639,7 @@ class Agent(BaseModel):
                 time.sleep(0.5)  # 500ms should be enough for file system sync
 
                 # Double-check: verify the file actually changed using git status
-                actual_changed_files = set(self.project.get_changed_files())
+                actual_changed_files = set(self.ide_server.get_changed_files())
                 print(f"[FILE TRACKING DEBUG] rel_file_path: '{rel_file_path}'")
                 print(
                     f"[FILE TRACKING DEBUG] actual_changed_files: {actual_changed_files}"
@@ -765,27 +754,10 @@ class Agent(BaseModel):
         return graph
 
     def update_starting_file(self, starting_file) -> str:
-        # if len(self._internal_commits) == 0:
-        #     return starting_file
-        # else:
-        self.update_changed_files()
-        changes = []
-        if len(self._internal_commits) > 0:
-            changes += self.project.get_changes(str(self._internal_commits[-1]))
-        uncommited_changes = (
-            self.project.get_unstaged_changes() + self.project.get_staged_changes()
+        self._starting_file = self.ide_server.get_renamed_files().get(
+            starting_file, starting_file
         )
-        if len(uncommited_changes) > 0:
-            self.commit_changes("commit changes for analysis")
-            changes += self.project.get_changes(str(self._internal_commits[-1]))
-
-        for c in changes[
-            ::-1
-        ]:  # reverse order, so that the staged changes are considered first.
-            if c.git_diff.a_path == starting_file:
-                self._starting_file = c.git_diff.b_path
-                return c.git_diff.b_path
-        return starting_file
+        return self._starting_file
 
     def add_internal_commit(self, commit: Commit):
         self._internal_commits.append(commit)

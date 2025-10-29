@@ -69,8 +69,10 @@ class PerformRefactoring(BaseModel):
         description="whether to disable scope refactoring", default=False
     )
 
-    trigger_renames: bool = Field(description="whether to actually trigger renames from the agent side",
-                                  default=True)
+    trigger_renames: bool = Field(
+        description="whether to actually trigger renames from the agent side",
+        default=True,
+    )
 
     _file_open_status: bool = PrivateAttr(default=False)
     _active_tool_call: List = PrivateAttr(default="")

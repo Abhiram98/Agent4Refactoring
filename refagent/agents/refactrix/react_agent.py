@@ -87,7 +87,6 @@ class ReactAgent(ra.Agent):
             ide_server=self.ide_server,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
-            project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
             oracle_data=self._oracle_data,
