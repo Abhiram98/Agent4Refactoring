@@ -4,10 +4,10 @@ import json
 from dotenv import load_dotenv
 from pathlib import Path
 
-load_dotenv()  # load environment variables from .env file.
-
 repo_root = pathlib.Path(__file__).parent.parent
 data_folder = pathlib.Path(__file__).parent.parent.joinpath("data")
+
+load_dotenv(repo_root.joinpath(".env"))  # load environment variables from .env file.
 
 data_folder_exists = data_folder.exists()
 
