@@ -1,3 +1,4 @@
+import difflib
 import json
 from json import JSONDecodeError
 from typing import Dict, Optional, List
@@ -90,7 +91,9 @@ class IntellijServer(BaseModel):
     def get_renamed_files(self) -> Optional[Dict[str, str]]:
         """Returns a dictionary of old_name to new_name, for each renamed file."""
         try:
-            renamed_files_response = json.loads(self.call_tool_get("/vcs/renamed_files"))
+            renamed_files_response = json.loads(
+                self.call_tool_get("/vcs/renamed_files")
+            )
             renamed_files = {old_: new_ for old_, new_ in renamed_files_response}
             return renamed_files
         except JSONDecodeError as e:
@@ -102,4 +105,17 @@ class IntellijServer(BaseModel):
 
     def get_changes(self) -> Dict[str, str]:
         """Returns a dict of file_path: diff"""
-        return json.loads(self.call_tool_get("/vcs/changes"))
+        response = json.loads(self.call_tool_get("/vcs/changes"))
+        diffs = {}
+        for file_path in response:
+            string1 = response[file_path]["first"]
+            string2 = response[file_path]["second"]
+            diffs[file_path] = "".join(
+                (
+                    difflib.unified_diff(
+                        string1.splitlines(keepends=True),
+                        string2.splitlines(keepends=True),
+                    )
+                )
+            )
+        return diffs
