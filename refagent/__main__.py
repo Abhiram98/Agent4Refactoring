@@ -12,11 +12,12 @@ import refagent.utils.intellij_server as ij
 import refagent.agents.refactrix.react_agent as react_agent
 import refagent.agents.refactrix.planning as planning
 
-import agents.refactrix.analysis.scope as scope
+import refagent.agents.refactrix.analysis.scope as scope
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 
-from benchmark.load import RenameItem
-from experiments.init_memory import InitMemory
+import refagent.benchmark.load as bm_load
+import refagent.experiments.init_memory as init_memory
+import refagent.agents.refactrix.analysis.refine_intent as refine_intent
 
 
 class AgentRunner(BaseModel):
@@ -68,8 +69,8 @@ class AgentRunner(BaseModel):
             new_name=args.seed_example.new_name,
         )
 
-        mem_path = InitMemory(
-            benchmark_item=RenameItem(),  # todo: fill out the RenameItem
+        mem_path = init_memory.InitMemory(
+            benchmark_item=bm_load.RenameItem(),  # todo: fill out the RenameItem
             do_replication=False,
             use_seed=True,
             initial_intent=initial_scope.pattern,
@@ -105,7 +106,7 @@ class AgentRunner(BaseModel):
         )
 
     def run_post_replication(self):
-        post_replication_memory = InitMemory(
+        post_replication_memory = init_memory.InitMemory(
             benchmark_item=None,
             do_replication=True,
             use_seed=True,
