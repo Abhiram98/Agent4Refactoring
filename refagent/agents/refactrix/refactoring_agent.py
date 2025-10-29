@@ -41,7 +41,6 @@ import refagent.agents.refactrix.perform_refactoring as perform_ref
 import refagent.agents.refactrix.tools as ref_tools
 import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.analysis.component as analysis
-import refagent.utils.project_manager as pm
 import refagent.agents.refactrix.replication as replication
 import refagent.agents.refactrix.quality_check as quality_check
 import refagent.agents.refactrix.review.critique as critique
@@ -70,9 +69,6 @@ class Agent(BaseModel):
     model_name: str = Field(description="model name")
     reasoning_model_name: str = Field(
         description="model name for reasoning", default=None
-    )
-    project: pm.EvalProject = Field(
-        description="the evaluation project to run the agent on."
     )
     analysis_component: Type[analysis.AnalysisComponent] = Field(
         description="the kind of analysis component to use.",

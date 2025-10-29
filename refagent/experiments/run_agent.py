@@ -80,7 +80,6 @@ def setup_and_run(
         ide_server=ij_server,
         reasoning_model_name=f"{vendor}:openai-o4-mini",
         model_name=f"{vendor}:openai-gpt-4o-mini",
-        project=project,
         plan_component=plan_type,
         augmented_intent=scope.RenameScope(pattern=augmented_intent),
         do_replication=do_replication,

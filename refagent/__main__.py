@@ -27,7 +27,6 @@ class AgentRunner(BaseModel):
     seed_element_type: str
     seed_file: str
 
-
     @property
     def model(self) -> BaseChatModel:
         grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
@@ -42,7 +41,7 @@ class AgentRunner(BaseModel):
 
     @property
     def ij_server(self) -> ij.IntellijServer:
-        return ij.IntellijServer(server_url=os.getenv('IJ_SERVER_URL'))
+        return ij.IntellijServer(server_url=os.getenv("IJ_SERVER_URL"))
 
     @property
     def vendor(self):
@@ -51,7 +50,6 @@ class AgentRunner(BaseModel):
     def run_agent(self):
         self.run_pre_replication()
         self.run_post_replication()
-
 
     def gen_initial_scope(
         self,
@@ -71,11 +69,11 @@ class AgentRunner(BaseModel):
         )
 
         mem_path = InitMemory(
-            benchmark_item=RenameItem(), #todo: fill out the RenameItem
+            benchmark_item=RenameItem(),  # todo: fill out the RenameItem
             do_replication=False,
             use_seed=True,
             initial_intent=initial_scope.pattern,
-            snippet_code="" #todo: fill out snippet code
+            snippet_code="",  # todo: fill out snippet code
         ).init_memory(Path("/app/episodic_memory.db"))
         memory_db_path = str(mem_path)
         print(
@@ -88,8 +86,7 @@ class AgentRunner(BaseModel):
             ide_server=self.ij_server,
             reasoning_model_name=f"{self.vendor}:openai-o4-mini",
             model_name=f"{self.vendor}:openai-gpt-4o-mini",
-            project=project, # todo: replace with IntellijPM
-            plan_component= planning.PlanningComponent,
+            plan_component=planning.PlanningComponent,
             augmented_intent=initial_scope,
             do_replication=False,
             hula_type="real_human",
@@ -117,15 +114,13 @@ class AgentRunner(BaseModel):
         ).init_memory(Path("/app/episodic_memory.db"))
         memory_db_path = str(post_replication_memory)
 
-
-        latest_scope = "" # todo: fetch latest scope from run
+        latest_scope = ""  # todo: fetch latest scope from run
         # noinspection PyArgumentList
         agent = react_agent.ReactAgent(
             ide_server=self.ij_server,
             reasoning_model_name=f"{self.vendor}:openai-o4-mini",
             model_name=f"{self.vendor}:openai-gpt-4o-mini",
-            project=project, # todo: replace with IntellijPM
-            plan_component= planning.PlanningComponent,
+            plan_component=planning.PlanningComponent,
             augmented_intent=latest_scope,
             do_replication=False,
             hula_type="real_human",
@@ -136,10 +131,10 @@ class AgentRunner(BaseModel):
             replication_max_iters=3,
         )
 
-        assert (
-                initial_commit is not None # todo: remove dependency on initial commit.
-        ), "initial commit must be provided for replication"
-        agent.add_internal_commit(project.git_repo.commit(initial_commit))
+        # assert (
+        #     initial_commit is not None  # todo: remove dependency on initial commit.
+        # ), "initial commit must be provided for replication"
+        # agent.add_internal_commit(project.git_repo.commit(initial_commit))
         agent.initialize_agent(starting_file=self.seed_file)
         # Re-initialize critique component after agent initialization
         agent.initialize_critique_component([])
@@ -171,5 +166,5 @@ if __name__ == "__main__":
         seed_new_name=args.seed_new_name,
         seed_line_num=args.seed_line_num,
         seed_element_type=args.seed_element_type,
-        seed_file=args.seed_file
+        seed_file=args.seed_file,
     ).run_agent()
