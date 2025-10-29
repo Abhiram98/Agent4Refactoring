@@ -61,7 +61,9 @@ class AgentRunner(BaseModel):
         old_name: str,
         new_name: str,
     ) -> scope.RenameScope:
-        pass
+        return refine_intent.GeneralizedScopeCreator(
+            model=self.model, old_name=old_name, new_name=new_name
+        ).get_generalized_intent()
 
     def run_pre_replication(self):
 
@@ -69,9 +71,10 @@ class AgentRunner(BaseModel):
 
         # todo: create generalized intent.
         initial_scope = self.gen_initial_scope(
-            old_name=args.seed_example.old_name,
-            new_name=args.seed_example.new_name,
+            old_name=self.seed_old_name,
+            new_name=self.seed_new_name,
         )
+        print("Initial scope: {}".format(initial_scope))
 
         mem_path = init_memory.InitMemory(
             benchmark_item=bm_load.RenameItem(),  # todo: fill out the RenameItem
