@@ -90,7 +90,7 @@ class IntellijServer(BaseModel):
     def get_renamed_files(self) -> Optional[Dict[str, str]]:
         """Returns a dictionary of old_name to new_name, for each renamed file."""
         try:
-            renamed_files_response = json.loads(self.call_tool("/vcs/renamed_files"))
+            renamed_files_response = json.loads(self.call_tool_get("/vcs/renamed_files"))
             renamed_files = {old_: new_ for old_, new_ in renamed_files_response}
             return renamed_files
         except JSONDecodeError as e:
