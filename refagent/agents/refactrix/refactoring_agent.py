@@ -294,9 +294,6 @@ class Agent(BaseModel):
             self.update_changed_files()
 
             quality_result = self.do_quality_check(model)
-            self._internal_commits = [
-                self.project.squash_changes(current_intent, len(self._internal_commits))
-            ]
 
             if (
                 quality_result is None
@@ -451,12 +448,6 @@ class Agent(BaseModel):
 
         current_source_code = "Here is the source code to modify: \n"
 
-        # file_in_same_root = [i for i in self._files_changed if
-        #                      str(Path(self._rel_file_path).parent) in str(i)]
-        self.project.safe_add(self._files_changed)
-
-        # important_files = self.compute_most_important(self._files_changed)
-        # for rel_file_path in important_files:
         try:
             file_contents = self.ide_server.get_file_contents(self._starting_file)
             if file_contents == "":
@@ -472,10 +463,6 @@ class Agent(BaseModel):
 
     def update_changed_files(self):
         changed_files = set(self.ide_server.get_changed_files())
-        try:
-            self.project.add_files(list(changed_files))
-        except:
-            self.project.safe_add(changed_files)
         self._files_changed = self._files_changed.union(changed_files)
 
     def update_source_code(self) -> bool:
