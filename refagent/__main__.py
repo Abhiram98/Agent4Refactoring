@@ -31,6 +31,10 @@ class AgentRunner(BaseModel):
     @property
     def model(self) -> BaseChatModel:
         grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
+        if grazie_token is None:
+            raise RuntimeError(
+                "GRAZIE_JWT_TOKEN environment variable not set. Unable to make LLM calls."
+            )
         return ChatGrazie(
             grazie_jwt_token=SecretStr(grazie_token),
             client_auth_type=AuthType.APPLICATION,
