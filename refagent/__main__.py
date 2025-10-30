@@ -69,9 +69,7 @@ class AgentRunner(BaseModel):
     def run_pre_replication(self):
 
         print("Running agent on initial file. Pre replication.")
-        self.ij_server.call_tool(
-            "review/noop"
-        )
+        self.ij_server.call_tool("review/noop")
 
         # open file so that the sever has the required context.
         self.ij_server.open_file(Path(self.seed_file))
@@ -125,9 +123,7 @@ class AgentRunner(BaseModel):
         print("Pre replication complete.")
 
     def run_post_replication(self):
-        self.ij_server.call_tool(
-            "review/noop"
-        )
+        self.ij_server.call_tool("review/noop")
         post_replication_memory = init_memory.InitMemory(
             do_replication=True,
             use_seed=True,
@@ -171,7 +167,9 @@ class AgentRunner(BaseModel):
 
     @property
     def no_replication_memory(self):
-        return orm_mem.ORMRefactoringMemory(f"sqlite:///{self.memory_path_pre_replication}")
+        return orm_mem.ORMRefactoringMemory(
+            f"sqlite:///{self.memory_path_pre_replication}"
+        )
 
     @property
     def memory_path(self) -> Path:

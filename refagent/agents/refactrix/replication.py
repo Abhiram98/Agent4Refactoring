@@ -112,9 +112,7 @@ class Replication(BaseModel):
         }
 
     def compile_and_run(self) -> Iterable[planning.RefactoringPlan]:
-        self.ide_server.call_tool(
-            "review/noop"
-        )
+        self.ide_server.call_tool("review/noop")
         self.init_replication_db()
 
         success_renames = self.orm_memory.get_all_successful_patterns()
@@ -917,9 +915,7 @@ class Replication(BaseModel):
         files_to_process = initial_files.copy()
 
         while files_to_process and iteration < max_iterations:
-            self.ide_server.call_tool(
-                "review/noop"
-            )
+            self.ide_server.call_tool("review/noop")
             start_time = datetime.datetime.now(datetime.timezone.utc)
             print(
                 f"[ITERATIVE REPLICATION] Iteration {iteration + 1}, processing {len(files_to_process)} files"
