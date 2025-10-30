@@ -17,6 +17,7 @@ from grazie_langchain_utils.language_models.grazie import ChatGrazie
 
 import refagent.experiments.init_memory as init_memory
 import refagent.agents.refactrix.analysis.refine_intent as refine_intent
+import refagent.agents.refactrix.rename_suggestions as rename_suggestions
 
 
 class AgentRunner(BaseModel):
@@ -68,6 +69,9 @@ class AgentRunner(BaseModel):
 
         print("Running agent on initial file. Pre replication.")
 
+        # open file so that the sever has the required context.
+        self.ij_server.open_file(Path(self.seed_file))
+
         # todo: create generalized intent.
         initial_scope = self.gen_initial_scope(
             old_name=self.seed_old_name,
@@ -86,7 +90,7 @@ class AgentRunner(BaseModel):
             use_seed=True,
             initial_intent=initial_scope.pattern,
             snippet_code="",  # todo: fill out snippet code
-        ).init_memory(Path("/app/episodic_memory.db"))
+        ).init_memory(refagent.repo_root.joinpath("logs/episodic_memory.db"))
         memory_db_path = str(mem_path)
         print(
             f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}"
@@ -114,6 +118,7 @@ class AgentRunner(BaseModel):
             initial_intent=str(initial_scope),
             starting_file=self.seed_file,
         )
+        print("Pre replication complete.")
 
     def run_post_replication(self):
         post_replication_memory = init_memory.InitMemory(
@@ -127,7 +132,7 @@ class AgentRunner(BaseModel):
             seed_old_name=None,
             seed_new_name=None,
             ref_id=None,
-        ).init_memory(Path("/app/episodic_memory.db"))
+        ).init_memory(refagent.repo_root.joinpath("logs/episodic_memory.db"))
         memory_db_path = str(post_replication_memory)
 
         latest_scope = ""  # todo: fetch latest scope from run
@@ -159,6 +164,7 @@ class AgentRunner(BaseModel):
             agent.create_model(f"{self.vendor}:openai-gpt-4o-mini"),
             agent.generate_initial_plan(latest_scope),
         )
+        print("Post replication complete.")
 
 
 if __name__ == "__main__":
@@ -176,6 +182,13 @@ if __name__ == "__main__":
     parser.add_argument("--seed_file", type=str, help="Seed file.")
 
     args = parser.parse_args()
+    try:
+        assert (
+            rename_suggestions.CodeElementType(args.seed_element_type) is not None
+        )  # validate the arg has proper type
+    except ValueError as e:
+        print("arg seed_element_type, is not a valid type. See below. ")
+        raise e
 
     AgentRunner(
         seed_old_name=args.seed_old_name,

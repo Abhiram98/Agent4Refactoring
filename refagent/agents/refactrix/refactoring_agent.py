@@ -671,45 +671,6 @@ class Agent(BaseModel):
 
             return {"messages": messages}
 
-        # def finished_refactoring(state: MessagesState):
-        #     if not ask_finished_first_iteration and step_count == 0 and self._iterations == 0:
-        #         return {'messages': [AIMessage('Incomplete because no changes have been made so far. INCOMPLETE')]}
-        #
-        #     if self._iterations >= self.MAX_GRAPH_ITERATION:
-        #         # Stopping because limit has been reached.
-        #         return {'messages': [AIMessage('finished because iteration limit reached. DONE')]}
-        #
-        #     if self._failing_tool_call_count >= self.MAX_FAILING_TOOL_CALLS:
-        #         return {'messages': [AIMessage(
-        #             f'finished because tool calls failed more than {self.MAX_FAILING_TOOL_CALLS} times. DONE')]}
-        #
-        #     if self.contains_tool_call_cycle():
-        #         return {'messages': [AIMessage('finished because tool calls are cycling. DONE')]}
-        #
-        #     if self.ide_server.call_tool_get("get_source_code") == '':
-        #         return {'messages': [AIMessage('incomplete because the file is empty. INCOMPLETE')]}
-        #
-        #     response = self._reasoning_model.invoke(state['messages'] +
-        #                                             [HumanMessage(
-        #                                                 'Please reflect whether the original ask has been completed successfully (for the given file)'
-        #                                                 f'Here was the original ask: {plan_step.refactoring_type}: {plan_step.reason}. {plan_step.execution_details}'
-        #                                                 f'{self.get_changed_file_contents().content}'
-        #                                                 f'Please reflect whether the task is complete, '
-        #                                                 f'by answering the following questions: '
-        #                                                 'Has the original ask been met? '
-        #                                                 'If the answer is no, please specify what needs to be changed (provide details including line numbers). '
-        #                                                 # f'2. Have all appropriate locations within the file {self._rel_file_path} '
-        #                                                 # f'been updated? '
-        #                                                 'Finally, say whether the task is complete '
-        #                                                 'by using the following sentence: "The task is <Status>." '
-        #                                                 'Use the word DONE/INCOMPLETE in place of <Status>. ')])
-        #     return {'messages': [response]}
-        #
-        # def has_finished_refactoring(state: MessagesState) -> bool:
-        #     finished = (state['messages'][-1].content.endswith('DONE') or
-        #                 'INCOMPLETE' not in state['messages'][-1].content)
-        #     return finished
-
         workflow = StateGraph(MessagesState)
         # Add nodes
         # workflow.add_node("curate_tests", curate_tests)
