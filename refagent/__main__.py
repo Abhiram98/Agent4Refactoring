@@ -15,7 +15,6 @@ import refagent.agents.refactrix.planning as planning
 import refagent.agents.refactrix.analysis.scope as scope
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 
-import refagent.benchmark.load as bm_load
 import refagent.experiments.init_memory as init_memory
 import refagent.agents.refactrix.analysis.refine_intent as refine_intent
 
@@ -77,7 +76,12 @@ class AgentRunner(BaseModel):
         print("Initial scope: {}".format(initial_scope))
 
         mem_path = init_memory.InitMemory(
-            benchmark_item=bm_load.RenameItem(),  # todo: fill out the RenameItem
+            seed_old_name=self.seed_old_name,
+            seed_new_name=self.seed_new_name,
+            seed_file=self.seed_file,
+            seed_type=self.seed_element_type,
+            seed_line_number=self.seed_line_num,
+            ref_id=1,
             do_replication=False,
             use_seed=True,
             initial_intent=initial_scope.pattern,
@@ -88,7 +92,6 @@ class AgentRunner(BaseModel):
             f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}"
         )
 
-        # todo: trigger agent.
         # noinspection PyArgumentList
         agent = react_agent.ReactAgent(
             ide_server=self.ij_server,
@@ -114,11 +117,16 @@ class AgentRunner(BaseModel):
 
     def run_post_replication(self):
         post_replication_memory = init_memory.InitMemory(
-            benchmark_item=None,
             do_replication=True,
             use_seed=True,
             initial_intent=None,
             snippet_code=None,
+            seed_file=None,
+            seed_type=None,
+            seed_line_number=None,
+            seed_old_name=None,
+            seed_new_name=None,
+            ref_id=None,
         ).init_memory(Path("/app/episodic_memory.db"))
         memory_db_path = str(post_replication_memory)
 

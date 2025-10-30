@@ -15,11 +15,17 @@ import refagent.agents.refactrix.analysis.scope as scope
 
 
 class InitMemory(BaseModel):
-    benchmark_item: Optional[benchmark_load.RenameItem]
     do_replication: bool
     use_seed: bool
     initial_intent: Optional[str]
     snippet_code: Optional[str]
+
+    seed_old_name: Optional[str]
+    seed_new_name: Optional[str]
+    seed_line_number: Optional[int]
+    seed_type: Optional[str]
+    seed_file: Optional[str]
+    ref_id: Optional[int]
 
     def init_memory(self, memory_db_path: Path) -> Path:
         no_replication_path = self.no_replication_path(memory_db_path)
@@ -31,7 +37,16 @@ class InitMemory(BaseModel):
         else:
             assert self.initial_intent is not None, "Initial intent must be provided"
             assert self.snippet_code is not None, "Snippet code must be provided"
-            assert self.benchmark_item is not None, "Benchmark item must be provided"
+
+            assert self.seed_old_name is not None, "Seed old name must be provided"
+            assert self.seed_new_name is not None, "Seed new name must be provided"
+            assert (
+                self.seed_line_number is not None
+            ), "Seed line number must be provided"
+            assert self.seed_type is not None, "Seed type must be provided"
+            assert self.seed_file is not None, "Seed file must be provided"
+            assert self.ref_id is not None, "Ref id must be provided"
+
             # delete it to run it again.
             if Path(no_replication_path).exists():
                 os.remove(no_replication_path)
@@ -39,18 +54,14 @@ class InitMemory(BaseModel):
             orm_db = ORMRefactoringMemory(memory_url)
 
             if self.use_seed:
-                seed = self.benchmark_item.seed_example
                 # assert isinstance(seed, refactorings.Rename)
-                seed_old_name = seed.old_name
-                seed_new_name = seed.new_name
-
                 orm_db.add_suggestion(
-                    benchmark_id=self.benchmark_item.ref_id,
-                    file_path=self.benchmark_item.starting_file,
-                    old_name=seed_old_name,
-                    new_name=seed_new_name,
-                    line_num=seed.start_line,
-                    code_element_type=CodeElementType.get_rminer_str(seed.type),
+                    benchmark_id=self.ref_id,
+                    file_path=self.seed_file,
+                    old_name=self.seed_old_name,
+                    new_name=self.seed_new_name,
+                    line_num=self.seed_line_number,
+                    code_element_type=self.seed_type,
                     is_valid=True,
                     feedback="First rename from the developer",
                     critique_reason="",

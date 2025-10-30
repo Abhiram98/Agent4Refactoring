@@ -12,7 +12,9 @@ import subprocess
 
 import refagent
 
-projects_base_path = pathlib.Path(os.environ.get("PROJECTS_BASE_PATH", str(refagent.data_folder)))
+projects_base_path = pathlib.Path(
+    os.environ.get("PROJECTS_BASE_PATH", str(refagent.data_folder))
+)
 
 
 class Hunk(BaseModel):
