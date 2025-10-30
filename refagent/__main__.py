@@ -18,6 +18,7 @@ from grazie_langchain_utils.language_models.grazie import ChatGrazie
 import refagent.experiments.init_memory as init_memory
 import refagent.agents.refactrix.analysis.refine_intent as refine_intent
 import refagent.agents.refactrix.rename_suggestions as rename_suggestions
+import refagent.agents.memory.orm_memory as orm_mem
 
 
 class AgentRunner(BaseModel):
@@ -93,7 +94,7 @@ class AgentRunner(BaseModel):
             use_seed=True,
             initial_intent=initial_scope.pattern,
             snippet_code="",  # todo: fill out snippet code
-        ).init_memory(refagent.repo_root.joinpath("logs/episodic_memory.db"))
+        ).init_memory(self.memory_path)
         memory_db_path = str(mem_path)
         print(
             f"[MEMORY] Memory feedback enabled - database will be saved to: {memory_db_path}"
@@ -141,7 +142,7 @@ class AgentRunner(BaseModel):
         ).init_memory(refagent.repo_root.joinpath("logs/episodic_memory.db"))
         memory_db_path = str(post_replication_memory)
 
-        latest_scope = ""  # todo: fetch latest scope from run
+        latest_scope = self.no_replication_memory.get_latest_scope()
         # noinspection PyArgumentList
         agent = react_agent.ReactAgent(
             ide_server=self.ij_server,
@@ -158,19 +159,27 @@ class AgentRunner(BaseModel):
             replication_max_iters=3,
         )
 
-        # assert (
-        #     initial_commit is not None  # todo: remove dependency on initial commit.
-        # ), "initial commit must be provided for replication"
-        # agent.add_internal_commit(project.git_repo.commit(initial_commit))
         agent.initialize_agent(starting_file=self.seed_file)
         # Re-initialize critique component after agent initialization
         agent.initialize_critique_component([])
         agent.perform_replication(
-            latest_scope,
+            str(latest_scope),
             agent.create_model(f"{self.vendor}:openai-gpt-4o-mini"),
             agent.generate_initial_plan(latest_scope),
         )
         print("Post replication complete.")
+
+    @property
+    def no_replication_memory(self):
+        return orm_mem.ORMRefactoringMemory(f"sqlite:///{self.memory_path_pre_replication}")
+
+    @property
+    def memory_path(self) -> Path:
+        return refagent.repo_root.joinpath("logs/episodic_memory.db")
+
+    @property
+    def memory_path_pre_replication(self) -> Path:
+        return refagent.repo_root.joinpath("logs/episodic_memory-no-replication.db")
 
 
 if __name__ == "__main__":
