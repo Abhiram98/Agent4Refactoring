@@ -94,8 +94,7 @@ class IntellijServer(BaseModel):
             renamed_files_response = json.loads(
                 self.call_tool_get("/vcs/renamed_files")
             )
-            renamed_files = {old_: new_ for old_, new_ in renamed_files_response}
-            return renamed_files
+            return renamed_files_response
         except JSONDecodeError as e:
             print("Failed to get a proper response from /vcs/renamed_files")
             return None
