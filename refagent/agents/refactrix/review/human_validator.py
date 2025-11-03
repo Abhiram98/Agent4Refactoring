@@ -27,6 +27,8 @@ class HumanValidator(critique.CritiqueComponent):
         except JSONDecodeError as e:
             print("Failed to decode json response from human review.")
             return critique.CritiqueResult(is_valid=False)
+        finally:
+            self.ij_server.call_tool("/review/add_rename_reviewed")
 
     def review_scope(self, _new_scope: scope.RenameScope) -> scope.RenameScope:
         response = self.ij_server.call_tool(

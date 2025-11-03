@@ -141,6 +141,9 @@ class PerformRefactoring(BaseModel):
 
         def open_file(state: MessagesState):
             response = self.ide_server.try_open_file(Path(self.rel_file_path))
+            self.ide_server.call_tool(
+                "/review/set_inspecting_file", rel_file_path=self.rel_file_path
+            )
             if response.startswith("tool call failed "):
                 return {"messages": HumanMessage("failed to open file")}
             self._file_open_status = True
@@ -732,6 +735,11 @@ class PerformRefactoring(BaseModel):
             # Validate each rename suggestion
             valid_suggestions = []
             invalid_suggestions = []
+
+            self.ide_server.call_tool(
+                "/review/add_total_renames",
+                count=len(rename_analysis.rename_suggestions),
+            )
 
             for suggestion in rename_analysis.rename_suggestions:
                 should_break = False

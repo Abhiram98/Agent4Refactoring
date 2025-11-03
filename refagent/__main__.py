@@ -70,16 +70,21 @@ class AgentRunner(BaseModel):
 
         print("Running agent on initial file. Pre replication.")
         self.ij_server.call_tool("review/noop")
+        self.ij_server.call_tool("review/reset_scope")  # reset the view in the IDE.
 
         # open file so that the sever has the required context.
         self.ij_server.open_file(Path(self.seed_file))
 
-        # todo: create generalized intent.
         initial_scope = self.gen_initial_scope(
             old_name=self.seed_old_name,
             new_name=self.seed_new_name,
         )
         print("Initial scope: {}".format(initial_scope))
+        self.ij_server.call_tool(
+            "review/set_scope",
+            pattern=initial_scope.pattern,
+            condition=str(initial_scope.condition),
+        )
 
         mem_path = init_memory.InitMemory(
             seed_old_name=self.seed_old_name,
