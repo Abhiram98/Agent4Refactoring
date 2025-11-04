@@ -1123,6 +1123,7 @@ class SimpleReplication(Replication):
             should_replicate = ask_replicate.invoke({"messages": []})["messages"][-1]
             print(should_replicate.content)
             if "YES" in should_replicate.content:  # should replicate the content
+                self.ide_server.call_tool("/review/inc_replication_files")
                 self.add_file_to_replication_db(file_path)
                 plan = planning.RefactoringPlan(
                     steps=[

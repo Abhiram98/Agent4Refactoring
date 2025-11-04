@@ -117,6 +117,8 @@ class ReactAgent(ra.Agent):
                     f"Execution of replication for file {plan.steps[0].file_path} failed."
                 )
                 continue
+            finally:
+                self.ide_server.call_tool("/review/inc_files_inspected")
             self.update_changed_files()
 
         # Capture replication inspection data
