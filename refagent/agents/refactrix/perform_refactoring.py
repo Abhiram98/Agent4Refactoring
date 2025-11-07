@@ -1192,6 +1192,7 @@ class PerformRefactoring(BaseModel):
                 validated_json = None
             if validated_json:
                 validated_obj = RenameSuggestionValidated(**validated_json)
+                validated_obj.reason = rename_suggestion.reason
                 if validated_obj.line_num != rename_suggestion.line_num:
                     validated_obj.llm_start_line_num = rename_suggestion.line_num
 

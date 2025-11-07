@@ -14,7 +14,6 @@ class HumanValidator(critique.CritiqueComponent):
         self, suggestion: rename_suggestions.RenameSuggestionValidated, rel_file_path
     ) -> critique.CritiqueResult:
         suggestion_dict = json.loads(suggestion.json())
-        suggestion_dict.pop("reason")
         suggestion_dict.pop("llm_start_line_num")
         response_str = self.ij_server.call_tool_args("/review/renames", suggestion_dict)
         try:
