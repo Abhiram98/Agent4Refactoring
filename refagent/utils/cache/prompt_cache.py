@@ -1,12 +1,10 @@
 import os
-from functools import wraps
-
-
-import json
-from typing import List
+from typing import List, Optional
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import BaseMessage, AIMessage
+from typing_extensions import Callable
+
 import refagent
 import sqlite3
 
@@ -46,3 +44,32 @@ def prompt(model: BaseChatModel, messages: List[BaseMessage]):
         conn.commit()
 
     return response
+
+
+def prompt_stream(model: BaseChatModel, messages: List[BaseMessage], callback: Optional[Callable] = None):
+    model_name = str(model.dict().get("profile", model.dict()))
+    key_str = str(model_name) + str([i.content for i in messages])
+    cursor, conn = None, None
+    if os.getenv("PROMPT_CACHING"):
+        conn = sqlite3.connect(prompt_cache_db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT response FROM prompt_cache WHERE key = ?", (key_str,))
+        row = cursor.fetchone()
+        if row:
+            return AIMessage(content=row[0])
+
+    all_chunks = []
+    for chunk in model.stream(messages):
+        all_chunks.append(chunk.content)
+        if callback is not None:
+            callback(chunk)
+    final_message = "".join(all_chunks)
+
+    if cursor is not None and conn is not None:
+        cursor.execute(
+            "INSERT OR REPLACE INTO prompt_cache (key, response) VALUES (?, ?)",
+            (key_str, final_message),
+        )
+        conn.commit()
+
+    return final_message
