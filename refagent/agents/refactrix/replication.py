@@ -112,7 +112,7 @@ class Replication(BaseModel):
         }
 
     def compile_and_run(self) -> Iterable[planning.RefactoringPlan]:
-        self.ide_server.call_tool("review/noop")
+        self.ide_server.call_tool("review/noop", status="Starting project-wide search.")
         self.init_replication_db()
 
         success_renames = self.orm_memory.get_all_successful_patterns()
@@ -222,7 +222,8 @@ class Replication(BaseModel):
         self, renames: List[RefactoringSuggestion]
     ) -> List[str]:
         all_results: Dict[str, int] = {}
-        for rename in renames:
+        for i, rename in enumerate(renames):
+            self.ide_server.call_tool("review/noop", status=f"Performing data flow analysis: {i}/{len(renames)}.")
             data_flow_results = self._data_flow_files(rename)
             for i in data_flow_results:
                 all_results[i.file_path] = min(
@@ -456,13 +457,14 @@ class Replication(BaseModel):
                 Path(file)
             )  # open file to search for files in that directory.
 
-            for rename_pair in unique_rename_pairs:
+            for i, rename_pair in enumerate(unique_rename_pairs):
                 if not rename_pair or len(rename_pair) != 2:
                     print("Invalid rename pair provided to API")
                     continue
 
                 old_name, new_name = rename_pair
                 print(f"[Search File API] Searching for {old_name}")
+                self.ide_server.call_tool("review/noop", status=f"Searching for keyword {old_name}. ({i}/{len(unique_rename_pairs)})")
 
                 try:
                     # Use IntellijServer call_tool method instead of hardcoded requests
@@ -915,7 +917,7 @@ class Replication(BaseModel):
         files_to_process = initial_files.copy()
 
         while files_to_process and iteration < max_iterations:
-            self.ide_server.call_tool("review/noop")
+            self.ide_server.call_tool("review/noop", status=f"Search iteration number {iteration}")
             start_time = datetime.datetime.now(datetime.timezone.utc)
             print(
                 f"[ITERATIVE REPLICATION] Iteration {iteration + 1}, processing {len(files_to_process)} files"

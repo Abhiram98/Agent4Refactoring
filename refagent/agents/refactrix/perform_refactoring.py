@@ -298,7 +298,7 @@ class PerformRefactoring(BaseModel):
             messages.append(file_contents_msg)
 
             self.ide_server.call_tool(
-                "review/noop"
+                "review/noop", status="Prompting the llm."
             )  # call this to set log message in server
             # Use model without tools for JSON output
             response = prompt_cache.prompt(self.model, messages)
