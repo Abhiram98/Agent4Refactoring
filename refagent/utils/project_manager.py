@@ -10,7 +10,11 @@ from pydantic import BaseModel, Field, root_validator
 import os
 import subprocess
 
-projects_base_path = pathlib.Path(os.environ.get("PROJECTS_BASE_PATH"))
+import refagent
+
+projects_base_path = pathlib.Path(
+    os.environ.get("PROJECTS_BASE_PATH", str(refagent.data_folder))
+)
 
 
 class Hunk(BaseModel):

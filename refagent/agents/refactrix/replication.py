@@ -54,9 +54,6 @@ class DataFlowResult(BaseModel):
 class Replication(BaseModel):
     model: BaseChatModel = Field(description="Langchain Chat model")
     edited_files: List[Path] = Field(description="Files that have already been edited.")
-    project: pm.EvalProject = Field(
-        description="The project object. Used to read file contents"
-    )
     example_changes: str = Field(description="The kinds of changes to replicate.")
     ide_server: ij.IntellijServer = Field(
         description="intellij server to interact with"
@@ -115,6 +112,7 @@ class Replication(BaseModel):
         }
 
     def compile_and_run(self) -> Iterable[planning.RefactoringPlan]:
+        self.ide_server.call_tool("review/noop")
         self.init_replication_db()
 
         success_renames = self.orm_memory.get_all_successful_patterns()
@@ -175,7 +173,7 @@ class Replication(BaseModel):
                     initial_intent=str(self.latest_scope) + should_replicate.content,
                     model=self.model,
                     source_file_path=file_path,
-                    source_code=self.project.get_file_contents(file_path),
+                    source_code=self.ide_server.get_file_contents(file_path),
                     # Pass memory parameters to planning component
                     benchmark_id=self.benchmark_id,
                     memory_database_url=self.memory_database_url,
@@ -199,7 +197,7 @@ class Replication(BaseModel):
             file_path = diff.git_diff.b_path
             if not file_path.endswith(".java"):
                 continue
-            if not self.project.file_exists(file_path):
+            if not self.ide_server.file_exists(file_path):
                 continue
 
             for hunk in diff.hunks:
@@ -532,7 +530,7 @@ class Replication(BaseModel):
         def ask_replicate(state: MessagesState):
             file_name = file_to_inspect.split("/")[-1]
             try:
-                file_contents = self.project.get_file_contents(file_to_inspect)
+                file_contents = self.ide_server.get_file_contents(file_to_inspect)
             except FileNotFoundError:
                 return {"messages": AIMessage("File not found. cannot replicate here.")}
 
@@ -695,6 +693,7 @@ class Replication(BaseModel):
 
     def is_generic_word(self, word):
         """Check if a word is too generic to be useful for pattern matching."""
+        # todo: move below to a file
         generic_words = {
             "is",
             "the",
@@ -846,7 +845,7 @@ class Replication(BaseModel):
 
         for file in files_to_inspect:
             try:
-                file_contents = self.project.get_file_contents(file)
+                file_contents = self.ide_server.get_file_contents(file)
                 # Check for exact matches of old identifiers
                 for old_identifier in old_identifiers:
                     # Use word boundary to avoid partial matches
@@ -882,7 +881,7 @@ class Replication(BaseModel):
 
         for file in files_to_inspect:
             try:
-                file_contents = self.project.get_file_contents(file)
+                file_contents = self.ide_server.get_file_contents(file)
                 identifiers = set(identifier_pattern.findall(file_contents))
 
                 # Check if any identifier matches any of the patterns
@@ -916,6 +915,7 @@ class Replication(BaseModel):
         files_to_process = initial_files.copy()
 
         while files_to_process and iteration < max_iterations:
+            self.ide_server.call_tool("review/noop")
             start_time = datetime.datetime.now(datetime.timezone.utc)
             print(
                 f"[ITERATIVE REPLICATION] Iteration {iteration + 1}, processing {len(files_to_process)} files"
@@ -1123,6 +1123,7 @@ class SimpleReplication(Replication):
             should_replicate = ask_replicate.invoke({"messages": []})["messages"][-1]
             print(should_replicate.content)
             if "YES" in should_replicate.content:  # should replicate the content
+                self.ide_server.call_tool("/review/inc_replication_files")
                 self.add_file_to_replication_db(file_path)
                 plan = planning.RefactoringPlan(
                     steps=[

@@ -1,3 +1,8 @@
+import difflib
+import json
+from json import JSONDecodeError
+from typing import Dict, Optional, List
+
 from pydantic.v1 import BaseModel, Field
 import requests
 from pathlib import Path
@@ -67,3 +72,49 @@ class IntellijServer(BaseModel):
             else:
                 return response.text
         return "[]"  # code inspection failed.
+
+    def get_file_contents(self, file_path: str) -> str:
+        response = requests.get(
+            f"{self.server_url}/src/get_code", json={"rel_file_path": file_path}
+        )
+        if response.ok:
+            return response.text
+        raise FileNotFoundError(f"File {file_path} not found.")
+
+    def file_exists(self, file_path):
+        try:
+            self.get_file_contents(file_path)
+            return True
+        except FileNotFoundError:
+            return False
+
+    def get_renamed_files(self) -> Optional[Dict[str, str]]:
+        """Returns a dictionary of old_name to new_name, for each renamed file."""
+        try:
+            renamed_files_response = json.loads(
+                self.call_tool_get("/vcs/renamed_files")
+            )
+            return renamed_files_response
+        except JSONDecodeError as e:
+            print("Failed to get a proper response from /vcs/renamed_files")
+            return None
+
+    def get_changed_files(self) -> List[str]:
+        return json.loads(self.call_tool_get("/vcs/changed_files"))
+
+    def get_changes(self) -> Dict[str, str]:
+        """Returns a dict of file_path: diff"""
+        response = json.loads(self.call_tool_get("/vcs/changes"))
+        diffs = {}
+        for file_path in response:
+            string1 = response[file_path]["first"]
+            string2 = response[file_path]["second"]
+            diffs[file_path] = "".join(
+                (
+                    difflib.unified_diff(
+                        string1.splitlines(keepends=True),
+                        string2.splitlines(keepends=True),
+                    )
+                )
+            )
+        return diffs

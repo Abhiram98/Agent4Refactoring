@@ -5,8 +5,8 @@ import refagent.agents.refactrix.supported_refactorings as sup_refs
 from pathlib import Path
 import re
 
-from agents.refactrix.analysis.scope import RenameScope
-from agents.refactrix.rename_suggestions import RenameSuggestionValidated
+import refagent.agents.refactrix.analysis.scope as scope
+import refagent.agents.refactrix.rename_suggestions as rename_suggestions
 
 
 class CritiqueResult(BaseModel):
@@ -59,7 +59,7 @@ class CritiqueComponent(BaseModel):
         arbitrary_types_allowed = True
 
     def validate_suggestion(
-        self, suggestion: RenameSuggestionValidated, rel_file_path
+        self, suggestion: rename_suggestions.RenameSuggestionValidated, rel_file_path
     ) -> CritiqueResult:
         critique_result = self.validate_rename_suggestion(
             suggestion.old_name,
@@ -335,7 +335,7 @@ class CritiqueComponent(BaseModel):
 
         return ", ".join(file_renames[:3]) + ("..." if len(file_renames) > 3 else "")
 
-    def review_scope(self, _new_scope: RenameScope) -> RenameScope:
+    def review_scope(self, _new_scope: scope.RenameScope) -> scope.RenameScope:
         return _new_scope
 
 

@@ -38,7 +38,6 @@ def test_patch_agent():
         ide_server=ij.IntellijServer.create_default(),
         model_name=f"{vendor}:gpt-4o-mini",
         reasoning_model_name=f"{vendor}:o4-mini",
-        project=project,
         plan_component=planning.PlanningComponent,
         augmented_intent=augmented_intent,
         do_replication=True,

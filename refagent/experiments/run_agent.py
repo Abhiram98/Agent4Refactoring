@@ -80,7 +80,6 @@ def setup_and_run(
         ide_server=ij_server,
         reasoning_model_name=f"{vendor}:openai-o4-mini",
         model_name=f"{vendor}:openai-gpt-4o-mini",
-        project=project,
         plan_component=plan_type,
         augmented_intent=scope.RenameScope(pattern=augmented_intent),
         do_replication=do_replication,
@@ -160,11 +159,16 @@ def initialize_memory(
     db_name = f"memory_{args.run_identifier.split('/')[-1]}_{bench_point.ref_id}.db"
     orig_memory_db_path = str(refagent.repo_root.joinpath("logs").joinpath(db_name))
     memory_db_path = init_memory.InitMemory(
-        benchmark_item=bench_point,
         do_replication=do_replication,
         use_seed=use_seed,
         initial_intent=augmented_intent,
         snippet_code=get_snippet_code(bench_point, project, ij_server),
+        seed_old_name=bench_point.seed_example.old_name,
+        seed_new_name=bench_point.seed_example.new_name,
+        seed_type=CodeElementType.get_rminer_str(bench_point.seed_example.type),
+        seed_file=bench_point.starting_file,
+        seed_line_number=bench_point.seed_example.start_line,
+        ref_id=bench_point.ref_id,
     ).init_memory(Path(orig_memory_db_path))
     memory_db_path = str(memory_db_path)
     print(

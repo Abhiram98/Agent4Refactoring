@@ -87,7 +87,6 @@ class ReactAgent(ra.Agent):
             ide_server=self.ide_server,
             # because the quality check's intent may be modified
             edited_files=list(self._files_changed),
-            project=self.project,
             starting_file=self._starting_file,
             example_changes=self.get_important_files_diff(),
             oracle_data=self._oracle_data,
@@ -118,6 +117,8 @@ class ReactAgent(ra.Agent):
                     f"Execution of replication for file {plan.steps[0].file_path} failed."
                 )
                 continue
+            finally:
+                self.ide_server.call_tool("/review/inc_files_inspected")
             self.update_changed_files()
 
         # Capture replication inspection data

@@ -69,6 +69,11 @@ class PerformRefactoring(BaseModel):
         description="whether to disable scope refactoring", default=False
     )
 
+    trigger_renames: bool = Field(
+        description="whether to actually trigger renames from the agent side",
+        default=True,
+    )
+
     _file_open_status: bool = PrivateAttr(default=False)
     _active_tool_call: List = PrivateAttr(default="")
     _retry_iteration: int = PrivateAttr(default=1)
@@ -136,6 +141,9 @@ class PerformRefactoring(BaseModel):
 
         def open_file(state: MessagesState):
             response = self.ide_server.try_open_file(Path(self.rel_file_path))
+            self.ide_server.call_tool(
+                "/review/set_inspecting_file", rel_file_path=self.rel_file_path
+            )
             if response.startswith("tool call failed "):
                 return {"messages": HumanMessage("failed to open file")}
             self._file_open_status = True
@@ -290,7 +298,7 @@ class PerformRefactoring(BaseModel):
             messages.append(file_contents_msg)
 
             self.ide_server.call_tool(
-                "/review/noop"
+                "review/noop"
             )  # call this to set log message in server
             # Use model without tools for JSON output
             response = prompt_cache.prompt(self.model, messages)
@@ -728,6 +736,11 @@ class PerformRefactoring(BaseModel):
             valid_suggestions = []
             invalid_suggestions = []
 
+            self.ide_server.call_tool(
+                "/review/add_total_renames",
+                count=len(rename_analysis.rename_suggestions),
+            )
+
             for suggestion in rename_analysis.rename_suggestions:
                 should_break = False
                 print(
@@ -783,6 +796,7 @@ class PerformRefactoring(BaseModel):
                         >= 3
                     ):
                         should_break = True
+                        self.ide_server.call_tool("review/noop")
                         # refine intent only when are there are more than threshold number of rejections.
                         _new_scope = RefineIntent(
                             source_code=self.ide_server.call_tool_get(
@@ -940,10 +954,13 @@ class PerformRefactoring(BaseModel):
                     "id": f"call_rename_{i}_{suggestion.old_name}_{suggestion.line_num}",
                     "type": "tool_call",
                 }
-                tool_calls.append(tool_call)
-                print(
-                    f"[TOOL GEN DEBUG] Generated tool call: {suggestion.old_name} → {suggestion.new_name}"
-                )
+                if self.trigger_renames:
+                    tool_calls.append(tool_call)
+                    print(
+                        f"[TOOL GEN DEBUG] Generated tool call: {suggestion.old_name} → {suggestion.new_name}"
+                    )
+                else:
+                    print("Skipping tool call, because running agent with real human.")
 
             # Create AIMessage with tool calls
             tool_call_message = AIMessage(
@@ -1175,6 +1192,7 @@ class PerformRefactoring(BaseModel):
                 validated_json = None
             if validated_json:
                 validated_obj = RenameSuggestionValidated(**validated_json)
+                validated_obj.reason = rename_suggestion.reason
                 if validated_obj.line_num != rename_suggestion.line_num:
                     validated_obj.llm_start_line_num = rename_suggestion.line_num
 
