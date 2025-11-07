@@ -71,7 +71,9 @@ class AgentRunner(BaseModel):
         print("Running agent on initial file. Pre replication.")
         self.ij_server.call_tool("review/noop")
         self.ij_server.call_tool("review/reset_scope")  # reset the view in the IDE.
-        self.ij_server.call_tool("/review/inc_replication_files") # log that we're inspecting one file
+        self.ij_server.call_tool(
+            "/review/inc_replication_files"
+        )  # log that we're inspecting one file
 
         # open file so that the sever has the required context.
         self.ij_server.open_file(Path(self.seed_file))
