@@ -69,7 +69,7 @@ class AgentRunner(BaseModel):
     def run_pre_replication(self):
 
         print("Running agent on initial file. Pre replication.")
-        self.ij_server.call_tool("review/noop")
+        self.ij_server.call_tool("review/noop", status="Running the agent on the initial file.")
         self.ij_server.call_tool("review/reset_scope")  # reset the view in the IDE.
         self.ij_server.call_tool(
             "/review/inc_replication_files"
@@ -133,7 +133,7 @@ class AgentRunner(BaseModel):
         print("Pre replication complete.")
 
     def run_post_replication(self):
-        self.ij_server.call_tool("review/noop")
+        self.ij_server.call_tool("review/noop", status="Searching the project for more rename opportunities.")
         post_replication_memory = init_memory.InitMemory(
             do_replication=True,
             use_seed=True,
