@@ -223,7 +223,10 @@ class Replication(BaseModel):
     ) -> List[str]:
         all_results: Dict[str, int] = {}
         for i, rename in enumerate(renames):
-            self.ide_server.call_tool("review/noop", status=f"Performing data flow analysis: {i}/{len(renames)}.")
+            self.ide_server.call_tool(
+                "review/noop",
+                status=f"Performing data flow analysis: {i}/{len(renames)}.",
+            )
             data_flow_results = self._data_flow_files(rename)
             for i in data_flow_results:
                 all_results[i.file_path] = min(
@@ -464,7 +467,10 @@ class Replication(BaseModel):
 
                 old_name, new_name = rename_pair
                 print(f"[Search File API] Searching for {old_name}")
-                self.ide_server.call_tool("review/noop", status=f"Searching for keyword {old_name}. ({i}/{len(unique_rename_pairs)})")
+                self.ide_server.call_tool(
+                    "review/noop",
+                    status=f"Searching for keyword {old_name}. ({i}/{len(unique_rename_pairs)})",
+                )
 
                 try:
                     # Use IntellijServer call_tool method instead of hardcoded requests
@@ -917,7 +923,9 @@ class Replication(BaseModel):
         files_to_process = initial_files.copy()
 
         while files_to_process and iteration < max_iterations:
-            self.ide_server.call_tool("review/noop", status=f"Search iteration number {iteration}")
+            self.ide_server.call_tool(
+                "review/noop", status=f"Search iteration number {iteration}"
+            )
             start_time = datetime.datetime.now(datetime.timezone.utc)
             print(
                 f"[ITERATIVE REPLICATION] Iteration {iteration + 1}, processing {len(files_to_process)} files"

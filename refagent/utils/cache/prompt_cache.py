@@ -46,7 +46,11 @@ def prompt(model: BaseChatModel, messages: List[BaseMessage]):
     return response
 
 
-def prompt_stream(model: BaseChatModel, messages: List[BaseMessage], callback: Optional[Callable] = None):
+def prompt_stream(
+    model: BaseChatModel,
+    messages: List[BaseMessage],
+    callback: Optional[Callable] = None,
+):
     model_name = str(model.dict().get("profile", model.dict()))
     key_str = str(model_name) + str([i.content for i in messages])
     cursor, conn = None, None

@@ -67,3 +67,19 @@ def test_grazie_with_tool_messages():
     )
 
     print(grazie_llm.invoke(messages))
+
+
+def test_grazie_streaming():
+    grazie_llm = ChatGrazie(
+        grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
+        client_auth_type=AuthType.APPLICATION,
+        client_url=GrazieApiGatewayUrls.PRODUCTION,
+        profile="openai-gpt-4o-mini",
+        client_agent_name="ref-agent",
+        client_agent_version="0.1",
+    )
+    all_chunks = []
+    for chunk in grazie_llm.stream("how can langsmith help with testing?"):
+        all_chunks.append(chunk.content)
+        print(chunk)
+    print(f"{len(all_chunks)=}")

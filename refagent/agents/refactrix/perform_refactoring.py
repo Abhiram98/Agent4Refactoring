@@ -301,7 +301,9 @@ class PerformRefactoring(BaseModel):
                 "review/noop", status="Prompting the llm."
             )  # call this to set log message in server
             # Use model without tools for JSON output
-            response = prompt_cache.prompt_stream(self.model, messages, callback=self.analyse_chunk_deco())
+            response = prompt_cache.prompt_stream(
+                self.model, messages, callback=self.analyse_chunk_deco()
+            )
             return {"messages": [response]}
 
         def get_memory_constraints(current_llm_iteration):
@@ -1411,8 +1413,11 @@ class PerformRefactoring(BaseModel):
 
     def analyse_chunk_deco(self):
         all_chunks = []
+
         def analyse_chunk(chunk: str):
             all_chunks.append(chunk)
-            self.ide_server.call_tool("review/noop", status=f"got {len(all_chunks)} tokens from LLM.")
+            self.ide_server.call_tool(
+                "review/noop", status=f"got {len(all_chunks)} tokens from LLM."
+            )
 
         return analyse_chunk
