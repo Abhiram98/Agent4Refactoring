@@ -2,9 +2,10 @@ import os
 from pathlib import Path
 
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
-from grazie.api.client.gateway import AuthType
+from grazie.api.client.gateway import AuthType, RequestFailedException
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
+from openai import AuthenticationError
 from pydantic.v1 import SecretStr, BaseModel
 
 import refagent
@@ -57,8 +58,12 @@ class AgentRunner(BaseModel):
         return ij.IntellijServer(server_url=os.getenv("IJ_SERVER_URL"))
 
     def run_agent(self):
-        self.run_pre_replication()
-        self.run_post_replication()
+        try:
+            self.run_pre_replication()
+            self.run_post_replication()
+        except (AuthenticationError, RequestFailedException) as exc:
+            self.ij_server.call_tool("/review/llm_auth_failed")
+            raise exc
 
     def gen_initial_scope(
         self,
