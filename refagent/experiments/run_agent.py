@@ -76,10 +76,21 @@ def setup_and_run(
     vendor = "grazie"  # switch to `openai` to use the openai models directly
     # vendor = 'openai'
 
+    grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
+    model = ChatGrazie(
+        grazie_jwt_token=SecretStr(grazie_token),
+        client_auth_type=AuthType.APPLICATION,
+        client_url=GrazieApiGatewayUrls.PRODUCTION,
+        profile="openai-o4-mini",
+        client_agent_name="ref-agent",
+        client_agent_version="0.1",
+    )
+
     agent = react_agent.ReactAgent(
         ide_server=ij_server,
-        reasoning_model_name=f"{vendor}:openai-o4-mini",
-        model_name=f"{vendor}:openai-gpt-4o-mini",
+        # reasoning_model_name=f"{vendor}:openai-o4-mini",
+        # model_name=f"{vendor}:openai-gpt-4o-mini",
+        llm_model=model,
         plan_component=plan_type,
         augmented_intent=scope.RenameScope(pattern=augmented_intent),
         do_replication=do_replication,
@@ -109,7 +120,7 @@ def setup_and_run(
             agent.initialize_critique_component(bench_point.refactoring_changes)
             agent.perform_replication(
                 augmented_intent,
-                agent.create_model(f"{vendor}:openai-gpt-4o-mini"),
+                model,
                 agent.generate_initial_plan(augmented_intent),
             )
     except Exception as e:

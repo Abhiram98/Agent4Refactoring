@@ -4,6 +4,7 @@ from pathlib import Path
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from langchain_core.language_models import BaseChatModel
+from langchain_openai import ChatOpenAI
 from pydantic.v1 import SecretStr, BaseModel
 
 import refagent
@@ -28,30 +29,32 @@ class AgentRunner(BaseModel):
     seed_line_num: int
     seed_element_type: str
     seed_file: str
+    vendor: str
 
     @property
-    def model(self) -> BaseChatModel:
-        grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
-        if grazie_token is None:
+    def llm_model(self) -> BaseChatModel:
+        llm_token = os.getenv("LLM_TOKEN")
+        if llm_token is None:
             raise RuntimeError(
-                "GRAZIE_JWT_TOKEN environment variable not set. Unable to make LLM calls."
+                "LLM_TOKEN environment variable not set. Unable to make LLM calls."
             )
-        return ChatGrazie(
-            grazie_jwt_token=SecretStr(grazie_token),
-            client_auth_type=AuthType.APPLICATION,
-            client_url=GrazieApiGatewayUrls.PRODUCTION,
-            profile="openai-o4-mini",
-            client_agent_name="ref-agent",
-            client_agent_version="0.1",
-        )
+        if self.vendor == 'grazie':
+            return ChatGrazie(
+                grazie_jwt_token=SecretStr(llm_token),
+                client_auth_type=AuthType.APPLICATION,
+                client_url=GrazieApiGatewayUrls.PRODUCTION,
+                profile="openai-o4-mini",
+                client_agent_name="ref-agent",
+                client_agent_version="0.1",
+            )
+        elif self.vendor == 'openai':
+            os.environ['OPENAI_API_KEY'] = llm_token
+            return ChatOpenAI(model='o4-mini', temperature=1)
+        raise ValueError(f"Unsupported vendor {self.vendor}")
 
     @property
     def ij_server(self) -> ij.IntellijServer:
         return ij.IntellijServer(server_url=os.getenv("IJ_SERVER_URL"))
-
-    @property
-    def vendor(self):
-        return "grazie"
 
     def run_agent(self):
         self.run_pre_replication()
@@ -63,7 +66,7 @@ class AgentRunner(BaseModel):
         new_name: str,
     ) -> scope.RenameScope:
         return refine_intent.GeneralizedScopeCreator(
-            model=self.model, old_name=old_name, new_name=new_name
+            model=self.llm_model, old_name=old_name, new_name=new_name
         ).get_generalized_intent()
 
     def run_pre_replication(self):
@@ -111,8 +114,7 @@ class AgentRunner(BaseModel):
         # noinspection PyArgumentList
         agent = react_agent.ReactAgent(
             ide_server=self.ij_server,
-            reasoning_model_name=f"{self.vendor}:openai-o4-mini",
-            model_name=f"{self.vendor}:openai-gpt-4o-mini",
+            llm_model=self.llm_model,
             plan_component=planning.PlanningComponent,
             augmented_intent=initial_scope,
             do_replication=False,
@@ -156,8 +158,7 @@ class AgentRunner(BaseModel):
         # noinspection PyArgumentList
         agent = react_agent.ReactAgent(
             ide_server=self.ij_server,
-            reasoning_model_name=f"{self.vendor}:openai-o4-mini",
-            model_name=f"{self.vendor}:openai-gpt-4o-mini",
+            llm_model=self.llm_model,
             plan_component=planning.PlanningComponent,
             augmented_intent=latest_scope,
             do_replication=False,
@@ -174,7 +175,7 @@ class AgentRunner(BaseModel):
         agent.initialize_critique_component([])
         agent.perform_replication(
             str(latest_scope),
-            agent.create_model(f"{self.vendor}:openai-gpt-4o-mini"),
+            self.llm_model,
             agent.generate_initial_plan(latest_scope),
         )
         print("Post replication complete.")
@@ -207,6 +208,7 @@ if __name__ == "__main__":
         "--seed_element_type", type=str, help="Type of code element that was renamed"
     )
     parser.add_argument("--seed_file", type=str, help="Seed file.")
+    parser.add_argument("--vendor", type=str, help="AI model vendor (openai, grazie, azure)")
 
     args = parser.parse_args()
     try:
@@ -217,10 +219,14 @@ if __name__ == "__main__":
         print("arg seed_element_type, is not a valid type. See below. ")
         raise e
 
+    if args.vendor not in ['openai', 'grazie', 'azure']:
+        raise ValueError("Please choose a vendor from ['openai', 'grazie', 'azure']")
+
     AgentRunner(
         seed_old_name=args.seed_old_name,
         seed_new_name=args.seed_new_name,
         seed_line_num=args.seed_line_num,
         seed_element_type=args.seed_element_type,
         seed_file=args.seed_file,
+        vendor=args.vendor
     ).run_agent()

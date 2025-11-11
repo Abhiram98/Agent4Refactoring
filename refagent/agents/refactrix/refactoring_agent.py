@@ -66,10 +66,7 @@ class Agent(BaseModel):
     It should ideally have no prompts. Just high level design"""
 
     ide_server: ij.IntellijServer = Field(description="the url of the ide, to invoke")
-    model_name: str = Field(description="model name")
-    reasoning_model_name: str = Field(
-        description="model name for reasoning", default=None
-    )
+    llm_model: BaseChatModel = Field(description="the model to use")
     analysis_component: Type[analysis.AnalysisComponent] = Field(
         description="the kind of analysis component to use.",
         default=analysis.AnalysisComponent,
@@ -228,16 +225,11 @@ class Agent(BaseModel):
         self._starting_file = starting_file
         self.update_starting_file(self._starting_file)
         self._original_starting_file = starting_file
-        model = self.create_model(self.model_name)
-        self._reasoning_model = (
-            self.create_model(self.reasoning_model_name)
-            if self.reasoning_model_name
-            else model
-        )
+        self._reasoning_model = self.llm_model
         self._original_source_code = self.ide_server.get_file_contents(
             self._starting_file
         )
-        return model
+        return self.llm_model
 
     def initialize_critique_component(
         self, oracle_data: List[refactorings.RefminerOut]

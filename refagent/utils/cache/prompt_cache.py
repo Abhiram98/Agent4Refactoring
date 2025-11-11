@@ -1,4 +1,5 @@
 import os
+import traceback
 from typing import List, Optional
 
 from langchain_core.language_models import BaseChatModel
@@ -66,7 +67,12 @@ def prompt_stream(
     for chunk in model.stream(messages):
         all_chunks.append(chunk.content)
         if callback is not None:
-            callback(chunk)
+            try:
+                callback(chunk)
+            except Exception as e:
+                print(e)
+                print("Callback threw the exception")
+                traceback.print_exc()
     final_message = "".join(all_chunks)
 
     if cursor is not None and conn is not None:

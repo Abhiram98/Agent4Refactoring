@@ -184,17 +184,18 @@ class PatchCurator(BaseModel):
 
         agent = patch_curation_agent.PatchAgent(
             ide_server=ij.IntellijServer.create_default(),
-            model_name=f"{vendor}:gpt-4o-mini",
-            reasoning_model_name=f"{vendor}:o4-mini",
+            # model_name=f"{vendor}:gpt-4o-mini",
+            # reasoning_model_name=f"{vendor}:o4-mini",
             plan_component=planning.PlanningComponent,
             augmented_intent=augmented_intent,
             do_replication=True,
+            llm_model=model
         )
         agent.add_internal_commit(project.git_repo.commit(v2_hash))
         agent.initialize_agent(starting_file=starting_file)
         agent.perform_replication(
             augmented_intent,
-            agent.create_model(f"{vendor}:gpt-4o-mini"),
+            model,
             agent.generate_initial_plan(augmented_intent),
         )
         print(agent.augmented_intent)
