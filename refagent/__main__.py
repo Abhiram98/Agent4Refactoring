@@ -38,7 +38,7 @@ class AgentRunner(BaseModel):
             raise RuntimeError(
                 "LLM_TOKEN environment variable not set. Unable to make LLM calls."
             )
-        if self.vendor == 'grazie':
+        if self.vendor == "grazie":
             return ChatGrazie(
                 grazie_jwt_token=SecretStr(llm_token),
                 client_auth_type=AuthType.APPLICATION,
@@ -47,9 +47,9 @@ class AgentRunner(BaseModel):
                 client_agent_name="ref-agent",
                 client_agent_version="0.1",
             )
-        elif self.vendor == 'openai':
-            os.environ['OPENAI_API_KEY'] = llm_token
-            return ChatOpenAI(model='o4-mini', temperature=1)
+        elif self.vendor == "openai":
+            os.environ["OPENAI_API_KEY"] = llm_token
+            return ChatOpenAI(model="o4-mini", temperature=1)
         raise ValueError(f"Unsupported vendor {self.vendor}")
 
     @property
@@ -208,7 +208,9 @@ if __name__ == "__main__":
         "--seed_element_type", type=str, help="Type of code element that was renamed"
     )
     parser.add_argument("--seed_file", type=str, help="Seed file.")
-    parser.add_argument("--vendor", type=str, help="AI model vendor (openai, grazie, azure)")
+    parser.add_argument(
+        "--vendor", type=str, help="AI model vendor (openai, grazie, azure)"
+    )
 
     args = parser.parse_args()
     try:
@@ -219,7 +221,7 @@ if __name__ == "__main__":
         print("arg seed_element_type, is not a valid type. See below. ")
         raise e
 
-    if args.vendor not in ['openai', 'grazie', 'azure']:
+    if args.vendor not in ["openai", "grazie", "azure"]:
         raise ValueError("Please choose a vendor from ['openai', 'grazie', 'azure']")
 
     AgentRunner(
@@ -228,5 +230,5 @@ if __name__ == "__main__":
         seed_line_num=args.seed_line_num,
         seed_element_type=args.seed_element_type,
         seed_file=args.seed_file,
-        vendor=args.vendor
+        vendor=args.vendor,
     ).run_agent()

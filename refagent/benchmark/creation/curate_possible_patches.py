@@ -189,7 +189,7 @@ class PatchCurator(BaseModel):
             plan_component=planning.PlanningComponent,
             augmented_intent=augmented_intent,
             do_replication=True,
-            llm_model=model
+            llm_model=model,
         )
         agent.add_internal_commit(project.git_repo.commit(v2_hash))
         agent.initialize_agent(starting_file=starting_file)
