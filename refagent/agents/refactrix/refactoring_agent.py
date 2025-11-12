@@ -192,7 +192,7 @@ class Agent(BaseModel):
         return self._internal_commits
 
     def try_open_file(self, rel_file_path: str) -> bool:
-        response = self.ide_server.try_open_file(Path(rel_file_path))
+        response = self.ide_server.open_file(Path(rel_file_path))
         if response.startswith("tool call failed "):
             # raise Exception("Failed to open file and did not create one either.")
             return False

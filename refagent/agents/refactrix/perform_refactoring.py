@@ -140,7 +140,7 @@ class PerformRefactoring(BaseModel):
     def compile(self) -> CompiledGraph:
 
         def open_file(state: MessagesState):
-            response = self.ide_server.try_open_file(Path(self.rel_file_path))
+            response = self.ide_server.open_file(Path(self.rel_file_path))
             self.ide_server.call_tool(
                 "/review/set_inspecting_file", rel_file_path=self.rel_file_path
             )
