@@ -522,8 +522,17 @@ class Replication(BaseModel):
                     traceback.print_exc()
                     continue
                     # return []
-
+        self.log_results(results)
         return results
+
+    def log_results(self, results: List[SearchResult]):
+        try:
+            total_hit_count = sum([i.hit_count for i in results])
+            self.ide_server.call_tool(
+                "/review/identifiers_inspected", inspected=total_hit_count
+            )
+        except Exception as e:
+            print(f"Failed to log results: {e}")
 
     def should_replicate(self) -> bool:
         contains_supported_type = [
