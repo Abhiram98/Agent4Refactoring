@@ -37,6 +37,7 @@ from refagent.agents.refactrix.rename_suggestions import (
     CodeElementType,
 )
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
+from concurrent.futures import ThreadPoolExecutor
 
 
 class PerformRefactoring(BaseModel):
@@ -300,12 +301,19 @@ class PerformRefactoring(BaseModel):
             self.ide_server.call_tool(
                 "review/noop", status="Prompting the llm."
             )  # call this to set log message in server
-            # Use model without tools for JSON output
-            # todo: @raihan run auto-suggestion and file information in parallel.
+            
+            # Start showing auto-suggestions to UI in parallel
+            executor = ThreadPoolExecutor(max_workers=1)
+            executor.submit(self.show_auto_suggestions_to_ui)
+            
+            # Run LLM prompt (main thread)
             response = prompt_cache.prompt_stream(
                 self.model, messages, callback=self.analyse_chunk_deco()
             )
-            # todo: @raihan stop the previous thread to get auto-suggestions.
+            
+            # Shutdown the executor (don't wait for auto-suggestions to complete)
+            executor.shutdown(wait=False)
+            
             return {"messages": [response]}
 
         def get_memory_constraints(current_llm_iteration):
@@ -1312,6 +1320,48 @@ class PerformRefactoring(BaseModel):
             code_element_type=suggestion.code_element_type.value,
             file_path=suggestion.resolved_file_path or self.rel_file_path,
         )
+
+    def show_auto_suggestions_to_ui(self):
+        """Show auto-suggestions to UI while LLM is processing.
+        
+        This runs in a separate thread to provide immediate feedback to the user.
+        """
+        try:
+            print("[AUTO-SUGGEST] Starting to fetch and display auto-suggestions")
+            
+            # query history to get rename patterns
+            if self.new_intent.condition is not None:
+                return
+            
+            success_patterns = self.orm_memory.get_all_successful_patterns()
+            print(f"[AUTO-SUGGEST] Found {len(success_patterns)} successful patterns from history")
+            
+            for i, pattern in enumerate(success_patterns):
+                # attempt to create objects for all previously successful patterns
+                rename_json = self.ide_server.call_tool(
+                    "form-rename-object-all",
+                    old_name=pattern.old_name,
+                    new_name=pattern.new_name,
+                )
+                try:
+                    rename_objs = json.loads(rename_json)
+                    for obj in rename_objs:
+                        suggestion = RenameSuggestion(**obj)
+                        # Send each suggestion to UI immediately
+                        self.ide_server.call_tool(
+                            "review/noop",
+                            status=f"Found match {suggestion.code_element_type} -> {suggestion.old_name} at line {suggestion.line_num}"
+                        )
+                        print(f"[AUTO-SUGGEST] Sent to UI: {suggestion.old_name} → {suggestion.new_name}")
+                except JSONDecodeError:
+                    print(f"[AUTO-SUGGEST] Pattern {pattern} not found in file")
+                except Exception as e:
+                    print(f"[AUTO-SUGGEST] Error processing pattern {pattern}: {e}")
+            
+            print(f"[AUTO-SUGGEST] Completed displaying suggestions")
+            
+        except Exception as e:
+            print(f"[AUTO-SUGGEST] Error in show_auto_suggestions_to_ui: {e}")
 
     def get_auto_suggestions(self) -> List[RenameSuggestion]:
         # query history to get rename patterns
