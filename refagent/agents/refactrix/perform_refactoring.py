@@ -1354,9 +1354,7 @@ class PerformRefactoring(BaseModel):
                 try:
                     rename_objs = json.loads(rename_json)
                     try:
-                        total_identifiers = len(
-                            json.loads(all_identifiers_a)
-                        )
+                        total_identifiers = len(json.loads(all_identifiers_a))
                     except Exception as e:
                         total_identifiers = len(rename_objs)
 
