@@ -1338,6 +1338,14 @@ class PerformRefactoring(BaseModel):
             print(
                 f"[AUTO-SUGGEST] Found {len(success_patterns)} successful patterns from history"
             )
+            ident_count_str = self.ide_server.call_tool("count_identifiers")
+            try:
+                total_identifiers = int(ident_count_str)
+            except Exception as e:
+                total_identifiers = None
+            self.ide_server.call_tool(
+                "/review/identifiers_inspected", inspected=total_identifiers
+            )
 
             for i, pattern in enumerate(success_patterns):
                 # attempt to create objects for all previously successful patterns
@@ -1346,24 +1354,17 @@ class PerformRefactoring(BaseModel):
                     old_name=pattern.old_name,
                     new_name=pattern.new_name,
                 )
-                all_identifiers_a = self.ide_server.call_tool(
-                    "form-rename-object-all-matching",
-                    old_name="a",
-                    new_name="axx",
-                )
+
                 try:
                     rename_objs = json.loads(rename_json)
-                    try:
-                        total_identifiers = len(json.loads(all_identifiers_a))
-                    except Exception as e:
-                        total_identifiers = len(rename_objs)
-
-                    self.ide_server.call_tool(
-                        "/review/identifiers_inspected", inspected=total_identifiers
+                    total_identifiers_str = (
+                        len(rename_objs)
+                        if total_identifiers is None
+                        else total_identifiers
                     )
                     self.ide_server.call_tool(
                         "review/noop",
-                        status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {len(rename_objs)} identifiers in file.",
+                        status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {total_identifiers_str} identifiers in file.",
                     )
                     sleep(2)
 
@@ -1525,7 +1526,7 @@ class PerformRefactoring(BaseModel):
 
                 self.ide_server.call_tool(
                     "review/noop",
-                    status=f"Inspecting: {self.rel_file_path}. Found {len(suggestions)} suggestions: \n{suggestion_str}",
+                    status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Found {len(suggestions)} suggestions: \n{suggestion_str}",
                 )
 
             except Exception:
