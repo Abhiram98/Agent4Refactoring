@@ -306,10 +306,6 @@ class PerformRefactoring(BaseModel):
             file_contents_msg.content += format_instructions
             messages.append(file_contents_msg)
 
-            self.ide_server.call_tool(
-                "review/noop", status="Prompting the llm."
-            )  # call this to set log message in server
-
             # Start showing auto-suggestions to UI in parallel
             self._auto_suggest_executor = ThreadPoolExecutor(max_workers=1)
             self._auto_suggest_executor.submit(self.show_auto_suggestions_to_ui)
@@ -1350,19 +1346,40 @@ class PerformRefactoring(BaseModel):
                     old_name=pattern.old_name,
                     new_name=pattern.new_name,
                 )
+                all_identifiers_a = self.ide_server.call_tool(
+                    "form-rename-object-all",
+                    old_name="a",
+                    new_name="axx",
+                )
+                all_identifiers_e = self.ide_server.call_tool(
+                    "form-rename-object-all",
+                    old_name="e",
+                    new_name="exx",
+                )
+
                 try:
                     rename_objs = json.loads(rename_json)
-                    self.ide_server.call_tool(
-                        "/review/identifiers_inspected", inspected=len(rename_objs)
+                    total_identifiers = len(
+                        json.loads(all_identifiers_a) + json.loads(all_identifiers_e)
                     )
+
+                    self.ide_server.call_tool(
+                        "/review/identifiers_inspected", inspected=total_identifiers
+                    )
+                    self.ide_server.call_tool(
+                        "review/noop",
+                        status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {total_identifiers} identifiers in file.",
+                    )
+                    sleep(2)
+
                     auto_suggestion_str = ""
                     for i, obj in enumerate(rename_objs):
                         suggestion = RenameSuggestion(**obj)
                         # Send each suggestion to UI immediately
-                        auto_suggestion_str += f"Found potential suggestions: {suggestion.code_element_type.value.capitalize()} -> {suggestion.old_name} at line {suggestion.line_num} \n"
+                        auto_suggestion_str += f"Analyzing identifier: {suggestion.code_element_type.value.capitalize()} -> {suggestion.old_name} at line {suggestion.line_num} \n"
                         self.ide_server.call_tool(
                             "review/noop",
-                            status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {i+1} locations. {auto_suggestion_str}",
+                            status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {i+1} locations. \n{auto_suggestion_str}",
                         )
                         sleep(2)
                         print(
