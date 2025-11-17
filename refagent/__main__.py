@@ -70,9 +70,7 @@ class AgentRunner(BaseModel):
         old_name: str,
         new_name: str,
     ) -> scope.RenameScope:
-        self.ij_server.call_tool(
-            "review/noop", status="Inspecting the seed rename..."
-        )
+        self.ij_server.call_tool("review/noop", status="Inspecting the seed rename...")
         return refine_intent.GeneralizedScopeCreator(
             model=self.llm_model, old_name=old_name, new_name=new_name
         ).get_generalized_intent()
