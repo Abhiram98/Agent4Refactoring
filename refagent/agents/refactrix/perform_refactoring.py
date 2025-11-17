@@ -1346,29 +1346,29 @@ class PerformRefactoring(BaseModel):
                     old_name=pattern.old_name,
                     new_name=pattern.new_name,
                 )
-                all_identifiers_a = self.ide_server.call_tool(
-                    "form-rename-object-all",
-                    old_name="a",
-                    new_name="axx",
-                )
-                all_identifiers_e = self.ide_server.call_tool(
-                    "form-rename-object-all",
-                    old_name="e",
-                    new_name="exx",
-                )
+                # all_identifiers_a = self.ide_server.call_tool(
+                #     "form-rename-object-all",
+                #     old_name="a",
+                #     new_name="axx",
+                # )
+                # all_identifiers_e = self.ide_server.call_tool(
+                #     "form-rename-object-all",
+                #     old_name="e",
+                #     new_name="exx",
+                # )
 
                 try:
                     rename_objs = json.loads(rename_json)
-                    total_identifiers = len(
-                        json.loads(all_identifiers_a) + json.loads(all_identifiers_e)
-                    )
+                    # total_identifiers = len(
+                    #     json.loads(all_identifiers_a) + json.loads(all_identifiers_e)
+                    # )
 
                     self.ide_server.call_tool(
-                        "/review/identifiers_inspected", inspected=total_identifiers
+                        "/review/identifiers_inspected", inspected=len(rename_objs)
                     )
                     self.ide_server.call_tool(
                         "review/noop",
-                        status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {total_identifiers} identifiers in file.",
+                        status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {len(rename_objs)} identifiers in file.",
                     )
                     sleep(2)
 
