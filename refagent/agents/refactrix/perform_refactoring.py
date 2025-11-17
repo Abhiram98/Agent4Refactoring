@@ -83,7 +83,7 @@ class PerformRefactoring(BaseModel):
     _performed_refactorings: List = PrivateAttr(default=[])
     _tool_call_map: Dict = PrivateAttr(default=defaultdict(dict))
     _critique_retry_count: int = PrivateAttr(default=0)
-    _auto_suggest_executor = PrivateAttr(default=None)
+    _auto_suggest_executor: Optional[ThreadPoolExecutor] = PrivateAttr(default=None)
 
     benchmark_id: Optional[int] = Field(
         description="Current benchmark ID for memory isolation", default=None
@@ -1338,9 +1338,6 @@ class PerformRefactoring(BaseModel):
             print("[AUTO-SUGGEST] Starting to fetch and display auto-suggestions")
 
             # query history to get rename patterns
-            if self.new_intent.condition is not None:
-                return
-
             success_patterns = self.orm_memory.get_all_successful_patterns()
             print(
                 f"[AUTO-SUGGEST] Found {len(success_patterns)} successful patterns from history"
@@ -1355,12 +1352,17 @@ class PerformRefactoring(BaseModel):
                 )
                 try:
                     rename_objs = json.loads(rename_json)
-                    for obj in rename_objs:
+                    self.ide_server.call_tool(
+                        "/review/identifiers_inspected", inspected=len(rename_objs)
+                    )
+                    auto_suggestion_str = ""
+                    for i, obj in enumerate(rename_objs):
                         suggestion = RenameSuggestion(**obj)
                         # Send each suggestion to UI immediately
+                        auto_suggestion_str += f"Found potential suggestions: {suggestion.code_element_type.value.capitalize()} -> {suggestion.old_name} at line {suggestion.line_num} \n"
                         self.ide_server.call_tool(
                             "review/noop",
-                            status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Reviewing potential suggestions: {suggestion.code_element_type.value.capitalize()} -> {suggestion.old_name} at line {suggestion.line_num}",
+                            status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {i+1} locations. {auto_suggestion_str}",
                         )
                         sleep(2)
                         print(
