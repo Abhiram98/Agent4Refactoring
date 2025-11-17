@@ -1360,7 +1360,7 @@ class PerformRefactoring(BaseModel):
                         # Send each suggestion to UI immediately
                         self.ide_server.call_tool(
                             "review/noop",
-                            status=f"Inspecting: {self.rel_file_path}. Inspecting potential suggestions: {suggestion.code_element_type} -> {suggestion.old_name} at line {suggestion.line_num}",
+                            status=f"Inspecting: {self.rel_file_path}. Reviewing potential suggestions: {suggestion.code_element_type} -> {suggestion.old_name} at line {suggestion.line_num}",
                         )
                         sleep(2)
                         print(
