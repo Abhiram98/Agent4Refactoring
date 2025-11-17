@@ -1346,25 +1346,22 @@ class PerformRefactoring(BaseModel):
                     old_name=pattern.old_name,
                     new_name=pattern.new_name,
                 )
-                # all_identifiers_a = self.ide_server.call_tool(
-                #     "form-rename-object-all",
-                #     old_name="a",
-                #     new_name="axx",
-                # )
-                # all_identifiers_e = self.ide_server.call_tool(
-                #     "form-rename-object-all",
-                #     old_name="e",
-                #     new_name="exx",
-                # )
-
+                all_identifiers_a = self.ide_server.call_tool(
+                    "form-rename-object-all-matching",
+                    old_name="a",
+                    new_name="axx",
+                )
                 try:
                     rename_objs = json.loads(rename_json)
-                    # total_identifiers = len(
-                    #     json.loads(all_identifiers_a) + json.loads(all_identifiers_e)
-                    # )
+                    try:
+                        total_identifiers = len(
+                            json.loads(all_identifiers_a)
+                        )
+                    except Exception as e:
+                        total_identifiers = len(rename_objs)
 
                     self.ide_server.call_tool(
-                        "/review/identifiers_inspected", inspected=len(rename_objs)
+                        "/review/identifiers_inspected", inspected=total_identifiers
                     )
                     self.ide_server.call_tool(
                         "review/noop",
