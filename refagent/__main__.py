@@ -70,6 +70,7 @@ class AgentRunner(BaseModel):
         old_name: str,
         new_name: str,
     ) -> scope.RenameScope:
+        self.ij_server.call_tool("review/noop", status="Inspecting the seed rename...")
         return refine_intent.GeneralizedScopeCreator(
             model=self.llm_model, old_name=old_name, new_name=new_name
         ).get_generalized_intent()
@@ -91,6 +92,9 @@ class AgentRunner(BaseModel):
         initial_scope = self.gen_initial_scope(
             old_name=self.seed_old_name,
             new_name=self.seed_new_name,
+        )
+        self.ij_server.call_tool(
+            "review/noop", status=f"Renaming pattern found: {initial_scope.pattern}"
         )
         print("Initial scope: {}".format(initial_scope))
         self.ij_server.call_tool(

@@ -1,10 +1,12 @@
 from collections import defaultdict
 from json import JSONDecodeError
+from time import sleep
 
 from pydantic.v1 import BaseModel, Field, PrivateAttr  # to comply with grazie models
 from typing import List, Dict, Optional
 from langchain_core.output_parsers import PydanticOutputParser
 import json
+import re
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph.graph import CompiledGraph
 from langgraph.graph import END, START, StateGraph, MessagesState
@@ -37,6 +39,7 @@ from refagent.agents.refactrix.rename_suggestions import (
     CodeElementType,
 )
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
+from concurrent.futures import ThreadPoolExecutor
 
 
 class PerformRefactoring(BaseModel):
@@ -80,6 +83,7 @@ class PerformRefactoring(BaseModel):
     _performed_refactorings: List = PrivateAttr(default=[])
     _tool_call_map: Dict = PrivateAttr(default=defaultdict(dict))
     _critique_retry_count: int = PrivateAttr(default=0)
+    _auto_suggest_executor: Optional[ThreadPoolExecutor] = PrivateAttr(default=None)
 
     benchmark_id: Optional[int] = Field(
         description="Current benchmark ID for memory isolation", default=None
@@ -144,6 +148,11 @@ class PerformRefactoring(BaseModel):
             self.ide_server.call_tool(
                 "/review/set_inspecting_file", rel_file_path=self.rel_file_path
             )
+
+            self.ide_server.call_tool(
+                "review/noop", status=f"Inspecting file : {self.rel_file_path}"
+            )
+
             if response.startswith("tool call failed "):
                 return {"messages": HumanMessage("failed to open file")}
             self._file_open_status = True
@@ -300,12 +309,19 @@ class PerformRefactoring(BaseModel):
             self.ide_server.call_tool(
                 "review/noop", status="Prompting the llm."
             )  # call this to set log message in server
-            # Use model without tools for JSON output
-            # todo: @raihan run auto-suggestion and file information in parallel.
+
+            # Start showing auto-suggestions to UI in parallel
+            self._auto_suggest_executor = ThreadPoolExecutor(max_workers=1)
+            self._auto_suggest_executor.submit(self.show_auto_suggestions_to_ui)
+
+            # Run LLM prompt (main thread)
             response = prompt_cache.prompt_stream(
                 self.model, messages, callback=self.analyse_chunk_deco()
             )
-            # todo: @raihan stop the previous thread to get auto-suggestions.
+
+            # Shutdown the executor (don't wait for auto-suggestions to complete)
+            self._auto_suggest_executor.shutdown(wait=False)
+
             return {"messages": [response]}
 
         def get_memory_constraints(current_llm_iteration):
@@ -1313,6 +1329,55 @@ class PerformRefactoring(BaseModel):
             file_path=suggestion.resolved_file_path or self.rel_file_path,
         )
 
+    def show_auto_suggestions_to_ui(self):
+        """Show auto-suggestions to UI while LLM is processing.
+
+        This runs in a separate thread to provide immediate feedback to the user.
+        """
+        try:
+            print("[AUTO-SUGGEST] Starting to fetch and display auto-suggestions")
+
+            # query history to get rename patterns
+            success_patterns = self.orm_memory.get_all_successful_patterns()
+            print(
+                f"[AUTO-SUGGEST] Found {len(success_patterns)} successful patterns from history"
+            )
+
+            for i, pattern in enumerate(success_patterns):
+                # attempt to create objects for all previously successful patterns
+                rename_json = self.ide_server.call_tool(
+                    "form-rename-object-all",
+                    old_name=pattern.old_name,
+                    new_name=pattern.new_name,
+                )
+                try:
+                    rename_objs = json.loads(rename_json)
+                    self.ide_server.call_tool(
+                        "/review/identifiers_inspected", inspected=len(rename_objs)
+                    )
+                    auto_suggestion_str = ""
+                    for i, obj in enumerate(rename_objs):
+                        suggestion = RenameSuggestion(**obj)
+                        # Send each suggestion to UI immediately
+                        auto_suggestion_str += f"Found potential suggestions: {suggestion.code_element_type.value.capitalize()} -> {suggestion.old_name} at line {suggestion.line_num} \n"
+                        self.ide_server.call_tool(
+                            "review/noop",
+                            status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {i+1} locations. {auto_suggestion_str}",
+                        )
+                        sleep(2)
+                        print(
+                            f"[AUTO-SUGGEST] Sent to UI: {suggestion.old_name} → {suggestion.new_name} Code Element: {suggestion.code_element_type.value.capitalize()} at line {suggestion.line_num}"
+                        )
+                except JSONDecodeError:
+                    print(f"[AUTO-SUGGEST] Pattern {pattern} not found in file")
+                except Exception as e:
+                    print(f"[AUTO-SUGGEST] Error processing pattern {pattern}: {e}")
+
+            print(f"[AUTO-SUGGEST] Completed displaying suggestions")
+
+        except Exception as e:
+            print(f"[AUTO-SUGGEST] Error in show_auto_suggestions_to_ui: {e}")
+
     def get_auto_suggestions(self) -> List[RenameSuggestion]:
         # query history to get rename patterns
         if self.new_intent.condition is not None:
@@ -1416,13 +1481,74 @@ class PerformRefactoring(BaseModel):
     def analyse_chunk_deco(self):
         all_chunks = []
 
-        def analyse_chunk(chunk: str):
-            # todo: kill the thread here.
-            all_chunks.append(chunk)
-            self.ide_server.call_tool(
-                "review/noop", status=f"got {len(all_chunks)} tokens from LLM."
-            )
-            # todo: @raihan analyse the partial response and update UI
+        def analyse_chunk(chunk):
+            # Kill the auto-suggestion thread when we start receiving LLM responses
+            if len(all_chunks) == 0 and hasattr(self, "_auto_suggest_executor"):
+                try:
+                    self._auto_suggest_executor.shutdown(wait=False)
+                    print(
+                        "[STREAMING] Stopped auto-suggestion thread, LLM is responding"
+                    )
+                except Exception as e:
+                    print(f"[STREAMING] Error stopping auto-suggest executor: {e}")
+
+            # Extract content from AIMessageChunk
+            chunk_content = chunk.content if hasattr(chunk, "content") else str(chunk)
+            all_chunks.append(chunk_content)
             partial_response = "".join(all_chunks)
 
+            # Try to parse partial JSON and extract suggestions
+            try:
+                suggestions = self._extract_suggestions_from_partial(partial_response)
+                suggestion_str = ""
+                # Send new suggestions to UI
+                for suggestion in suggestions:
+                    suggestion_key = (
+                        suggestion.get("old_name"),
+                        suggestion.get("new_name"),
+                        suggestion.get("line_num"),
+                    )
+
+                    suggestion_str += f"{suggestion['old_name']} → {suggestion['new_name']} at line {suggestion['line_num']} \n"
+
+                self.ide_server.call_tool(
+                    "review/noop",
+                    status=f"Inspecting: {self.rel_file_path}. Found {len(suggestions)} suggestions: \n{suggestion_str}",
+                )
+
+            except Exception:
+                # Parsing errors are expected for incomplete JSON, just continue
+                pass
+
         return analyse_chunk
+
+    def _extract_suggestions_from_partial(self, partial_response: str) -> List[Dict]:
+        suggestions = []
+
+        # Look for individual suggestion objects in the partial response
+        suggestion_pattern = re.compile(
+            r'\{\s*"old_name"\s*:\s*"([^"]+)"\s*,\s*'
+            r'"new_name"\s*:\s*"([^"]+)"\s*,\s*'
+            r'"line_num"\s*:\s*(\d+)\s*,\s*'
+            r'"code_element_type"\s*:\s*"([^"]+)"',
+            re.DOTALL,
+        )
+
+        for match in suggestion_pattern.finditer(partial_response):
+            suggestion = {
+                "old_name": match.group(1),
+                "new_name": match.group(2),
+                "line_num": int(match.group(3)),
+                "code_element_type": match.group(4),
+            }
+            suggestions.append(suggestion)
+            print(
+                f"[PARTIAL PARSE] Found suggestion: {suggestion['old_name']} → {suggestion['new_name']} at line {suggestion['line_num']} ({suggestion['code_element_type']})"
+            )
+
+        if suggestions:
+            print(
+                f"[PARTIAL PARSE] Total {len(suggestions)} suggestions extracted from partial response"
+            )
+
+        return suggestions
