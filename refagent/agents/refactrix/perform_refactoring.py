@@ -1355,7 +1355,7 @@ class PerformRefactoring(BaseModel):
                     self.ide_server.call_tool(
                         "/review/identifiers_inspected", inspected=len(rename_objs)
                     )
-                    auto_suggestion_str = ""
+                    auto_suggestion_str = "\n"
                     for i, obj in enumerate(rename_objs):
                         suggestion = RenameSuggestion(**obj)
                         # Send each suggestion to UI immediately
