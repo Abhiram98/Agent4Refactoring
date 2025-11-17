@@ -150,7 +150,8 @@ class PerformRefactoring(BaseModel):
             )
 
             self.ide_server.call_tool(
-                "review/noop", status=f"Inspecting file : {self.rel_file_path}"
+                "review/noop",
+                status=f"Inspecting file : {self.rel_file_path.split('/')[-1]}",
             )
 
             if response.startswith("tool call failed "):
@@ -306,6 +307,7 @@ class PerformRefactoring(BaseModel):
             file_contents_msg.content += format_instructions
             messages.append(file_contents_msg)
 
+            self.ide_server.call_tool("review/noop", status="Prompting the LLM.")
             # Start showing auto-suggestions to UI in parallel
             self._auto_suggest_executor = ThreadPoolExecutor(max_workers=1)
             self._auto_suggest_executor.submit(self.show_auto_suggestions_to_ui)
@@ -1341,6 +1343,10 @@ class PerformRefactoring(BaseModel):
             ident_count_str = self.ide_server.call_tool("count_identifiers")
             try:
                 total_identifiers = int(ident_count_str)
+                self.ide_server.call_tool(
+                    "review/noop",
+                    status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {total_identifiers} identifiers in file.",
+                )
             except Exception as e:
                 total_identifiers = None
             self.ide_server.call_tool(
@@ -1372,7 +1378,7 @@ class PerformRefactoring(BaseModel):
                     for i, obj in enumerate(rename_objs):
                         suggestion = RenameSuggestion(**obj)
                         # Send each suggestion to UI immediately
-                        auto_suggestion_str += f"Analyzing identifier: {suggestion.code_element_type.value.capitalize()} -> {suggestion.old_name} at line {suggestion.line_num} \n"
+                        auto_suggestion_str += f"Analyzing identifier: {suggestion.code_element_type.value.capitalize()} {suggestion.old_name} at line {suggestion.line_num} \n"
                         self.ide_server.call_tool(
                             "review/noop",
                             status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Analyzing {i+1} locations. \n{auto_suggestion_str}",
