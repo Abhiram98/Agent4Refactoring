@@ -1360,11 +1360,11 @@ class PerformRefactoring(BaseModel):
                         # Send each suggestion to UI immediately
                         self.ide_server.call_tool(
                             "review/noop",
-                            status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Reviewing potential suggestions: {suggestion.code_element_type} -> {suggestion.old_name} at line {suggestion.line_num}",
+                            status=f"Inspecting: {self.rel_file_path.split('/')[-1]}. Reviewing potential suggestions: {suggestion.code_element_type.value.capitalize()} -> {suggestion.old_name} at line {suggestion.line_num}",
                         )
                         sleep(2)
                         print(
-                            f"[AUTO-SUGGEST] Sent to UI: {suggestion.old_name} → {suggestion.new_name} Code Element: {suggestion.code_element_type} at line {suggestion.line_num}"
+                            f"[AUTO-SUGGEST] Sent to UI: {suggestion.old_name} → {suggestion.new_name} Code Element: {suggestion.code_element_type.value.capitalize()} at line {suggestion.line_num}"
                         )
                 except JSONDecodeError:
                     print(f"[AUTO-SUGGEST] Pattern {pattern} not found in file")
