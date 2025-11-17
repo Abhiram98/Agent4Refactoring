@@ -1,5 +1,6 @@
 from collections import defaultdict
 from json import JSONDecodeError
+from time import sleep
 
 from pydantic.v1 import BaseModel, Field, PrivateAttr  # to comply with grazie models
 from typing import List, Dict, Optional
@@ -308,19 +309,19 @@ class PerformRefactoring(BaseModel):
             self.ide_server.call_tool(
                 "review/noop", status="Prompting the llm."
             )  # call this to set log message in server
-            
+
             # Start showing auto-suggestions to UI in parallel
             self._auto_suggest_executor = ThreadPoolExecutor(max_workers=1)
             self._auto_suggest_executor.submit(self.show_auto_suggestions_to_ui)
-            
+
             # Run LLM prompt (main thread)
             response = prompt_cache.prompt_stream(
                 self.model, messages, callback=self.analyse_chunk_deco()
             )
-            
+
             # Shutdown the executor (don't wait for auto-suggestions to complete)
             self._auto_suggest_executor.shutdown(wait=False)
-            
+
             return {"messages": [response]}
 
         def get_memory_constraints(current_llm_iteration):
@@ -1330,19 +1331,21 @@ class PerformRefactoring(BaseModel):
 
     def show_auto_suggestions_to_ui(self):
         """Show auto-suggestions to UI while LLM is processing.
-        
+
         This runs in a separate thread to provide immediate feedback to the user.
         """
         try:
             print("[AUTO-SUGGEST] Starting to fetch and display auto-suggestions")
-            
+
             # query history to get rename patterns
             if self.new_intent.condition is not None:
                 return
-            
+
             success_patterns = self.orm_memory.get_all_successful_patterns()
-            print(f"[AUTO-SUGGEST] Found {len(success_patterns)} successful patterns from history")
-            
+            print(
+                f"[AUTO-SUGGEST] Found {len(success_patterns)} successful patterns from history"
+            )
+
             for i, pattern in enumerate(success_patterns):
                 # attempt to create objects for all previously successful patterns
                 rename_json = self.ide_server.call_tool(
@@ -1357,16 +1360,19 @@ class PerformRefactoring(BaseModel):
                         # Send each suggestion to UI immediately
                         self.ide_server.call_tool(
                             "review/noop",
-                            status=f"Found match {suggestion.code_element_type} -> {suggestion.old_name} at line {suggestion.line_num}"
+                            status=f"Inspecting: {self.rel_file_path}. Found match {suggestion.code_element_type} -> {suggestion.old_name} at line {suggestion.line_num}",
                         )
-                        print(f"[AUTO-SUGGEST] Sent to UI: {suggestion.old_name} → {suggestion.new_name} Code Element: {suggestion.code_element_type} at line {suggestion.line_num}")
+                        sleep(2)
+                        print(
+                            f"[AUTO-SUGGEST] Sent to UI: {suggestion.old_name} → {suggestion.new_name} Code Element: {suggestion.code_element_type} at line {suggestion.line_num}"
+                        )
                 except JSONDecodeError:
                     print(f"[AUTO-SUGGEST] Pattern {pattern} not found in file")
                 except Exception as e:
                     print(f"[AUTO-SUGGEST] Error processing pattern {pattern}: {e}")
-            
+
             print(f"[AUTO-SUGGEST] Completed displaying suggestions")
-            
+
         except Exception as e:
             print(f"[AUTO-SUGGEST] Error in show_auto_suggestions_to_ui: {e}")
 
@@ -1472,76 +1478,75 @@ class PerformRefactoring(BaseModel):
 
     def analyse_chunk_deco(self):
         all_chunks = []
-        parsed_suggestions = set()  # Track suggestions we've already sent to UI
 
         def analyse_chunk(chunk):
             # Kill the auto-suggestion thread when we start receiving LLM responses
-            if len(all_chunks) == 0 and hasattr(self, '_auto_suggest_executor'):
+            if len(all_chunks) == 0 and hasattr(self, "_auto_suggest_executor"):
                 try:
                     self._auto_suggest_executor.shutdown(wait=False)
-                    print("[STREAMING] Stopped auto-suggestion thread, LLM is responding")
+                    print(
+                        "[STREAMING] Stopped auto-suggestion thread, LLM is responding"
+                    )
                 except Exception as e:
                     print(f"[STREAMING] Error stopping auto-suggest executor: {e}")
-            
+
             # Extract content from AIMessageChunk
-            chunk_content = chunk.content if hasattr(chunk, 'content') else str(chunk)
+            chunk_content = chunk.content if hasattr(chunk, "content") else str(chunk)
             all_chunks.append(chunk_content)
             partial_response = "".join(all_chunks)
-            
-            # Update basic status
-            # self.ide_server.call_tool(
-            #     "review/noop", status=f"got {len(all_chunks)} tokens from LLM."
-            # )
-            
+
             # Try to parse partial JSON and extract suggestions
             try:
                 suggestions = self._extract_suggestions_from_partial(partial_response)
-                
+                suggestion_str = ""
                 # Send new suggestions to UI
                 for suggestion in suggestions:
                     suggestion_key = (
-                        suggestion.get('old_name'),
-                        suggestion.get('new_name'),
-                        suggestion.get('line_num')
+                        suggestion.get("old_name"),
+                        suggestion.get("new_name"),
+                        suggestion.get("line_num"),
                     )
-                    
-                    if suggestion_key not in parsed_suggestions:
-                        parsed_suggestions.add(suggestion_key)
-                        self.ide_server.call_tool(
-                            "review/noop",
-                            status=f"LLM suggests: {suggestion['old_name']} → {suggestion['new_name']} at line {suggestion['line_num']}"
-                        )
-                        
+
+                    suggestion_str += f"{suggestion['old_name']} → {suggestion['new_name']} at line {suggestion['line_num']} \n"
+
+                self.ide_server.call_tool(
+                    "review/noop",
+                    status=f"Inspecting: {self.rel_file_path}. Found {len(suggestions)} suggestions: \n{suggestion_str}",
+                )
+
             except Exception:
                 # Parsing errors are expected for incomplete JSON, just continue
                 pass
 
         return analyse_chunk
-    
+
     def _extract_suggestions_from_partial(self, partial_response: str) -> List[Dict]:
         suggestions = []
-        
+
         # Look for individual suggestion objects in the partial response
-        # Pattern: {"old_name": "...", "new_name": "...", "line_num": ..., "code_element_type": "..."}
         suggestion_pattern = re.compile(
             r'\{\s*"old_name"\s*:\s*"([^"]+)"\s*,\s*'
             r'"new_name"\s*:\s*"([^"]+)"\s*,\s*'
             r'"line_num"\s*:\s*(\d+)\s*,\s*'
             r'"code_element_type"\s*:\s*"([^"]+)"',
-            re.DOTALL
+            re.DOTALL,
         )
-        
+
         for match in suggestion_pattern.finditer(partial_response):
             suggestion = {
-                'old_name': match.group(1),
-                'new_name': match.group(2),
-                'line_num': int(match.group(3)),
-                'code_element_type': match.group(4)
+                "old_name": match.group(1),
+                "new_name": match.group(2),
+                "line_num": int(match.group(3)),
+                "code_element_type": match.group(4),
             }
             suggestions.append(suggestion)
-            print(f"[PARTIAL PARSE] Found suggestion: {suggestion['old_name']} → {suggestion['new_name']} at line {suggestion['line_num']} ({suggestion['code_element_type']})")
-        
+            print(
+                f"[PARTIAL PARSE] Found suggestion: {suggestion['old_name']} → {suggestion['new_name']} at line {suggestion['line_num']} ({suggestion['code_element_type']})"
+            )
+
         if suggestions:
-            print(f"[PARTIAL PARSE] Total {len(suggestions)} suggestions extracted from partial response")
-        
+            print(
+                f"[PARTIAL PARSE] Total {len(suggestions)} suggestions extracted from partial response"
+            )
+
         return suggestions
