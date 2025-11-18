@@ -39,7 +39,7 @@ from refagent.agents.refactrix.rename_suggestions import (
     CodeElementType,
 )
 from refagent.agents.memory.orm_memory import ORMRefactoringMemory
-from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Process
 
 
 class PerformRefactoring(BaseModel):
@@ -83,7 +83,7 @@ class PerformRefactoring(BaseModel):
     _performed_refactorings: List = PrivateAttr(default=[])
     _tool_call_map: Dict = PrivateAttr(default=defaultdict(dict))
     _critique_retry_count: int = PrivateAttr(default=0)
-    _auto_suggest_executor: Optional[ThreadPoolExecutor] = PrivateAttr(default=None)
+    _auto_suggest_executor: Optional[Process] = PrivateAttr(default=None)
 
     benchmark_id: Optional[int] = Field(
         description="Current benchmark ID for memory isolation", default=None
@@ -309,8 +309,10 @@ class PerformRefactoring(BaseModel):
 
             self.ide_server.call_tool("review/noop", status="Prompting the LLM.")
             # Start showing auto-suggestions to UI in parallel
-            self._auto_suggest_executor = ThreadPoolExecutor(max_workers=1)
-            self._auto_suggest_executor.submit(self.show_auto_suggestions_to_ui)
+            self._auto_suggest_executor = Process(
+                target=self.show_auto_suggestions_to_ui
+            )
+            self._auto_suggest_executor.start()
 
             # Run LLM prompt (main thread)
             response = prompt_cache.prompt_stream(
@@ -318,7 +320,7 @@ class PerformRefactoring(BaseModel):
             )
 
             # Shutdown the executor (don't wait for auto-suggestions to complete)
-            self._auto_suggest_executor.shutdown(wait=False)
+            self._auto_suggest_executor.terminate()
 
             return {"messages": [response]}
 
@@ -1504,7 +1506,8 @@ class PerformRefactoring(BaseModel):
             # Kill the auto-suggestion thread when we start receiving LLM responses
             if len(all_chunks) == 0 and hasattr(self, "_auto_suggest_executor"):
                 try:
-                    self._auto_suggest_executor.shutdown(wait=False)
+                    self._auto_suggest_executor.terminate()
+                    self._auto_suggest_executor.join(1)
                     print(
                         "[STREAMING] Stopped auto-suggestion thread, LLM is responding"
                     )
