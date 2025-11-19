@@ -55,9 +55,11 @@ class RefineIntent(BaseModel):
                 ),
             ],
         )
-        print(f"Got new scope: "
-              f"Pattern: {self.original_scope.pattern}.\n"
-              f"Guard: {response.content}")
+        print(
+            f"Got new scope: "
+            f"Pattern: {self.original_scope.pattern}.\n"
+            f"Guard: {response.content}"
+        )
         return scope.RenameScope(
             pattern=self.original_scope.pattern, condition=response.content
         )

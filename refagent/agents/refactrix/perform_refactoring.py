@@ -816,7 +816,10 @@ class PerformRefactoring(BaseModel):
                         >= 3
                     ):
                         should_break = True
-                        self.ide_server.call_tool("review/noop")
+                        self.ide_server.call_tool(
+                            "review/noop",
+                            status="Refining scope based on rejected suggestions...",
+                        )
                         # refine intent only when are there are more than threshold number of rejections.
                         _new_scope = RefineIntent(
                             source_code=self.ide_server.call_tool_get(
@@ -847,6 +850,11 @@ class PerformRefactoring(BaseModel):
 
                 if should_break:
                     break
+
+            self.ide_server.call_tool(
+                "/review/reset_rename_suggestions"
+            )  # reset the IDE view panel,
+            # after all suggestions have been dislayed and reviewed.
 
             # Create validated renames result
             validated_result = ValidatedRenames(
