@@ -35,6 +35,7 @@ class HumanValidator(critique.CritiqueComponent):
         )
         json_response = json.loads(response)
         self.ij_server.call_tool("review/noop")
+        print(f"Scope reviewed by developer. {json_response}")
         return scope.RenameScope(**json_response)
 
     @property
