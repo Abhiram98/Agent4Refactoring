@@ -791,6 +791,7 @@ class PerformRefactoring(BaseModel):
                             print(
                                 f"[MEMORY DEBUG] Suggestion '{suggestion.old_name}' → '{suggestion.new_name}' was previously invalid"
                             )
+                            continue
                     except Exception as e:
                         print(
                             f"[MEMORY DEBUG] Error checking previous suggestions: {e}"
@@ -820,9 +821,7 @@ class PerformRefactoring(BaseModel):
                             "review/noop",
                             status="Refining scope based on rejected suggestions...",
                         )
-                        self.ide_server.call_tool(
-                            "/review/reset_rename_suggestions"
-                        )
+                        self.ide_server.call_tool("/review/reset_rename_suggestions")
                         # refine intent only when are there are more than threshold number of rejections.
                         _new_scope = RefineIntent(
                             source_code=self.ide_server.call_tool_get(
