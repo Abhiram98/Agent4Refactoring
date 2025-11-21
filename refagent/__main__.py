@@ -135,7 +135,14 @@ class AgentRunner(BaseModel):
             replication_max_iters=3,
         )
 
-        agent.initialize_agent(starting_file=self.seed_file)
+        try:
+            agent.initialize_agent(starting_file=self.seed_file)
+        except FileNotFoundError as exc:
+            print(
+                f"seed file not found. Likely that multiple projects are open in the IDE."
+            )
+            self.ij_server.call_tool("/review/multiple_projects_open")
+            raise exc
         agent.initialize_critique_component([])
         final_message = agent.run(
             initial_intent=str(initial_scope),
