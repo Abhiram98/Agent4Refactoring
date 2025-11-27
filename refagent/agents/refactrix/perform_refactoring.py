@@ -1352,7 +1352,13 @@ class PerformRefactoring(BaseModel):
             print(
                 f"[AUTO-SUGGEST] Found {len(success_patterns)} successful patterns from history"
             )
-            ident_count_str = self.ide_server.call_tool("count_identifiers")
+            pattern_old_name = self.new_intent.old_name
+            if pattern_old_name is not None:
+                ident_count_str = self.ide_server.call_tool(
+                    "count_identifiers_keyword", keyword=self.new_intent.old_name
+                )
+            else:
+                ident_count_str = self.ide_server.call_tool("count_identifiers")
             try:
                 total_identifiers = int(ident_count_str)
                 self.ide_server.call_tool(
@@ -1361,9 +1367,6 @@ class PerformRefactoring(BaseModel):
                 )
             except Exception as e:
                 total_identifiers = None
-            self.ide_server.call_tool(
-                "/review/identifiers_inspected", inspected=total_identifiers
-            )
 
             for i, pattern in enumerate(success_patterns):
                 # attempt to create objects for all previously successful patterns
