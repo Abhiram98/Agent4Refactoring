@@ -640,27 +640,6 @@ def create_json_analysis(df, repo_path, output_dir, target_commit_hash=None, pro
                     print(f"  - {author_name} has {author_total_commits} commits in the dataset")
                     print(f"  - Total renames: {author_total_renames}")
                     print(f"  - Average renames per commit: {author_avg_renames}")
-                else:
-                    json_data["target_commit_analysis"] = {
-                        "commit_hash": target_commit_hash,
-                        "found_in_dataset": True,
-                        "author_info_available": True,
-                        "target_commit_info": {
-                            "total_rename_in_author_commit": get_rename_instance_count(data['commits'][0]['refactorings']),
-                            "timestamp": ""
-                        },
-                        "author_info": {
-                            "name": author_name,
-                            "email": author_email,
-                            "total_rename_commit_by_author": 1,
-                            "total_rename_by_author": get_rename_instance_count(data['commits'][0]['refactorings']),
-                            "average_renames_per_commit": get_rename_instance_count(data['commits'][0]['refactorings']),
-                            "max_renames_in_single_commit": get_rename_instance_count(data['commits'][0]['refactorings']),
-                            "percentage_of_total_commits": 0,
-                            "percentage_of_total_renames": 0
-                        }
-                    }
-
 
             else:
                 print(f"Failed to process single commit {target_commit_hash}")

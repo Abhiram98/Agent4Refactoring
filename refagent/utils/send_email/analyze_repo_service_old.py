@@ -1,5 +1,5 @@
 import os
-from git_utils import git_pull, get_commit_author_info, get_repo_url
+from git_utils import git_pull, get_commit_author_info
 from collect_commits import get_commits_since_date, save_commits_to_file, process_commits_with_refactoringminer, \
     get_commit_date
 from process_batch import collect_rename_refactorings, save_results_to_json, collect_rename_refactorings_count, \
@@ -275,7 +275,6 @@ def analyze_repo_from_checkpoint(analyzed_repo_info, json_data_of_a_repo, local_
             print(f"Failed to create analysis data for developer: {developer_name}")
     save_analyzed_datapoint(analyzed_datapoints, project_name)
     update_analyzed_repo_info(project_name=project_name,
-                              local_repo_path=local_repo_path,
                               actual_batch_count= analyzed_repo_info[
                                   'batch_analyzed'],
                               total_commits_count=total_commits_count, saved_developer_info=saved_developer_info,
@@ -325,7 +324,7 @@ def analyze_repo_from_beginning(analyzed_repo_info, json_data_of_a_repo, local_r
     print(f"✓ Successfully analyzed repository: {project_name}")
     print(f"Results saved to: {output_dir_base}")
     print(f"Main analysis file: {output_dir_base}/comprehensive_analysis_repository.json")
-    analyzed_repo_info = update_analyzed_repo_info(project_name=project_name, local_repo_path = local_repo_path, actual_batch_count=actual_batch_count, total_commits_count=total_commits_count, saved_developer_info= [])
+    analyzed_repo_info = update_analyzed_repo_info(project_name=project_name, actual_batch_count=actual_batch_count, total_commits_count=total_commits_count, saved_developer_info= [])
     print("Start checking entry by entry to create meta data for emails")
 
     saved_developer_info = []
@@ -357,16 +356,14 @@ def analyze_repo_from_beginning(analyzed_repo_info, json_data_of_a_repo, local_r
         else:
             print(f"Failed to create analysis data for developer: {developer_name}")
     save_analyzed_datapoint(analyzed_datapoints, project_name)
-    update_analyzed_repo_info(project_name=project_name, local_repo_path = local_repo_path, actual_batch_count=actual_batch_count,
+    update_analyzed_repo_info(project_name=project_name, actual_batch_count=actual_batch_count,
                               total_commits_count=total_commits_count, saved_developer_info=saved_developer_info)
 
 
-def update_analyzed_repo_info(project_name, local_repo_path, actual_batch_count, total_commits_count, saved_developer_info,
+def update_analyzed_repo_info(project_name, actual_batch_count, total_commits_count, saved_developer_info,
                               already_analyzed=False, filepath_to_analyzed_repo="analyzed_repo.json"):
     """Update the analyzed repo information in the JSON file"""
-    # Read existing data first'
-
-    remote_repo_url = get_repo_url(local_repo_path)
+    # Read existing data first
     with open(filepath_to_analyzed_repo, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -422,7 +419,7 @@ def update_analyzed_repo_info(project_name, local_repo_path, actual_batch_count,
             "total_commits_found": total_commits_count,
             "batch_analyzed": actual_batch_count,
             "last_analyzed_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "repo_url": remote_repo_url,
+            "repo_url": "",
             "mail_sent_to_developer": email_sent_to_developer,
         }
         data.append(new_project_info)

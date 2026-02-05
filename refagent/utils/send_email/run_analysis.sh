@@ -3,7 +3,7 @@
 # Shell script to download, filter, analyze JSONL files, generate emails, and collect them
 # Usage: ./run_analysis.sh [file1.jsonl file2.jsonl ...] or ./run_analysis.sh (uses default list)
 
-set -e  # Exit on any error
+# set -e  # Exit on any error
 
 # Configuration - use environment variables with fallbacks
 CONDA_ENV="${ANALYSIS_CONDA_ENV:-myenv}"
