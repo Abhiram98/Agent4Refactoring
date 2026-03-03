@@ -1,0 +1,105 @@
+[
+    {
+        "id": 2001,
+        "response": {
+            "changes": [
+                {
+                    "a_filename": "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/expressions/resolver/rules/ResolveCallByArgumentsRule.java",
+                    "b_filename": "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/expressions/resolver/rules/ResolveCallByArgumentsRule.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 265,
+                            "old_lines": 10,
+                            "new_start": 265,
+                            "new_lines": 10,
+                            "content": "@@ -265,10 +265,10 @@ final class ResolveCallByArgumentsRule implements ResolverRule {\n                                     resolutionContext.isGroupedAggregation()),\n                             surroundingInfo);\n \n-            final List<ResolvedExpression> adaptedArguments =\n+            final List<ResolvedExpression> castArguments =\n                     adaptArguments(inferenceResult, resolvedArgs);\n \n-            return unresolvedCall.resolve(adaptedArguments, inferenceResult.getOutputDataType());\n+            return unresolvedCall.resolve(castArguments, inferenceResult.getOutputDataType());\n         }\n \n         /** Adapts the arguments according to the properties of the {@link Result}. */"
+                        }
+                    ],
+                    "patch": "@@ -265,10 +265,10 @@ final class ResolveCallByArgumentsRule implements ResolverRule {\n                                     resolutionContext.isGroupedAggregation()),\n                             surroundingInfo);\n \n-            final List<ResolvedExpression> adaptedArguments =\n+            final List<ResolvedExpression> castArguments =\n                     adaptArguments(inferenceResult, resolvedArgs);\n \n-            return unresolvedCall.resolve(adaptedArguments, inferenceResult.getOutputDataType());\n+            return unresolvedCall.resolve(castArguments, inferenceResult.getOutputDataType());\n         }\n \n         /** Adapts the arguments according to the properties of the {@link Result}. */\n"
+                },
+                {
+                    "a_filename": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/TypeInferenceUtil.java",
+                    "b_filename": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/TypeInferenceUtil.java",
+                    "renamed": false,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 26,
+                            "old_lines": 7,
+                            "new_start": 26,
+                            "new_lines": 7,
+                            "content": "@@ -26,7 +26,7 @@ import org.apache.flink.table.functions.FunctionDefinition;\n import org.apache.flink.table.functions.TableSemantics;\n import org.apache.flink.table.functions.UserDefinedFunctionHelper;\n import org.apache.flink.table.types.DataType;\n-import org.apache.flink.table.types.inference.utils.AdaptedCallContext;\n+import org.apache.flink.table.types.inference.utils.CastCallContext;\n import org.apache.flink.table.types.inference.utils.UnknownCallContext;\n import org.apache.flink.table.types.logical.LogicalTypeRoot;\n "
+                        },
+                        {
+                            "old_start": 124,
+                            "old_lines": 7,
+                            "new_start": 124,
+                            "new_lines": 7,
+                            "content": "@@ -124,7 +124,7 @@ public final class TypeInferenceUtil {\n                             }\n                         });\n \n-        final AdaptedCallContext adaptedCallContext =\n+        final CastCallContext adaptedCallContext =\n                 inferInputTypes(typeInference, callContext, outputType, throwOnInferInputFailure);\n \n         // final check if the call is valid after casting"
+                        },
+                        {
+                            "old_start": 457,
+                            "old_lines": 14,
+                            "new_start": 457,
+                            "new_lines": 14,
+                            "content": "@@ -457,14 +457,14 @@ public final class TypeInferenceUtil {\n         return stringBuilder.toString();\n     }\n \n-    private static AdaptedCallContext inferInputTypes(\n+    private static CastCallContext inferInputTypes(\n             TypeInference typeInference,\n             CallContext callContext,\n             @Nullable DataType outputType,\n             boolean throwOnFailure) {\n \n-        final AdaptedCallContext adaptedCallContext =\n-                new AdaptedCallContext(callContext, outputType);\n+        final CastCallContext adaptedCallContext =\n+                new CastCallContext(callContext, outputType);\n \n         // Static arguments have the highest priority\n         final List<StaticArgument> staticArgs = typeInference.getStaticArguments().orElse(null);"
+                        }
+                    ],
+                    "patch": "@@ -26,7 +26,7 @@ import org.apache.flink.table.functions.FunctionDefinition;\n import org.apache.flink.table.functions.TableSemantics;\n import org.apache.flink.table.functions.UserDefinedFunctionHelper;\n import org.apache.flink.table.types.DataType;\n-import org.apache.flink.table.types.inference.utils.AdaptedCallContext;\n+import org.apache.flink.table.types.inference.utils.CastCallContext;\n import org.apache.flink.table.types.inference.utils.UnknownCallContext;\n import org.apache.flink.table.types.logical.LogicalTypeRoot;\n \n@@ -124,7 +124,7 @@ public final class TypeInferenceUtil {\n                             }\n                         });\n \n-        final AdaptedCallContext adaptedCallContext =\n+        final CastCallContext adaptedCallContext =\n                 inferInputTypes(typeInference, callContext, outputType, throwOnInferInputFailure);\n \n         // final check if the call is valid after casting\n@@ -457,14 +457,14 @@ public final class TypeInferenceUtil {\n         return stringBuilder.toString();\n     }\n \n-    private static AdaptedCallContext inferInputTypes(\n+    private static CastCallContext inferInputTypes(\n             TypeInference typeInference,\n             CallContext callContext,\n             @Nullable DataType outputType,\n             boolean throwOnFailure) {\n \n-        final AdaptedCallContext adaptedCallContext =\n-                new AdaptedCallContext(callContext, outputType);\n+        final CastCallContext adaptedCallContext =\n+                new CastCallContext(callContext, outputType);\n \n         // Static arguments have the highest priority\n         final List<StaticArgument> staticArgs = typeInference.getStaticArguments().orElse(null);\n"
+                },
+                {
+                    "a_filename": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/utils/AdaptedCallContext.java",
+                    "b_filename": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/inference/utils/CastCallContext.java",
+                    "renamed": true,
+                    "copied": false,
+                    "deleted": false,
+                    "change_type": null,
+                    "hunks": [
+                        {
+                            "old_start": 41,
+                            "old_lines": 7,
+                            "new_start": 41,
+                            "new_lines": 7,
+                            "content": "@@ -41,7 +41,7 @@ import static org.apache.flink.table.types.logical.utils.LogicalTypeCasts.suppor\n  * literal before is not a literal anymore in this call context.\n  */\n @Internal\n-public final class AdaptedCallContext implements CallContext {\n+public final class CastCallContext implements CallContext {\n \n     private final CallContext originalContext;\n "
+                        },
+                        {
+                            "old_start": 49,
+                            "old_lines": 7,
+                            "new_start": 49,
+                            "new_lines": 7,
+                            "content": "@@ -49,7 +49,7 @@ public final class AdaptedCallContext implements CallContext {\n \n     private List<DataType> expectedArguments;\n \n-    public AdaptedCallContext(CallContext originalContext, @Nullable DataType outputDataType) {\n+    public CastCallContext(CallContext originalContext, @Nullable DataType outputDataType) {\n         this.originalContext = originalContext;\n         this.expectedArguments = originalContext.getArgumentDataTypes();\n         this.outputDataType = outputDataType;"
+                        }
+                    ],
+                    "patch": "@@ -41,7 +41,7 @@ import static org.apache.flink.table.types.logical.utils.LogicalTypeCasts.suppor\n  * literal before is not a literal anymore in this call context.\n  */\n @Internal\n-public final class AdaptedCallContext implements CallContext {\n+public final class CastCallContext implements CallContext {\n \n     private final CallContext originalContext;\n \n@@ -49,7 +49,7 @@ public final class AdaptedCallContext implements CallContext {\n \n     private List<DataType> expectedArguments;\n \n-    public AdaptedCallContext(CallContext originalContext, @Nullable DataType outputDataType) {\n+    public CastCallContext(CallContext originalContext, @Nullable DataType outputDataType) {\n         this.originalContext = originalContext;\n         this.expectedArguments = originalContext.getArgumentDataTypes();\n         this.outputDataType = outputDataType;\n"
+                }
+            ],
+            "commit_hash": "78674caaaa4d13ce146046e7c219810b970fa51f",
+            "trajectory": [],
+            "performed_refactorings": {},
+            "internal_commits": [
+                "f8ef0b23fccdeb3d96ce72c93e761f90aac4ae08"
+            ],
+            "replication_inspection_data": {
+                "files_matching_oracle": [],
+                "count_files_matching_oracle": 0,
+                "operated_files_count": 0,
+                "operated_files_list": [],
+                "inspected_files_count": 3,
+                "inspected_files_list": [
+                    "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/expressions/resolver/rules/ResolveCallByArgumentsRule.java",
+                    "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/ContextResolvedFunction.java",
+                    "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/expressions/UnresolvedCallExpression.java"
+                ]
+            },
+            "human_review_count": 2,
+            "human_accepted_count": 2,
+            "human_rejected_count": 0
+        }
+    }
+]
