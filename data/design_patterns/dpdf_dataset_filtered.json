@@ -37,7 +37,15 @@
         "pattern": "AbstractFactory",
         "id": 422,
         "github_url": "git://github.com/zkoss/zk.git",
-        "filePath": "zcommon/src/main/java/org/zkoss/idom/input/DefaultIDOMFactory.java"
+        "filePath": "zcommon/src/main/java/org/zkoss/idom/input/DefaultIDOMFactory.java",
+        "is_true_pattern": true,
+        "alternatives": [
+            "Direct Instantiation: Clients instantiate DOM objects directly using their constructors instead of a factory interface.",
+            "Static Factory Methods: A single utility class with static methods for creating DOM components, removing the need for a factory object instance.",
+            "Prototype Pattern: Clients maintain a set of prototypical DOM objects and clone them when new instances are needed.",
+            "Builder Pattern (swap variant): Replace the factory with a `DOMBuilder` that uses a fluent API to incrementally describe the desired DOM structure and produce the final result with a terminal `build()` call — e.g., `new DOMBuilder().element(\"root\").attribute(\"id\", \"1\").text(\"hello\").build()`. Whereas the Abstract Factory focuses on producing individual objects one at a time via separate method calls, the Builder focuses on assembling a complete, complex object graph step-by-step in a single coordinated construction sequence."
+        ],
+        "justification": "This class implements the Abstract Factory pattern by providing a central factory (`IDOMFactory`) to create a whole family of related objects (DOM `Element`, `Attribute`, `Text` nodes, etc.). This allows code that needs to build DOM trees to simply call methods like `.newElement(...)` on the factory without needing to know the complex exact classes that are actually instantiated behind the scenes."
     },
     {
         "average_line_count": 0.0,
@@ -57,7 +65,14 @@
         "pattern": "Adapter",
         "id": 685,
         "github_url": "git://github.com/android/platform_frameworks_base.git",
-        "filePath": "core/java/android/animation/AnimatorListenerAdapter.java"
+        "filePath": "core/java/android/animation/AnimatorListenerAdapter.java",
+        "is_true_pattern": true,
+        "alternatives": [
+            "Direct Interface Implementation: Have clients directly implement the listener interfaces and provide empty method bodies for the events they don't care about.",
+            "Default Interface Methods: Use Java 8+ default methods within the listener interfaces to provide the empty implementations directly, eliminating the need for a separate adapter class.",
+            "Single-Method Functional Interfaces: Decompose the large interfaces into smaller, single-method functional interfaces (e.g., OnAnimationEndListener) so clients can pass lambdas for only the events they care about."
+        ],
+        "justification": "This class implements the Event Adapter variant of the Adapter pattern. It implements large listener interfaces and provides empty 'dummy' bodies for all their methods. Usually, a programmer only cares about one specific animation event (like `onAnimationEnd`). Without this adapter, they would be forced to implement the interface and type out boilerplate empty methods for every single unused event. By extending this adapter instead, they only need to write the method they actually care about."
     },
     {
         "average_line_count": 1.2,
@@ -77,7 +92,14 @@
         "pattern": "Adapter",
         "id": 617,
         "github_url": "git://github.com/commonsguy/cw-omnibus.git",
-        "filePath": "EmPubLite-AndroidStudio/T12-Book/EmPubLite/app/src/main/java/com/commonsware/empublite/ContentsAdapter.java"
+        "filePath": "EmPubLite-AndroidStudio/T12-Book/EmPubLite/app/src/main/java/com/commonsware/empublite/ContentsAdapter.java",
+        "is_true_pattern": true,
+        "alternatives": [
+            "Direct Integration (No Adapter): The UI component (ViewPager) could be heavily modified to directly accept the specific `BookContents` object instead of requiring a generic adapter interface. This tightly couples the UI to the data model.",
+            "Data Structure Conversion: Instead of wrapping the `BookContents` in an adapter, the client could preemptively convert the entire `BookContents` into a generic, pre-approved List of Fragments that the UI component already knows how to handle natively.",
+            "Observer/Publish-Subscribe: The `BookContents` object could publish events whenever its data changes, and the UI component subscribes to these events and manually creates/destroys its own child views/fragments in response, bypassing the adapter-based polling mechanism entirely."
+        ],
+        "justification": "This class acts as an Object Adapter. It takes a specific data source (`BookContents`) and 'adapts' it so that it can be displayed by an Android UI component (like a ViewPager). The UI component only understands how to talk to a standard `PagerAdapter`, so this class bridges the gap by translating standard adapter requests (like 'get the item at position 2') into specific calls on the `BookContents` object."
     },
     {
         "average_line_count": 3.857142857142857,
@@ -137,7 +159,14 @@
         "pattern": "Decorator",
         "id": 279,
         "github_url": "git://github.com/internetarchive/wayback.git",
-        "filePath": "wayback-core/src/main/java/org/archive/wayback/replay/ReplayRendererDecorator.java"
+        "filePath": "wayback-core/src/main/java/org/archive/wayback/replay/ReplayRendererDecorator.java",
+        "is_true_pattern": true,
+        "alternatives": [
+            "Subclassing (Inheritance): Create a concrete subclass for every single possible variation or combination of renderer behaviors, rather than wrapping them at runtime.",
+            "Conditional Logic in Concrete Class: Put all the 'extra' behaviors directly into a single massive `ReplayRenderer` implementation and use boolean flags to toggle behaviors on and off.",
+            "Event Listeners/Hooks/Interceptors: Design the base `ReplayRenderer` to fire 'beforeRender' and 'afterRender' events, allowing external listener classes to hook in and modify the behavior without wrapping the object."
+        ],
+        "justification": "This is a classic Abstract Decorator base class. It implements the `ReplayRenderer` interface while simultaneously holding a reference to another `ReplayRenderer` object (the `decorated` field). Subclasses of this decorator can then override `renderResource` to add extra behavior before or after delegating the core work to the wrapped inner `decorated` instance. This allows behaviors to be mixed and matched at runtime without creating a massive subclass hierarchy."
     },
     {
         "average_line_count": 17.0,
@@ -297,7 +326,15 @@
         "pattern": "Observer",
         "id": 686,
         "github_url": "git://github.com/android/platform_frameworks_base.git",
-        "filePath": "core/java/android/content/SyncStatusObserver.java"
+        "filePath": "core/java/android/content/SyncStatusObserver.java",
+        "is_true_pattern": true,
+        "justification": "This interface defines the 'Observer' role in Android's sync status notification system. In the Observer pattern, there is a 'Subject' (the thing being watched) and one or more 'Observers' (the things that get notified). Here, `SyncStatusObserver` is the Observer contract: any class that wants to be notified when the device's sync status changes must implement this interface and provide a body for `onStatusChanged(int which)`. The Android sync system (the Subject, `ContentResolver`) maintains a list of registered `SyncStatusObserver` instances. When sync status changes — for example, when a sync starts or finishes — it calls `onStatusChanged` on every registered observer automatically. The observer doesn't need to repeatedly poll for changes; it simply waits to be called.",
+        "alternatives": [
+            "Polling: Instead of registering a callback, the client periodically calls a method like `ContentResolver.isSyncActive()` in a loop or on a timer to check the current sync status. This removes the need for the observer interface entirely but wastes resources and introduces latency.",
+            "Event Bus / Broadcast Receiver: The sync system broadcasts an Intent (e.g., `ContentResolver.ACTION_SYNC_CONN_STATUS_CHANGED`) when the status changes, and interested components register a `BroadcastReceiver` to catch it. This decouples observers from the subject more loosely, but requires an Android-specific message-passing infrastructure instead of a direct callback interface.",
+            "Future / Callback with Return Value: Instead of a listener interface, the client calls a method that returns a `Future<SyncStatus>`, blocking or using `.get()` to retrieve the result when the sync operation completes. This is a one-shot mechanism suitable for a single sync event rather than ongoing status monitoring.",
+            "Pull Observer (swap variant): Change `onStatusChanged(int which)` to `onStatusChanged()` with no arguments. The observer is merely told that something changed, and it is then responsible for calling back into `ContentResolver` to pull the current sync status details itself. This is the Pull variant of the Observer pattern — the Subject pushes less data per notification, and observers only fetch what they actually need."
+        ]
     },
     {
         "average_line_count": 1.0,
@@ -317,7 +354,15 @@
         "pattern": "Observer",
         "id": 916,
         "github_url": "git://github.com/apache/cxf.git",
-        "filePath": "rt/frontend/jaxws/src/test/java/org/apache/cxf/jaxws/MessageReplayObserver.java"
+        "filePath": "rt/frontend/jaxws/src/test/java/org/apache/cxf/jaxws/MessageReplayObserver.java",
+        "is_true_pattern": true,
+        "justification": "This class is a concrete Observer in CXF's messaging system. It implements the `MessageObserver` interface, which is the Observer contract: any class that wants to react to an incoming `Message` must implement `onMessage(Message message)`. The CXF transport layer (the Subject) holds a reference to a registered `MessageObserver` and calls `onMessage` whenever a message arrives. In this test helper's case, when notified, it reads the incoming message and writes a canned response back on the back-channel — all without the transport layer knowing anything about what the observer does internally.",
+        "alternatives": [
+            "Polling: The client repeatedly calls a `getMessage()` method on the transport object in a loop to check whether a new message has arrived, rather than waiting to be notified via a callback interface.",
+            "Future/CompletableFuture: The transport layer returns a `CompletableFuture<Message>` when a message is expected; the client attaches a `.thenAccept()` handler for one-shot processing, removing the need to register a persistent observer interface.",
+            "Message Queue / Producer-Consumer: Incoming messages are placed on a `BlockingQueue` by the transport layer, and the client runs a dedicated thread that calls `queue.take()` to consume them, bypassing the observer interface entirely.",
+            "Pull Observer (swap variant): Change `onMessage(Message message)` to `onMessageAvailable(MessageHandle handle)`, passing only a lightweight handle instead of the full message. The observer then calls `handle.getMessage()` only if and when it actually needs the content. This is the Pull variant of the Observer pattern — useful when delivering the full `Message` object eagerly is expensive and some observers may not need it at all."
+        ]
     },
     {
         "average_line_count": 1.5555555555555556,
@@ -337,7 +382,14 @@
         "pattern": "Prototype",
         "id": 720,
         "github_url": "git://github.com/AxonFramework/AxonFramework.git",
-        "filePath": "stash/todo/src/main/java/org/axonframework/spring/eventsourcing/SpringPrototypeAggregateFactory.java"
+        "filePath": "stash/todo/src/main/java/org/axonframework/spring/eventsourcing/SpringPrototypeAggregateFactory.java",
+        "is_true_pattern": true,
+        "justification": "This class implements the Prototype pattern via Spring's prototype bean scope. Instead of using `new MyAggregate(...)` to create aggregate instances, it delegates to `applicationContext.getBean(prototypeBeanName)`. In Spring, a 'prototype' scoped bean is one where the container creates a fresh, fully-configured copy (clone) each time `getBean` is called. This factory is the mechanism that triggers those cloned copies, making `SpringPrototypeAggregateFactory` a classic Prototype factory: it creates new objects by asking the container to copy a configured prototype, rather than constructing them from scratch each time.",
+        "alternatives": [
+            "Direct Instantiation with new: The factory simply calls `new T()` (or uses reflection via `aggregateType.getDeclaredConstructor().newInstance()`) to create each aggregate, abandoning the prototype copy mechanism and any Spring-managed wiring.",
+            "Abstract Factory Method: Define an `AggregateFactory` interface with a `createAggregate()` factory method; each concrete subclass hardcodes which specific aggregate type it instantiates, removing the need to manage prototype bean names or a Spring context.",
+            "Object Pool: Instead of cloning a prototype on every request, maintain a pool of pre-created aggregate instances and reuse them by resetting their state before lending them out, avoiding repeated object creation entirely."
+        ]
     },
     {
         "average_line_count": 1.5555555555555556,
@@ -357,7 +409,14 @@
         "pattern": "Prototype",
         "id": 721,
         "github_url": "git://github.com/AxonFramework/AxonFramework.git",
-        "filePath": "stash/todo/src/main/java/org/axonframework/spring/eventsourcing/SpringPrototypeAggregateFactory.java"
+        "filePath": "stash/todo/src/main/java/org/axonframework/spring/eventsourcing/SpringPrototypeAggregateFactory.java",
+        "is_true_pattern": true,
+        "justification": "This is the same class as id 720 (`SpringPrototypeAggregateFactory`) and applies identically. It implements the Prototype pattern via Spring's prototype bean scope. Instead of using `new MyAggregate(...)` to create aggregate instances, it delegates to `applicationContext.getBean(prototypeBeanName)`. In Spring, a 'prototype' scoped bean is one where the container creates a fresh, fully-configured copy (clone) each time `getBean` is called. This factory is the mechanism that triggers those cloned copies, making it a classic Prototype factory: it creates new objects by asking the container to copy a configured prototype, rather than constructing them from scratch each time.",
+        "alternatives": [
+            "Direct Instantiation with new: The factory simply calls `new T()` (or uses reflection via `aggregateType.getDeclaredConstructor().newInstance()`) to create each aggregate, abandoning the prototype copy mechanism and any Spring-managed wiring.",
+            "Abstract Factory Method: Define an `AggregateFactory` interface with a `createAggregate()` factory method; each concrete subclass hardcodes which specific aggregate type it instantiates, removing the need to manage prototype bean names or a Spring context.",
+            "Object Pool: Instead of cloning a prototype on every request, maintain a pool of pre-created aggregate instances and reuse them by resetting their state before lending them out, avoiding repeated object creation entirely."
+        ]
     },
     {
         "average_line_count": 1.5,
@@ -377,7 +436,14 @@
         "pattern": "Proxy",
         "id": 278,
         "github_url": "git://github.com/internetarchive/wayback.git",
-        "filePath": "wayback-core/src/main/java/org/archive/wayback/liveweb/ARCRecordingProxy.java"
+        "filePath": "wayback-core/src/main/java/org/archive/wayback/liveweb/ARCRecordingProxy.java",
+        "is_true_pattern": true,
+        "justification": "This class is a Caching Proxy. It sits between a client (a browser or other HTTP consumer) and the live web. When a client requests a URL, instead of the client fetching it directly, `ARCRecordingProxy` intercepts the request (`handleRequest`), fetches and caches the URL as an ARC archive record via `URLtoARCCacher`, and then serves the raw ARC record back. The client never talks to the live web directly — the proxy mediates all access, adding the extra behavior of archival caching transparently.",
+        "alternatives": [
+            "Direct Access: The client fetches the live URL itself using an HTTP client, and separately calls an archival API to record it — removing the proxy intermediary entirely and making the client responsible for both fetching and recording.",
+            "Decorator Pattern: Wrap the HTTP response stream with a `RecordingInputStream` that transparently writes bytes to an ARC file as the client reads them, adding recording behavior to the stream rather than introducing a separate proxy layer.",
+            "Aspect-Oriented Programming (AOP): Use an AOP interceptor (e.g., Spring AOP) that intercepts outgoing HTTP calls, records the response to ARC format as a side effect, and then passes the response through — removing explicit proxy class code."
+        ]
     },
     {
         "average_line_count": 4.5,
@@ -397,7 +463,14 @@
         "pattern": "Proxy",
         "id": 287,
         "github_url": "git://github.com/internetarchive/wayback.git",
-        "filePath": "wayback-core/src/main/java/org/archive/wayback/liveweb/ARCUnwrappingProxy.java"
+        "filePath": "wayback-core/src/main/java/org/archive/wayback/liveweb/ARCUnwrappingProxy.java",
+        "is_true_pattern": true,
+        "justification": "This class is a Protocol-Translating Proxy. It proxies requests to an `ARCRecordingProxy`, which returns responses in a proprietary `application/x-arc-record` MIME format. The `ARCUnwrappingProxy` intercepts those responses, unwraps the ARC envelope to extract the real inner HTTP response (status code, headers, body), and forwards the normal HTTP response to the original client. The client (e.g., a browser) only sees a regular HTTP response — the proxy transparently hides the ARC format translation.",
+        "alternatives": [
+            "Client-Side Unwrapping: The client directly calls `ARCRecordingProxy`, receives the raw ARC-format response, and is responsible for parsing and unwrapping it itself — removing the proxy and putting the translation burden on the caller.",
+            "Adapter Pattern: Create an `ARCResponseAdapter` class that takes an ARC response object and exposes it through a standard `HttpServletResponse`-like interface, used by the client directly without going through an HTTP proxy layer.",
+            "Pipeline / Filter Chain: Model the ARC unwrapping as a servlet filter in a chain — the first filter calls `ARCRecordingProxy` for the raw content, the next filter unwraps the ARC record, and the final filter sends the result to the client, spreading the translation across coordinated filter steps."
+        ]
     },
     {
         "average_line_count": 1.0,
@@ -457,7 +530,15 @@
         "pattern": "Visitor",
         "id": 397,
         "github_url": "git://github.com/haraldk/TwelveMonkeys.git",
-        "filePath": "common/common-lang/src/main/java/com/twelvemonkeys/util/Visitor.java"
+        "filePath": "common/common-lang/src/main/java/com/twelvemonkeys/util/Visitor.java",
+        "is_true_pattern": true,
+        "justification": "This is the Visitor interface — the core contract of the Visitor pattern. In the Visitor pattern, you have a data structure (e.g., a tree or collection) and you want to perform different operations on its elements without modifying the element classes. This generic `Visitor<T>` interface defines what every visitor must do: implement `visit(T pElement)`. Concrete visitors (e.g., a printing visitor, a counting visitor) implement this interface with their own logic. The elements being visited simply call `visitor.visit(this)`, delegating the operation to whatever visitor is passed in, keeping element classes clean and allowing new operations to be added by writing new `Visitor` implementations.",
+        "alternatives": [
+            "Adding Methods to Element Classes: Instead of a separate visitor, add the operation logic (e.g., `print()`, `count()`) directly as methods on each element class. This avoids the visitor dispatch but violates the Open/Closed Principle — adding a new operation means modifying every element class.",
+            "instanceof Chains / Pattern Matching: The caller iterates over elements and uses a series of `instanceof` checks (or Java 21 pattern matching) to dispatch to type-specific logic, removing the need for a visitor interface at the cost of coupling the operation code to knowledge of all element types.",
+            "Strategy Pattern per Element Type: Each element type holds a configurable `Strategy` object for the operation; callers set the appropriate strategy before iterating. This avoids double-dispatch but requires each element to be aware of and store an operation strategy.",
+            "Iterator Pattern: Instead of passing a `Visitor` into the collection, expose an `Iterator<T>` from the collection and let the caller pull elements one by one with a `for` loop or `forEach` lambda. This works well when operations are simple and uniform — e.g., `elements.iterator()` + a lambda — but loses the Visitor's ability to cleanly separate multiple distinct operations into their own classes."
+        ]
     },
     {
         "average_line_count": 8.8,
@@ -477,6 +558,14 @@
         "pattern": "Visitor",
         "id": 917,
         "github_url": "git://github.com/apache/cxf.git",
-        "filePath": "tools/corba/src/main/java/org/apache/cxf/tools/corba/processors/idl/ExceptionVisitor.java"
+        "filePath": "tools/corba/src/main/java/org/apache/cxf/tools/corba/processors/idl/ExceptionVisitor.java",
+        "is_true_pattern": true,
+        "justification": "This class is a concrete Visitor in CXF's IDL-to-WSDL compiler. The compiler represents an IDL file as an Abstract Syntax Tree (AST), where each node is a different IDL construct (like an exception, an interface, a struct, etc.). Instead of putting the WSDL-generation logic inside each AST node class, the Visitor pattern is used: each dedicated visitor class (like this `ExceptionVisitor`) encapsulates the logic for processing one type of IDL node. When the compiler encounters an `exception` node in the AST, it calls `ExceptionVisitor.visit(AST node)`, which then handles all the work of generating the corresponding XML Schema types and WSDL fault messages, without the AST node class needing to know anything about WSDL.",
+        "alternatives": [
+            "Adding Processing Logic Directly to AST Node Classes: Each AST node type (ExceptionNode, InterfaceNode, StructNode, etc.) would have its own `generateWSDL()` method. This removes the visitor dispatch but forces all WSDL-generation code into the same classes that handle parsing, making them harder to maintain and extend.",
+            "Large Switch/If-Else Dispatcher: A single `IDLProcessor` class contains a giant `switch` statement on the node type, and inline code for handling each IDL construct in one place. This is simpler to trace but quickly becomes unmaintainable as the number of IDL constructs grows.",
+            "Interpreter Pattern: Each AST node type implements an `interpret(Context ctx)` method that performs its own processing using a shared context object. This is similar to putting logic in node classes but uses a shared context for accumulating results, blurring the line between the structure and the operation.",
+            "Iterator Pattern: Build a pre-order tree `Iterator<AST>` that flattens the AST into a sequential stream of nodes. The caller iterates over all nodes, filters for those of type `LITERAL_exception`, and processes them inline. This works but trades the Visitor's clean per-node-type encapsulation for a two-step 'find then process' loop, which becomes harder to manage as more IDL node types need handling."
+        ]
     }
 ]
