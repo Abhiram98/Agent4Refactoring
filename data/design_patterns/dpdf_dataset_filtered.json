@@ -567,5 +567,35 @@
             "Interpreter Pattern: Each AST node type implements an `interpret(Context ctx)` method that performs its own processing using a shared context object. This is similar to putting logic in node classes but uses a shared context for accumulating results, blurring the line between the structure and the operation.",
             "Iterator Pattern: Build a pre-order tree `Iterator<AST>` that flattens the AST into a sequential stream of nodes. The caller iterates over all nodes, filters for those of type `LITERAL_exception`, and processes them inline. This works but trades the Visitor's clean per-node-type encapsulation for a two-step 'find then process' loop, which becomes harder to manage as more IDL node types need handling."
         ]
+    },
+    {
+        "project_name": "hbase",
+        "class_name": "TableBuilder",
+        "pattern": "Builder",
+        "id": 1001,
+        "github_url": "git://github.com/apache/hbase.git",
+        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/TableBuilder.java",
+        "is_true_pattern": true,
+        "justification": "This interface is a textbook Builder pattern for constructing a `Table` connection object. Creating a `Table` requires several optional configuration values — operation timeouts, RPC timeouts for reads vs. writes, and request attributes — but a caller usually only wants to tweak one or two of them. Instead of forcing a massive constructor with all possible parameters (which becomes unreadable), the Builder pattern lets a caller chain only the settings it cares about, then call `build()` at the end to get a fully configured `Table`. Each setter (e.g., `setOperationTimeout`, `setReadRpcTimeout`) returns the `TableBuilder` itself, enabling fluent method chaining like `connection.getTableBuilder(tableName, pool).setOperationTimeout(5000).setReadRpcTimeout(2000).build()`. The implementation fills in sensible defaults for anything not explicitly set.",
+        "alternatives": [
+            "Telescoping Constructors: Provide multiple overloaded `Table` constructors — one for each common combination of parameters (e.g., just operation timeout, or operation timeout + rpc timeout). This quickly becomes unwieldy as the number of optional parameters grows, and callers must remember argument order.",
+            "Configuration/Options Object: Introduce a plain `TableConfig` POJO with public fields or setters. The caller populates the config object and passes it to a single `Table(TableConfig config)` constructor. Unlike a Builder, the config object is mutable and reusable, but there is no fluent chaining and no terminal `build()` step enforcing immutability of the result.",
+            "Static Factory Methods with Named Variants: Provide multiple static factory methods on a `Tables` utility class, each encoding a common preset — e.g., `Tables.withDefaultTimeouts(name)`, `Tables.withCustomReadTimeout(name, readMs)`. This avoids a builder class entirely but scales poorly once every parameter combination needs its own method."
+        ]
+    },
+    {
+        "project_name": "cxf",
+        "class_name": "ServiceBuilder",
+        "pattern": "Builder",
+        "id": 1002,
+        "github_url": "git://github.com/apache/cxf.git",
+        "filePath": "core/src/main/java/org/apache/cxf/service/ServiceBuilder.java",
+        "is_true_pattern": true,
+        "justification": "This interface follows the Builder pattern for constructing a `ServiceInfo` object that describes a CXF web service. Building a service requires multiple independent pieces of configuration — a binding ID, a transport ID, a bus, an address, and a service class — none of which depends on the others being set first. Rather than passing all of these through a single, long constructor, `ServiceBuilder` separates the configuration step (the `setX` methods) from the creation step (`createService()`). A caller sets only the properties relevant to its scenario, then calls `createService()` to get the fully assembled `ServiceInfo`. The `validate()` hook allows the builder to verify that all required properties were supplied before construction proceeds. Note that unlike a fluent builder, the setters here return `void` rather than `this`, so method calls cannot be chained — this is a non-fluent Builder variant focused purely on staged configuration and deferred construction.",
+        "alternatives": [
+            "Constructor with All Parameters: Pass every configuration value — binding ID, transport ID, bus, address, service class — directly to the `ServiceInfo` constructor. This is simpler for small objects but makes call sites verbose and brittle when new configuration fields are added, since every constructor call must be updated.",
+            "Fluent Builder (Refactor): Change all `void setX(...)` methods to return `ServiceBuilder` so calls can be chained: `builder.setBindingId(id).setAddress(addr).createService()`. This is a straightforward upgrade to the standard fluent Builder style and makes the configuration sequence more readable at the call site.",
+            "Factory Method with a Config Map: Replace the typed setters with a single `setProperty(String key, Object value)` method backed by an internal map. The terminal `createService()` reads from the map. This removes compile-time safety for individual properties but makes the interface more extensible without changing the contract when new CXF configuration keys are added."
+        ]
     }
 ]
