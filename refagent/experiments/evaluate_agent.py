@@ -219,7 +219,7 @@ def main():
         print(f"{id=}")
 
         assert id == bench_point.ref_id
-        commit = result["response"]["commit_hash"]
+        commit = result.get('new_commit_hash') or result["response"]["commit_hash"]
         project = pm.EvalProject(bench_point.project_name)
         refactorings = rminer.default_runner.run(project.get_project_path(), commit)
         refactorings = [i for i in refactorings if i.type.split()[0] == "Rename"]
@@ -313,12 +313,18 @@ def main():
         else:
             accepted_rate = None
 
-        operated_files_count = result["response"]["replication_inspection_data"].get(
-            "operated_files_count"
-        )
-        inspected_files_count = result["response"]["replication_inspection_data"].get(
-            "inspected_files_count"
-        )
+        replication_data = result["response"].get("replication_inspection_data")
+        if replication_data is not None:
+            operated_files_count = replication_data.get(
+                "operated_files_count"
+            )
+            inspected_files_count = replication_data.get(
+                "inspected_files_count"
+            )
+        else:
+            operated_files_count = None
+            inspected_files_count = None
+
         (
             first_file_precision,
             first_file_recall,
@@ -405,6 +411,8 @@ def main():
                 "tp_sec_files": tp_sec_files,
                 "fp_starting_file": fp_starting_file,
                 "fp_sec_files": fp_sec_files,
+                "tp_count": len(true_positives),
+                "fp_count": len(false_positives),
                 "secondary_files_precision": secondary_files_precision,
                 "secondary_files_recall": secondary_files_recall,
                 "accepted_starting_file": accepted_starting_file,

@@ -60,6 +60,7 @@ if __name__ == "__main__":
     telemetry_folder = refagent.data_folder.joinpath("telemetry")
     files = [i for i in os.listdir(telemetry_folder) if 'jsonl' in i]
 
+    print(f"{len(files)} telemetry files found in {telemetry_folder}")
     all_data = []
 
     for fname in files:

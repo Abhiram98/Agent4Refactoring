@@ -83,7 +83,7 @@ def create_grazie_model():
         grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
         client_auth_type=AuthType.APPLICATION,
         client_url=GrazieApiGatewayUrls.PRODUCTION,
-        profile="openai-gpt-4o-mini",
+        profile="openai-gpt-5-mini",
         client_agent_name="simple-rename-script",
         client_agent_version="0.1",
     )
@@ -96,7 +96,7 @@ def load_json_data(json_file_path):
     return data
 
 
-def process_single_item(item_data, intellij_server, model):
+def process_single_item(item_data, model):
     """Process a single item from the JSON data."""
 
     # Step 1: Extract required fields
@@ -143,8 +143,6 @@ def process_single_item(item_data, intellij_server, model):
         print(f"[Git] ✅ : Successfully checked out to {v1_hash}")
 
         # Open project in IntelliJ
-        intellij_server.open_project(project_path=project.get_project_path())
-        intellij_server.reload_project()
         print("[Intellij] ✅ : Project opened and reloaded in IntelliJ")
 
     except Exception as e:
@@ -153,8 +151,8 @@ def process_single_item(item_data, intellij_server, model):
 
     # Step 3: Open the file in IntelliJ and get its content
     try:
-        intellij_server.open_file(rel_file_path=Path(starting_file))
-        file_content = intellij_server.call_tool_get("get_source_code")
+        with open(project.get_project_path().joinpath(starting_file), "r") as f:
+            file_content = f.read()
 
         if not file_content or file_content.startswith("tool call failed"):
             print(f"[Intellij] ❌ : Failed to get file content: {file_content}")
@@ -185,16 +183,19 @@ def process_single_item(item_data, intellij_server, model):
         # Create prompt for LLM
         system_message = SystemMessage(
             content="""
-You are a code refactoring assistant. Your task is to rename variables in the given code.
-You will be given the current code and instructions to rename a specific variable.
-Return ONLY the modified code with the variable renamed. Do not include any explanations or markdown formatting.
-Make sure to rename ALL occurrences of the variable consistently throughout the code.
-"""
+            You are a code refactoring assistant. Your task is to rename variables in the given code.
+            You will be given the path to the current code and instructions to rename a specific variable.
+            Apply the changes directly to the files.
+
+            Use the provided rename as a seed to infer the broader naming concept being changed.
+            Rename ALL occurrences that share the same concept consistently.
+            Finally, output the entire code.
+            """
         )
 
         user_message = HumanMessage(
             content=f"""
-Please rename the variable '{old_name}' to '{new_name}' in the following code:
+Please rename the variable '{old_name}' to '{new_name}' in the following code. Rename all conceptually related identifiers:
 
 {file_content}
 
@@ -214,17 +215,9 @@ Return only the modified code with the variable renamed.
 
     # Step 5: Replace file contents using IntelliJ API
     try:
-        replace_response = intellij_server.call_tool(
-            "replace_file_contents", file_path=starting_file, new_content=modified_code
-        )
 
-        if replace_response and not replace_response.startswith("tool call failed"):
-            print("[Intellij] ✅ : Successfully replaced file contents")
-        else:
-            print(
-                f"[Intellij] ❌ : Failed to replace file contents: {replace_response}"
-            )
-            return False
+        with open(project.get_project_path().joinpath(starting_file), "w") as f:
+            f.write(modified_code)
 
     except Exception as e:
         print(f"[Intellij] ❌ : Error replacing file contents: {e}")
@@ -238,86 +231,11 @@ Return only the modified code with the variable renamed.
 
         print(f"[Git] ✅ : Successfully committed changes: {commit_hash}")
 
-        # Step 7: Run RefactoringMiner on the new commit to analyze what was actually changed
-        detected_refactorings = []
-        recall = 0.0
-        precision = 0.0
-
-        try:
-            print("[RefMiner] ⌛️ : Running RefactoringMiner on new commit...")
-            all_refactorings = rminer.default_runner.run(
-                project.get_project_path(), str(commit_hash)
-            )
-
-            # Filter for rename refactorings only
-            detected_refactorings = [
-                r for r in all_refactorings if r.type in RENAME_TYPES
-            ]
-            print(f"[RefMiner] 🔎️ : {len(detected_refactorings)} rename refactorings")
-
-            # Get original refactoring changes (oracle)
-            oracle_refactorings = item_data.get("refactoring_changes", [])
-            oracle_renames = [
-                r for r in oracle_refactorings if r.get("type") in RENAME_TYPES
-            ]
-
-            # Calculate recall and precision
-            if oracle_renames or detected_refactorings:
-                # Convert oracle refactorings to RefMiner objects for comparison
-                oracle_objects = []
-                for oracle_dict in oracle_renames:
-                    try:
-                        oracle_obj = refactoring_types.RefminerOut.load_from_dictionary(
-                            oracle_dict
-                        )
-                        oracle_objects.append(oracle_obj)
-                    except Exception as e:
-                        print(
-                            f"[RefMiner] ❌ : Error converting oracle refactoring: {e}"
-                        )
-                        continue
-
-                # Find matches between oracle and detected refactorings
-                true_positives = []
-                for oracle in oracle_objects:
-                    for detected in detected_refactorings:
-                        if oracle == detected:  # Compare using the __eq__ method
-                            if detected not in true_positives:
-                                true_positives.append(detected)
-                                break  # Found a match, move to next oracle
-
-                recall = (
-                    (len(true_positives) - 1) / (len(oracle_objects) - 1)
-                    if (len(oracle_objects) > 1 and len(true_positives) > 1)
-                    else 0.0
-                )
-                precision = (
-                    (len(true_positives) - 1) / (len(detected_refactorings) - 1)
-                    if (len(detected_refactorings) > 1 and len(true_positives) > 1)
-                    else 0.0
-                )
-
-                print(f"[Eval] ⌛️ : Evaluation: {len(true_positives)} true positives")
-                print(
-                    f"[Eval] ⌛️ : Oracle renames: {len(oracle_objects)}, Detected renames: {len(detected_refactorings)}"
-                )
-                print(f"[Eval] ⌛️ : Recall: {recall:.2f}, Precision: {precision:.2f}")
-            else:
-                print("[Data] ❌ : No oracle or detected refactorings to compare")
-
-        except Exception as e:
-            print(f"[RefMiner] ❌ : Error running RefactoringMiner: {e}")
 
         # Return the result data with RefactoringMiner analysis
         result_data = {
             "id": item_id,
-            "v1_hash": v1_hash,
-            "starting_file": starting_file,
-            "refactoring_changes": item_data.get("refactoring_changes", []),
-            "new_commit_hash": str(commit_hash),
-            "detected_refactorings": [r.model_dump() for r in detected_refactorings],
-            "recall": recall,
-            "precision": precision,
+            "response": {"commit_hash": str(commit_hash)},
         }
         return result_data
 
@@ -339,12 +257,6 @@ def main():
         help="Path to the JSON file to process (default: benchmark_lite_file)",
     )
     parser.add_argument(
-        "--ij-server-url",
-        type=str,
-        default=refagent.IJ_SERVER_URL or "http://localhost:8082",
-        help="IntelliJ server URL (default: http://localhost:8082)",
-    )
-    parser.add_argument(
         "--max-items",
         type=int,
         default=5,
@@ -361,55 +273,51 @@ def main():
 
     # Configuration
     json_file_path = args.json_file
-    ij_server_url = args.ij_server_url
     max_items = args.max_items
     output_file = args.output_file
 
     # Initialize components
     print("Initializing components...")
     print(f"Reading JSON data from: {json_file_path}")
-    print(f"IntelliJ server URL: {ij_server_url}")
     print(f"Max items to process: {max_items}")
     print(f"Output file: {output_file}")
 
     # Load JSON data directly (not using benchmark loader)
     json_data = load_json_data(json_file_path)
+    try:
+        cached_ids = [i['id'] for i in load_json_data(output_file)]
+    except FileNotFoundError:
+        cached_ids = []
 
     # Create Grazie model
     model = create_grazie_model()
 
     # Initialize IntelliJ server
-    intellij_server = ij.IntellijServer(server_url=ij_server_url)
 
     # Process items (limit to specified max_items for testing)
     success_count = 0
     total_count = min(max_items, len(json_data))
-    results = []  # Store successful results
+    results = [] if len(cached_ids) == 0  else load_json_data(output_file) # Store successful results
 
     for i, item in enumerate(json_data[:total_count]):
         print(f"\n--- Processing item {i + 1}/{total_count} ---")
 
         # Process the item
-        result = process_single_item(item, intellij_server, model)
+        ref_id = item.get('id', 'unknown')
+        if ref_id in cached_ids:
+            print(f"Skipping {ref_id} because it is already processed.")
+            continue
+        result = process_single_item(item, model)
         if result:  # result is now a dict with commit data or False on failure
             success_count += 1
             results.append(result)
-            print(f" ✅ Successfully processed item {item.get('id', 'unknown')}")
+            print(f" ✅ Successfully processed item {ref_id}")
         else:
-            print(f" ❌ Failed to process item {item.get('id', 'unknown')}")
+            print(f" ❌ Failed to process item {ref_id}")
 
     print("\n=== Summary ===")
     print(f"Successfully processed: {success_count}/{total_count} items")
 
-    # Create output JSON file with results
-    # Output format: array of results with fields:
-    # [
-    #   {
-    #     "id", "v1_hash", "starting_file", "refactoring_changes", "new_commit_hash",
-    #     "detected_refactorings", "recall", "precision"
-    #   },
-    #   ...
-    # ]
     if results:
         with open(output_file, "w") as f:
             json.dump(results, f, indent=4)
