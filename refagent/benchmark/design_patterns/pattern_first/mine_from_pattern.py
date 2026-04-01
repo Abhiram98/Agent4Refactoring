@@ -44,7 +44,7 @@ from typing import Optional
 
 from refagent.benchmark.design_patterns.models import GoFPattern, PatternIntroductionInstance
 from refagent.benchmark.design_patterns.pattern_first.birth_finder import BirthFinder
-from refagent.benchmark.design_patterns.pattern_first.greenfield_filter import GreenfieldFilter
+from refagent.benchmark.design_patterns.pattern_first.greenfield_filter import GreenfieldFilter, LLMFilter
 from refagent.benchmark.design_patterns.pattern_first.models import (
     BirthInfo,
     GreenfieldVerdict,
@@ -98,6 +98,10 @@ def _to_output_record(
             "signal_3b_package_preexisted": verdict.package_had_preexisting_files,
             "signal_3b_sibling_count": verdict.preexisting_sibling_count,
             "signal_3b_oldest_sibling_days": verdict.oldest_sibling_age_days,
+            "llm_is_refactoring": verdict.llm_is_refactoring,
+            "llm_reasoning": verdict.llm_reasoning,
+            "is_release_commit": verdict.is_release_commit,
+            "too_many_added_files": verdict.too_many_added_files,
             "evidence_notes": verdict.evidence_notes,
             "rejection_reasons": verdict.rejection_reasons,
         },
@@ -117,6 +121,8 @@ def run_pattern_first_mining(
     dpdf_project_name: Optional[str],
     filter_greenfield: bool,
     structural_strict: bool,
+    use_llm_filter: bool = False,
+    llm_model: str = "gpt-5-mini",
 ) -> list[dict]:
     """
     Run the full pattern-first pipeline and write results to ``output_path``.
@@ -174,7 +180,13 @@ def run_pattern_first_mining(
 
         # ── Phase 3: Greenfield filter ───────────────────────────────
         logger.info("  Phase 3: Applying greenfield filter …")
-        gf_filter = GreenfieldFilter(repo_path=repo_path)
+        
+        llm_filter = None
+        if use_llm_filter:
+            logger.info("  (Initializing LLM filter with model: %s)", llm_model)
+            llm_filter = LLMFilter(model_name=llm_model)
+
+        gf_filter = GreenfieldFilter(repo_path=repo_path, llm_filter=llm_filter)
         verdicts   = gf_filter.evaluate_all(birth_infos)
 
         accepted = rejected = 0
@@ -286,6 +298,14 @@ def _parse_args() -> argparse.Namespace:
         "--filter-greenfield", action="store_true",
         help="Exclude instances that are likely greenfield (both 3A and 3B fail).",
     )
+    phase3.add_argument(
+        "--use-llm-filter", action="store_true",
+        help="Use LLM (gpt-5-mini) to further filter greenfield vs refactoring commits.",
+    )
+    phase3.add_argument(
+        "--llm-model", type=str, default="gpt-5-mini",
+        help="LLM model name to use for filtering (default: gpt-5-mini).",
+    )
 
     parser.add_argument(
         "--log-level", default="INFO",
@@ -316,4 +336,6 @@ if __name__ == "__main__":
         dpdf_project_name=args.dpdf_project,
         filter_greenfield=args.filter_greenfield,
         structural_strict=args.structural_strict,
+        use_llm_filter=args.use_llm_filter,
+        llm_model=args.llm_model,
     )

@@ -104,6 +104,24 @@ class GreenfieldVerdict(BaseModel):
         description="Age in days of the oldest sibling file relative to the birth commit",
     )
 
+    # LLM Filtering
+    llm_is_refactoring: Optional[bool] = Field(
+        None,
+        description="Result of the LLM diff analysis",
+    )
+    llm_reasoning: Optional[str] = Field(
+        None,
+        description="LLM's explanation for its decision",
+    )
+    is_release_commit: Optional[bool] = Field(
+        None,
+        description="True if the LLM identified this as a release/version-bump commit",
+    )
+    too_many_added_files: Optional[bool] = Field(
+        None,
+        description="True if the commit exceeded the added-files threshold (e.g. 100)",
+    )
+
     # Final verdict
     is_likely_refactoring: bool = False
     rejection_reasons: list[str] = Field(default_factory=list)

@@ -35,6 +35,8 @@ from pathlib import Path, PurePosixPath
 from typing import Optional
 
 import git
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from refagent.benchmark.design_patterns.pattern_first.models import (
     BirthInfo,
@@ -43,6 +45,66 @@ from refagent.benchmark.design_patterns.pattern_first.models import (
 
 logger = logging.getLogger(__name__)
 UTC = timezone.utc
+
+
+class LLMFilter:
+    """
+    Uses an LLM to evaluate whether a commit is a release or a refactoring.
+    """
+
+    def __init__(self, model_name: str = "gpt-5-mini", temperature: float = 0.0) -> None:
+        self.model = ChatOpenAI(model=model_name, temperature=temperature)
+
+    def is_release_commit(self, commit_message: str) -> bool:
+        """
+        Returns True if the LLM thinks the commit message refers to a release or version bump.
+        """
+        system_prompt = (
+            "You are an expert software engineer. Your task is to determine if a git commit message "
+            "indicates a 'release' commit, a 'version bump', or a 'distribution update'. "
+            "Such commits often bundle many unrelated changes or just update version strings. "
+            "Respond with only 'YES' or 'NO'."
+        )
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=f"Commit message: {commit_message}"),
+        ]
+        response = self.model.invoke(messages)
+        return "YES" in response.content.upper()
+
+    def analyze_diff(self, diff_text: str) -> tuple[bool, str]:
+        """
+        Analyzes a git diff and determines if it's a 'greenfield' pattern addition
+        (writing new code from scratch) or a 'refactoring' (migrating existing logic).
+        Returns (is_refactoring, reasoning).
+        """
+        system_prompt = (
+            "You are an expert in design patterns and refactoring. Analyze the provided git diff. "
+            "Determine if the commit represents a 'greenfield' introduction of a design pattern "
+            "(i.e., new classes and logic added from scratch) or a 'refactoring' (i.e., existing "
+            "functionality being restructured into a design pattern). "
+            "Focus on whether existing methods/logic were moved into the new pattern structure. "
+            "Provide your answer in the following format:\n"
+            "Verdict: [REFACTORING/GREENFIELD]\n"
+            "Reasoning: [Short explanation]"
+        )
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=f"Git Diff:\n{diff_text}"),
+        ]
+        response = self.model.invoke(messages)
+        content = response.content
+        is_ref = "REFACTORING" in content.upper() and "GREENFIELD" not in content.upper().split("VERDICT:")[1].split("\n")[0]
+        # Safety check for parsing
+        verdict_line = [line for line in content.splitlines() if "VERDICT:" in line.upper()]
+        if verdict_line:
+            is_ref = "REFACTORING" in verdict_line[0].upper()
+        
+        reasoning = content
+        if "Reasoning:" in content:
+            reasoning = content.split("Reasoning:")[1].strip()
+            
+        return is_ref, reasoning
 
 
 class GreenfieldFilter:
@@ -66,10 +128,14 @@ class GreenfieldFilter:
         repo_path: Path,
         min_call_site_modifications: int = 1,
         min_preexisting_siblings: int = 1,
+        max_added_files: int = 100,
+        llm_filter: Optional[LLMFilter] = None,
     ) -> None:
         self.repo_path                   = repo_path
         self.min_call_site_modifications = min_call_site_modifications
         self.min_preexisting_siblings    = min_preexisting_siblings
+        self.max_added_files            = max_added_files
+        self.llm_filter                  = llm_filter
         self._repo                       = git.Repo(repo_path)
 
     # ------------------------------------------------------------------
@@ -78,7 +144,7 @@ class GreenfieldFilter:
 
     def evaluate(self, birth_info: BirthInfo) -> GreenfieldVerdict:
         """
-        Run 3A + 3B signals and return a GreenfieldVerdict.
+        Run tiered signals and return a GreenfieldVerdict.
         """
         # Fast-path: initial commit always means greenfield
         if birth_info.is_initial_repo_commit or birth_info.parent_sha is None:
@@ -87,17 +153,18 @@ class GreenfieldFilter:
                 rejection_reasons=["File was added in the repository's initial commit — no before-state exists"],
             )
 
+        # 1. Base heuristics (3A + 3B)
         verdict_3a = self._signal_3a(birth_info)
         verdict_3b = self._signal_3b(birth_info)
 
         notes  = verdict_3a.evidence_notes + verdict_3b.evidence_notes
         rejections = verdict_3a.rejection_reasons + verdict_3b.rejection_reasons
 
-        is_refactoring = (
+        is_heuristic_refactoring = (
             verdict_3a.is_likely_refactoring or verdict_3b.is_likely_refactoring
         )
 
-        return GreenfieldVerdict(
+        verdict = GreenfieldVerdict(
             # 3A fields
             modified_preexisting_java_count=verdict_3a.modified_preexisting_java_count,
             modified_preexisting_files=verdict_3a.modified_preexisting_files,
@@ -105,11 +172,48 @@ class GreenfieldFilter:
             package_had_preexisting_files=verdict_3b.package_had_preexisting_files,
             preexisting_sibling_count=verdict_3b.preexisting_sibling_count,
             oldest_sibling_age_days=verdict_3b.oldest_sibling_age_days,
-            # Combined verdict
-            is_likely_refactoring=is_refactoring,
+            # Initial Combined verdict
+            is_likely_refactoring=is_heuristic_refactoring,
             rejection_reasons=rejections,
             evidence_notes=notes,
         )
+
+        if not is_heuristic_refactoring:
+            verdict.rejection_reasons.append("Skip LLM: Heuristics 3A and 3B both fail")
+            return verdict
+
+        # 2. Static filter (> 100 added files)
+        added_files = self._get_added_files_count(birth_info)
+        if added_files > self.max_added_files:
+            verdict.too_many_added_files = True
+            verdict.is_likely_refactoring = False
+            verdict.rejection_reasons.append(
+                f"Skip LLM: Too many files added ({added_files} > {self.max_added_files})"
+            )
+            return verdict
+
+        # 3. LLM Commit Message Check (Release)
+        if self.llm_filter:
+            is_release = self.llm_filter.is_release_commit(birth_info.birth_commit_message)
+            verdict.is_release_commit = is_release
+            if is_release:
+                verdict.is_likely_refactoring = False
+                verdict.rejection_reasons.append("Skip LLM Diff: LLM identified this as a release/bulk commit")
+                return verdict
+
+            # 4. LLM Diff Check
+            diff_text = self._get_full_diff(birth_info)
+            llm_is_ref, reasoning = self.llm_filter.analyze_diff(diff_text)
+            verdict.llm_is_refactoring = llm_is_ref
+            verdict.llm_reasoning = reasoning
+            verdict.is_likely_refactoring = llm_is_ref
+            
+            if llm_is_ref:
+                verdict.evidence_notes.append(f"LLM ✓ Refactoring confirmed: {reasoning[:200]}")
+            else:
+                verdict.rejection_reasons.append(f"LLM ✗ Greenfield according to LLM: {reasoning[:200]}")
+
+        return verdict
 
     def evaluate_all(self, birth_infos: list[BirthInfo]) -> list[tuple[BirthInfo, GreenfieldVerdict]]:
         """Batch version. Returns (birth_info, verdict) pairs for all inputs."""
@@ -285,3 +389,32 @@ class GreenfieldFilter:
             except Exception:
                 continue
         return max_age
+
+    def _get_added_files_count(self, birth_info: BirthInfo) -> int:
+        """
+        Return the number of files added in the birth commit.
+        """
+        try:
+            birth_commit = self._repo.commit(birth_info.birth_commit_sha)
+            if not birth_info.parent_sha:
+                return len(birth_commit.tree.traverse())
+            
+            parent_commit = self._repo.commit(birth_info.parent_sha)
+            diffs = parent_commit.diff(birth_commit)
+            return sum(1 for d in diffs if d.change_type == "A")
+        except Exception as exc:
+            logger.warning("Could not count added files: %s", exc)
+            return 0
+
+    def _get_full_diff(self, birth_info: BirthInfo) -> str:
+        """
+        Return the full diff of the birth commit against its parent.
+        """
+        try:
+            if not birth_info.parent_sha:
+                return self._repo.git.show(birth_info.birth_commit_sha)
+            
+            return self._repo.git.diff(birth_info.parent_sha, birth_info.birth_commit_sha)
+        except Exception as exc:
+            logger.warning("Could not get full diff: %s", exc)
+            return ""
