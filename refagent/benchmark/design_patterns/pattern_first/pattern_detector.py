@@ -441,8 +441,12 @@ class DpdfDatasetDetector:
         return instances
 
 
+
 # ---------------------------------------------------------------------------
 # Convenience: run 1A + 1B together
+# ---------------------------------------------------------------------------
+
+def detect_patterns(
     repo_path: Path,
     structural_strict: bool = False,
     max_files: int = 10_000,

@@ -59,7 +59,7 @@ class BirthFinder:
         """
         file_path = instance.file_path
 
-        birth_sha, birth_date, birth_message, original_path = self._git_birth(file_path)
+        birth_sha, birth_date, birth_message = self._git_birth(file_path)
         if birth_sha is None:
             logger.warning("[BirthFinder] Cannot find birth commit for %s", file_path)
             return None
@@ -81,7 +81,7 @@ class BirthFinder:
             birth_commit_message=birth_message,
             parent_sha=parent_sha,
             is_initial_repo_commit=is_initial,
-            original_file_path=original_path or file_path,
+            original_file_path=file_path,
         )
 
     def find_all(self, instances: list[PatternInstance]) -> list[BirthInfo]:
@@ -99,7 +99,7 @@ class BirthFinder:
 
     def _git_birth(
         self, file_path: str
-    ) -> tuple[Optional[str], Optional[datetime], str, Optional[str]]:
+    ) -> tuple[Optional[str], Optional[datetime], str]:
         """
         Run ``git log --diff-filter=A --follow`` to locate the commit that
         first added ``file_path`` (tracing through renames).
@@ -112,7 +112,6 @@ class BirthFinder:
             "--diff-filter=A",   # only commits where the file was *added*
             "--follow",          # trace renames/moves backwards
             "--format=%H%x00%aI%x00%s",  # NUL-separated: hash, ISO date, subject
-            "--name-only",       # include the filename at that point in history
             "--",
             file_path,
         ]
@@ -155,17 +154,9 @@ class BirthFinder:
             try:
                 date = datetime.fromisoformat(iso_str).astimezone(UTC)
             except ValueError:
-                pass
+                logger.warning("[BirthFinder] Cannot parse date from %s", iso_str)
 
-        # The filename at birth time is the last non-empty, non-metadata line
-        original_path: Optional[str] = None
-        for line in reversed(lines):
-            stripped = line.strip()
-            if stripped and not stripped.startswith("diff") and stripped != sha:
-                original_path = stripped
-                break
-
-        return sha, date, subject, original_path
+        return sha, date, subject
 
     def _get_parent(self, sha: str) -> tuple[Optional[str], bool]:
         """
