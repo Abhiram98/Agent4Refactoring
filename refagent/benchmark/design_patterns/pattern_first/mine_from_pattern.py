@@ -1,0 +1,319 @@
+"""
+mine_from_pattern.py  –  pattern-first pipeline CLI entrypoint
+---------------------------------------------------------------
+Runs the full pattern-first pipeline (Phases 1 → 2 → 3) on one or more
+already-cloned local repositories and writes candidates to a JSON file that
+shares the same schema as the commit-first ``candidates.json`` output.
+
+Usage examples
+--------------
+# Heuristic scan of a local repo (Phase 1A + 1B)
+python -m refagent.benchmark.design_patterns.pattern_first.mine_from_pattern \\
+    --repos /path/to/my-repo \\
+    --output data/design_patterns/pf_candidates.json
+
+# Seed from dpdf_dataset (skip Phase 1, use known instances directly)
+python -m refagent.benchmark.design_patterns.pattern_first.mine_from_pattern \\
+    --repos /path/to/intellij-community \\
+    --dpdf-dataset data/design_patterns/dpdf_dataset_filtered.json \\
+    --dpdf-project intellij-community \\
+    --output data/design_patterns/pf_candidates.json
+
+# Multiple repos + filter to specific patterns
+python -m refagent.benchmark.design_patterns.pattern_first.mine_from_pattern \\
+    --repos /path/to/repo-a /path/to/repo-b \\
+    --patterns Builder Observer \\
+    --output data/design_patterns/pf_candidates.json
+
+# Only include refactoring-likely instances (apply greenfield filter)
+python -m refagent.benchmark.design_patterns.pattern_first.mine_from_pattern \\
+    --repos /path/to/my-repo \\
+    --filter-greenfield \\
+    --output data/design_patterns/pf_candidates.json
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import logging
+from collections import Counter
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional
+
+from refagent.benchmark.design_patterns.models import GoFPattern, PatternIntroductionInstance
+from refagent.benchmark.design_patterns.pattern_first.birth_finder import BirthFinder
+from refagent.benchmark.design_patterns.pattern_first.greenfield_filter import GreenfieldFilter
+from refagent.benchmark.design_patterns.pattern_first.models import (
+    BirthInfo,
+    GreenfieldVerdict,
+    PatternInstance,
+)
+from refagent.benchmark.design_patterns.pattern_first.pattern_detector import (
+    DpdfDatasetDetector,
+    StructuralDetector,
+    NameHeuristicDetector,
+    detect_patterns,
+)
+
+logger = logging.getLogger(__name__)
+UTC = timezone.utc
+
+
+# ---------------------------------------------------------------------------
+# Output serialisation
+# ---------------------------------------------------------------------------
+
+def _to_output_record(
+    repo_path: Path,
+    birth_info: BirthInfo,
+    verdict: GreenfieldVerdict,
+    instance_id: int,
+) -> dict:
+    """
+    Serialise a (BirthInfo, GreenfieldVerdict) pair into a flat JSON record
+    that can be loaded by the shared validate.py or used directly as a dataset
+    entry.
+    """
+    inst = birth_info.pattern_instance
+    return {
+        "id": instance_id,
+        "repo_path": str(repo_path),
+        "pattern": inst.pattern.value if hasattr(inst.pattern, "value") else inst.pattern,
+        "pattern_file": inst.file_path,
+        "class_name": inst.class_name,
+        "detection_source": inst.detection_source.value if hasattr(inst.detection_source, "value") else inst.detection_source,
+        "detection_confidence": inst.confidence,
+        "birth_commit_sha": birth_info.birth_commit_sha,
+        "parent_sha": birth_info.parent_sha,
+        "birth_commit_date": birth_info.birth_commit_date.isoformat(),
+        "birth_commit_message": birth_info.birth_commit_message,
+        "is_initial_repo_commit": birth_info.is_initial_repo_commit,
+        "original_file_path": birth_info.original_file_path,
+        "greenfield": {
+            "is_likely_refactoring": verdict.is_likely_refactoring,
+            "signal_3a_modified_count": verdict.modified_preexisting_java_count,
+            "signal_3a_modified_files": verdict.modified_preexisting_files,
+            "signal_3b_package_preexisted": verdict.package_had_preexisting_files,
+            "signal_3b_sibling_count": verdict.preexisting_sibling_count,
+            "signal_3b_oldest_sibling_days": verdict.oldest_sibling_age_days,
+            "evidence_notes": verdict.evidence_notes,
+            "rejection_reasons": verdict.rejection_reasons,
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Core pipeline function
+# ---------------------------------------------------------------------------
+
+def run_pattern_first_mining(
+    repo_paths: list[Path],
+    output_path: Path,
+    patterns: Optional[list[GoFPattern]],
+    use_heuristic: bool,
+    dpdf_dataset_path: Optional[Path],
+    dpdf_project_name: Optional[str],
+    filter_greenfield: bool,
+    structural_strict: bool,
+) -> list[dict]:
+    """
+    Run the full pattern-first pipeline and write results to ``output_path``.
+    Returns the list of serialised output records.
+    """
+    all_records: list[dict] = []
+    instance_id = 1
+
+    for repo_path in repo_paths:
+        if not repo_path.exists():
+            logger.error("Repo path does not exist: %s", repo_path)
+            continue
+
+        logger.info("━━━ Processing %s ━━━", repo_path.name)
+
+        # ── Phase 1: Detect pattern instances ───────────────────────
+        instances: list[PatternInstance] = []
+
+        if dpdf_dataset_path and dpdf_project_name:
+            dpdf_det = DpdfDatasetDetector(
+                dataset_path=dpdf_dataset_path,
+                project_name=dpdf_project_name,
+            )
+            dpdf_instances = dpdf_det.detect(repo_path)
+            instances.extend(dpdf_instances)
+            logger.info("  Phase 1 (dpdf seed): %d instances", len(dpdf_instances))
+
+        if use_heuristic:
+            heuristic_instances = detect_patterns(
+                repo_path=repo_path,
+                structural_strict=structural_strict,
+            )
+            instances.extend(heuristic_instances)
+            logger.info("  Phase 1 (heuristic): %d instances", len(heuristic_instances))
+
+        # Pattern filter
+        if patterns:
+            pattern_values = {p.value if hasattr(p, "value") else p for p in patterns}
+            before = len(instances)
+            instances = [
+                i for i in instances
+                if (i.pattern.value if hasattr(i.pattern, "value") else i.pattern) in pattern_values
+            ]
+            logger.info("  After pattern filter: %d / %d", len(instances), before)
+
+        if not instances:
+            logger.info("  No pattern instances found; skipping.")
+            continue
+
+        # ── Phase 2: Find birth commits ──────────────────────────────
+        logger.info("  Phase 2: Finding birth commits for %d instances …", len(instances))
+        birth_finder = BirthFinder(repo_path=repo_path)
+        birth_infos  = birth_finder.find_all(instances)
+        logger.info("  Phase 2 complete: %d birth commits resolved", len(birth_infos))
+
+        # ── Phase 3: Greenfield filter ───────────────────────────────
+        logger.info("  Phase 3: Applying greenfield filter …")
+        gf_filter = GreenfieldFilter(repo_path=repo_path)
+        verdicts   = gf_filter.evaluate_all(birth_infos)
+
+        accepted = rejected = 0
+        for birth_info, verdict in verdicts:
+            if filter_greenfield and not verdict.is_likely_refactoring:
+                logger.debug(
+                    "  ✗ Greenfield-rejected: %s (%s)  reasons=%s",
+                    birth_info.pattern_instance.class_name,
+                    birth_info.birth_commit_sha[:8],
+                    verdict.rejection_reasons,
+                )
+                rejected += 1
+                continue
+
+            record = _to_output_record(repo_path, birth_info, verdict, instance_id)
+            all_records.append(record)
+            instance_id += 1
+            accepted += 1
+
+            status = "✓ refactoring" if verdict.is_likely_refactoring else "? greenfield"
+            logger.info(
+                "  [%s] %s  commit=%s  3A=%d mods  3B=%s siblings",
+                status,
+                birth_info.pattern_instance.class_name,
+                birth_info.birth_commit_sha[:8],
+                verdict.modified_preexisting_java_count,
+                verdict.preexisting_sibling_count,
+            )
+
+        logger.info(
+            "  Repo done: %d accepted, %d rejected (greenfield)", accepted, rejected
+        )
+
+    # ── Write output ─────────────────────────────────────────────────
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as f:
+        json.dump(all_records, f, indent=2, default=str)
+
+    _print_summary(all_records, output_path)
+    return all_records
+
+
+# ---------------------------------------------------------------------------
+# Summary
+# ---------------------------------------------------------------------------
+
+def _print_summary(records: list[dict], output_path: Path) -> None:
+    total = len(records)
+    refactoring_count = sum(1 for r in records if r["greenfield"]["is_likely_refactoring"])
+    pattern_counts = Counter(r["pattern"] for r in records)
+
+    logger.info("─── Pattern-First Mining Summary ───────────────")
+    logger.info("Total records written : %d  →  %s", total, output_path)
+    logger.info("Likely refactoring    : %d / %d", refactoring_count, total)
+    logger.info("Breakdown by pattern  :")
+    for pat, count in sorted(pattern_counts.items(), key=lambda x: -x[1]):
+        logger.info("  %-22s %d", pat, count)
+    logger.info("────────────────────────────────────────────────")
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="mine_from_pattern",
+        description="Pattern-first pipeline: detect patterns → find birth commit → filter greenfield.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__,
+    )
+    parser.add_argument(
+        "--repos", nargs="+", type=Path, required=True, metavar="PATH",
+        help="One or more paths to locally-cloned Java git repositories.",
+    )
+    parser.add_argument(
+        "--output", type=Path,
+        default=Path("data/design_patterns/pf_candidates.json"),
+        help="Output JSON file (default: data/design_patterns/pf_candidates.json).",
+    )
+
+    # Phase 1 options
+    phase1 = parser.add_argument_group("Phase 1 – Pattern Detection")
+    phase1.add_argument(
+        "--no-heuristic", action="store_true",
+        help="Disable class-name + structural heuristic scan (Phase 1A/1B). Requires --dpdf-dataset.",
+    )
+    phase1.add_argument(
+        "--structural-strict", action="store_true",
+        help="Drop instances that fail the structural check instead of downgrading confidence.",
+    )
+    phase1.add_argument(
+        "--dpdf-dataset", type=Path, metavar="PATH",
+        help="Path to dpdf_dataset_filtered.json to seed known pattern instances.",
+    )
+    phase1.add_argument(
+        "--dpdf-project", type=str, metavar="PROJECT_NAME",
+        help="Project name inside the dpdf dataset to filter on (e.g. 'cxf').",
+    )
+    phase1.add_argument(
+        "--patterns", nargs="*",
+        choices=[p.value for p in GoFPattern], metavar="PATTERN",
+        help="Only detect/report these patterns (e.g. --patterns Builder Strategy).",
+    )
+
+    # Phase 3 options
+    phase3 = parser.add_argument_group("Phase 3 – Greenfield Filter")
+    phase3.add_argument(
+        "--filter-greenfield", action="store_true",
+        help="Exclude instances that are likely greenfield (both 3A and 3B fail).",
+    )
+
+    parser.add_argument(
+        "--log-level", default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+    )
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = _parse_args()
+    logging.basicConfig(
+        level=getattr(logging, args.log_level),
+        format="%(asctime)s %(levelname)-8s %(name)s – %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
+    if args.no_heuristic and not args.dpdf_dataset:
+        raise SystemExit("--no-heuristic requires --dpdf-dataset to be specified.")
+
+    patterns = [GoFPattern(p) for p in args.patterns] if args.patterns else None
+
+    run_pattern_first_mining(
+        repo_paths=args.repos,
+        output_path=args.output,
+        patterns=patterns,
+        use_heuristic=not args.no_heuristic,
+        dpdf_dataset_path=args.dpdf_dataset,
+        dpdf_project_name=args.dpdf_project,
+        filter_greenfield=args.filter_greenfield,
+        structural_strict=args.structural_strict,
+    )
