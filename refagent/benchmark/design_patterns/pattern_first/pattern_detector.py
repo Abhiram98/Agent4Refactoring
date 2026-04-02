@@ -34,6 +34,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from refagent.benchmark.design_patterns.models import GoFPattern
 from refagent.benchmark.design_patterns.pattern_first.models import (
     DetectionSource,
+    MiningContext,
+    PatternCache,
     PatternInstance,
 )
 
@@ -109,32 +111,23 @@ class NameHeuristicDetector:
     """
     Phase 1A: walks every .java file in a local repo (at HEAD) and yields
     PatternInstance objects for files whose class name matches a pattern keyword.
-
-    Parameters
-    ----------
-    skip_tests : bool
-        If True, skip files inside common test directories.
     """
 
-    def __init__(self, skip_tests: bool = True) -> None:
+    def __init__(self, context: MiningContext, skip_tests: bool = True) -> None:
+        self.context = context
         self.skip_tests = skip_tests
 
-    def detect(
-        self,
-        repo_path: Path,
-        max_new_patterns: int = -1,
-        cache: Optional[dict[str, Any]] = None,
-        model_name: str = "gpt-5-mini",
-    ) -> list[PatternInstance]:
+    def detect(self) -> list[PatternInstance]:
         """
         Scan repository for pattern candidates.
         
-        If max_new_patterns > 0 and cache is provided, the detector will stop
-        after finding N 'new' patterns (those not already in the cache).
+        If context.max_new_patterns > 0, the detector will stop after finding N 
+        'new' patterns (those not already in the cache).
         Previously cached 'YES' results are also returned.
         """
         instances: list[PatternInstance] = []
         new_count = 0
+        repo_path = self.context.repo_path
         
         # We scan as many files as needed
         for java_file in repo_path.rglob("*.java"):
@@ -149,17 +142,18 @@ class NameHeuristicDetector:
 
             # For matches, we check the cache to see if they are 'new'
             try:
-                content = java_file.read_text(encoding="utf-8", errors="replace")
-                content_hash = _get_content_hash(content)
+                # We don't necessarily need the content here if we're just checking the name,
+                # but we read it to ensure the file is accessible before reporting it.
+                _ = java_file.read_text(encoding="utf-8", errors="replace")
             except Exception as exc:
                 logger.debug("Could not read %s: %s", java_file, exc)
                 continue
 
             for pattern in matched_patterns:
-                cache_key = f"{model_name}:{pattern}:{content_hash}"
+                cache_key = self.context.cache.get_key(self.context.model_name, pattern, str(rel))
                 
-                if cache is not None and cache_key in cache:
-                    cached = cache[cache_key]
+                cached = self.context.cache.get(cache_key)
+                if cached:
                     if cached.get("is_valid"):
                         # Already known to be a match
                         instances.append(PatternInstance(
@@ -183,10 +177,10 @@ class NameHeuristicDetector:
                 new_count += 1
                 
             # Early exit if we reached the limit of NEW patterns
-            if 0 < max_new_patterns <= new_count:
+            if 0 < self.context.max_new_patterns <= new_count:
                 logger.info(
                     "[NameHeuristic] Reached max_new_patterns limit (%d). Found %d total instances.",
-                    max_new_patterns, len(instances)
+                    self.context.max_new_patterns, len(instances)
                 )
                 break
 
@@ -204,21 +198,21 @@ class LLMPatternDetector:
     the suspected design pattern.
     """
 
-    def __init__(self, model_name: str = "gpt-5-mini") -> None:
-        self.model_name = model_name
-        self.model = ChatOpenAI(model=model_name, temperature=1)
+    def __init__(self, context: MiningContext) -> None:
+        self.context = context
+        self.model = ChatOpenAI(model=context.model_name, temperature=1)
 
     def refine(
         self,
-        repo_path: Path,
         instances: list[PatternInstance],
-        cache: Optional[dict[str, Any]] = None,
     ) -> list[PatternInstance]:
         """
         Given a list of PatternInstance objects (from NameHeuristicDetector),
         refine them using an LLM.
         """
         refined: list[PatternInstance] = []
+        repo_path = self.context.repo_path
+
         for inst in instances:
             full_path = repo_path / inst.file_path
             if not full_path.exists():
@@ -230,12 +224,10 @@ class LLMPatternDetector:
                 continue
 
             # Cache lookup
-            content_hash = _get_content_hash(content)
-            # Cache key incorporates model, pattern and content hash
-            cache_key = f"{self.model_name}:{inst.pattern}:{content_hash}"
+            cache_key = self.context.cache.get_key(self.context.model_name, inst.pattern, inst.file_path)
             
-            if cache is not None and cache_key in cache:
-                cached = cache[cache_key]
+            cached = self.context.cache.get(cache_key)
+            if cached:
                 if cached.get("is_valid"):
                     logger.debug("[LLM Cache] Hit for %s (%s)", inst.file_path, inst.pattern)
                     refined.append(inst.model_copy(update={
@@ -293,12 +285,11 @@ class LLMPatternDetector:
                         pass
 
                 # Update cache
-                if cache is not None:
-                    cache[cache_key] = {
-                        "is_valid": is_valid,
-                        "confidence": conf,
-                        "reasoning": reasoning,
-                    }
+                self.context.cache.set(cache_key, {
+                    "is_valid": is_valid,
+                    "confidence": conf,
+                    "reasoning": reasoning,
+                })
 
                 if is_valid:
                     refined.append(inst.model_copy(update={
@@ -364,6 +355,8 @@ class DpdfDatasetDetector:
 
     Parameters
     ----------
+    context : MiningContext
+        Pipeline context.
     dataset_path : Path
         Path to dpdf_dataset_filtered.json (or the full dpdf_dataset.json).
     project_name : str
@@ -373,12 +366,14 @@ class DpdfDatasetDetector:
         list test-directory matches last.
     """
 
-    def __init__(self, dataset_path: Path, project_name: str, skip_tests: bool = True) -> None:
+    def __init__(self, context: MiningContext, dataset_path: Path, project_name: str, skip_tests: bool = True) -> None:
+        self.context = context
         self.dataset_path = dataset_path
         self.project_name = project_name
         self.skip_tests   = skip_tests
 
-    def detect(self, repo_path: Path) -> list[PatternInstance]:
+    def detect(self) -> list[PatternInstance]:
+        repo_path = self.context.repo_path
         with open(self.dataset_path) as f:
             dataset = json.load(f)
 
@@ -470,13 +465,15 @@ def detect_patterns(
     This function stops scanning the repository once ``max_new_patterns`` new
     candidates are found (those not already in the cache).
     """
-    name_detector = NameHeuristicDetector()
-    all_heuristic = name_detector.detect(
-        repo_path,
-        max_new_patterns=max_new_patterns if llm_model else -1,
-        cache=cache,
+    context = MiningContext(
+        repo_path=repo_path,
+        cache=PatternCache(cache),
         model_name=llm_model or "gpt-5-mini",
+        max_new_patterns=max_new_patterns if llm_model else -1,
     )
+    
+    name_detector = NameHeuristicDetector(context=context)
+    all_heuristic = name_detector.detect()
 
     # Split into those already validated (cached) and those that are 'new'
     cached_valid = [
@@ -489,8 +486,8 @@ def detect_patterns(
     ]
 
     if llm_model and new_to_validate:
-        llm_detector = LLMPatternDetector(model_name=llm_model)
-        refined_new = llm_detector.refine(repo_path, new_to_validate, cache=cache)
+        llm_detector = LLMPatternDetector(context=context)
+        refined_new = llm_detector.refine(new_to_validate)
         return cached_valid + refined_new
 
     return all_heuristic

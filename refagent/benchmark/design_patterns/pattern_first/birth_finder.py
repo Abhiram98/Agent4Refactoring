@@ -27,6 +27,7 @@ import git
 
 from refagent.benchmark.design_patterns.pattern_first.models import (
     BirthInfo,
+    MiningContext,
     PatternInstance,
 )
 
@@ -40,13 +41,14 @@ class BirthFinder:
 
     Parameters
     ----------
-    repo_path : Path
-        Root of the local repository checkout.
+    context : MiningContext
+        Pipeline context.
     """
 
-    def __init__(self, repo_path: Path) -> None:
-        self.repo_path = repo_path
-        self._repo     = git.Repo(repo_path)
+    def __init__(self, context: MiningContext) -> None:
+        self.context   = context
+        self.repo_path = context.repo_path
+        self._repo     = git.Repo(context.repo_path)
 
     # ------------------------------------------------------------------
     # Public API

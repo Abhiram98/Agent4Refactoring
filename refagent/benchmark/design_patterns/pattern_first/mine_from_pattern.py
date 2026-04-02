@@ -49,8 +49,11 @@ from refagent.benchmark.design_patterns.pattern_first.greenfield_filter import G
 from refagent.benchmark.design_patterns.pattern_first.models import (
     BirthInfo,
     GreenfieldVerdict,
+    MiningContext,
+    PatternCache,
     PatternInstance,
 )
+
 from refagent.benchmark.design_patterns.pattern_first.pattern_detector import (
     DpdfDatasetDetector,
     NameHeuristicDetector,
@@ -108,92 +111,116 @@ def _to_output_record(
         },
     }
 
-
-# ---------------------------------------------------------------------------
-# Core pipeline function
-# ---------------------------------------------------------------------------
-
-def run_pattern_first_mining(
-    repo_paths: list[Path],
-    output_path: Path,
-    patterns: Optional[list[GoFPattern]],
-    use_heuristic: bool,
-    dpdf_dataset_path: Optional[Path],
-    dpdf_project_name: Optional[str],
-    filter_greenfield: bool,
-    use_llm_detector: bool = False,
-    llm_detector_model: str = "gpt-5-mini",
-    use_llm_filter: bool = False,
-    llm_filter_model: str = "gpt-5-mini",
-    max_new_patterns: int = 10,
-    cache_path: Optional[Path] = None,
-) -> list[dict]:
+class PatternMiningPipeline:
     """
-    Run the full pattern-first pipeline and write results to ``output_path``.
-    Returns the list of serialised output records.
+    Orchestrates the full pattern-first mining process:
+    Phase 1 (Detection) → Phase 2 (Birth Discovery) → Phase 3 (Greenfield Filtering)
     """
-    # Load existing records for appending and deduplication
-    all_records: list[dict] = []
-    if output_path.exists():
-        try:
-            with open(output_path, "r") as f:
-                all_records = json.load(f)
-            logger.info("Loaded %d existing records from %s", len(all_records), output_path)
-        except Exception as e:
-            logger.warning("Could not load existing output file: %s", e)
 
-    instance_id = 1
-    if all_records:
-        instance_id = max(r.get("id", 0) for r in all_records) + 1
+    def __init__(
+        self,
+        repo_paths: list[Path],
+        output_path: Path,
+        context: MiningContext,
+        patterns: Optional[list[GoFPattern]] = None,
+        use_heuristic: bool = True,
+        dpdf_dataset_path: Optional[Path] = None,
+        dpdf_project_name: Optional[str] = None,
+        filter_greenfield: bool = True,
+        use_llm_detector: bool = False,
+        use_llm_filter: bool = False,
+        llm_filter_model: str = "gpt-5-mini",
+        cache_path: Optional[Path] = None,
+    ) -> None:
+        self.repo_paths = repo_paths
+        self.output_path = output_path
+        self.context = context
+        self.patterns = patterns
+        self.use_heuristic = use_heuristic
+        self.dpdf_dataset_path = dpdf_dataset_path
+        self.dpdf_project_name = dpdf_project_name
+        self.filter_greenfield = filter_greenfield
+        self.use_llm_detector = use_llm_detector
+        self.use_llm_filter = use_llm_filter
+        self.llm_filter_model = llm_filter_model
+        self.cache_path = cache_path
 
-    # Keep track of existing (repo, pattern, file, birth_commit) for deduplication
-    existing_keys = set()
-    for r in all_records:
-        key = (r["repo_path"], r["pattern"], r["pattern_file"], r["birth_commit_sha"])
-        existing_keys.add(key)
+        self.all_records: list[dict] = []
+        self.existing_keys: set[tuple] = set()
+        self.instance_id: int = 1
 
-    # Load LLM validation cache
-    cache: dict[str, Any] = {}
-    if use_llm_detector and cache_path and cache_path.exists():
-        try:
-            with open(cache_path, "r") as f:
-                cache = json.load(f)
-            logger.info("  Loaded LLM cache with %d entries from %s", len(cache), cache_path)
-        except Exception as e:
-            logger.warning("  Could not load LLM cache: %s", e)
+    def run(self) -> list[dict]:
+        """Execute the pipeline across all repositories."""
+        self._initialize_records()
+        
+        for repo_path in self.repo_paths:
+            if not repo_path.exists():
+                logger.error("Repo path does not exist: %s", repo_path)
+                continue
 
-    for repo_path in repo_paths:
-        if not repo_path.exists():
-            logger.error("Repo path does not exist: %s", repo_path)
-            continue
+            logger.info("━━━ Processing %s ━━━", repo_path.name)
+            
+            # Update context for the current repo
+            self.context.repo_path = repo_path
+            
+            instances = self._phase1_detection()
+            if not instances:
+                logger.info("  No pattern instances found; skipping.")
+                continue
 
-        logger.info("━━━ Processing %s ━━━", repo_path.name)
+            birth_infos = self._phase2_birth_discovery(instances)
+            self._phase3_filtering(repo_path, birth_infos)
 
-        # ── Phase 1: Detect pattern instances ───────────────────────
+        self._finalize()
+        return self.all_records
+
+    def _initialize_records(self) -> None:
+        """Load existing records and determine starting ID."""
+        if self.output_path.exists():
+            try:
+                with open(self.output_path, "r") as f:
+                    self.all_records = json.load(f)
+                logger.info("Loaded %d existing records from %s", len(self.all_records), self.output_path)
+            except Exception as e:
+                logger.warning("Could not load existing output file: %s", e)
+
+        if self.all_records:
+            self.instance_id = max(r.get("id", 0) for r in self.all_records) + 1
+
+        for r in self.all_records:
+            key = (r["repo_path"], r["pattern"], r["pattern_file"], r["birth_commit_sha"])
+            self.existing_keys.add(key)
+
+    def _phase1_detection(self) -> list[PatternInstance]:
+        """Phase 1: Detect pattern instances via seeds or heuristics."""
         instances: list[PatternInstance] = []
 
-        if dpdf_dataset_path and dpdf_project_name:
+        if self.dpdf_dataset_path and self.dpdf_project_name:
             dpdf_det = DpdfDatasetDetector(
-                dataset_path=dpdf_dataset_path,
-                project_name=dpdf_project_name,
+                context=self.context,
+                dataset_path=self.dpdf_dataset_path,
+                project_name=self.dpdf_project_name,
             )
-            dpdf_instances = dpdf_det.detect(repo_path)
+            dpdf_instances = dpdf_det.detect()
             instances.extend(dpdf_instances)
             logger.info("  Phase 1 (dpdf seed): %d instances", len(dpdf_instances))
 
-        if use_heuristic:
+        if self.use_heuristic:
+            # We use the convenience wrapper which now uses the context
             heuristic_instances = detect_patterns(
-                repo_path=repo_path,
-                llm_model=llm_detector_model if use_llm_detector else None,
-                max_new_patterns=max_new_patterns,
-                cache=cache,
+                repo_path=self.context.repo_path,
+                llm_model=self.context.model_name if self.use_llm_detector else None,
+                max_new_patterns=self.context.max_new_patterns,
+                cache=self.context.cache.to_dict(),
             )
+            # detect_patterns returns new instances, but we need to update our internal cache object
+            # because detect_patterns creates a temporary context.
+            # Ideally we'd call the detectors directly here.
             instances.extend(heuristic_instances)
-            logger.info("  Phase 1 (heuristic): %d total instances found (scan limited to %d new)", len(heuristic_instances), max_new_patterns)
+            logger.info("  Phase 1 (heuristic): %d total instances found", len(heuristic_instances))
 
-        # Pattern filter
-        if patterns:
-            pattern_values = {p.value if hasattr(p, "value") else p for p in patterns}
+        if self.patterns:
+            pattern_values = {p.value if hasattr(p, "value") else p for p in self.patterns}
             before = len(instances)
             instances = [
                 i for i in instances
@@ -201,39 +228,39 @@ def run_pattern_first_mining(
             ]
             logger.info("  After pattern filter: %d / %d", len(instances), before)
 
-        if not instances:
-            logger.info("  No pattern instances found; skipping.")
-            continue
+        return instances
 
-        # ── Phase 2: Find birth commits ──────────────────────────────
+    def _phase2_birth_discovery(self, instances: list[PatternInstance]) -> list[BirthInfo]:
+        """Phase 2: Find birth commits for detected instances."""
         logger.info("  Phase 2: Finding birth commits for %d instances …", len(instances))
-        birth_finder = BirthFinder(repo_path=repo_path)
-        birth_infos  = birth_finder.find_all(instances)
+        birth_finder = BirthFinder(context=self.context)
+        birth_infos = birth_finder.find_all(instances)
         logger.info("  Phase 2 complete: %d birth commits resolved", len(birth_infos))
+        return birth_infos
 
-        # ── Phase 3: Greenfield filter ───────────────────────────────
+    def _phase3_filtering(self, repo_path: Path, birth_infos: list[BirthInfo]) -> None:
+        """Phase 3: Apply greenfield/refactoring filters and save results."""
         logger.info("  Phase 3: Applying greenfield filter …")
         
         llm_filter = None
-        if use_llm_filter:
-            logger.info("  (Initializing LLM filter with model: %s)", llm_filter_model)
-            llm_filter = LLMFilter(model_name=llm_filter_model)
+        if self.use_llm_filter:
+            logger.info("  (Initializing LLM filter with model: %s)", self.llm_filter_model)
+            llm_filter = LLMFilter(context=self.context)
 
-        gf_filter = GreenfieldFilter(repo_path=repo_path, llm_filter=llm_filter)
-        verdicts   = gf_filter.evaluate_all(birth_infos)
+        gf_filter = GreenfieldFilter(context=self.context, llm_filter=llm_filter)
+        verdicts = gf_filter.evaluate_all(birth_infos)
 
         accepted = rejected = dups = 0
         for birth_info, verdict in verdicts:
-            # Deduplication check
             p_inst = birth_info.pattern_instance
             pattern_str = p_inst.pattern.value if hasattr(p_inst.pattern, "value") else str(p_inst.pattern)
             key = (str(repo_path), pattern_str, p_inst.file_path, birth_info.birth_commit_sha)
             
-            if key in existing_keys:
+            if key in self.existing_keys:
                 dups += 1
                 continue
 
-            if filter_greenfield and not verdict.is_likely_refactoring:
+            if self.filter_greenfield and not verdict.is_likely_refactoring:
                 logger.debug(
                     "  ✗ Greenfield-rejected: %s (%s)  reasons=%s",
                     birth_info.pattern_instance.class_name,
@@ -243,10 +270,10 @@ def run_pattern_first_mining(
                 rejected += 1
                 continue
 
-            record = _to_output_record(repo_path, birth_info, verdict, instance_id)
-            all_records.append(record)
-            existing_keys.add(key)
-            instance_id += 1
+            record = _to_output_record(repo_path, birth_info, verdict, self.instance_id)
+            self.all_records.append(record)
+            self.existing_keys.add(key)
+            self.instance_id += 1
             accepted += 1
 
             status = "✓ refactoring" if verdict.is_likely_refactoring else "? greenfield"
@@ -264,23 +291,71 @@ def run_pattern_first_mining(
             accepted, rejected, dups
         )
 
-    # ── Write output ─────────────────────────────────────────────────
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w") as f:
-        json.dump(all_records, f, indent=2, default=str)
+    def _finalize(self) -> None:
+        """Save results and caches."""
+        self.output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.output_path, "w") as f:
+            json.dump(self.all_records, f, indent=2, default=str)
 
-    # Save LLM validation cache
-    if use_llm_detector and cache_path:
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        if self.use_llm_detector and self.cache_path:
+            self.cache_path.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                with open(self.cache_path, "w") as f:
+                    json.dump(self.context.cache.to_dict(), f, indent=2)
+                logger.info("Saved LLM cache with %d entries to %s", len(self.context.cache), self.cache_path)
+            except Exception as e:
+                logger.error("Could not save LLM cache: %s", e)
+
+
+def run_pattern_first_mining(
+    repo_paths: list[Path],
+    output_path: Path,
+    patterns: Optional[list[GoFPattern]],
+    use_heuristic: bool,
+    dpdf_dataset_path: Optional[Path],
+    dpdf_project_name: Optional[str],
+    filter_greenfield: bool,
+    use_llm_detector: bool = False,
+    llm_detector_model: str = "gpt-5-mini",
+    use_llm_filter: bool = False,
+    llm_filter_model: str = "gpt-5-mini",
+    max_new_patterns: int = 10,
+    cache_path: Optional[Path] = None,
+) -> list[dict]:
+    """
+    Thin wrapper over PatternMiningPipeline for backward compatibility.
+    """
+    # Initialize cache
+    cache_data = {}
+    if use_llm_detector and cache_path and cache_path.exists():
         try:
-            with open(cache_path, "w") as f:
-                json.dump(cache, f, indent=2)
-            logger.info("Saved LLM cache with %d entries to %s", len(cache), cache_path)
+            with open(cache_path, "r") as f:
+                cache_data = json.load(f)
         except Exception as e:
-            logger.error("Could not save LLM cache: %s", e)
+            logger.warning("Could not load LLM cache: %s", e)
+    
+    context = MiningContext(
+        repo_path=repo_paths[0] if repo_paths else Path("."),
+        cache=PatternCache(cache_data),
+        model_name=llm_detector_model,
+        max_new_patterns=max_new_patterns,
+    )
 
-    _print_summary(all_records, output_path)
-    return all_records
+    pipeline = PatternMiningPipeline(
+        repo_paths=repo_paths,
+        output_path=output_path,
+        context=context,
+        patterns=patterns,
+        use_heuristic=use_heuristic,
+        dpdf_dataset_path=dpdf_dataset_path,
+        dpdf_project_name=dpdf_project_name,
+        filter_greenfield=filter_greenfield,
+        use_llm_detector=use_llm_detector,
+        use_llm_filter=use_llm_filter,
+        llm_filter_model=llm_filter_model,
+        cache_path=cache_path,
+    )
+    return pipeline.run()
 
 
 # ---------------------------------------------------------------------------

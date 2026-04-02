@@ -114,8 +114,8 @@ class GreenfieldFilter:
 
     Parameters
     ----------
-    repo_path : Path
-        Root of the local repository checkout.
+    context : MiningContext
+        Pipeline context.
     min_call_site_modifications : int
         Minimum number of pre-existing modified .java files required for
         signal 3A to fire (default: 1).
@@ -126,18 +126,19 @@ class GreenfieldFilter:
 
     def __init__(
         self,
-        repo_path: Path,
+        context: MiningContext,
         min_call_site_modifications: int = 1,
         min_preexisting_siblings: int = 1,
         max_added_files: int = 100,
         llm_filter: Optional[LLMFilter] = None,
     ) -> None:
-        self.repo_path                   = repo_path
+        self.context                     = context
+        self.repo_path                   = context.repo_path
         self.min_call_site_modifications = min_call_site_modifications
         self.min_preexisting_siblings    = min_preexisting_siblings
         self.max_added_files            = max_added_files
         self.llm_filter                  = llm_filter
-        self._repo                       = git.Repo(repo_path)
+        self._repo                       = git.Repo(context.repo_path)
 
     # ------------------------------------------------------------------
     # Public API

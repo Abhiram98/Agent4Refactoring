@@ -17,11 +17,58 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 from pydantic import BaseModel, Field
 
 from refagent.benchmark.design_patterns.models import GoFPattern
+
+
+# ---------------------------------------------------------------------------
+# Infrastructure / Context
+# ---------------------------------------------------------------------------
+
+class PatternCache:
+    """
+    Encapsulates the LLM validation cache to centralize cache key generation
+    and lookup logic.
+    """
+    def __init__(self, data: Optional[dict[str, Any]] = None) -> None:
+        self._data = data if data is not None else {}
+
+    def get_key(self, model_name: str, pattern: str, file_path: str) -> str:
+        """Centralized cache key format: model:pattern:file_path"""
+        return f"{model_name}:{pattern}:{file_path}"
+
+    def get(self, key: str) -> Optional[dict[str, Any]]:
+        return self._data.get(key)
+
+    def set(self, key: str, value: dict[str, Any]) -> None:
+        self._data[key] = value
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._data
+
+    def to_dict(self) -> dict[str, Any]:
+        return self._data
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+
+class MiningContext(BaseModel):
+    """
+    Shared configuration and state for the pattern-first mining pipeline.
+    Passed as a field to detectors, finders, and filters.
+    """
+    repo_path: Path
+    cache: PatternCache
+    model_name: str = "gpt-5-mini"
+    max_new_patterns: int = 10
+
+    class Config:
+        arbitrary_types_allowed = True
+        use_enum_values = True
 
 
 # ---------------------------------------------------------------------------
