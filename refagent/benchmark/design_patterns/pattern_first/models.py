@@ -30,7 +30,7 @@ from refagent.benchmark.design_patterns.models import GoFPattern
 
 class DetectionSource(str, Enum):
     NAME_HEURISTIC  = "name_heuristic"   # class/file name matched a keyword
-    STRUCTURAL      = "structural"        # regex-based structural check passed
+    LLM_VALIDATION  = "llm_validation"   # LLM confirmed the pattern
     DPDF_SEED       = "dpdf_seed"         # came directly from dpdf_dataset.json
 
 
@@ -41,6 +41,7 @@ class PatternInstance(BaseModel):
     pattern: GoFPattern     = Field(..., description="Suspected GoF pattern")
     detection_source: DetectionSource
     confidence: float       = Field(1.0, ge=0.0, le=1.0, description="Detection confidence (1.0 for dpdf_seed)")
+    reasoning: Optional[str] = Field(None, description="LLM's reasoning for detection")
 
     class Config:
         use_enum_values = True

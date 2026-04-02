@@ -40,8 +40,9 @@ import logging
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
+import refagent
 from refagent.benchmark.design_patterns.models import GoFPattern, PatternIntroductionInstance
 from refagent.benchmark.design_patterns.pattern_first.birth_finder import BirthFinder
 from refagent.benchmark.design_patterns.pattern_first.greenfield_filter import GreenfieldFilter, LLMFilter
@@ -52,7 +53,6 @@ from refagent.benchmark.design_patterns.pattern_first.models import (
 )
 from refagent.benchmark.design_patterns.pattern_first.pattern_detector import (
     DpdfDatasetDetector,
-    StructuralDetector,
     NameHeuristicDetector,
     detect_patterns,
 )
@@ -85,6 +85,7 @@ def _to_output_record(
         "class_name": inst.class_name,
         "detection_source": inst.detection_source.value if hasattr(inst.detection_source, "value") else inst.detection_source,
         "detection_confidence": inst.confidence,
+        "detection_reasoning": inst.reasoning,
         "birth_commit_sha": birth_info.birth_commit_sha,
         "parent_sha": birth_info.parent_sha,
         "birth_commit_date": birth_info.birth_commit_date.isoformat(),
@@ -120,9 +121,12 @@ def run_pattern_first_mining(
     dpdf_dataset_path: Optional[Path],
     dpdf_project_name: Optional[str],
     filter_greenfield: bool,
-    structural_strict: bool,
+    use_llm_detector: bool = False,
+    llm_detector_model: str = "gpt-5-mini",
     use_llm_filter: bool = False,
-    llm_model: str = "gpt-5-mini",
+    llm_filter_model: str = "gpt-5-mini",
+    max_files: int = 10_000,
+    cache_path: Optional[Path] = None,
 ) -> list[dict]:
     """
     Run the full pattern-first pipeline and write results to ``output_path``.
@@ -130,6 +134,16 @@ def run_pattern_first_mining(
     """
     all_records: list[dict] = []
     instance_id = 1
+
+    # Load LLM validation cache
+    cache: dict[str, Any] = {}
+    if use_llm_detector and cache_path and cache_path.exists():
+        try:
+            with open(cache_path, "r") as f:
+                cache = json.load(f)
+            logger.info("  Loaded LLM cache with %d entries from %s", len(cache), cache_path)
+        except Exception as e:
+            logger.warning("  Could not load LLM cache: %s", e)
 
     for repo_path in repo_paths:
         if not repo_path.exists():
@@ -153,7 +167,9 @@ def run_pattern_first_mining(
         if use_heuristic:
             heuristic_instances = detect_patterns(
                 repo_path=repo_path,
-                structural_strict=structural_strict,
+                llm_model=llm_detector_model if use_llm_detector else None,
+                max_files=max_files,
+                cache=cache,
             )
             instances.extend(heuristic_instances)
             logger.info("  Phase 1 (heuristic): %d instances", len(heuristic_instances))
@@ -183,8 +199,8 @@ def run_pattern_first_mining(
         
         llm_filter = None
         if use_llm_filter:
-            logger.info("  (Initializing LLM filter with model: %s)", llm_model)
-            llm_filter = LLMFilter(model_name=llm_model)
+            logger.info("  (Initializing LLM filter with model: %s)", llm_filter_model)
+            llm_filter = LLMFilter(model_name=llm_filter_model)
 
         gf_filter = GreenfieldFilter(repo_path=repo_path, llm_filter=llm_filter)
         verdicts   = gf_filter.evaluate_all(birth_infos)
@@ -224,6 +240,16 @@ def run_pattern_first_mining(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(all_records, f, indent=2, default=str)
+
+    # Save LLM validation cache
+    if use_llm_detector and cache_path:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(cache_path, "w") as f:
+                json.dump(cache, f, indent=2)
+            logger.info("Saved LLM cache with %d entries to %s", len(cache), cache_path)
+        except Exception as e:
+            logger.error("Could not save LLM cache: %s", e)
 
     _print_summary(all_records, output_path)
     return all_records
@@ -272,11 +298,24 @@ def _parse_args() -> argparse.Namespace:
     phase1 = parser.add_argument_group("Phase 1 – Pattern Detection")
     phase1.add_argument(
         "--no-heuristic", action="store_true",
-        help="Disable class-name + structural heuristic scan (Phase 1A/1B). Requires --dpdf-dataset.",
+        help="Disable class-name heuristic scan (Phase 1A). Requires --dpdf-dataset.",
     )
     phase1.add_argument(
-        "--structural-strict", action="store_true",
-        help="Drop instances that fail the structural check instead of downgrading confidence.",
+        "--use-llm-detector", action="store_true",
+        help="Use LLM to validate the pattern structure in Phase 1B.",
+    )
+    phase1.add_argument(
+        "--llm-detector-model", type=str, default="gpt-5-mini",
+        help="LLM model name to use for pattern validation (Phase 1B).",
+    )
+    phase1.add_argument(
+        "--max-files", type=int, default=10_000,
+        help="Maximum number of files to scan per repository (default: 10,000).",
+    )
+    phase1.add_argument(
+        "--cache-path", type=Path,
+        default=refagent.data_folder.joinpath("design_patterns/llm_pattern_cache.json"),
+        help="Path to the JSON file for caching LLM validation results.",
     )
     phase1.add_argument(
         "--dpdf-dataset", type=Path, metavar="PATH",
@@ -303,8 +342,8 @@ def _parse_args() -> argparse.Namespace:
         help="Use LLM (gpt-5-mini) to further filter greenfield vs refactoring commits.",
     )
     phase3.add_argument(
-        "--llm-model", type=str, default="gpt-5-mini",
-        help="LLM model name to use for filtering (default: gpt-5-mini).",
+        "--llm-filter-model", type=str, default="gpt-5-mini",
+        help="LLM model name to use for greenfield filtering (Phase 3).",
     )
 
     parser.add_argument(
@@ -335,7 +374,10 @@ if __name__ == "__main__":
         dpdf_dataset_path=args.dpdf_dataset,
         dpdf_project_name=args.dpdf_project,
         filter_greenfield=args.filter_greenfield,
-        structural_strict=args.structural_strict,
+        use_llm_detector=args.use_llm_detector,
+        llm_detector_model=args.llm_detector_model,
         use_llm_filter=args.use_llm_filter,
-        llm_model=args.llm_model,
+        llm_filter_model=args.llm_filter_model,
+        max_files=args.max_files,
+        cache_path=args.cache_path,
     )

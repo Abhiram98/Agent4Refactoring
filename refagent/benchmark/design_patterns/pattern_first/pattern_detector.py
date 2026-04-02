@@ -18,16 +18,18 @@ All detectors implement the same interface:
     def detect(repo_path: Path) -> list[PatternInstance]
 """
 
-from __future__ import annotations
-
+import hashlib
 import json
 import logging
 import os
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 import git
+
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from refagent.benchmark.design_patterns.models import GoFPattern
 from refagent.benchmark.design_patterns.pattern_first.models import (
@@ -36,6 +38,11 @@ from refagent.benchmark.design_patterns.pattern_first.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _get_content_hash(content: str) -> str:
+    """Return a SHA-256 hash of the string content."""
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -68,21 +75,6 @@ PATTERN_CLASS_KEYWORDS: dict[str, list[str]] = {
     GoFPattern.FLYWEIGHT:        ["flyweight"],
 }
 
-# Implements-clause keywords (lower-cased)
-PATTERN_INTERFACE_KEYWORDS: dict[str, list[str]] = {
-    GoFPattern.STRATEGY:        ["strategy"],
-    GoFPattern.OBSERVER:        ["observer", "listener", "eventhandler"],
-    GoFPattern.COMMAND:         ["command", "action", "runnable"],
-    GoFPattern.VISITOR:         ["visitor"],
-    GoFPattern.FACTORY_METHOD:  ["factory"],
-    GoFPattern.ABSTRACT_FACTORY:["abstractfactory", "factory"],
-    GoFPattern.ITERATOR:        ["iterator"],
-    GoFPattern.DECORATOR:       ["decorator"],
-    GoFPattern.PROXY:           ["proxy"],
-    GoFPattern.STATE:           ["state"],
-    GoFPattern.MEDIATOR:        ["mediator"],
-}
-
 # Directories to skip entirely
 _SKIP_DIRS = {
     "test", "tests", "it", "target", "build", ".git", "__pycache__",
@@ -107,86 +99,6 @@ def _match_class_name(class_name: str) -> list[GoFPattern]:
         if any(kw in lower for kw in keywords):
             matched.append(GoFPattern(pattern))
     return matched
-
-
-def _match_implements(content: str) -> list[GoFPattern]:
-    """Check the implements clause of a Java file for pattern-related interface names."""
-    impl_match = re.search(r'\bimplements\s+([\w\s,<>]+)', content)
-    if not impl_match:
-        return []
-    clause = impl_match.group(1).lower()
-    matched: list[GoFPattern] = []
-    for pattern, keywords in PATTERN_INTERFACE_KEYWORDS.items():
-        if any(kw in clause for kw in keywords):
-            matched.append(GoFPattern(pattern))
-    return matched
-
-
-# ---------------------------------------------------------------------------
-# 1B – Structural heuristics (regex on file content)
-# ---------------------------------------------------------------------------
-
-def _structural_check(pattern: GoFPattern, content: str) -> bool:
-    """
-    Return True if the file content has the structural signature expected for
-    ``pattern``.  These are intentionally simple regex checks — a high false-
-    positive rate is acceptable here; the greenfield filter handles precision.
-    """
-    p = pattern.value if hasattr(pattern, 'value') else pattern
-
-    if p == GoFPattern.BUILDER or p == "Builder":
-        has_build  = bool(re.search(r'\bpublic\s+\w[\w<>, ]*\s+build\s*\(\s*\)', content))
-        has_fluent = bool(re.search(r'\breturn\s+this\b', content))
-        return has_build and has_fluent
-
-    if p in (GoFPattern.SINGLETON, "Singleton"):
-        has_static  = bool(re.search(r'\bprivate\s+static\b', content))
-        has_get_ins = bool(re.search(r'\bgetInstance\s*\(', content))
-        return has_static and has_get_ins
-
-    if p in (GoFPattern.DECORATOR, "Decorator", GoFPattern.PROXY, "Proxy"):
-        # Implements an interface AND has a field of that same interface type
-        impl_m = re.search(r'\bimplements\s+([\w<>]+)', content)
-        if not impl_m:
-            return False
-        iface = impl_m.group(1).split('<')[0]
-        has_field = bool(re.search(rf'\bprivate\s+(?:final\s+)?{re.escape(iface)}\b', content))
-        return has_field
-
-    if p in (GoFPattern.OBSERVER, "Observer"):
-        has_list   = bool(re.search(r'\bList<.*(?:Listener|Observer|Handler|Subscriber)\b', content))
-        has_notify = bool(re.search(r'\b(?:notify|fire(?:Event)?|dispatch)\w*\s*\(', content))
-        return has_list or has_notify
-
-    if p in (GoFPattern.STRATEGY, "Strategy"):
-        is_iface    = bool(re.search(r'\binterface\b', content))
-        has_action  = bool(re.search(r'\b(?:execute|apply|process|handle|perform|compute)\s*\(', content))
-        return is_iface and has_action
-
-    if p in (GoFPattern.FACTORY_METHOD, "FactoryMethod", GoFPattern.ABSTRACT_FACTORY, "AbstractFactory"):
-        has_create  = bool(re.search(r'\bcreate\w*\s*\(', content))
-        has_ret_new = bool(re.search(r'\breturn\s+new\s+\w', content))
-        return has_create or has_ret_new
-
-    if p in (GoFPattern.COMMAND, "Command"):
-        has_execute = bool(re.search(r'\bvoid\s+execute\s*\(\s*\)', content))
-        return has_execute
-
-    if p in (GoFPattern.TEMPLATE_METHOD, "TemplateMethod"):
-        has_final    = bool(re.search(r'\bfinal\b', content))
-        has_abstract = bool(re.search(r'\babstract\b', content))
-        return has_final and has_abstract
-
-    if p in (GoFPattern.VISITOR, "Visitor"):
-        has_visit = bool(re.search(r'\bvisit\s*\(', content))
-        return has_visit
-
-    if p in (GoFPattern.COMPOSITE, "Composite"):
-        has_list_of_self = bool(re.search(r'\bList<\w*(?:Component|Composite|Node|Element)\b', content))
-        return has_list_of_self
-
-    # For other patterns, rely on name heuristic alone (structural check passes)
-    return True
 
 
 # ---------------------------------------------------------------------------
@@ -214,6 +126,7 @@ class NameHeuristicDetector:
         instances: list[PatternInstance] = []
         count = 0
         for java_file in repo_path.rglob("*.java"):
+            # Use max_files to cap the search
             if count >= self.max_files:
                 logger.warning("Reached max_files limit (%d) in %s", self.max_files, repo_path)
                 break
@@ -241,66 +154,124 @@ class NameHeuristicDetector:
 
 
 # ---------------------------------------------------------------------------
-# 1B Detector (adds structural confirmation on top of 1A results)
+# 1B Detector (adds LLM confirmation on top of 1A results)
 # ---------------------------------------------------------------------------
 
-class StructuralDetector:
+class LLMPatternDetector:
     """
-    Phase 1B: reads each candidate file's content and runs a fast regex-based
-    structural check.  Instances that fail structural validation are either
-    downgraded (lower confidence) or removed depending on ``strict`` mode.
-
-    Parameters
-    ----------
-    strict : bool
-        If True, drop instances that fail their structural check.
-        If False, keep them but mark confidence as 0.4 (name only).
+    Phase 1B: Uses an LLM to validate whether a file actually implements
+    the suspected design pattern.
     """
 
-    def __init__(self, strict: bool = False) -> None:
-        self.strict = strict
+    def __init__(self, model_name: str = "gpt-5-mini") -> None:
+        self.model_name = model_name
+        self.model = ChatOpenAI(model=model_name, temperature=1)
 
-    def refine(self, repo_path: Path, instances: list[PatternInstance]) -> list[PatternInstance]:
+    def refine(
+        self,
+        repo_path: Path,
+        instances: list[PatternInstance],
+        cache: Optional[dict[str, Any]] = None,
+    ) -> list[PatternInstance]:
         """
         Given a list of PatternInstance objects (from NameHeuristicDetector),
-        refine them using structural checks.
+        refine them using an LLM.
         """
         refined: list[PatternInstance] = []
         for inst in instances:
             full_path = repo_path / inst.file_path
             if not full_path.exists():
-                if not self.strict:
-                    refined.append(inst)
                 continue
             try:
                 content = full_path.read_text(encoding="utf-8", errors="replace")
             except Exception as exc:
                 logger.debug("Could not read %s: %s", full_path, exc)
-                if not self.strict:
-                    refined.append(inst)
                 continue
 
-            # Also check implements clause for a second pattern signal
-            impl_patterns = _match_implements(content)
-            if impl_patterns and inst.pattern not in impl_patterns:
-                # The implements clause suggests a different (or additional) pattern
-                for extra in impl_patterns:
-                    if extra != inst.pattern:
-                        refined.append(inst.model_copy(update={
-                            "pattern": extra,
-                            "detection_source": DetectionSource.STRUCTURAL,
-                            "confidence": 0.65,
-                        }))
+            # Cache lookup
+            content_hash = _get_content_hash(content)
+            # Cache key incorporates model, pattern and content hash
+            cache_key = f"{self.model_name}:{inst.pattern}:{content_hash}"
+            
+            if cache is not None and cache_key in cache:
+                cached = cache[cache_key]
+                if cached.get("is_valid"):
+                    logger.debug("[LLM Cache] Hit for %s (%s)", inst.file_path, inst.pattern)
+                    refined.append(inst.model_copy(update={
+                        "detection_source": DetectionSource.LLM_VALIDATION,
+                        "confidence": cached.get("confidence", 0.8),
+                        "reasoning": cached.get("reasoning", "Cached result"),
+                    }))
+                else:
+                    logger.debug("[LLM Cache] Negative hit for %s (%s)", inst.file_path, inst.pattern)
+                continue
 
-            passes = _structural_check(inst.pattern, content)
-            if passes:
-                refined.append(inst.model_copy(update={
-                    "detection_source": DetectionSource.STRUCTURAL,
-                    "confidence": 0.85,
-                }))
-            elif not self.strict:
-                # Keep with lower confidence, name-heuristic only
-                refined.append(inst.model_copy(update={"confidence": 0.4}))
+            # LLM Prompt
+            system_prompt = (
+                "You are an expert software architect specialized in design patterns. "
+                "Your task is to analyze the provided Java source code and determine if it "
+                "implements the specified GoF design pattern. "
+                "Respond in the following format:\n"
+                "Verdict: [YES/NO]\n"
+                "Confidence: [0.0 to 1.0]\n"
+                "Reasoning: [Short explanation]"
+            )
+            human_msg = (
+                f"File: {inst.file_path}\n"
+                f"Class Name: {inst.class_name}\n"
+                f"Suspected Pattern: {inst.pattern}\n"
+                f"Initial Confidence (Name Heuristic): {inst.confidence}\n\n"
+                f"Source Code:\n```java\n{content}\n```"
+            )
+
+            messages = [
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=human_msg),
+            ]
+
+            try:
+                response = self.model.invoke(messages)
+                res_text = response.content
+
+                is_valid = "VERDICT: YES" in res_text.upper()
+
+                # Extract reasoning
+                reasoning = "N/A"
+                if "Reasoning:" in res_text:
+                    reasoning = res_text.split("Reasoning:")[1].strip()
+
+                # Extract confidence
+                conf = 0.8  # default if parsing fails
+                if "Confidence:" in res_text:
+                    try:
+                        # Extract the first number after 'Confidence:'
+                        conf_match = re.search(r'Confidence:\s*([0-9.]+)', res_text)
+                        if conf_match:
+                            conf = float(conf_match.group(1))
+                    except:
+                        pass
+
+                # Update cache
+                if cache is not None:
+                    cache[cache_key] = {
+                        "is_valid": is_valid,
+                        "confidence": conf,
+                        "reasoning": reasoning,
+                    }
+
+                if is_valid:
+                    refined.append(inst.model_copy(update={
+                        "detection_source": DetectionSource.LLM_VALIDATION,
+                        "confidence": conf,
+                        "reasoning": reasoning,
+                    }))
+                else:
+                    logger.debug("[LLM] Pattern %s rejected for %s: %s", inst.pattern, inst.file_path, reasoning)
+
+            except Exception as e:
+                logger.error("LLM call failed for %s: %s", inst.file_path, e)
+                # If LLM fails, we fall back to the Name Heuristic instance
+                refined.append(inst)
 
         # Deduplicate: same (file_path, pattern) pair, keep highest confidence
         best: dict[tuple[str, str], PatternInstance] = {}
@@ -310,7 +281,7 @@ class StructuralDetector:
                 best[key] = inst
 
         result = list(best.values())
-        logger.info("[Structural] Refined to %d instances for %s", len(result), repo_path.name)
+        logger.info("[LLM] Refined to %d instances for %s", len(result), repo_path.name)
         return result
 
 
@@ -441,23 +412,26 @@ class DpdfDatasetDetector:
         return instances
 
 
-
 # ---------------------------------------------------------------------------
-# Convenience: run 1A + 1B together
+# Convenience: run 1A (+ 1B) together
 # ---------------------------------------------------------------------------
 
 def detect_patterns(
     repo_path: Path,
-    structural_strict: bool = False,
+    llm_model: Optional[str] = None,
     max_files: int = 10_000,
+    cache: Optional[dict[str, Any]] = None,
 ) -> list[PatternInstance]:
     """
-    Run Phase 1A (name heuristic) followed by Phase 1B (structural refinement)
+    Run Phase 1A (name heuristic) followed by Phase 1B (LLM refinement if model provided)
     and return the merged, deduplicated list of PatternInstance objects.
     """
-    name_detector        = NameHeuristicDetector(max_files=max_files)
-    structural_detector  = StructuralDetector(strict=structural_strict)
+    name_detector = NameHeuristicDetector(max_files=max_files)
+    raw = name_detector.detect(repo_path)
 
-    raw       = name_detector.detect(repo_path)
-    refined   = structural_detector.refine(repo_path, raw)
-    return refined
+    if llm_model:
+        llm_detector = LLMPatternDetector(model_name=llm_model)
+        refined = llm_detector.refine(repo_path, raw, cache=cache)
+        return refined
+
+    return raw

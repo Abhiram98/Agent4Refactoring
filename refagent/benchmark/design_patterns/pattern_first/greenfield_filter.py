@@ -52,8 +52,8 @@ class LLMFilter:
     Uses an LLM to evaluate whether a commit is a release or a refactoring.
     """
 
-    def __init__(self, model_name: str = "gpt-5-mini", temperature: float = 0.0) -> None:
-        self.model = ChatOpenAI(model=model_name, temperature=temperature)
+    def __init__(self, model_name: str = "gpt-5-mini") -> None:
+        self.model = ChatOpenAI(model=model_name, temperature=1)
 
     def is_release_commit(self, commit_message: str) -> bool:
         """
@@ -81,9 +81,10 @@ class LLMFilter:
         system_prompt = (
             "You are an expert in design patterns and refactoring. Analyze the provided git diff. "
             "Determine if the commit represents a 'greenfield' introduction of a design pattern "
-            "(i.e., new classes and logic added from scratch) or a 'refactoring' (i.e., existing "
+            "(i.e., new classes and logic added from scratch -- the design pattern was created directly) "
+            "or a 'refactoring' (i.e., existing "
             "functionality being restructured into a design pattern). "
-            "Focus on whether existing methods/logic were moved into the new pattern structure. "
+            "Focus on whether existing methods/logic were moved/changed into the new pattern structure. "
             "Provide your answer in the following format:\n"
             "Verdict: [REFACTORING/GREENFIELD]\n"
             "Reasoning: [Short explanation]"
