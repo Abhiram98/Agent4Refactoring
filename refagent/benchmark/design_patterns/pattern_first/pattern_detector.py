@@ -112,35 +112,67 @@ class NameHeuristicDetector:
 
     Parameters
     ----------
-    max_files : int
-        Hard cap to avoid very large repos taking too long.
     skip_tests : bool
         If True, skip files inside common test directories.
     """
 
-    def __init__(self, max_files: int = 10_000, skip_tests: bool = True) -> None:
-        self.max_files  = max_files
+    def __init__(self, skip_tests: bool = True) -> None:
         self.skip_tests = skip_tests
 
-    def detect(self, repo_path: Path) -> list[PatternInstance]:
+    def detect(
+        self,
+        repo_path: Path,
+        max_new_patterns: int = -1,
+        cache: Optional[dict[str, Any]] = None,
+        model_name: str = "gpt-5-mini",
+    ) -> list[PatternInstance]:
+        """
+        Scan repository for pattern candidates.
+        
+        If max_new_patterns > 0 and cache is provided, the detector will stop
+        after finding N 'new' patterns (those not already in the cache).
+        Previously cached 'YES' results are also returned.
+        """
         instances: list[PatternInstance] = []
-        count = 0
+        new_count = 0
+        
+        # We scan as many files as needed
         for java_file in repo_path.rglob("*.java"):
-            # Use max_files to cap the search
-            if count >= self.max_files:
-                logger.warning("Reached max_files limit (%d) in %s", self.max_files, repo_path)
-                break
             rel = java_file.relative_to(repo_path)
             if self.skip_tests and _is_skippable(rel):
                 continue
-            count += 1
 
             class_name = _class_name_from_path(java_file)
             matched_patterns = _match_class_name(class_name)
             if not matched_patterns:
                 continue
 
+            # For matches, we check the cache to see if they are 'new'
+            try:
+                content = java_file.read_text(encoding="utf-8", errors="replace")
+                content_hash = _get_content_hash(content)
+            except Exception as exc:
+                logger.debug("Could not read %s: %s", java_file, exc)
+                continue
+
             for pattern in matched_patterns:
+                cache_key = f"{model_name}:{pattern}:{content_hash}"
+                
+                if cache is not None and cache_key in cache:
+                    cached = cache[cache_key]
+                    if cached.get("is_valid"):
+                        # Already known to be a match
+                        instances.append(PatternInstance(
+                            file_path=str(rel),
+                            class_name=class_name,
+                            pattern=pattern,
+                            detection_source=DetectionSource.LLM_VALIDATION,
+                            confidence=cached.get("confidence", 0.8),
+                            reasoning=cached.get("reasoning", "Cached result"),
+                        ))
+                    continue
+
+                # It's a NEW pattern instance
                 instances.append(PatternInstance(
                     file_path=str(rel),
                     class_name=class_name,
@@ -148,8 +180,17 @@ class NameHeuristicDetector:
                     detection_source=DetectionSource.NAME_HEURISTIC,
                     confidence=0.6,
                 ))
+                new_count += 1
+                
+            # Early exit if we reached the limit of NEW patterns
+            if 0 < max_new_patterns <= new_count:
+                logger.info(
+                    "[NameHeuristic] Reached max_new_patterns limit (%d). Found %d total instances.",
+                    max_new_patterns, len(instances)
+                )
+                break
 
-        logger.info("[NameHeuristic] %s: %d candidate instances found", repo_path.name, len(instances))
+        logger.info("[NameHeuristic] %s: %d total instances (including cached valid ones)", repo_path.name, len(instances))
         return instances
 
 
@@ -419,19 +460,37 @@ class DpdfDatasetDetector:
 def detect_patterns(
     repo_path: Path,
     llm_model: Optional[str] = None,
-    max_files: int = 10_000,
+    max_new_patterns: int = 10,
     cache: Optional[dict[str, Any]] = None,
 ) -> list[PatternInstance]:
     """
     Run Phase 1A (name heuristic) followed by Phase 1B (LLM refinement if model provided)
     and return the merged, deduplicated list of PatternInstance objects.
+    
+    This function stops scanning the repository once ``max_new_patterns`` new
+    candidates are found (those not already in the cache).
     """
-    name_detector = NameHeuristicDetector(max_files=max_files)
-    raw = name_detector.detect(repo_path)
+    name_detector = NameHeuristicDetector()
+    all_heuristic = name_detector.detect(
+        repo_path,
+        max_new_patterns=max_new_patterns if llm_model else -1,
+        cache=cache,
+        model_name=llm_model or "gpt-5-mini",
+    )
 
-    if llm_model:
+    # Split into those already validated (cached) and those that are 'new'
+    cached_valid = [
+        inst for inst in all_heuristic 
+        if inst.detection_source == DetectionSource.LLM_VALIDATION
+    ]
+    new_to_validate = [
+        inst for inst in all_heuristic 
+        if inst.detection_source == DetectionSource.NAME_HEURISTIC
+    ]
+
+    if llm_model and new_to_validate:
         llm_detector = LLMPatternDetector(model_name=llm_model)
-        refined = llm_detector.refine(repo_path, raw, cache=cache)
-        return refined
+        refined_new = llm_detector.refine(repo_path, new_to_validate, cache=cache)
+        return cached_valid + refined_new
 
-    return raw
+    return all_heuristic

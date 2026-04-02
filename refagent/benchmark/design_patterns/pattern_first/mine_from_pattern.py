@@ -125,15 +125,32 @@ def run_pattern_first_mining(
     llm_detector_model: str = "gpt-5-mini",
     use_llm_filter: bool = False,
     llm_filter_model: str = "gpt-5-mini",
-    max_files: int = 10_000,
+    max_new_patterns: int = 10,
     cache_path: Optional[Path] = None,
 ) -> list[dict]:
     """
     Run the full pattern-first pipeline and write results to ``output_path``.
     Returns the list of serialised output records.
     """
+    # Load existing records for appending and deduplication
     all_records: list[dict] = []
+    if output_path.exists():
+        try:
+            with open(output_path, "r") as f:
+                all_records = json.load(f)
+            logger.info("Loaded %d existing records from %s", len(all_records), output_path)
+        except Exception as e:
+            logger.warning("Could not load existing output file: %s", e)
+
     instance_id = 1
+    if all_records:
+        instance_id = max(r.get("id", 0) for r in all_records) + 1
+
+    # Keep track of existing (repo, pattern, file, birth_commit) for deduplication
+    existing_keys = set()
+    for r in all_records:
+        key = (r["repo_path"], r["pattern"], r["pattern_file"], r["birth_commit_sha"])
+        existing_keys.add(key)
 
     # Load LLM validation cache
     cache: dict[str, Any] = {}
@@ -168,11 +185,11 @@ def run_pattern_first_mining(
             heuristic_instances = detect_patterns(
                 repo_path=repo_path,
                 llm_model=llm_detector_model if use_llm_detector else None,
-                max_files=max_files,
+                max_new_patterns=max_new_patterns,
                 cache=cache,
             )
             instances.extend(heuristic_instances)
-            logger.info("  Phase 1 (heuristic): %d instances", len(heuristic_instances))
+            logger.info("  Phase 1 (heuristic): %d total instances found (scan limited to %d new)", len(heuristic_instances), max_new_patterns)
 
         # Pattern filter
         if patterns:
@@ -205,8 +222,17 @@ def run_pattern_first_mining(
         gf_filter = GreenfieldFilter(repo_path=repo_path, llm_filter=llm_filter)
         verdicts   = gf_filter.evaluate_all(birth_infos)
 
-        accepted = rejected = 0
+        accepted = rejected = dups = 0
         for birth_info, verdict in verdicts:
+            # Deduplication check
+            p_inst = birth_info.pattern_instance
+            pattern_str = p_inst.pattern.value if hasattr(p_inst.pattern, "value") else str(p_inst.pattern)
+            key = (str(repo_path), pattern_str, p_inst.file_path, birth_info.birth_commit_sha)
+            
+            if key in existing_keys:
+                dups += 1
+                continue
+
             if filter_greenfield and not verdict.is_likely_refactoring:
                 logger.debug(
                     "  ✗ Greenfield-rejected: %s (%s)  reasons=%s",
@@ -219,6 +245,7 @@ def run_pattern_first_mining(
 
             record = _to_output_record(repo_path, birth_info, verdict, instance_id)
             all_records.append(record)
+            existing_keys.add(key)
             instance_id += 1
             accepted += 1
 
@@ -233,7 +260,8 @@ def run_pattern_first_mining(
             )
 
         logger.info(
-            "  Repo done: %d accepted, %d rejected (greenfield)", accepted, rejected
+            "  Repo done: %d accepted, %d rejected (greenfield), %d skipped (duplicates)",
+            accepted, rejected, dups
         )
 
     # ── Write output ─────────────────────────────────────────────────
@@ -309,8 +337,8 @@ def _parse_args() -> argparse.Namespace:
         help="LLM model name to use for pattern validation (Phase 1B).",
     )
     phase1.add_argument(
-        "--max-files", type=int, default=10_000,
-        help="Maximum number of files to scan per repository (default: 10,000).",
+        "--max-new-patterns", type=int, default=10,
+        help="Maximum number of new patterns to discover and validate per repository.",
     )
     phase1.add_argument(
         "--cache-path", type=Path,
@@ -378,6 +406,6 @@ if __name__ == "__main__":
         llm_detector_model=args.llm_detector_model,
         use_llm_filter=args.use_llm_filter,
         llm_filter_model=args.llm_filter_model,
-        max_files=args.max_files,
+        max_new_patterns=args.max_new_patterns,
         cache_path=args.cache_path,
     )
