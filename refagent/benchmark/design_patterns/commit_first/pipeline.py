@@ -25,15 +25,15 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from refagent.benchmark.design_patterns.commit_miner import (
+from refagent.benchmark.design_patterns.commit_first.commit_miner import (
     DiffHeuristicSignal,
     KeywordSignal,
     MultiSignalMiner,
     RefminerSignal,
 )
 from refagent.benchmark.design_patterns.models import PatternIntroductionInstance
-from refagent.benchmark.design_patterns.repo_harvester import RepoCloner, RepoHarvester
-from refagent.benchmark.design_patterns.validator import (
+from refagent.benchmark.design_patterns.commit_first.repo_harvester import RepoCloner, RepoHarvester
+from refagent.benchmark.design_patterns.commit_first.validator import (
     HIGH_CONFIDENCE_THRESHOLD,
     REVIEW_THRESHOLD,
     Validator,

@@ -36,7 +36,7 @@ from pathlib import Path
 
 import git
 
-from refagent.benchmark.design_patterns.commit_miner import (
+from refagent.benchmark.design_patterns.commit_first.commit_miner import (
     KeywordSignal,
     MultiSignalMiner,
     RefminerSignal,

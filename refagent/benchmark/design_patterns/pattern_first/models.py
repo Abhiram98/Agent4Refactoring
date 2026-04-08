@@ -37,9 +37,14 @@ class PatternCache:
     def __init__(self, data: Optional[dict[str, Any]] = None) -> None:
         self._data = data if data is not None else {}
 
-    def get_key(self, model_name: str, pattern: str, file_path: str) -> str:
+    def get_key(self, model_name: str, pattern: GoFPattern | str, file_path: str) -> str:
         """Centralized cache key format: model:pattern:file_path"""
-        return f"{model_name}:{pattern}:{file_path}"
+        if isinstance(pattern, GoFPattern):
+            return f"{model_name}:{pattern.value}:{file_path}"
+        elif isinstance(pattern, str):
+            return f"{model_name}:{pattern}:{file_path}"
+        else:
+            raise ValueError(f"Invalid pattern type: {type(pattern)}")
 
     def get(self, key: str) -> Optional[dict[str, Any]]:
         return self._data.get(key)

@@ -40,7 +40,7 @@ from refagent.benchmark.design_patterns.models import (
     PatternIntroductionInstance,
     RepoCandidate,
 )
-from refagent.benchmark.design_patterns.validator import Validator
+from refagent.benchmark.design_patterns.commit_first.validator import Validator
 
 logger = logging.getLogger(__name__)
 
