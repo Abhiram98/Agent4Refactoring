@@ -40,7 +40,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from refagent.benchmark.design_patterns.pattern_first.models import (
     BirthInfo,
-    GreenfieldVerdict,
+    GreenfieldVerdict, MiningContext,
 )
 
 logger = logging.getLogger(__name__)

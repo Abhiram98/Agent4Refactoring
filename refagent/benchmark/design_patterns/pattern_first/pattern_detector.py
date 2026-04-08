@@ -484,7 +484,8 @@ def detect_patterns(
         inst for inst in all_heuristic 
         if inst.detection_source == DetectionSource.NAME_HEURISTIC
     ]
-
+    logger.info(f"Validating {len(new_to_validate)} new patterns.")
+    logger.info(f"{new_to_validate=}")
     if llm_model and new_to_validate:
         llm_detector = LLMPatternDetector(context=context)
         refined_new = llm_detector.refine(new_to_validate)

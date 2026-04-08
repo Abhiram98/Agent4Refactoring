@@ -245,7 +245,7 @@ class PatternMiningPipeline:
         llm_filter = None
         if self.use_llm_filter:
             logger.info("  (Initializing LLM filter with model: %s)", self.llm_filter_model)
-            llm_filter = LLMFilter(context=self.context)
+            llm_filter = LLMFilter()
 
         gf_filter = GreenfieldFilter(context=self.context, llm_filter=llm_filter)
         verdicts = gf_filter.evaluate_all(birth_infos)
