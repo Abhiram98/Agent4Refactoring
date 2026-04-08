@@ -40,15 +40,12 @@ class CandidateScorecard(BaseModel):
     )
     checks: List[CheckItem] = Field(
         description="A list of binary checks to evaluate against the agent's proposed refactoring",
-        discriminator="type"  # Ensures Pydantic correctly routes JSON items to the right class
+        discriminator="type"
     )
 
     @classmethod
     def from_json_file(cls, path: str | Path) -> "CandidateScorecard":
-        """Loads, parses, and validates a scorecard from a JSON file.
-        
-        Raises pydantic.ValidationError if the JSON does not match the schema.
-        """
+        """Loads, parses, and validates a scorecard from a JSON file."""
         path = Path(path)
         with path.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -58,4 +55,3 @@ class CandidateScorecard(BaseModel):
     def from_json_string(cls, json_str: str) -> "CandidateScorecard":
         """Loads and validates a scorecard from a JSON string."""
         return cls.model_validate_json(json_str)
-
