@@ -290,6 +290,7 @@ class LLMPatternDetector:
                     "confidence": conf,
                     "reasoning": reasoning,
                 })
+                self.context.save_cache()
 
                 if is_valid:
                     refined.append(inst.model_copy(update={
@@ -453,10 +454,8 @@ class DpdfDatasetDetector:
 # ---------------------------------------------------------------------------
 
 def detect_patterns(
-    repo_path: Path,
+    context: MiningContext,
     llm_model: Optional[str] = None,
-    max_new_patterns: int = 10,
-    cache: Optional[dict[str, Any]] = None,
 ) -> list[PatternInstance]:
     """
     Run Phase 1A (name heuristic) followed by Phase 1B (LLM refinement if model provided)
@@ -465,13 +464,6 @@ def detect_patterns(
     This function stops scanning the repository once ``max_new_patterns`` new
     candidates are found (those not already in the cache).
     """
-    context = MiningContext(
-        repo_path=repo_path,
-        cache=PatternCache(cache),
-        model_name=llm_model or "gpt-5-mini",
-        max_new_patterns=max_new_patterns if llm_model else -1,
-    )
-    
     name_detector = NameHeuristicDetector(context=context)
     all_heuristic = name_detector.detect()
 

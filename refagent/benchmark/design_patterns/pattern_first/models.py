@@ -14,6 +14,7 @@ These types flow through the three phases of the pattern-first pipeline:
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -63,12 +64,17 @@ class MiningContext(BaseModel):
     """
     repo_path: Path
     cache: PatternCache
+    cache_path: Path
     model_name: str = "gpt-5-mini"
     max_new_patterns: int = 10
 
     class Config:
         arbitrary_types_allowed = True
         use_enum_values = True
+
+    def save_cache(self) -> None:
+        with open(self.cache_path, "w") as f:
+            json.dump(self.cache.to_dict(), f, indent=2)
 
 
 # ---------------------------------------------------------------------------

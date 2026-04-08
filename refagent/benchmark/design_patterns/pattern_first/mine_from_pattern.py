@@ -117,21 +117,11 @@ class PatternMiningPipeline:
     Phase 1 (Detection) → Phase 2 (Birth Discovery) → Phase 3 (Greenfield Filtering)
     """
 
-    def __init__(
-        self,
-        repo_paths: list[Path],
-        output_path: Path,
-        context: MiningContext,
-        patterns: Optional[list[GoFPattern]] = None,
-        use_heuristic: bool = True,
-        dpdf_dataset_path: Optional[Path] = None,
-        dpdf_project_name: Optional[str] = None,
-        filter_greenfield: bool = True,
-        use_llm_detector: bool = False,
-        use_llm_filter: bool = False,
-        llm_filter_model: str = "gpt-5-mini",
-        cache_path: Optional[Path] = None,
-    ) -> None:
+    def __init__(self, repo_paths: list[Path], output_path: Path, context: MiningContext,
+                 patterns: Optional[list[GoFPattern]] = None, use_heuristic: bool = True,
+                 dpdf_dataset_path: Optional[Path] = None, dpdf_project_name: Optional[str] = None,
+                 filter_greenfield: bool = True, use_llm_detector: bool = False, use_llm_filter: bool = False,
+                 llm_filter_model: str = "gpt-5-mini") -> None:
         self.repo_paths = repo_paths
         self.output_path = output_path
         self.context = context
@@ -143,7 +133,6 @@ class PatternMiningPipeline:
         self.use_llm_detector = use_llm_detector
         self.use_llm_filter = use_llm_filter
         self.llm_filter_model = llm_filter_model
-        self.cache_path = cache_path
 
         self.all_records: list[dict] = []
         self.existing_keys: set[tuple] = set()
@@ -208,10 +197,8 @@ class PatternMiningPipeline:
         if self.use_heuristic:
             # We use the convenience wrapper which now uses the context
             heuristic_instances = detect_patterns(
-                repo_path=self.context.repo_path,
+                context=self.context,
                 llm_model=self.context.model_name if self.use_llm_detector else None,
-                max_new_patterns=self.context.max_new_patterns,
-                cache=self.context.cache.to_dict(),
             )
             # detect_patterns returns new instances, but we need to update our internal cache object
             # because detect_patterns creates a temporary context.
@@ -297,14 +284,13 @@ class PatternMiningPipeline:
         with open(self.output_path, "w") as f:
             json.dump(self.all_records, f, indent=2, default=str)
 
-        if self.use_llm_detector and self.cache_path:
-            self.cache_path.parent.mkdir(parents=True, exist_ok=True)
-            try:
-                with open(self.cache_path, "w") as f:
-                    json.dump(self.context.cache.to_dict(), f, indent=2)
-                logger.info("Saved LLM cache with %d entries to %s", len(self.context.cache), self.cache_path)
-            except Exception as e:
-                logger.error("Could not save LLM cache: %s", e)
+        logger.info("saving cache")
+        self.context.cache_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self.context.save_cache()
+            logger.info("Saved LLM cache with %d entries to %s", len(self.context.cache), self.context.cache_path)
+        except Exception as e:
+            logger.error("Could not save LLM cache: %s", e)
 
 
 def run_pattern_first_mining(
@@ -320,7 +306,7 @@ def run_pattern_first_mining(
     use_llm_filter: bool = False,
     llm_filter_model: str = "gpt-5-mini",
     max_new_patterns: int = 10,
-    cache_path: Optional[Path] = None,
+    cache_path: Path = refagent.data_folder.joinpath("design_patterns/llm_pattern_cache.json"),
 ) -> list[dict]:
     """
     Thin wrapper over PatternMiningPipeline for backward compatibility.
@@ -339,22 +325,14 @@ def run_pattern_first_mining(
         cache=PatternCache(cache_data),
         model_name=llm_detector_model,
         max_new_patterns=max_new_patterns,
-    )
-
-    pipeline = PatternMiningPipeline(
-        repo_paths=repo_paths,
-        output_path=output_path,
-        context=context,
-        patterns=patterns,
-        use_heuristic=use_heuristic,
-        dpdf_dataset_path=dpdf_dataset_path,
-        dpdf_project_name=dpdf_project_name,
-        filter_greenfield=filter_greenfield,
-        use_llm_detector=use_llm_detector,
-        use_llm_filter=use_llm_filter,
-        llm_filter_model=llm_filter_model,
         cache_path=cache_path,
     )
+
+    pipeline = PatternMiningPipeline(repo_paths=repo_paths, output_path=output_path, context=context, patterns=patterns,
+                                     use_heuristic=use_heuristic, dpdf_dataset_path=dpdf_dataset_path,
+                                     dpdf_project_name=dpdf_project_name, filter_greenfield=filter_greenfield,
+                                     use_llm_detector=use_llm_detector, use_llm_filter=use_llm_filter,
+                                     llm_filter_model=llm_filter_model)
     return pipeline.run()
 
 
