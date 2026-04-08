@@ -15,6 +15,7 @@ class ScorecardResult:
 
 class ScorecardEvaluator:
     def __init__(self, scorecard: CandidateScorecard, repo_path: Path, rm_refactorings: List[Dict[str, Any]]):
+        # TODO: Change this to take only the commit/branch as a param. Then run refactoring miner using refminer_utils.
         """
         :param scorecard: The loaded CandidateScorecard schema object.
         :param repo_path: The root path of the agent's modified repository.
