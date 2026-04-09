@@ -9,7 +9,8 @@ from pydantic import BaseModel, Field
 from refagent.benchmark.design_patterns.scorecard.schema import (
     CandidateScorecard,
     FilePresenceCheck,
-    RefactoringMinerCheck
+    RefactoringMinerCheck,
+    CheckItem
 )
 
 logger = logging.getLogger(__name__)
@@ -24,13 +25,17 @@ class RMCheckList(BaseModel):
     checks: List[RefactoringMinerCheck] = Field(description="List of Refactoring Miner checks")
 
 
+class ASTCheckList(BaseModel):
+    checks: List[CheckItem] = Field(description="List of parameterized AST structural checks")
+
+
 class ScoreCardCreator:
     def __init__(self, repo_path: Path, llm: ChatOpenAI):
         self.repo = Repo(repo_path)
         self.llm = llm
 
     def create_scorecard(self, candidate_id: str, pattern_type: str, detection_reasoning: str, commit_hash: str,
-                         parent_hash: str, rm_output: List[Dict[str, Any]]) -> CandidateScorecard:
+                         parent_hash: str, rm_output: List[Dict[str, Any]], max_call_sites: int = 3) -> CandidateScorecard:
         """Generates a CandidateScorecard by analyzing the commit diff and RM output via an LLM."""
 
         # Step 1: File Checks
@@ -41,10 +46,17 @@ class ScoreCardCreator:
         condensed_rm = self._condense_rm_output(rm_output)
         rm_checks = self._generate_rm_checks(pattern_type, detection_reasoning, condensed_rm)
 
+        # Step 3: AST Checks
+        ast_contexts = self._extract_ast_context(commit_hash, parent_hash, file_checks, condensed_rm, max_call_sites)
+        ast_checks = []
+        for ctx in ast_contexts:
+            res = self._generate_ast_checks(pattern_type, detection_reasoning, ctx)
+            ast_checks.extend(res)
+
         # Combine
         return CandidateScorecard(
             candidate_id=candidate_id,
-            checks=file_checks + rm_checks
+            checks=file_checks + rm_checks + ast_checks
         )
 
     def _extract_added_deleted_diff(self, commit_hash: str, parent_hash: str) -> str:
@@ -159,3 +171,90 @@ Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pat
         structured_llm = self.llm.with_structured_output(RMCheckList)
         result = structured_llm.invoke(prompt)
         return result.checks if result else []
+
+    def _extract_ast_context(self, commit_hash: str, parent_hash: str, file_checks: List[FilePresenceCheck], 
+                             condensed_rm: List[Dict[str, Any]], max_call_sites: int) -> List[Dict[str, str]]:
+        """Selects 'Important Files' and extracts their Diff and Final State."""
+        diff_index = self.repo.commit(parent_hash).diff(self.repo.commit(commit_hash))
+        
+        selected_files = set()
+        
+        # 1. Add files from FilePresence checks
+        for req in file_checks:
+            # Reconstruct likely paths if possible, or just look for the basename in the diff
+            for diff_obj in diff_index:
+                path = diff_obj.b_path if diff_obj.b_path else diff_obj.a_path
+                if path and req.filename in path:
+                    selected_files.add(path)
+                    
+        # 2. Add files from RM checks
+        for rm in condensed_rm:
+            selected_files.update(rm.get("involved_files", []))
+            
+        # 3. Sample remaining modified files (Call-sites)
+        modified_files = []
+        for diff_obj in diff_index.iter_change_type('M'):
+            if diff_obj.b_path and diff_obj.b_path not in selected_files:
+                # Approximate churn by lines in diff blob length diff... or just keep it simple
+                modified_files.append(diff_obj.b_path)
+                
+        # Take the top N (just head for now, could be ordered by churn)
+        for cf in modified_files[:max_call_sites]:
+            selected_files.add(cf)
+            
+        contexts = []
+        for file_path in selected_files:
+            # Get Context Diff
+            diff_text = self.repo.git.diff(parent_hash, commit_hash, "--", file_path)
+            
+            # Get Post-refactoring content
+            try:
+                blob = self.repo.commit(commit_hash).tree / file_path
+                content = blob.data_stream.read().decode('utf-8', errors='replace')
+                if len(content) > 15000:
+                    content = content[:15000] + "\n... [TRUNCATED CONTENT HEURISTIC] ..."
+            except KeyError:
+                content = "[File Deleted]"
+                
+            contexts.append({
+                "target_file": file_path,
+                "diff": diff_text,
+                "content": content
+            })
+            
+        return contexts
+
+    def _generate_ast_checks(self, pattern_type: str, reasoning: str, ctx: Dict[str, str]) -> List[CheckItem]:
+        prompt = f"""You are an evaluator assessing whether an agent successfully implemented a {pattern_type}.
+Reasoning for the developer's original refactoring: {reasoning}
+
+We are evaluating the following specific file: {ctx['target_file']}
+
+What changed (Git Diff):
+```diff
+{ctx['diff']}
+```
+
+Final File Structure (Post-refactoring):
+```java
+{ctx['content']}
+```
+
+Task:
+Return a list of parameterized structural constraints this file MUST meet to satisfy the design pattern integration (or the pattern itself).
+Use predefined schemas like 'ImplementsInterfaceCheck', 'HasMethodCheck', 'InstantiatesClassCheck', or 'HasFieldCheck'. 
+ONLY use 'CustomDynamicASTCheck' if the structural requirement is completely impossible to express natively.
+Remember to aggressively use the `expected: false` parameter if the developer DELETED or REMOVED an old method, field, or constructor that the AI must also delete. 
+Assign strict weights based on importance.
+"""
+        structured_llm = self.llm.with_structured_output(ASTCheckList)
+        result = structured_llm.invoke(prompt)
+        
+        # Filter to make sure it only returns AST checks (the schema technically allows all checks)
+        valid_checks = []
+        if result:
+            for check in result.checks:
+                if check.type not in ["refactoring_miner", "file_presence"]:
+                    valid_checks.append(check)
+        return valid_checks
+
