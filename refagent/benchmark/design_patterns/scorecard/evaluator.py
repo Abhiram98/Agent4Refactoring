@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Any
 
-from .schema import CandidateScorecard, RefactoringMinerCheck, FilePresenceCheck
+from .schema import CandidateScorecard, RefactoringMinerCheck, FilePresenceCheck, ASTCheckBase
 
 
 class ScorecardResult:
@@ -37,6 +37,8 @@ class ScorecardEvaluator:
                 result = self._evaluate_rm_check(check)
             elif isinstance(check, FilePresenceCheck):
                 result = self._evaluate_file_check(check)
+            elif isinstance(check, ASTCheckBase):
+                result = self._evaluate_ast_check(check)
             else:
                 raise ValueError(f"Unknown check type: {type(check)}")
 
@@ -105,3 +107,27 @@ class ScorecardEvaluator:
                 return ScorecardResult(passed=True, weight=check.weight, message=f"File '{check.filename}' is correctly absent.")
         else:
             return ScorecardResult(passed=False, weight=check.weight, message=f"Invalid expected state: {check.expected_state}")
+
+    def _evaluate_ast_check(self, check: ASTCheckBase) -> ScorecardResult:
+        import refagent.benchmark.design_patterns.scorecard.ast_checks as ast_checks
+        
+        # Registry mapping schema types to Evaluator classes
+        evaluator_map = {
+            "implements_interface": ast_checks.ImplementsInterfaceCheckEvaluator,
+            "has_method": ast_checks.HasMethodCheckEvaluator,
+            # Additional maps can be easily added as the classes are written
+        }
+        
+        if check.type in evaluator_map:
+            eval_class = evaluator_map[check.type]
+            evaluator = eval_class(check)
+            
+            # The evaluator logic handles the 'expected' condition internally
+            passed = evaluator.evaluate(self.repo_path, check.target_file, getattr(check, 'target_class', None))
+            
+            if passed:
+                return ScorecardResult(True, check.weight, f"AST check '{check.type}' passed.")
+            else:
+                return ScorecardResult(False, check.weight, f"AST check '{check.type}' failed.")
+        else:
+            return ScorecardResult(False, 0.0, f"Evaluator for AST check '{check.type}' not yet implemented.")

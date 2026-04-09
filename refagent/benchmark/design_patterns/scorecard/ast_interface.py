@@ -12,11 +12,13 @@ class ASTCheckEvaluator(ABC):
     """
 
     @abstractmethod
-    def evaluate(self, repo_path: Path) -> bool:
+    def evaluate(self, repo_path: Path, target_file: str, target_class: str) -> bool:
         """
         Evaluates the structural constraint against the codebase at the given commit.
 
         :param repo_path: The absolute path to the local git repository.
-        :return: True if the AST check passes, False otherwise.
+        :param target_file: The base filename to target (e.g. 'StreamSpliterator.java').
+        :param target_class: The explicit class within the file to check.
+        :return: True if the AST check passes (or fails if expected=False), False otherwise.
         """
         pass
