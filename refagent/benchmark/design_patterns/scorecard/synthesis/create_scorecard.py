@@ -35,23 +35,32 @@ class ScoreCardCreator:
         self.llm = llm
 
     def create_scorecard(self, candidate_id: str, pattern_type: str, detection_reasoning: str, commit_hash: str,
-                         parent_hash: str, rm_output: List[Dict[str, Any]], max_call_sites: int = 3) -> CandidateScorecard:
+                         parent_hash: str, rm_output: List[Dict[str, Any]], max_call_sites: int = 3,
+                         run_file_checks: bool = True, run_rm_checks: bool = True, run_ast_checks: bool = True) -> CandidateScorecard:
         """Generates a CandidateScorecard by analyzing the commit diff and RM output via an LLM."""
 
         # Step 1: File Checks
-        file_diff_text = self._extract_added_deleted_diff(commit_hash, parent_hash)
-        file_checks = self._generate_file_checks(pattern_type, detection_reasoning, file_diff_text)
+        file_checks = []
+        if run_file_checks:
+            file_diff_text = self._extract_added_deleted_diff(commit_hash, parent_hash)
+            file_checks = self._generate_file_checks(pattern_type, detection_reasoning, file_diff_text)
 
         # Step 2: RM Checks
-        condensed_rm = self._condense_rm_output(rm_output)
-        rm_checks = self._generate_rm_checks(pattern_type, detection_reasoning, condensed_rm)
+        rm_checks = []
+        condensed_rm = []
+        if run_rm_checks or run_ast_checks: 
+            # Condense RM is needed for AST context filtering too
+            condensed_rm = self._condense_rm_output(rm_output)
+            if run_rm_checks:
+                rm_checks = self._generate_rm_checks(pattern_type, detection_reasoning, condensed_rm)
 
         # Step 3: AST Checks
-        ast_contexts = self._extract_ast_context(commit_hash, parent_hash, file_checks, condensed_rm, max_call_sites)
         ast_checks = []
-        for ctx in ast_contexts:
-            res = self._generate_ast_checks(pattern_type, detection_reasoning, ctx)
-            ast_checks.extend(res)
+        if run_ast_checks:
+            ast_contexts = self._extract_ast_context(commit_hash, parent_hash, file_checks, condensed_rm, max_call_sites)
+            for ctx in ast_contexts:
+                res = self._generate_ast_checks(pattern_type, detection_reasoning, ctx)
+                ast_checks.extend(res)
 
         # Combine
         return CandidateScorecard(
