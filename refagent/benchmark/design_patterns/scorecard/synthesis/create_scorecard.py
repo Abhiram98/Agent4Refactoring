@@ -1,29 +1,161 @@
+import logging
 from pathlib import Path
-from typing import List
-from pydantic import BaseModel
+from typing import List, Dict, Any
+from git import Repo
 
-from benchmark.design_patterns.pattern_first.models import BirthInfo
-from benchmark.design_patterns.scorecard import CandidateScorecard, FilePresenceCheck, RefactoringMinerCheck
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
+
+from refagent.benchmark.design_patterns.scorecard.schema import (
+    CandidateScorecard,
+    FilePresenceCheck,
+    RefactoringMinerCheck
+)
+
+logger = logging.getLogger(__name__)
 
 
-class ScoreCardCreator(BaseModel):
-    repo_path: Path
-    birth_info: BirthInfo
+# Temporary wrapper models for LangChain's structured output parser limitation
+class FileCheckList(BaseModel):
+    checks: List[FilePresenceCheck] = Field(description="List of file presence/absence checks")
 
-    def generate_scorecard(self) -> CandidateScorecard:
-        # TODO: generate the scorecard using LLM prompts.
-        self.generate_file_checks()
-        return CandidateScorecard()
 
-    def generate_file_checks(self) -> List[FilePresenceCheck]:
-        # TODO: Go through the birth commit. List out the deleted/added files.
-        #  Based on that information, use an LLM to filter for appropriate files which are part of the pattern.
-        #  Generate the checks that the files exist or are absent.
-        return []
+class RMCheckList(BaseModel):
+    checks: List[RefactoringMinerCheck] = Field(description="List of Refactoring Miner checks")
 
-    def generate_refminer_checks(self) -> List[RefactoringMinerCheck]:
-        # TODO: Run refactoring miner on the birth commit.
-        #  Pass the output to an LLM (only the descriptions of the refactorings.)
-        #  Ask the LLM to filter out for the important refactorings to apply the pattern.
-        #  create the required output
-        return []
+
+class ScoreCardCreator:
+    def __init__(self, repo_path: Path, llm: ChatOpenAI):
+        self.repo = Repo(repo_path)
+        self.llm = llm
+
+    def create_scorecard(self, candidate_id: str, pattern_type: str, detection_reasoning: str, commit_hash: str,
+                         parent_hash: str, rm_output: List[Dict[str, Any]]) -> CandidateScorecard:
+        """Generates a CandidateScorecard by analyzing the commit diff and RM output via an LLM."""
+
+        # Step 1: File Checks
+        file_diff_text = self._extract_added_deleted_diff(commit_hash, parent_hash)
+        file_checks = self._generate_file_checks(pattern_type, detection_reasoning, file_diff_text)
+
+        # Step 2: RM Checks
+        condensed_rm = self._condense_rm_output(rm_output)
+        rm_checks = self._generate_rm_checks(pattern_type, detection_reasoning, condensed_rm)
+
+        # Combine
+        return CandidateScorecard(
+            candidate_id=candidate_id,
+            checks=file_checks + rm_checks
+        )
+
+    def _extract_added_deleted_diff(self, commit_hash: str, parent_hash: str) -> str:
+        """Extracts diff info for added and deleted files, respecting the 10-file 50-LOC rule."""
+        diff_index = self.repo.commit(parent_hash).diff(self.repo.commit(commit_hash))
+
+        # Filter for purely added ('A') or deleted ('D') files
+        added_files = list(diff_index.iter_change_type('A'))
+        deleted_files = list(diff_index.iter_change_type('D'))
+
+        target_diffs = added_files + deleted_files
+
+        if not target_diffs:
+            return "No purely added or deleted files found."
+
+        exceeds_threshold = len(target_diffs) > 10
+        output = []
+
+        for diff_obj in target_diffs:
+            b_path = diff_obj.b_path if diff_obj.b_path else diff_obj.a_path
+            status = "ADDED" if diff_obj in added_files else "DELETED"
+            output.append(f"--- {status} FILE: {b_path} ---")
+
+            try:
+                blob = diff_obj.b_blob if diff_obj.b_blob else diff_obj.a_blob
+                if blob is not None:
+                    content = blob.data_stream.read().decode('utf-8', errors='replace')
+                    lines = content.splitlines()
+
+                    if exceeds_threshold:
+                        lines = lines[:50]
+                        output.extend(lines)
+                        output.append("... [TRUNCATED DUE TO FILE LIMIT HEURISTIC] ...")
+                    else:
+                        output.extend(lines)
+                else:
+                    output.append("[No blob content available]")
+            except Exception as e:
+                output.append(f"[Error reading file content: {e}]")
+
+            output.append("")
+
+        return "\n".join(output)
+
+    def _condense_rm_output(self, rm_output: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Condenses verbose RM JSON into a clean, LLM-friendly format."""
+        condensed = []
+        if isinstance(rm_output, dict) and "commits" in rm_output:
+            # Handle standard RefactoringMiner format
+            commits = rm_output.get("commits", [])
+            operations = commits[0].get("refactorings", []) if commits else []
+        else:
+            # Fallback if the user passes the list of refactorings directly
+            operations = rm_output
+
+        for op in operations:
+            op_type = op.get("type", "")
+            description = op.get("description", "")
+
+            # Find unique file paths in left and right side locations
+            files = set()
+            for side in ["leftSideLocations", "rightSideLocations"]:
+                for loc in op.get(side, []):
+                    if "filePath" in loc:
+                        files.add(loc["filePath"])
+
+            condensed.append({
+                "type": op_type,
+                "description": description,
+                "involved_files": list(files)
+            })
+        return condensed
+
+    def _generate_file_checks(self, pattern_type: str, reasoning: str, diff_text: str) -> List[FilePresenceCheck]:
+        prompt = f"""You are generating an evaluation scorecard for an AI developer replicating a {pattern_type} design pattern.
+The target outcome reasoning is: {reasoning}
+
+Here is the set of strictly Added and Deleted files from the original developer's commit. 
+If there were >10 files, only the first 50 lines of each are included:
+```
+{diff_text}
+```
+
+Task:
+Identify which of these files MUST exist or MUST be absent to fulfill the core architecture of the {pattern_type}.
+Return a structured list of FilePresenceChecks. Assign higher weights (2.0 or 3.0) to central interfaces/classes, and lower weights (0.5 or 1.0) to tests or secondary helpers.
+Do not over-specify paths in filename, just use the base filename (e.g. 'StreamSpliterator.java').
+"""
+        structured_llm = self.llm.with_structured_output(FileCheckList)
+        result = structured_llm.invoke(prompt)
+        return result.checks if result else []
+
+    def _generate_rm_checks(self, pattern_type: str, reasoning: str, condensed_rm: List[Dict[str, Any]]) -> List[
+        RefactoringMinerCheck]:
+        import json
+        rm_text = json.dumps(condensed_rm, indent=2)
+
+        prompt = f"""You are generating an evaluation scorecard for an AI developer replicating a {pattern_type} design pattern.
+The target outcome reasoning is: {reasoning}
+
+Here is the condensed RefactoringMiner output representing the original developer's actions:
+```json
+{rm_text}
+```
+
+Task:
+Select the structural operations that form the core of the newly introduced pattern and return a structured list of RefactoringMinerChecks.
+CRITICAL INSTRUCTION: To account for the AI agent using slightly different naming conventions than the original developer, rewrite the `description_regex` loosely based on the original `description`. 
+Replace specific developer identifiers with wildcards `.*?` where appropriate, but try to strictly match the operation target/base intent. 
+Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pattern_type}.
+"""
+        structured_llm = self.llm.with_structured_output(RMCheckList)
+        result = structured_llm.invoke(prompt)
+        return result.checks if result else []
