@@ -117,10 +117,13 @@ class NameHeuristicDetector:
         self.context = context
         self.skip_tests = skip_tests
 
-    def detect(self) -> list[PatternInstance]:
+    def detect(self, file_names: Optional[list[str]] = None) -> list[PatternInstance]:
         """
         Scan repository for pattern candidates.
         
+        If ``file_names`` is provided, only those files are scanned.
+        Otherwise, the entire repository is scanned via rglob("*.java").
+
         If context.max_new_patterns > 0, the detector will stop after finding N 
         'new' patterns (those not already in the cache).
         Previously cached 'YES' results are also returned.
@@ -129,10 +132,20 @@ class NameHeuristicDetector:
         new_count = 0
         repo_path = self.context.repo_path
         
-        # We scan as many files as needed
-        for java_file in repo_path.rglob("*.java"):
+        if file_names:
+            # User provided a specific list of files to check
+            targets = [repo_path / f for f in file_names]
+        else:
+            # Scan the whole repo
+            targets = list(repo_path.rglob("*.java"))
+
+        for java_file in targets:
+            if not java_file.exists():
+                logger.warning("[NameHeuristic] File not found: %s", java_file)
+                continue
+            
             rel = java_file.relative_to(repo_path)
-            if self.skip_tests and _is_skippable(rel):
+            if not file_names and self.skip_tests and _is_skippable(rel):
                 continue
 
             class_name = _class_name_from_path(java_file)
@@ -142,8 +155,6 @@ class NameHeuristicDetector:
 
             # For matches, we check the cache to see if they are 'new'
             try:
-                # We don't necessarily need the content here if we're just checking the name,
-                # but we read it to ensure the file is accessible before reporting it.
                 _ = java_file.read_text(encoding="utf-8", errors="replace")
             except Exception as exc:
                 logger.debug("Could not read %s: %s", java_file, exc)
@@ -456,6 +467,7 @@ class DpdfDatasetDetector:
 def detect_patterns(
     context: MiningContext,
     llm_model: Optional[str] = None,
+    file_names: Optional[list[str]] = None,
 ) -> list[PatternInstance]:
     """
     Run Phase 1A (name heuristic) followed by Phase 1B (LLM refinement if model provided)
@@ -465,7 +477,7 @@ def detect_patterns(
     candidates are found (those not already in the cache).
     """
     name_detector = NameHeuristicDetector(context=context)
-    all_heuristic = name_detector.detect()
+    all_heuristic = name_detector.detect(file_names=file_names)
 
     # Split into those already validated (cached) and those that are 'new'
     cached_valid = [

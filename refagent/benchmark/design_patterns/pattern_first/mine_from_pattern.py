@@ -40,7 +40,7 @@ import logging
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional, Any, Tuple
 
 import refagent
 from refagent.benchmark.design_patterns.models import GoFPattern, PatternIntroductionInstance
@@ -111,6 +111,18 @@ def _to_output_record(
         },
     }
 
+def _from_output_record(record: dict) -> Tuple[Path, BirthInfo, GreenfieldVerdict]:
+    repo_path = record["repo_path"]
+    birth_info = BirthInfo(
+        pattern_instance=record["pattern"],
+        birth_commit_sha=record["birth_commit_sha"],
+        parent_sha=record["parent_sha"],
+        birth_commit_date=record["birth_commit_date"],
+        birth_commit_message=record["birth_commit_message"],
+        is_initial_repo_commit=record["is_initial_repo_commit"],
+        original_file_path=record["original_file_path"],
+    )
+
 class PatternMiningPipeline:
     """
     Orchestrates the full pattern-first mining process:
@@ -121,7 +133,7 @@ class PatternMiningPipeline:
                  patterns: Optional[list[GoFPattern]] = None, use_heuristic: bool = True,
                  dpdf_dataset_path: Optional[Path] = None, dpdf_project_name: Optional[str] = None,
                  filter_greenfield: bool = True, use_llm_detector: bool = False, use_llm_filter: bool = False,
-                 llm_filter_model: str = "gpt-5-mini") -> None:
+                 llm_filter_model: str = "gpt-5-mini", file_names: Optional[list[str]] = None) -> None:
         self.repo_paths = repo_paths
         self.output_path = output_path
         self.context = context
@@ -133,6 +145,7 @@ class PatternMiningPipeline:
         self.use_llm_detector = use_llm_detector
         self.use_llm_filter = use_llm_filter
         self.llm_filter_model = llm_filter_model
+        self.file_names = file_names
 
         self.all_records: list[dict] = []
         self.existing_keys: set[tuple] = set()
@@ -199,6 +212,7 @@ class PatternMiningPipeline:
             heuristic_instances = detect_patterns(
                 context=self.context,
                 llm_model=self.context.model_name if self.use_llm_detector else None,
+                file_names=self.file_names,
             )
             # detect_patterns returns new instances, but we need to update our internal cache object
             # because detect_patterns creates a temporary context.
@@ -307,6 +321,7 @@ def run_pattern_first_mining(
     llm_filter_model: str = "gpt-5-mini",
     max_new_patterns: int = 10,
     cache_path: Path = refagent.data_folder.joinpath("design_patterns/llm_pattern_cache.json"),
+    file_names: Optional[list[str]] = None,
 ) -> list[dict]:
     """
     Thin wrapper over PatternMiningPipeline for backward compatibility.
@@ -332,7 +347,7 @@ def run_pattern_first_mining(
                                      use_heuristic=use_heuristic, dpdf_dataset_path=dpdf_dataset_path,
                                      dpdf_project_name=dpdf_project_name, filter_greenfield=filter_greenfield,
                                      use_llm_detector=use_llm_detector, use_llm_filter=use_llm_filter,
-                                     llm_filter_model=llm_filter_model)
+                                     llm_filter_model=llm_filter_model, file_names=file_names)
     return pipeline.run()
 
 
@@ -411,6 +426,10 @@ def _parse_args() -> argparse.Namespace:
         choices=[p.value for p in GoFPattern], metavar="PATTERN",
         help="Only detect/report these patterns (e.g. --patterns Builder Strategy).",
     )
+    phase1.add_argument(
+        "--file_names", nargs="*",
+        help="Run the pipeline on these files. ",
+    )
 
     # Phase 3 options
     phase3 = parser.add_argument_group("Phase 3 – Greenfield Filter")
@@ -461,4 +480,5 @@ if __name__ == "__main__":
         llm_filter_model=args.llm_filter_model,
         max_new_patterns=args.max_new_patterns,
         cache_path=args.cache_path,
+        file_names=args.file_names,
     )

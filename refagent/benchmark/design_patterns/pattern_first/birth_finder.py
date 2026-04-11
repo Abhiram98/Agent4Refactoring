@@ -21,7 +21,7 @@ import logging
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 import git
 
@@ -54,45 +54,51 @@ class BirthFinder:
     # Public API
     # ------------------------------------------------------------------
 
-    def find(self, instance: PatternInstance) -> Optional[BirthInfo]:
+    def find(self, instance: PatternInstance) -> Optional[List[BirthInfo]]:
         """
         Return the BirthInfo for ``instance``, or None if the file cannot be
         traced (e.g. it no longer exists in the repo, git error, etc.).
         """
+        birth_infos = []
         file_path = instance.file_path
 
-        birth_sha, birth_date, birth_message = self._git_birth(file_path)
-        if birth_sha is None:
-            logger.warning("[BirthFinder] Cannot find birth commit for %s", file_path)
-            return None
+        birth_info_1 = self._git_birth(file_path)
+        birth_info_no_follow = self._git_birth(file_path, follow=False)
+        unique_birth_shas = {birth_info_1, birth_info_no_follow}
+        for birth_info in unique_birth_shas:
+            sha, birth_date, commit_msg = birth_info
+            if sha is None:
+                logger.warning("[BirthFinder] Cannot find birth commit for %s", file_path)
+                continue
 
-        parent_sha, is_initial = self._get_parent(birth_sha)
+            parent_sha, is_initial = self._get_parent(sha)
+            logger.info(
+                "[BirthFinder] %s → birth=%s (%s)%s",
+                instance.class_name,
+                sha[:8],
+                birth_date.date() if birth_date else "?",
+                "  [INITIAL COMMIT]" if is_initial else "",
+            )
 
-        logger.info(
-            "[BirthFinder] %s → birth=%s (%s)%s",
-            instance.class_name,
-            birth_sha[:8],
-            birth_date.date() if birth_date else "?",
-            "  [INITIAL COMMIT]" if is_initial else "",
-        )
+            birth_infos.append(BirthInfo(
+                pattern_instance=instance,
+                birth_commit_sha=sha,
+                birth_commit_date=birth_date or datetime.now(UTC),
+                birth_commit_message=commit_msg,
+                parent_sha=parent_sha,
+                is_initial_repo_commit=is_initial,
+                original_file_path=file_path,
+            ))
 
-        return BirthInfo(
-            pattern_instance=instance,
-            birth_commit_sha=birth_sha,
-            birth_commit_date=birth_date or datetime.now(UTC),
-            birth_commit_message=birth_message,
-            parent_sha=parent_sha,
-            is_initial_repo_commit=is_initial,
-            original_file_path=file_path,
-        )
+        return birth_infos
+
 
     def find_all(self, instances: list[PatternInstance]) -> list[BirthInfo]:
         """Batch version of ``find``; skips instances that cannot be resolved."""
         results: list[BirthInfo] = []
         for inst in instances:
-            info = self.find(inst)
-            if info is not None:
-                results.append(info)
+            birth_infos = self.find(inst)
+            results += birth_infos
         return results
 
     # ------------------------------------------------------------------
@@ -100,7 +106,7 @@ class BirthFinder:
     # ------------------------------------------------------------------
 
     def _git_birth(
-        self, file_path: str
+        self, file_path: str, follow=True,
     ) -> tuple[Optional[str], Optional[datetime], str]:
         """
         Run ``git log --diff-filter=A --follow`` to locate the commit that
@@ -112,7 +118,10 @@ class BirthFinder:
             "git", "-C", str(self.repo_path),
             "log",
             "--diff-filter=A",   # only commits where the file was *added*
-            "--follow",          # trace renames/moves backwards
+             ]
+        if follow:
+            cmd.append("--follow")
+        cmd += [
             "--format=%H%x00%aI%x00%s",  # NUL-separated: hash, ISO date, subject
             "--",
             file_path,
