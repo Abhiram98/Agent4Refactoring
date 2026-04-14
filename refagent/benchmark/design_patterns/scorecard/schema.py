@@ -25,8 +25,8 @@ class RefactoringMinerCheck(BaseScorecardCheck):
 class FilePresenceCheck(BaseScorecardCheck):
     """Check verifying the presence or absence of a specific file by filename."""
     type: Literal["file_presence"]
-    filename: str = Field(
-        description="The exact name of the file WITHOUT the path"
+    file_regex: str = Field(
+        description="A regex to match the file name."
     )
     expected_state: Literal["exists", "absent"] = Field(
         description="Whether the file should be present or deleted"

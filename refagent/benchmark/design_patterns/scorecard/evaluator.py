@@ -84,27 +84,27 @@ class ScorecardEvaluator:
         )
 
     def _evaluate_file_check(self, check: FilePresenceCheck) -> ScorecardResult:
-        """Checks if a file with the exact name appears (or is absent) anywhere in the repo subtree."""
-        # Note: rglob searches recursively. 
-        # Using next() to efficiently check if AT LEAST ONE match exists without evaluating the whole generator
-        match_generator = self.repo_path.rglob(f"**/{check.filename}")
+        """Checks if a file matching the regex appears (or is absent) anywhere in the repo subtree."""
+        import re
+        pattern = re.compile(check.file_regex)
         
-        try:
-            next(match_generator)
-            file_exists = True
-        except StopIteration:
-            file_exists = False
+        file_exists = False
+        for path in self.repo_path.rglob("*"):
+            # Only match against the filename, not the full path, consistent with how the regex is prompted
+            if path.is_file() and pattern.search(path.name):
+                file_exists = True
+                break
 
         if check.expected_state == "exists":
             if file_exists:
-                return ScorecardResult(passed=True, weight=check.weight, message=f"Found file '{check.filename}'.")
+                return ScorecardResult(passed=True, weight=check.weight, message=f"Found file matching regex '{check.file_regex}'.")
             else:
-                return ScorecardResult(passed=False, weight=check.weight, message=f"File '{check.filename}' was expected but not found.")
+                return ScorecardResult(passed=False, weight=check.weight, message=f"File matching '{check.file_regex}' was expected but not found.")
         elif check.expected_state == "absent":
             if file_exists:
-                return ScorecardResult(passed=False, weight=check.weight, message=f"File '{check.filename}' is present, but should be absent.")
+                return ScorecardResult(passed=False, weight=check.weight, message=f"File matching '{check.file_regex}' is present, but should be absent.")
             else:
-                return ScorecardResult(passed=True, weight=check.weight, message=f"File '{check.filename}' is correctly absent.")
+                return ScorecardResult(passed=True, weight=check.weight, message=f"File matching '{check.file_regex}' is correctly absent.")
         else:
             return ScorecardResult(passed=False, weight=check.weight, message=f"Invalid expected state: {check.expected_state}")
 
