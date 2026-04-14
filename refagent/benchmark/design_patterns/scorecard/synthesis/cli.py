@@ -10,8 +10,7 @@ def main():
     parser.add_argument("--repo-path", type=str, required=True, help="Path to the local git repository")
     parser.add_argument("--candidate-id", type=str, required=True, help="Unique ID for the scorecard candidate")
     parser.add_argument("--aggregated-json", type=str, required=True, help="Path to aggregated_candidates.json file")
-    
-    parser.add_argument("--rm-json", type=str, required=True, help="Path to json file containing RefactoringMiner output array")
+
     
     parser.add_argument("--output", type=str, default="scorecard.json", help="Path to save the generated scorecard")
     parser.add_argument("--model", type=str, default="gpt-4o-mini", help="LangChain LLM model string to use")
@@ -23,10 +22,6 @@ def main():
     parser.add_argument("--disable-ast-checks", action="store_true", help="Disable generating AST structural checks")
 
     args = parser.parse_args()
-
-    # Load RM Output
-    with open(args.rm_json, "r") as f:
-        rm_output = json.load(f)
 
     # Load aggregated candidates and find our target
     with open(args.aggregated_json, "r") as f:
@@ -57,7 +52,6 @@ def main():
         candidate_id=args.candidate_id,
         birth_info=birth_info,
         verdict=verdict,
-        rm_output=rm_output,
         max_call_sites=args.max_call_sites,
         run_file_checks=not args.disable_file_checks,
         run_rm_checks=not args.disable_rm_checks,

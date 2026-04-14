@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from typing import List, Dict, Any
 from git import Repo
+import json
 
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
@@ -13,6 +14,8 @@ from refagent.benchmark.design_patterns.scorecard.schema import (
     CheckItem
 )
 from refagent.benchmark.design_patterns.pattern_first.models import BirthInfo, GreenfieldVerdict
+from refagent.utils.refminer_utils import default_runner
+import refagent.refactoring_types.refactorings as refactoring_types
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +39,7 @@ class ScoreCardCreator:
         self.llm = llm
 
     def create_scorecard(self, candidate_id: str, birth_info: BirthInfo, verdict: GreenfieldVerdict,
-                         rm_output: List[Dict[str, Any]], max_call_sites: int = 3,
+                         max_call_sites: int = 3,
                          run_file_checks: bool = True, run_rm_checks: bool = True, run_ast_checks: bool = True) -> CandidateScorecard:
         """Generates a CandidateScorecard by analyzing the commit diff and RM output via an LLM."""
         
@@ -56,9 +59,9 @@ class ScoreCardCreator:
         condensed_rm = []
         if run_rm_checks or run_ast_checks: 
             # Condense RM is needed for AST context filtering too
-            condensed_rm = self._condense_rm_output(rm_output)
+            rm_output = default_runner.run(project_path=self.repo.working_dir, commit_hash=commit_hash)
             if run_rm_checks:
-                rm_checks = self._generate_rm_checks(pattern_type, detection_reasoning, condensed_rm)
+                rm_checks = self._generate_rm_checks(pattern_type, detection_reasoning, rm_output)
 
         # Step 3: AST Checks
         ast_checks = []
@@ -116,35 +119,6 @@ class ScoreCardCreator:
 
         return "\n".join(output)
 
-    def _condense_rm_output(self, rm_output: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Condenses verbose RM JSON into a clean, LLM-friendly format."""
-        condensed = []
-        if isinstance(rm_output, dict) and "commits" in rm_output:
-            # Handle standard RefactoringMiner format
-            commits = rm_output.get("commits", [])
-            operations = commits[0].get("refactorings", []) if commits else []
-        else:
-            # Fallback if the user passes the list of refactorings directly
-            operations = rm_output
-
-        for op in operations:
-            op_type = op.get("type", "")
-            description = op.get("description", "")
-
-            # Find unique file paths in left and right side locations
-            files = set()
-            for side in ["leftSideLocations", "rightSideLocations"]:
-                for loc in op.get(side, []):
-                    if "filePath" in loc:
-                        files.add(loc["filePath"])
-
-            condensed.append({
-                "type": op_type,
-                "description": description,
-                "involved_files": list(files)
-            })
-        return condensed
-
     def _generate_file_checks(self, pattern_type: str, reasoning: str, diff_text: str) -> List[FilePresenceCheck]:
         prompt = f"""You are generating an evaluation scorecard for an AI developer replicating a {pattern_type} design pattern.
 The target outcome reasoning is: {reasoning}
@@ -164,9 +138,13 @@ Do not over-specify paths in filename, just use the base filename (e.g. 'StreamS
         result = structured_llm.invoke(prompt)
         return result.checks if result else []
 
-    def _generate_rm_checks(self, pattern_type: str, reasoning: str, condensed_rm: List[Dict[str, Any]]) -> List[
+    def _generate_rm_checks(self, pattern_type: str, reasoning: str, rm_output: List[refactoring_types.RefminerOut]) -> List[
         RefactoringMinerCheck]:
-        import json
+        # {
+        #     "type": op_type,
+        #     "description": description,
+        #     "involved_files": list(files)
+        # }
         rm_text = json.dumps(condensed_rm, indent=2)
 
         prompt = f"""You are generating an evaluation scorecard for an AI developer replicating a {pattern_type} design pattern.
