@@ -35,6 +35,12 @@ class ASTCheckList(BaseModel):
     checks: List[CheckItem] = Field(description="List of parameterized AST structural checks")
 
 
+class ASTContext(BaseModel):
+    target_file: str
+    diff: str
+    content: str
+
+
 class ScoreCardCreator:
     def __init__(self, repo_path: Path, llm: ChatOpenAI):
         self.repo = Repo(repo_path)
@@ -193,7 +199,7 @@ Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pat
 
 
     def _extract_ast_context(self, commit_hash: str, parent_hash: str, file_checks: List[FilePresenceCheck], 
-                             rm_output: List[refactoring_types.RefminerOut], verdict: GreenfieldVerdict, max_call_sites: int) -> List[Dict[str, str]]:
+                             rm_output: List[refactoring_types.RefminerOut], verdict: GreenfieldVerdict, max_call_sites: int) -> List[ASTContext]:
         """Selects 'Important Files' and extracts their Diff and Final State."""
         diff_index = self.repo.commit(parent_hash).diff(self.repo.commit(commit_hash))
         
@@ -214,9 +220,9 @@ Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pat
                     
         # 2. Add files from RM checks
         for rm in rm_output:
-            for loc in rm.left_side_locations + rm.right_side_locations:
-                if loc.file_path:
-                    selected_files.add(loc.file_path)
+            for loc in rm.leftSideLocations + rm.rightSideLocations:
+                if loc.filePath:
+                    selected_files.add(loc.filePath)
             
         # 3. Add explicit call site files defined by the GreenfieldVerdict
         call_sites = verdict.modified_preexisting_files[:max_call_sites]
@@ -237,34 +243,33 @@ Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pat
             except KeyError:
                 content = "[File Deleted]"
                 
-            contexts.append({
-                "target_file": file_path,
-                "diff": diff_text,
-                "content": content
-            })
+            contexts.append(ASTContext(
+                target_file=file_path,
+                diff=diff_text,
+                content=content
+            ))
             
         return contexts
 
-    def _generate_ast_checks(self, pattern_type: str, reasoning: str, ctx: Dict[str, str]) -> List[CheckItem]:
-        prompt = f"""You are an evaluator assessing whether an agent successfully implemented a {pattern_type}.
+    def _generate_ast_checks(self, pattern_type: str, reasoning: str, ctx: ASTContext) -> List[CheckItem]:
+        prompt = f"""You are an evaluator assessing whether an agent successfully implemented a {pattern_type} design pattern.
 Reasoning for the developer's original refactoring: {reasoning}
 
-We are evaluating the following specific file: {ctx['target_file']}
+We are evaluating the following specific file: {ctx.target_file}
 
 What changed (Git Diff):
 ```diff
-{ctx['diff']}
+{ctx.diff}
 ```
 
 Final File Structure (Post-refactoring):
 ```java
-{ctx['content']}
+{ctx.content}
 ```
 
 Task:
 Return a list of parameterized structural constraints this file MUST meet to satisfy the design pattern integration (or the pattern itself).
 Use predefined schemas like 'ImplementsInterfaceCheck', 'HasMethodCheck', 'InstantiatesClassCheck', or 'HasFieldCheck'. 
-ONLY use 'CustomDynamicASTCheck' if the structural requirement is completely impossible to express natively.
 Remember to aggressively use the `expected: false` parameter if the developer DELETED or REMOVED an old method, field, or constructor that the AI must also delete. 
 Assign strict weights based on importance.
 """
