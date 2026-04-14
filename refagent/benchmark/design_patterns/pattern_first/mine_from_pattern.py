@@ -112,16 +112,45 @@ def _to_output_record(
     }
 
 def _from_output_record(record: dict) -> Tuple[Path, BirthInfo, GreenfieldVerdict]:
-    repo_path = record["repo_path"]
+    repo_path = Path(record["repo_path"])
+    
+    inst = PatternInstance(
+        file_path=record["pattern_file"],
+        class_name=record["class_name"],
+        pattern=GoFPattern(record["pattern"]),
+        detection_source=record["detection_source"],
+        confidence=record.get("detection_confidence", 1.0),
+        reasoning=record.get("detection_reasoning", None)
+    )
+    
     birth_info = BirthInfo(
-        pattern_instance=record["pattern"],
+        pattern_instance=inst,
         birth_commit_sha=record["birth_commit_sha"],
         parent_sha=record["parent_sha"],
-        birth_commit_date=record["birth_commit_date"],
+        # Allow naive string handling if fromisoformat isn't available, but standard is isoformat
+        birth_commit_date=datetime.fromisoformat(record["birth_commit_date"]),
         birth_commit_message=record["birth_commit_message"],
         is_initial_repo_commit=record["is_initial_repo_commit"],
         original_file_path=record["original_file_path"],
     )
+    
+    gv_data = record.get("greenfield", {})
+    verdict = GreenfieldVerdict(
+        is_likely_refactoring=gv_data.get("is_likely_refactoring", False),
+        modified_preexisting_java_count=gv_data.get("signal_3a_modified_count", 0),
+        modified_preexisting_files=gv_data.get("signal_3a_modified_files", []),
+        package_had_preexisting_files=gv_data.get("signal_3b_package_preexisted", False),
+        preexisting_sibling_count=gv_data.get("signal_3b_sibling_count", 0),
+        oldest_sibling_age_days=gv_data.get("signal_3b_oldest_sibling_days"),
+        llm_is_refactoring=gv_data.get("llm_is_refactoring"),
+        llm_reasoning=gv_data.get("llm_reasoning"),
+        is_release_commit=gv_data.get("is_release_commit"),
+        too_many_added_files=gv_data.get("too_many_added_files"),
+        evidence_notes=gv_data.get("evidence_notes", []),
+        rejection_reasons=gv_data.get("rejection_reasons", [])
+    )
+    
+    return repo_path, birth_info, verdict
 
 class PatternMiningPipeline:
     """
