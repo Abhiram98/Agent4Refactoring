@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Literal, Union, Optional
+from typing import List, Literal, Union, Optional, Annotated
 
 from pydantic import BaseModel, Field
 
@@ -84,7 +84,7 @@ class CustomDynamicASTCheck(ASTCheckBase):
 
 
 # The discriminator tells Pydantic to use the 'type' field to figure out which subclass to instantiate
-CheckItem = Union[
+CheckItem = Annotated[Union[
     RefactoringMinerCheck, 
     FilePresenceCheck,
     ImplementsInterfaceCheck,
@@ -94,7 +94,7 @@ CheckItem = Union[
     HasFieldCheck,
     InstantiatesClassCheck,
     CustomDynamicASTCheck
-]
+], Field(discriminator="type")]
 
 
 class CandidateScorecard(BaseModel):
@@ -103,8 +103,7 @@ class CandidateScorecard(BaseModel):
         description="The unique ID matching the candidate"
     )
     checks: List[CheckItem] = Field(
-        description="A list of binary checks to evaluate against the agent's proposed refactoring",
-        discriminator="type"
+        description="A list of binary checks to evaluate against the agent's proposed refactoring"
     )
 
     @classmethod
