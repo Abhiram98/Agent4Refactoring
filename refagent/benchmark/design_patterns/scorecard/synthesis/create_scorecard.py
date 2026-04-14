@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Literal
 from git import Repo
 import json
 
@@ -51,8 +51,11 @@ class ScoreCardCreator:
         # Step 1: File Checks
         file_checks = []
         if run_file_checks:
-            file_diff_text = self._extract_added_deleted_diff(commit_hash, parent_hash)
-            file_checks = self._generate_file_checks(pattern_type, detection_reasoning, file_diff_text)
+            added_diff_text = self._extract_diff_text(commit_hash, parent_hash, 'A')
+            file_checks.extend(self._generate_file_checks(pattern_type, detection_reasoning, added_diff_text, "ADDED"))
+            
+            deleted_diff_text = self._extract_diff_text(commit_hash, parent_hash, 'D')
+            file_checks.extend(self._generate_file_checks(pattern_type, detection_reasoning, deleted_diff_text, "DELETED"))
 
         # Step 2: RM Checks
         rm_checks = []
@@ -76,26 +79,21 @@ class ScoreCardCreator:
             checks=file_checks + rm_checks + ast_checks
         )
 
-    def _extract_added_deleted_diff(self, commit_hash: str, parent_hash: str) -> str:
-        """Extracts diff info for added and deleted files, respecting the 10-file 50-LOC rule."""
+    def _extract_diff_text(self, commit_hash: str, parent_hash: str, change_type: Literal["A", "D"]) -> Optional[str]:
+        """Extracts diff info for files of a specific change type ('A' or 'D')."""
         diff_index = self.repo.commit(parent_hash).diff(self.repo.commit(commit_hash))
+        target_diffs = list(diff_index.iter_change_type(change_type))
 
-        # Filter for purely added ('A') or deleted ('D') files
-        added_files = list(diff_index.iter_change_type('A'))
-        deleted_files = list(diff_index.iter_change_type('D'))
-
-        target_diffs = added_files + deleted_files
-
+        status_label = "ADDED" if change_type == 'A' else "DELETED"
         if not target_diffs:
-            return "No purely added or deleted files found."
+            return None
 
         exceeds_threshold = len(target_diffs) > 10
         output = []
 
         for diff_obj in target_diffs:
             b_path = diff_obj.b_path if diff_obj.b_path else diff_obj.a_path
-            status = "ADDED" if diff_obj in added_files else "DELETED"
-            output.append(f"--- {status} FILE: {b_path} ---")
+            output.append(f"--- {status_label} FILE: {b_path} ---")
 
             try:
                 blob = diff_obj.b_blob if diff_obj.b_blob else diff_obj.a_blob
@@ -118,19 +116,26 @@ class ScoreCardCreator:
 
         return "\n".join(output)
 
-    def _generate_file_checks(self, pattern_type: str, reasoning: str, diff_text: str) -> List[FilePresenceCheck]:
+    def _generate_file_checks(self, pattern_type: str, reasoning: str, diff_text: Optional[str], status: str) -> List[FilePresenceCheck]:
+        if diff_text is None:
+            return []
+            
+        existence_verb = "exist" if status == "ADDED" else "be absent"
+        expected_val = "exists" if status == "ADDED" else "absent"
+
         prompt = f"""You are generating an evaluation scorecard for an AI developer replicating a {pattern_type} design pattern.
 The target outcome reasoning is: {reasoning}
 
-Here is the set of strictly Added and Deleted files from the original developer's commit. 
+Here is the set of {status} files from the original developer's commit. 
 If there were >10 files, only the first 50 lines of each are included:
 ```
 {diff_text}
 ```
 
 Task:
-Identify which of these files MUST exist or MUST be absent to fulfill the core architecture of the {pattern_type}.
-Return a structured list of FilePresenceChecks. Assign higher weights (2.0 or 3.0) to central interfaces/classes, and lower weights (0.5 or 1.0) to tests or secondary helpers.
+Identify which of these files MUST {existence_verb} to fulfill the core architecture of the {pattern_type}.
+Return a structured list of FilePresenceChecks with expected_state='{expected_val}'. 
+Assign higher weights (2.0 or 3.0) to central interfaces/classes, and lower weights (0.5 or 1.0) to tests or secondary helpers.
 Do not over-specify paths in filename, just use the base filename (e.g. 'StreamSpliterator.java').
 """
         structured_llm = self.llm.with_structured_output(FileCheckList)
