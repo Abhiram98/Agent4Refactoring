@@ -39,7 +39,7 @@ def test_scorecard_synthesis_hbase(projects_base_path):
     if not repo_path.exists():
         pytest.fail(f"HBase repo not found at {repo_path}")
 
-    creator = ScoreCardCreator(repo_path, ChatOpenAI(model="gpt-5-mini"))
+    creator = ScoreCardCreator(repo_path, ChatOpenAI(model="gpt-5-mini", temperature=1))
     
     # Data from benchmark_to_pattern.json for entry 1001
     candidate_id = "1001"
@@ -55,7 +55,7 @@ def test_scorecard_synthesis_hbase(projects_base_path):
     parent_hash = "7754a96" # Short SHA from benchmark JSON
     
     inst = PatternInstance(
-        file_path="dummy/TableBuilder.java",
+        file_path="hbase-client/src/main/java/org/apache/hadoop/hbase/client/TableBuilder.java",
         class_name="TableBuilder",
         pattern=GoFPattern("Builder"),
         detection_source=DetectionSource.NAME_HEURISTIC,
@@ -67,18 +67,27 @@ def test_scorecard_synthesis_hbase(projects_base_path):
         birth_commit_sha=commit_hash,
         parent_sha=parent_hash,
         birth_commit_date=datetime.now(),
-        birth_commit_message="dummy message",
+        birth_commit_message="HBASE-17491 Remove all setters from HTable interface and introduce a TableBuilder to build Table instance",
         is_initial_repo_commit=False,
-        original_file_path="dummy/TableBuilder.java"
+        original_file_path="hbase-client/src/main/java/org/apache/hadoop/hbase/client/TableBuilder.java"
     )
     verdict = GreenfieldVerdict(
         is_likely_refactoring=True,
         modified_preexisting_java_count=1,
-        modified_preexisting_files=["dummy/CallSite.java"],
+        modified_preexisting_files=[
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Connection.java",
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/ConnectionConfiguration.java",
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/ConnectionImplementation.java",
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java"
+      ],
         package_had_preexisting_files=True,
         preexisting_sibling_count=1,
         llm_is_refactoring=True,
-        llm_reasoning="dummy"
+        llm_reasoning="The commit introduces a Builder pattern (TableBuilder / TableBuilderBase) but moves existing construction and configuration logic into it rather than creating entirely new functionality. getTable now delegates to getTableBuilder, ConnectionImplementation constructs a TableBuilder that builds an HTable, and HTable's previous constructor/configuration fields and setters were refactored to read from the builder (with deprecated setters left for backwards compatibility). ConnectionConfiguration was extended to expose an rpcTimeout used by the builder. These changes reorganize and relocate existing logic into the new pattern \u2014 a refactor.",
+        is_release_commit=False,
+        oldest_sibling_age_days=3531,
+        too_many_added_files=None
     )
 
     print(f"\n--- Synthesizing Scorecard for {pattern_type} in HBase ---")
@@ -109,7 +118,7 @@ def test_scorecard_synthesis_ant(projects_base_path):
     if not repo_path.exists():
         pytest.skip(f"Ant repo not found at {repo_path}")
 
-    creator = ScoreCardCreator(repo_path, ChatOpenAI(model="gpt-5-mini"))
+    creator = ScoreCardCreator(repo_path, ChatOpenAI(model="gpt-5-mini", temperature=1))
     
     # Data from benchmark_to_pattern.json
     candidate_id = "ant-decorator-1"
