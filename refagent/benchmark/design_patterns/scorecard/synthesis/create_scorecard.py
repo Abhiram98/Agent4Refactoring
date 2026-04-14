@@ -56,17 +56,16 @@ class ScoreCardCreator:
 
         # Step 2: RM Checks
         rm_checks = []
-        condensed_rm = []
+        rm_output = default_runner.run(project_path=self.repo.working_dir, commit_hash=commit_hash)
         if run_rm_checks or run_ast_checks: 
-            # Condense RM is needed for AST context filtering too
-            rm_output = default_runner.run(project_path=self.repo.working_dir, commit_hash=commit_hash)
+            # RM output is needed for AST context filtering too
             if run_rm_checks:
                 rm_checks = self._generate_rm_checks(pattern_type, detection_reasoning, rm_output)
 
         # Step 3: AST Checks
         ast_checks = []
         if run_ast_checks:
-            ast_contexts = self._extract_ast_context(commit_hash, parent_hash, file_checks, condensed_rm, verdict, max_call_sites)
+            ast_contexts = self._extract_ast_context(commit_hash, parent_hash, file_checks, rm_output, verdict, max_call_sites)
             for ctx in ast_contexts:
                 res = self._generate_ast_checks(pattern_type, detection_reasoning, ctx)
                 ast_checks.extend(res)
@@ -140,12 +139,8 @@ Do not over-specify paths in filename, just use the base filename (e.g. 'StreamS
 
     def _generate_rm_checks(self, pattern_type: str, reasoning: str, rm_output: List[refactoring_types.RefminerOut]) -> List[
         RefactoringMinerCheck]:
-        # {
-        #     "type": op_type,
-        #     "description": description,
-        #     "involved_files": list(files)
-        # }
-        rm_text = json.dumps(condensed_rm, indent=2)
+        # Serialize the Pydantic models for the LLM
+        rm_text = "\n".join([f"{r.type}: {r.description}." for r in rm_output])
 
         prompt = f"""You are generating an evaluation scorecard for an AI developer replicating a {pattern_type} design pattern.
 The target outcome reasoning is: {reasoning}
@@ -166,7 +161,7 @@ Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pat
         return result.checks if result else []
 
     def _extract_ast_context(self, commit_hash: str, parent_hash: str, file_checks: List[FilePresenceCheck], 
-                             condensed_rm: List[Dict[str, Any]], verdict: GreenfieldVerdict, max_call_sites: int) -> List[Dict[str, str]]:
+                             rm_output: List[refactoring_types.RefminerOut], verdict: GreenfieldVerdict, max_call_sites: int) -> List[Dict[str, str]]:
         """Selects 'Important Files' and extracts their Diff and Final State."""
         diff_index = self.repo.commit(parent_hash).diff(self.repo.commit(commit_hash))
         
@@ -181,8 +176,10 @@ Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pat
                     selected_files.add(path)
                     
         # 2. Add files from RM checks
-        for rm in condensed_rm:
-            selected_files.update(rm.get("involved_files", []))
+        for rm in rm_output:
+            for loc in rm.left_side_locations + rm.right_side_locations:
+                if loc.file_path:
+                    selected_files.add(loc.file_path)
             
         # 3. Add explicit call site files defined by the GreenfieldVerdict
         call_sites = verdict.modified_preexisting_files[:max_call_sites]
