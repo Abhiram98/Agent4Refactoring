@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import List, Literal, Union, Optional, Annotated
+import refagent.refactoring_types.refactorings as refactoring_types
 
 from pydantic import BaseModel, Field
 
@@ -16,6 +17,9 @@ class RefactoringMinerCheck(BaseScorecardCheck):
     type: Literal["refactoring_miner"]
     operation_type: str = Field(
         description="The exact RefactoringMiner operation type (e.g., 'Extract Class', 'Move Method')"
+    )
+    ref_operation: refactoring_types.RefminerOut = Field(
+        description="The exact RefactoringMiner Operation."
     )
     description_regex: str = Field(
         description="Regex pattern to match against the RefactoringMiner description"

@@ -153,25 +153,44 @@ The `file_regex` should be a regular expression matching the required base filen
     def _generate_rm_checks(self, pattern_type: str, reasoning: str, rm_output: List[refactoring_types.RefminerOut]) -> List[
         RefactoringMinerCheck]:
         # Serialize the Pydantic models for the LLM
-        rm_text = "\n".join([f"{r.type}: {r.description}." for r in rm_output])
+        rm_text = "\n".join([f"refactoring number {i}: {r.type}- {r.description}." for i, r in enumerate(rm_output)])
 
-        prompt = f"""You are generating an evaluation scorecard for an AI developer replicating a {pattern_type} design pattern.
-The target outcome reasoning is: {reasoning}
+        prompt = f"""You are generating an evaluation scorecard for an developer aiming to introduce a design pattern to existing code. 
+        In this case, the developer would like to introduce the {pattern_type} design pattern.
+        The golden commit performed the following changes: {reasoning}.
 
-Here is the condensed RefactoringMiner output representing the original developer's actions:
+Here is the condensed RefactoringMiner output representing the original developer's actions (golden commit):
 ```json
 {rm_text}
 ```
 
 Task:
-Select the structural operations that form the core of the newly introduced pattern and return a structured list of RefactoringMinerChecks.
-CRITICAL INSTRUCTION: To account for the AI agent using slightly different naming conventions than the original developer, rewrite the `description_regex` loosely based on the original `description`. 
+Select the structural operations that form the core of the newly introduced pattern and return 
+a list of JSON Objects with the following keys - "refactoring_number", "description_regex", and "weight".
+CRITICAL INSTRUCTION: To account for the AI agent using slightly different naming conventions than the original developer, 
+write the `description_regex` loosely based on the original `description`. 
 Replace specific developer identifiers with wildcards `.*?` where appropriate, but try to strictly match the operation target/base intent. 
 Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pattern_type}.
 """
-        structured_llm = self.llm.with_structured_output(RMCheckList)
-        result = structured_llm.invoke(prompt)
-        return result.checks if result else []
+        result = self.llm.invoke(prompt)
+        checks = []
+        for i in json.loads(result.content):
+            weight = i['weight']
+            description_regex = i['description_regex']
+            refactoring_number = int(i['refactoring_number'])
+            refminer_operation = rm_output[refactoring_number]
+            checks.append(
+                RefactoringMinerCheck(
+                    weight=weight,
+                    description_regex=description_regex,
+                    operation_type=refminer_operation.type,
+                    ref_operation=refminer_operation,
+                    type="refactoring_miner"
+                )
+            )
+
+        return checks
+
 
     def _extract_ast_context(self, commit_hash: str, parent_hash: str, file_checks: List[FilePresenceCheck], 
                              rm_output: List[refactoring_types.RefminerOut], verdict: GreenfieldVerdict, max_call_sites: int) -> List[Dict[str, str]]:
