@@ -3,15 +3,14 @@ import json
 from pathlib import Path
 from langchain_openai import ChatOpenAI
 from refagent.benchmark.design_patterns.scorecard.synthesis.create_scorecard import ScoreCardCreator
+from refagent.benchmark.design_patterns.pattern_first.mine_from_pattern import _from_output_record
 
 def main():
     parser = argparse.ArgumentParser(description="Generate an Evaluation Scorecard for a Design Pattern Refactoring")
     parser.add_argument("--repo-path", type=str, required=True, help="Path to the local git repository")
     parser.add_argument("--candidate-id", type=str, required=True, help="Unique ID for the scorecard candidate")
-    parser.add_argument("--pattern-type", type=str, required=True, help="Type of the design pattern (e.g. 'Strategy')")
-    parser.add_argument("--reasoning", type=str, required=True, help="The target outcome reasoning / LLM justification")
-    parser.add_argument("--commit-hash", type=str, required=True, help="Target commit hash")
-    parser.add_argument("--parent-hash", type=str, required=True, help="Parent commit hash")
+    parser.add_argument("--aggregated-json", type=str, required=True, help="Path to aggregated_candidates.json file")
+    
     parser.add_argument("--rm-json", type=str, required=True, help="Path to json file containing RefactoringMiner output array")
     
     parser.add_argument("--output", type=str, default="scorecard.json", help="Path to save the generated scorecard")
@@ -29,6 +28,19 @@ def main():
     with open(args.rm_json, "r") as f:
         rm_output = json.load(f)
 
+    # Load aggregated candidates and find our target
+    with open(args.aggregated_json, "r") as f:
+        candidates = json.load(f)
+        
+    target_record = next((c for c in candidates if c["id"] == args.candidate_id), None)
+    if not target_record:
+        print(f"Error: Candidate ID {args.candidate_id} not found in {args.aggregated_json}")
+        exit(1)
+
+    # Reconstruct BirthInfo and GreenfieldVerdict through the parser
+    # We pass target_record directly to _from_output_record
+    parsed_repo_path, birth_info, verdict = _from_output_record(target_record)
+
     # Init LLM
     print(f"Initializing ChatOpenAI with model {args.model}")
     llm = ChatOpenAI(model=args.model, temperature=0.0)
@@ -43,10 +55,8 @@ def main():
     print(f"\nGenerataing Scorecard for Candidate [{args.candidate_id}]...")
     scorecard = creator.create_scorecard(
         candidate_id=args.candidate_id,
-        pattern_type=args.pattern_type,
-        detection_reasoning=args.reasoning,
-        commit_hash=args.commit_hash,
-        parent_hash=args.parent_hash,
+        birth_info=birth_info,
+        verdict=verdict,
         rm_output=rm_output,
         max_call_sites=args.max_call_sites,
         run_file_checks=not args.disable_file_checks,

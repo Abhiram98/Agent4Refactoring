@@ -12,6 +12,7 @@ from refagent.benchmark.design_patterns.scorecard.schema import (
     RefactoringMinerCheck,
     CheckItem
 )
+from refagent.benchmark.design_patterns.pattern_first.models import BirthInfo, GreenfieldVerdict
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +35,15 @@ class ScoreCardCreator:
         self.repo = Repo(repo_path)
         self.llm = llm
 
-    def create_scorecard(self, candidate_id: str, pattern_type: str, detection_reasoning: str, commit_hash: str,
-                         parent_hash: str, rm_output: List[Dict[str, Any]], max_call_sites: int = 3,
+    def create_scorecard(self, candidate_id: str, birth_info: BirthInfo, verdict: GreenfieldVerdict,
+                         rm_output: List[Dict[str, Any]], max_call_sites: int = 3,
                          run_file_checks: bool = True, run_rm_checks: bool = True, run_ast_checks: bool = True) -> CandidateScorecard:
         """Generates a CandidateScorecard by analyzing the commit diff and RM output via an LLM."""
+        
+        pattern_type = birth_info.pattern_instance.pattern.value if hasattr(birth_info.pattern_instance.pattern, "value") else str(birth_info.pattern_instance.pattern)
+        detection_reasoning = birth_info.pattern_instance.reasoning or ""
+        commit_hash = birth_info.birth_commit_sha
+        parent_hash = birth_info.parent_sha
 
         # Step 1: File Checks
         file_checks = []
@@ -57,7 +63,7 @@ class ScoreCardCreator:
         # Step 3: AST Checks
         ast_checks = []
         if run_ast_checks:
-            ast_contexts = self._extract_ast_context(commit_hash, parent_hash, file_checks, condensed_rm, max_call_sites)
+            ast_contexts = self._extract_ast_context(commit_hash, parent_hash, file_checks, condensed_rm, verdict, max_call_sites)
             for ctx in ast_contexts:
                 res = self._generate_ast_checks(pattern_type, detection_reasoning, ctx)
                 ast_checks.extend(res)
@@ -182,7 +188,7 @@ Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pat
         return result.checks if result else []
 
     def _extract_ast_context(self, commit_hash: str, parent_hash: str, file_checks: List[FilePresenceCheck], 
-                             condensed_rm: List[Dict[str, Any]], max_call_sites: int) -> List[Dict[str, str]]:
+                             condensed_rm: List[Dict[str, Any]], verdict: GreenfieldVerdict, max_call_sites: int) -> List[Dict[str, str]]:
         """Selects 'Important Files' and extracts their Diff and Final State."""
         diff_index = self.repo.commit(parent_hash).diff(self.repo.commit(commit_hash))
         
@@ -200,15 +206,9 @@ Assign a weight (0.5 to 3.0) based on how critical this operation is to the {pat
         for rm in condensed_rm:
             selected_files.update(rm.get("involved_files", []))
             
-        # 3. Sample remaining modified files (Call-sites)
-        modified_files = []
-        for diff_obj in diff_index.iter_change_type('M'):
-            if diff_obj.b_path and diff_obj.b_path not in selected_files:
-                # Approximate churn by lines in diff blob length diff... or just keep it simple
-                modified_files.append(diff_obj.b_path)
-                
-        # Take the top N (just head for now, could be ordered by churn)
-        for cf in modified_files[:max_call_sites]:
+        # 3. Add explicit call site files defined by the GreenfieldVerdict
+        call_sites = verdict.modified_preexisting_files[:max_call_sites]
+        for cf in call_sites:
             selected_files.add(cf)
             
         contexts = []
