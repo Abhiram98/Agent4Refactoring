@@ -73,6 +73,7 @@ class HasFieldCheck(ASTCheckBase):
     visibility: Optional[Literal["public", "protected", "private", "package-private"]] = Field(default=None)
     is_final: Optional[bool] = Field(default=None)
     is_static: Optional[bool] = Field(default=None)
+    field_name_regex: str = Field(description="Regex matching the field name")
 
 
 class InstantiatesClassCheck(ASTCheckBase):

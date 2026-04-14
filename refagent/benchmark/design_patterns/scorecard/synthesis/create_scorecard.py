@@ -13,7 +13,13 @@ from refagent.benchmark.design_patterns.scorecard.schema import (
     CandidateScorecard,
     FilePresenceCheck,
     RefactoringMinerCheck,
-    CheckItem
+    CheckItem,
+    ImplementsInterfaceCheck,
+    ExtendsClassCheck,
+    HasMethodCheck,
+    HasConstructorVisibilityCheck,
+    HasFieldCheck,
+    InstantiatesClassCheck
 )
 from refagent.benchmark.design_patterns.pattern_first.models import BirthInfo, GreenfieldVerdict
 from refagent.utils.refminer_utils import default_runner
@@ -22,17 +28,7 @@ import refagent.refactoring_types.refactorings as refactoring_types
 logger = logging.getLogger(__name__)
 
 
-# Temporary wrapper models for LangChain's structured output parser limitation
-class FileCheckList(BaseModel):
-    checks: List[FilePresenceCheck] = Field(description="List of file presence/absence checks")
 
-
-class RMCheckList(BaseModel):
-    checks: List[RefactoringMinerCheck] = Field(description="List of Refactoring Miner checks")
-
-
-class ASTCheckList(BaseModel):
-    checks: List[CheckItem] = Field(description="List of parameterized AST structural checks")
 
 
 class ASTContext(BaseModel):
@@ -262,25 +258,55 @@ What changed (Git Diff):
 {ctx.diff}
 ```
 
-Final File Structure (Post-refactoring):
-```java
-{ctx.content}
-```
-
 Task:
-Return a list of parameterized structural constraints this file MUST meet to satisfy the design pattern integration (or the pattern itself).
-Use predefined schemas like 'ImplementsInterfaceCheck', 'HasMethodCheck', 'InstantiatesClassCheck', or 'HasFieldCheck'. 
-Remember to aggressively use the `expected: false` parameter if the developer DELETED or REMOVED an old method, field, or constructor that the AI must also delete. 
-Assign strict weights based on importance.
+Call the provided tools to emit the parameterized structural constraints this file MUST meet to satisfy the design pattern integration (or the pattern itself).
+Remember to aggressively use the `expected=False` parameter if the developer DELETED or REMOVED an old method, field, or constructor that the AI must also delete. 
+Assign strict weights (0.5 to 3.0) based on importance.
 """
-        structured_llm = self.llm.with_structured_output(ASTCheckList)
-        result = structured_llm.invoke(prompt)
         
-        # Filter to make sure it only returns AST checks (the schema technically allows all checks)
+        tools_to_bind = [
+            ImplementsInterfaceCheck, ExtendsClassCheck, HasMethodCheck,
+            HasConstructorVisibilityCheck, HasFieldCheck, InstantiatesClassCheck
+        ]
+        
+        llm_with_tools = self.llm.bind_tools(tools_to_bind)
+        result = llm_with_tools.invoke(prompt)
+        
         valid_checks = []
-        if result:
-            for check in result.checks:
-                if check.type not in ["refactoring_miner", "file_presence"]:
-                    valid_checks.append(check)
+        target_file_basename = ctx.target_file.split('/')[-1]
+        
+        tool_mapping = {
+            "ImplementsInterfaceCheck": ImplementsInterfaceCheck,
+            "ExtendsClassCheck": ExtendsClassCheck,
+            "HasMethodCheck": HasMethodCheck,
+            "HasConstructorVisibilityCheck": HasConstructorVisibilityCheck,
+            "HasFieldCheck": HasFieldCheck,
+            "InstantiatesClassCheck": InstantiatesClassCheck
+        }
+        
+        type_mapping = {
+            "ImplementsInterfaceCheck": "implements_interface",
+            "ExtendsClassCheck": "extends_class",
+            "HasMethodCheck": "has_method",
+            "HasConstructorVisibilityCheck": "has_constructor_visibility",
+            "HasFieldCheck": "has_field",
+            "InstantiatesClassCheck": "instantiates_class"
+        }
+        
+        # Parse the tool calls and instantiate the actual schema objects
+        for tool_call in result.tool_calls:
+            name = tool_call.get("name")
+            args = tool_call.get("args", {})
+            
+            # Manually inject fields the LLM might mess up or shouldn't be fully trusted on
+            args["target_file"] = target_file_basename
+            
+            if name in tool_mapping:
+                args["type"] = type_mapping[name]
+                try:
+                    valid_checks.append(tool_mapping[name](**args))
+                except Exception as e:
+                    logger.error(f"Failed to instantiate check from tool call {name}: {e}")
+                    
         return valid_checks
 
