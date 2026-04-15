@@ -68,39 +68,57 @@ def execute_query(node, query_str: str):
 
 def find_class_declaration(root_node, source_bytes: bytes, target_class: str):
     """
-    Finds the class_declaration node for the given class name.
+    Finds the class_declaration or interface_declaration node for the given class name.
+    Supports nested classes using dot notation (e.g., 'ConnectionConfiguration.Builder').
     """
-    # Query looks for class declarations and captures the identifier name
+    # Query for all class and interface declarations
     query_str = """
-    (class_declaration 
-        name: (identifier) @class_name
-    ) @class_decl
+    [
+      (class_declaration name: (identifier) @name)
+      (interface_declaration name: (identifier) @name)
+    ] @decl
     """
     captures = execute_query(root_node, query_str)
     
-    for capture_name, nodes in captures.items():
-        if capture_name == "class_name":
-            for node in nodes:
-                # Get the text of the identifier
-                node_text = source_bytes[node.start_byte:node.end_byte].decode('utf-8')
-                if node_text == target_class:
-                    # In newer tree-sitter dictionary maps node to capture name, but in older it's a list of tuples.
-                    # This standard handling handles the typical dictionary return (capture_name -> list of nodes)
-                    # We just return the parent of this identifier which is the class declaration
-                    return node.parent
-                    
-    # Also check interfaces
-    interface_query = """
-    (interface_declaration 
-        name: (identifier) @interface_name
-    )
-    """
-    captures_int = execute_query(root_node, interface_query)
-    for capture_name, nodes in captures_int.items():
-        if capture_name == "interface_name":
-            for node in nodes:
-                node_text = source_bytes[node.start_byte:node.end_byte].decode('utf-8')
-                if node_text == target_class:
-                    return node.parent
+    # captures structure depends on tree-sitter version
+    # Modern: {'name': [node, ...], 'decl': [node, ...]}
+    # Old: [(node, 'name'), (node, 'decl'), ...]
+    
+    if isinstance(captures, dict):
+        # Index nodes by their byte position to associated names with declarations
+        decl_nodes = captures.get("decl", [])
+        name_nodes = captures.get("name", [])
+    else:
+        decl_nodes = [n for n, c in captures if c == "decl"]
+        name_nodes = [n for n, c in captures if c == "name"]
+
+    # Map declaration nodes to their simple names
+    decl_to_name = {}
+    for d_node in decl_nodes:
+        # Find the name identifier that belongs to this declaration
+        for n_node in name_nodes:
+            if n_node.parent == d_node:
+                decl_to_name[d_node] = source_bytes[n_node.start_byte:n_node.end_byte].decode('utf-8')
+                break
+
+    def get_full_name(node):
+        name = decl_to_name.get(node)
+        if not name:
+            return None
+            
+        # Walk up to find parent declarations
+        curr = node.parent
+        while curr:
+            if curr.type in ("class_declaration", "interface_declaration"):
+                parent_name = get_full_name(curr)
+                if parent_name:
+                    return f"{parent_name}.{name}"
+            curr = curr.parent
+        return name
+
+    for d_node in decl_nodes:
+        full_name = get_full_name(d_node)
+        if full_name == target_class:
+            return d_node
 
     return None
