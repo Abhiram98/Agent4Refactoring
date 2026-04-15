@@ -63,7 +63,7 @@ def execute_query(node, query_str: str):
     """
     language = get_java_language()
     query = language.query(query_str)
-    return query.captures(node)
+    return tree_sitter.QueryCursor(query).captures(node)
 
 
 def find_class_declaration(root_node, source_bytes: bytes, target_class: str):

@@ -27,7 +27,6 @@ class HasMethodCheck(ASTCheckBase):
         query_str = """
         (method_declaration
             name: (identifier) @method_name
-            type: (_) @return_type
         ) @method_decl
         """
         captures = ast_utils.execute_query(target_node, query_str)
@@ -40,7 +39,9 @@ class HasMethodCheck(ASTCheckBase):
         for method_node in method_nodes:
             sub = ast_utils.execute_query(method_node, query_str)
             names = sub.get("method_name", []) if isinstance(sub, dict) else [n for n, c in sub if c == "method_name"]
-            types = sub.get("return_type", []) if isinstance(sub, dict) else [n for n, c in sub if c == "return_type"]
+            types = []
+            for m in sub['method_decl']:
+                types += m.children_by_field_name('type')
 
             if not names:
                 continue
