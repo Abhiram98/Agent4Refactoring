@@ -28,9 +28,6 @@ import refagent.refactoring_types.refactorings as refactoring_types
 logger = logging.getLogger(__name__)
 
 
-
-
-
 class ASTContext(BaseModel):
     target_file: str
     diff: str
@@ -55,6 +52,7 @@ class ScoreCardCreator:
         # Step 1: File Checks
         file_checks = []
         if run_file_checks:
+            logger.info(f"Running file checks for {candidate_id}...")
             added_diff_text = self._extract_diff_text(commit_hash, parent_hash, 'A')
             file_checks.extend(self._generate_file_checks(pattern_type, detection_reasoning, added_diff_text, "ADDED"))
             
@@ -64,23 +62,25 @@ class ScoreCardCreator:
         # Step 2: RM Checks
         rm_checks = []
         rm_output = default_runner.run(project_path=self.repo.working_dir, commit_hash=commit_hash)
-        if run_rm_checks or run_ast_checks: 
-            # RM output is needed for AST context filtering too
-            if run_rm_checks:
-                rm_checks = self._generate_rm_checks(pattern_type, detection_reasoning, rm_output)
+        logger.info(f"Found {len(rm_output)} refactoring changes in the commit.")
+
+        if run_rm_checks:
+            logger.info("Running RM checks...")
+            rm_checks = self._generate_rm_checks(pattern_type, detection_reasoning, rm_output)
 
         # Step 3: AST Checks
         ast_checks = []
         if run_ast_checks:
             ast_contexts = self._extract_ast_context(commit_hash, parent_hash, file_checks, rm_output, verdict, max_call_sites)
             for ctx in ast_contexts:
+                logger.info(f"Generating AST context for {ctx.target_file}")
                 res = self._generate_ast_checks(pattern_type, detection_reasoning, ctx)
                 ast_checks.extend(res)
 
         # Combine
         return CandidateScorecard(
             candidate_id=candidate_id,
-            checks=file_checks + rm_checks + ast_checks
+            checks=self.adjust_checks(file_checks + rm_checks + ast_checks)
         )
 
     def _extract_diff_text(self, commit_hash: str, parent_hash: str, change_type: Literal["A", "D"]) -> Optional[str]:
@@ -309,4 +309,15 @@ Assign strict weights (0.5 to 3.0) based on importance.
                     logger.error(f"Failed to instantiate check from tool call {name}: {e}")
                     
         return valid_checks
+
+    def adjust_checks(self, checks: List[CheckItem]) -> List[CheckItem]:
+
+        # TODO: Run the check against the gold commit. Note the status. Possible status are:
+        #  Pass -> Fail. Fail -> Pass. Pass -> Pass. Fail -> Fail.
+        #  Changing status should impact the recall. i.e., `check.impacts_recall = True`.
+        #  For Pass -> Fail, check.expected should be inverted.
+        #  For Fail -> Fail, check.expected should be inverted.
+        #  Same status checks should be used to compute precision. i.e., `check.impacts_recall = False`
+
+        return checks
 

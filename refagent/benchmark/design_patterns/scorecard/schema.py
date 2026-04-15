@@ -1,4 +1,5 @@
 import json
+from abc import abstractmethod
 from pathlib import Path
 from typing import List, Literal, Union, Optional, Annotated
 import refagent.refactoring_types.refactorings as refactoring_types
@@ -10,6 +11,15 @@ class BaseScorecardCheck(BaseModel):
     """Base model holding common fields for all checks."""
     weight: float = Field(default=1.0, description="Weighting for calculating recall score")
     expected: bool = Field(default=True, description="If False, the condition is inverted (must NOT be true)")
+    impacts_recall: bool = Field(default=True, description="If True, the check will be used to compute recall score. "
+                                                           "If false, it will be used to calculate precision score.")
+    # TODO: define these abstract methods.
+    # @abstractmethod
+    # def check(self, commit_hash: str, project_path: Path) -> bool:
+    #     """
+    #     Given a commit hash and a project path, return whether the check passes.
+    #     """
+    #     raise NotImplementedError()
 
 
 class RefactoringMinerCheck(BaseScorecardCheck):
