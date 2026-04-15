@@ -20,6 +20,23 @@ def get_java_language():
     return tree_sitter.Language(tree_sitter_java.language())
 
 
+def parse_java_bytes(source_bytes: bytes):
+    """
+    Parses Java source from raw bytes (e.g., read from a git blob).
+    Returns (tree, source_bytes) or (None, None) on failure.
+    """
+    if not HAS_TREE_SITTER:
+        raise ImportError("tree-sitter is not installed.")
+    try:
+        language = get_java_language()
+        parser = tree_sitter.Parser(language)
+        tree = parser.parse(source_bytes)
+        return tree, source_bytes
+    except Exception as e:
+        logger.error(f"Failed to parse java bytes: {e}")
+        return None, None
+
+
 def parse_java_file(filepath: Path):
     """
     Parses a Java file and returns the syntax tree.
