@@ -1,0 +1,828 @@
+{
+    "candidate_id": "dc6ddb40847ae26f",
+    "checks": [
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "type": "file_presence",
+            "file_regex": ".*TableBuilder\\.java$",
+            "expected_state": "exists"
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "type": "file_presence",
+            "file_regex": ".*TableBuilderBase\\.java$",
+            "expected_state": "exists"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "type": "refactoring_miner",
+            "operation_type": "Add Parameter",
+            "ref_operation": {
+                "type": "Add Parameter",
+                "description": "Add Parameter builder : TableBuilderBase in method protected HTable(connection ClusterConnection, builder TableBuilderBase, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService) from class org.apache.hadoop.hbase.client.HTable",
+                "leftSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 149,
+                        "endLine": 207,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 162,
+                        "endLine": 162,
+                        "startColumn": 7,
+                        "endColumn": 37,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "added parameter",
+                        "codeElement": "builder : TableBuilderBase"
+                    },
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 150,
+                        "endLine": 203,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "method declaration with added parameter",
+                        "codeElement": "protected HTable(connection ClusterConnection, builder TableBuilderBase, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+                    }
+                ]
+            },
+            "description_regex": "Add Parameter.*?builder.*?TableBuilderBase.*?method.*?HTable\\(.*?\\).*?class.*?HTable"
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": true,
+            "type": "refactoring_miner",
+            "operation_type": "Remove Parameter",
+            "ref_operation": {
+                "type": "Remove Parameter",
+                "description": "Remove Parameter tableName : TableName in method protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService) from class org.apache.hadoop.hbase.client.HTable",
+                "leftSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 159,
+                        "endLine": 159,
+                        "startColumn": 20,
+                        "endColumn": 39,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "removed parameter",
+                        "codeElement": "tableName : TableName"
+                    },
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 149,
+                        "endLine": 207,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 150,
+                        "endLine": 203,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "method declaration with removed parameter",
+                        "codeElement": "protected HTable(connection ClusterConnection, builder TableBuilderBase, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+                    }
+                ]
+            },
+            "description_regex": "Remove Parameter.*?tableName.*?TableName.*?method.*?HTable\\(.*?\\).*?class.*?HTable"
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": true,
+            "type": "refactoring_miner",
+            "operation_type": "Remove Parameter",
+            "ref_operation": {
+                "type": "Remove Parameter",
+                "description": "Remove Parameter tableConfig : ConnectionConfiguration in method protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService) from class org.apache.hadoop.hbase.client.HTable",
+                "leftSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 160,
+                        "endLine": 160,
+                        "startColumn": 7,
+                        "endColumn": 48,
+                        "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+                        "description": "removed parameter",
+                        "codeElement": "tableConfig : ConnectionConfiguration"
+                    },
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 149,
+                        "endLine": 207,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 150,
+                        "endLine": 203,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "method declaration with removed parameter",
+                        "codeElement": "protected HTable(connection ClusterConnection, builder TableBuilderBase, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+                    }
+                ]
+            },
+            "description_regex": "Remove Parameter.*?tableConfig.*?ConnectionConfiguration.*?method.*?HTable\\(.*?\\).*?class.*?HTable"
+        },
+        {
+            "weight": 1.5,
+            "expected": true,
+            "impacts_recall": true,
+            "type": "refactoring_miner",
+            "operation_type": "Extract Attribute",
+            "ref_operation": {
+                "type": "Extract Attribute",
+                "description": "Extract Attribute private writeBufferSize : long in class org.apache.hadoop.hbase.client.HTable",
+                "leftSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 1335,
+                        "endLine": 1342,
+                        "startColumn": 7,
+                        "endColumn": 9,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement with the initializer of the extracted attribute",
+                        "codeElement": null
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 122,
+                        "endLine": 122,
+                        "startColumn": 22,
+                        "endColumn": 37,
+                        "codeElementType": "FIELD_DECLARATION",
+                        "description": "extracted attribute declaration",
+                        "codeElement": "private writeBufferSize : long"
+                    },
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+                        "startLine": 1336,
+                        "endLine": 1343,
+                        "startColumn": 7,
+                        "endColumn": 9,
+                        "codeElementType": "EXPRESSION_STATEMENT",
+                        "description": "statement with the name of the extracted attribute",
+                        "codeElement": null
+                    }
+                ]
+            },
+            "description_regex": "Extract Attribute.*?writeBufferSize.*?long.*?class.*?HTable"
+        },
+        {
+            "weight": 1.0,
+            "expected": true,
+            "impacts_recall": true,
+            "type": "refactoring_miner",
+            "operation_type": "Move Method",
+            "ref_operation": {
+                "type": "Move Method",
+                "description": "Move Method public getTable(tableName TableName, pool ExecutorService) : Table from class org.apache.hadoop.hbase.client.ConnectionImplementation to public getTable(tableName TableName, pool ExecutorService) : Table from class org.apache.hadoop.hbase.client.Connection",
+                "leftSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/ConnectionImplementation.java",
+                        "startLine": 329,
+                        "endLine": 333,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "original method declaration",
+                        "codeElement": "public getTable(tableName TableName, pool ExecutorService) : Table"
+                    }
+                ],
+                "rightSideLocations": [
+                    {
+                        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Connection.java",
+                        "startLine": 90,
+                        "endLine": 109,
+                        "startColumn": 3,
+                        "endColumn": 4,
+                        "codeElementType": "METHOD_DECLARATION",
+                        "description": "moved method declaration",
+                        "codeElement": "public getTable(tableName TableName, pool ExecutorService) : Table"
+                    }
+                ]
+            },
+            "description_regex": "Move Method.*?getTable.*?ConnectionImplementation.*?to.*?Connection"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "implements_interface",
+            "interface_regex": "^TableBuilder$"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_constructor_visibility",
+            "visibility": "package-private"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_field",
+            "field_type_regex": "^TableName$",
+            "visibility": "protected",
+            "is_final": null,
+            "is_static": null,
+            "field_name_regex": "^tableName$"
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_field",
+            "field_type_regex": "^int$",
+            "visibility": "protected",
+            "is_final": null,
+            "is_static": null,
+            "field_name_regex": "^operationTimeout$"
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_field",
+            "field_type_regex": "^int$",
+            "visibility": "protected",
+            "is_final": null,
+            "is_static": null,
+            "field_name_regex": "^rpcTimeout$"
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_field",
+            "field_type_regex": "^int$",
+            "visibility": "protected",
+            "is_final": null,
+            "is_static": null,
+            "field_name_regex": "^readRpcTimeout$"
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_field",
+            "field_type_regex": "^int$",
+            "visibility": "protected",
+            "is_final": null,
+            "is_static": null,
+            "field_name_regex": "^writeRpcTimeout$"
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_field",
+            "field_type_regex": "^long$",
+            "visibility": "protected",
+            "is_final": null,
+            "is_static": null,
+            "field_name_regex": "^writeBufferSize$"
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_method",
+            "method_name_regex": "^setOperationTimeout$",
+            "return_type_regex": "^TableBuilderBase$",
+            "is_static": false
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_method",
+            "method_name_regex": "^setRpcTimeout$",
+            "return_type_regex": "^TableBuilderBase$",
+            "is_static": false
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_method",
+            "method_name_regex": "^setReadRpcTimeout$",
+            "return_type_regex": "^TableBuilderBase$",
+            "is_static": false
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_method",
+            "method_name_regex": "^setWriteRpcTimeout$",
+            "return_type_regex": "^TableBuilderBase$",
+            "is_static": false
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilderBase.java",
+            "target_class": "TableBuilderBase",
+            "type": "has_method",
+            "method_name_regex": "^setWriteBufferSize$",
+            "return_type_regex": "^TableBuilder$",
+            "is_static": false
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionImplementation.java",
+            "target_class": "ConnectionImplementation",
+            "type": "has_method",
+            "method_name_regex": "^getTableBuilder$",
+            "return_type_regex": "TableBuilder",
+            "is_static": false
+        },
+        {
+            "weight": 3.0,
+            "expected": false,
+            "impacts_recall": true,
+            "target_file": "ConnectionImplementation.java",
+            "target_class": "ConnectionImplementation",
+            "type": "has_method",
+            "method_name_regex": "^getTable$",
+            "return_type_regex": "Table",
+            "is_static": false
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionImplementation.java",
+            "target_class": "ConnectionImplementation",
+            "type": "instantiates_class",
+            "instantiated_class_regex": "\\bHTable\\b"
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionImplementation.java",
+            "target_class": "ConnectionImplementation",
+            "type": "instantiates_class",
+            "instantiated_class_regex": "\\bTableBuilderBase\\b"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_field",
+            "field_type_regex": "int",
+            "visibility": "private",
+            "is_final": true,
+            "is_static": null,
+            "field_name_regex": "rpcTimeout"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_field",
+            "field_type_regex": "long",
+            "visibility": "private",
+            "is_final": true,
+            "is_static": null,
+            "field_name_regex": "writeBufferSize"
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_field",
+            "field_type_regex": "int",
+            "visibility": "private",
+            "is_final": false,
+            "is_static": null,
+            "field_name_regex": "operationTimeout"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_method",
+            "method_name_regex": "HTable\\s*\\([^)]*TableBuilderBase",
+            "return_type_regex": null,
+            "is_static": false
+        },
+        {
+            "weight": 3.0,
+            "expected": false,
+            "impacts_recall": false,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_method",
+            "method_name_regex": "HTable\\s*\\([^)]*TableName[^)]*ConnectionConfiguration",
+            "return_type_regex": null,
+            "is_static": false
+        },
+        {
+            "weight": 1.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_method",
+            "method_name_regex": "setWriteBufferSize",
+            "return_type_regex": null,
+            "is_static": false
+        },
+        {
+            "weight": 1.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_method",
+            "method_name_regex": "setOperationTimeout",
+            "return_type_regex": null,
+            "is_static": false
+        },
+        {
+            "weight": 1.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_method",
+            "method_name_regex": "getRpcTimeout",
+            "return_type_regex": "int",
+            "is_static": false
+        },
+        {
+            "weight": 1.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_method",
+            "method_name_regex": "setReadRpcTimeout",
+            "return_type_regex": null,
+            "is_static": false
+        },
+        {
+            "weight": 1.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_method",
+            "method_name_regex": "setWriteRpcTimeout",
+            "return_type_regex": null,
+            "is_static": false
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "instantiates_class",
+            "instantiated_class_regex": "BufferedMutatorParams"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "HTable.java",
+            "target_class": "HTable",
+            "type": "has_constructor_visibility",
+            "visibility": "protected"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "Table.java",
+            "target_class": "Table",
+            "type": "has_method",
+            "method_name_regex": "setOperationTimeout",
+            "return_type_regex": "void",
+            "is_static": false
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "Table.java",
+            "target_class": "Table",
+            "type": "has_method",
+            "method_name_regex": "setReadRpcTimeout",
+            "return_type_regex": "void",
+            "is_static": false
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "Table.java",
+            "target_class": "Table",
+            "type": "has_method",
+            "method_name_regex": "setWriteRpcTimeout",
+            "return_type_regex": "void",
+            "is_static": false
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilder.java",
+            "target_class": "TableBuilder",
+            "type": "has_method",
+            "method_name_regex": "^setOperationTimeout$",
+            "return_type_regex": "^TableBuilder$",
+            "is_static": false
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilder.java",
+            "target_class": "TableBuilder",
+            "type": "has_method",
+            "method_name_regex": "^setRpcTimeout$",
+            "return_type_regex": "^TableBuilder$",
+            "is_static": false
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilder.java",
+            "target_class": "TableBuilder",
+            "type": "has_method",
+            "method_name_regex": "^setReadRpcTimeout$",
+            "return_type_regex": "^TableBuilder$",
+            "is_static": false
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilder.java",
+            "target_class": "TableBuilder",
+            "type": "has_method",
+            "method_name_regex": "^setWriteRpcTimeout$",
+            "return_type_regex": "^TableBuilder$",
+            "is_static": false
+        },
+        {
+            "weight": 1.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilder.java",
+            "target_class": "TableBuilder",
+            "type": "has_method",
+            "method_name_regex": "^setWriteBufferSize$",
+            "return_type_regex": "^TableBuilder$",
+            "is_static": false
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "TableBuilder.java",
+            "target_class": "TableBuilder",
+            "type": "has_method",
+            "method_name_regex": "^build$",
+            "return_type_regex": "^Table$",
+            "is_static": false
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionConfiguration.java",
+            "target_class": "ConnectionConfiguration",
+            "type": "has_method",
+            "method_name_regex": "^builder$",
+            "return_type_regex": "(Builder|ConnectionConfiguration\\.Builder)",
+            "is_static": true
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionConfiguration.java",
+            "target_class": "ConnectionConfiguration",
+            "type": "has_constructor_visibility",
+            "visibility": "private"
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionConfiguration.java",
+            "target_class": "ConnectionConfiguration.Builder",
+            "type": "has_method",
+            "method_name_regex": "^build$",
+            "return_type_regex": "ConnectionConfiguration",
+            "is_static": false
+        },
+        {
+            "weight": 2.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionConfiguration.java",
+            "target_class": "ConnectionConfiguration.Builder",
+            "type": "has_method",
+            "method_name_regex": "^(with|set)[A-Z].*",
+            "return_type_regex": "(ConnectionConfiguration\\.Builder|Builder)",
+            "is_static": false
+        },
+        {
+            "weight": 2.5,
+            "expected": false,
+            "impacts_recall": true,
+            "target_file": "ConnectionConfiguration.java",
+            "target_class": "ConnectionConfiguration",
+            "type": "has_constructor_visibility",
+            "visibility": "public"
+        },
+        {
+            "weight": 1.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionConfiguration.java",
+            "target_class": "ConnectionConfiguration",
+            "type": "has_field",
+            "field_type_regex": "\\bint\\b",
+            "visibility": "private",
+            "is_final": true,
+            "is_static": false,
+            "field_name_regex": "rpcTimeout"
+        },
+        {
+            "weight": 1.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionConfiguration.java",
+            "target_class": "ConnectionConfiguration",
+            "type": "has_field",
+            "field_type_regex": "\\bint\\b",
+            "visibility": "private",
+            "is_final": true,
+            "is_static": false,
+            "field_name_regex": "readRpcTimeout"
+        },
+        {
+            "weight": 1.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionConfiguration.java",
+            "target_class": "ConnectionConfiguration",
+            "type": "has_field",
+            "field_type_regex": "\\bint\\b",
+            "visibility": "private",
+            "is_final": true,
+            "is_static": false,
+            "field_name_regex": "writeRpcTimeout"
+        },
+        {
+            "weight": 1.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "ConnectionConfiguration.java",
+            "target_class": "ConnectionConfiguration",
+            "type": "has_method",
+            "method_name_regex": "^getRpcTimeout$",
+            "return_type_regex": "\\bint\\b",
+            "is_static": false
+        },
+        {
+            "weight": 3.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "Connection.java",
+            "target_class": "Connection",
+            "type": "has_method",
+            "method_name_regex": "^getTableBuilder$",
+            "return_type_regex": "TableBuilder",
+            "is_static": null
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "Connection.java",
+            "target_class": "Connection",
+            "type": "has_method",
+            "method_name_regex": "^getTable$",
+            "return_type_regex": "Table",
+            "is_static": null
+        },
+        {
+            "weight": 2.5,
+            "expected": true,
+            "impacts_recall": false,
+            "target_file": "Connection.java",
+            "target_class": "Connection",
+            "type": "has_method",
+            "method_name_regex": "^getTable$",
+            "return_type_regex": "Table",
+            "is_static": null
+        },
+        {
+            "weight": 1.0,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "Connection.java",
+            "target_class": "Connection",
+            "type": "has_method",
+            "method_name_regex": "^isClosed$",
+            "return_type_regex": "boolean",
+            "is_static": null
+        },
+        {
+            "weight": 1.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "Connection.java",
+            "target_class": "Connection",
+            "type": "implements_interface",
+            "interface_regex": "\\bAbortable\\b"
+        },
+        {
+            "weight": 1.5,
+            "expected": true,
+            "impacts_recall": true,
+            "target_file": "Connection.java",
+            "target_class": "Connection",
+            "type": "implements_interface",
+            "interface_regex": "\\bCloseable\\b"
+        }
+    ]
+}

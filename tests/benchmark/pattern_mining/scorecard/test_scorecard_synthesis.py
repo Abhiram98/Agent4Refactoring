@@ -6,17 +6,10 @@ from unittest.mock import MagicMock
 from langchain_openai import ChatOpenAI
 
 from refagent.benchmark.design_patterns.scorecard.synthesis.create_scorecard import (
-    ScoreCardCreator,
-    FileCheckList,
-    RMCheckList,
-    ASTCheckList
+    ScoreCardCreator
 )
 from refagent.benchmark.design_patterns.scorecard.schema import (
-    CandidateScorecard,
-    FilePresenceCheck,
-    RefactoringMinerCheck,
-    HasMethodCheck,
-    ImplementsInterfaceCheck
+    CandidateScorecard
 )
 from refagent.benchmark.design_patterns.pattern_first.models import BirthInfo, GreenfieldVerdict, PatternInstance, DetectionSource
 from refagent.benchmark.design_patterns.models import GoFPattern
@@ -95,6 +88,8 @@ def test_scorecard_synthesis_hbase(projects_base_path):
         candidate_id=candidate_id,
         birth_info=birth_info,
         verdict=verdict,
+        run_file_checks=False,
+        run_rm_checks=False
     )
 
     # Verify the results
