@@ -327,6 +327,8 @@ Assign strict weights (0.5 to 3.0) based on importance.
         final_checks = []
         gold_rminer = default_runner.run(project_path=self.repo, commit_hash=commit_hash)
         parent_rminer = []
+        adjusted_count = 0
+        check_failed_count = 0
 
         for check in checks:
             try:
@@ -335,6 +337,7 @@ Assign strict weights (0.5 to 3.0) based on importance.
                                             rm_refactorings=parent_rminer)
             except Exception as e:
                 logger.error(f"Failed to evaluate check {check.name}: {e}")
+                check_failed_count += 1
                 continue
 
             try:
@@ -343,6 +346,7 @@ Assign strict weights (0.5 to 3.0) based on importance.
                                           rm_refactorings=gold_rminer)
             except Exception as e:
                 logger.error(f"Failed to evaluate check {check.name}: {e}")
+                check_failed_count += 1
                 continue
 
             # If the status of the check changes, then it impacts recall.
@@ -352,9 +356,12 @@ Assign strict weights (0.5 to 3.0) based on importance.
             if ((parent_status == True and gold_status == False)
                     or (parent_status == False and gold_status == False)):
                 # Invert the expected status.
+                adjusted_count += 1
                 check.expected = not check.expected
 
             final_checks.append(check)
 
+        logger.info(f"{adjusted_count} checks were adjusted.")
+        logger.info(f"{check_failed_count} checks threw an exception.")
         return final_checks
 
