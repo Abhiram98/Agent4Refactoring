@@ -1,8 +1,7 @@
 from .refactoring_miner import RefactoringMinerCheck
 from .file_presence import FilePresenceCheck
 from .ast_base import ASTCheckBase
-from .implements_interface import ImplementsInterfaceCheck
-from .extends_class import ExtendsClassCheck
+from .implements_abstraction import ExtendsClassCheck, ImplementsInterfaceCheck
 from .has_method import HasMethodCheck
 from .has_constructor_visibility import HasConstructorVisibilityCheck
 from .has_field import HasFieldCheck

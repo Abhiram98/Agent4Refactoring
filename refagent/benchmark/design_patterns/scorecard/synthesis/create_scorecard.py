@@ -80,7 +80,11 @@ class ScoreCardCreator:
         # Combine
         return CandidateScorecard(
             candidate_id=candidate_id,
-            checks=self.adjust_checks(file_checks + rm_checks + ast_checks)
+            checks=self.adjust_checks(
+                file_checks + rm_checks + ast_checks,
+                commit_hash,
+                parent_hash
+            )
         )
 
     def _extract_diff_text(self, commit_hash: str, parent_hash: str, change_type: Literal["A", "D"]) -> Optional[str]:
@@ -310,14 +314,47 @@ Assign strict weights (0.5 to 3.0) based on importance.
                     
         return valid_checks
 
-    def adjust_checks(self, checks: List[CheckItem]) -> List[CheckItem]:
-
-        # TODO: Run the check against the gold commit. Note the status. Possible status are:
+    def adjust_checks(self, checks: List[CheckItem],
+                      commit_hash: str, parent_hash: str) -> List[CheckItem]:
+        # Run the check against the previous commit and the gold commit.
+        #  Note the status. Possible status are:
         #  Pass -> Fail. Fail -> Pass. Pass -> Pass. Fail -> Fail.
         #  Changing status should impact the recall. i.e., `check.impacts_recall = True`.
         #  For Pass -> Fail, check.expected should be inverted.
         #  For Fail -> Fail, check.expected should be inverted.
         #  Same status checks should be used to compute precision. i.e., `check.impacts_recall = False`
 
-        return checks
+        final_checks = []
+        gold_rminer = default_runner.run(project_path=self.repo, commit_hash=commit_hash)
+        parent_rminer = []
+
+        for check in checks:
+            try:
+                parent_status = check.check(commit_hash=parent_hash,
+                                            project_path=self.repo,
+                                            rm_refactorings=parent_rminer)
+            except Exception as e:
+                logger.error(f"Failed to evaluate check {check.name}: {e}")
+                continue
+
+            try:
+                gold_status = check.check(commit_hash=commit_hash,
+                                          project_path=self.repo,
+                                          rm_refactorings=gold_rminer)
+            except Exception as e:
+                logger.error(f"Failed to evaluate check {check.name}: {e}")
+                continue
+
+            # If the status of the check changes, then it impacts recall.
+            # Else, it impacts precision -- these are likely code components that developer chose not to change.
+            check.impacts_recall = parent_status != gold_status
+
+            if ((parent_status == True and gold_status == False)
+                    or (parent_status == False and gold_status == False)):
+                # Invert the expected status.
+                check.expected = not check.expected
+
+            final_checks.append(check)
+
+        return final_checks
 

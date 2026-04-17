@@ -43,8 +43,8 @@ class BaseScorecardCheck(BaseModel):
 from .checks.refactoring_miner import RefactoringMinerCheck       # noqa: E402
 from .checks.file_presence import FilePresenceCheck                # noqa: E402
 from .checks.ast_base import ASTCheckBase                          # noqa: E402
-from .checks.implements_interface import ImplementsInterfaceCheck  # noqa: E402
-from .checks.extends_class import ExtendsClassCheck                # noqa: E402
+from .checks.implements_abstraction import (ImplementsInterfaceCheck,
+                                            ExtendsClassCheck)  # noqa: E402
 from .checks.has_method import HasMethodCheck                      # noqa: E402
 from .checks.has_constructor_visibility import HasConstructorVisibilityCheck  # noqa: E402
 from .checks.has_field import HasFieldCheck                        # noqa: E402
