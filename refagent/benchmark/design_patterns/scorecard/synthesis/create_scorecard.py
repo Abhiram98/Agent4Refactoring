@@ -37,6 +37,7 @@ class ASTContext(BaseModel):
 class ScoreCardCreator:
     def __init__(self, repo_path: Path, llm: ChatOpenAI):
         self.repo = Repo(repo_path)
+        self.repo_path: Path = repo_path
         self.llm = llm
 
     def create_scorecard(self, candidate_id: str, birth_info: BirthInfo, verdict: GreenfieldVerdict,
@@ -78,13 +79,19 @@ class ScoreCardCreator:
                 ast_checks.extend(res)
 
         # Combine
-        return CandidateScorecard(
-            candidate_id=candidate_id,
-            checks=self.adjust_checks(
+        try:
+            adjusted_checks = self.adjust_checks(
                 file_checks + rm_checks + ast_checks,
                 commit_hash,
                 parent_hash
             )
+        except Exception as e:
+            logger.error(f"Failed to adjust checks. {e}")
+            adjusted_checks = file_checks + rm_checks + ast_checks
+
+        return CandidateScorecard(
+            candidate_id=candidate_id,
+            checks=adjusted_checks,
         )
 
     def _extract_diff_text(self, commit_hash: str, parent_hash: str, change_type: Literal["A", "D"]) -> Optional[str]:
@@ -325,7 +332,7 @@ Assign strict weights (0.5 to 3.0) based on importance.
         #  Same status checks should be used to compute precision. i.e., `check.impacts_recall = False`
 
         final_checks = []
-        gold_rminer = default_runner.run(project_path=self.repo, commit_hash=commit_hash)
+        gold_rminer = default_runner.run(project_path=self.repo_path, commit_hash=commit_hash)
         parent_rminer = []
         adjusted_count = 0
         check_failed_count = 0
@@ -333,7 +340,7 @@ Assign strict weights (0.5 to 3.0) based on importance.
         for check in checks:
             try:
                 parent_status = check.check(commit_hash=parent_hash,
-                                            project_path=self.repo,
+                                            project_path=self.repo_path,
                                             rm_refactorings=parent_rminer)
             except Exception as e:
                 logger.error(f"Failed to evaluate check {check.name}: {e}")
@@ -342,7 +349,7 @@ Assign strict weights (0.5 to 3.0) based on importance.
 
             try:
                 gold_status = check.check(commit_hash=commit_hash,
-                                          project_path=self.repo,
+                                          project_path=self.repo_path,
                                           rm_refactorings=gold_rminer)
             except Exception as e:
                 logger.error(f"Failed to evaluate check {check.name}: {e}")
