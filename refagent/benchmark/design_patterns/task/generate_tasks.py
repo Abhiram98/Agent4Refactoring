@@ -1,5 +1,6 @@
 import json
 import os
+import argparse
 from typing import List, Dict, Optional, Set, Any
 
 import refagent
@@ -18,12 +19,16 @@ OUTPUT_FILE = refagent.data_folder.joinpath("design_patterns/tasks.json")
 class TaskGenerator:
     """Handles LLM-based prompt generation for different task tiers."""
     
-    def __init__(self, model_name: str = "gpt-4o"):
-        self.llm = ChatOpenAI(model=model_name, temperature=0.2)
+    def __init__(self, model_name: str = "gpt-5-mini"):
+        self.llm = ChatOpenAI(model=model_name, temperature=1)
         
     def generate_tier_1(self, diff: str, seed_file: str) -> str:
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are an expert Java developer. Based on the provided git diff, generate direct, mechanical, step-by-step structural instructions for a refactoring agent. Describe exactly which classes to create, which methods to move/rename, and constructor changes. Do not explain principles. Be concise."),
+            ("system", "You are an expert Java developer. Based on the provided git diff, "
+                       "generate direct, mechanical, step-by-step structural instructions "
+                       "for a refactoring agent. Describe the high level goal (to apply a design pattern) and exactly how to do so. "
+                       "Describe which classes to create, which methods to move/rename, and constructor changes. "
+                       "Do not explain principles. Be concise."),
             ("user", "Diff:\n{diff}\n\nSeed File: {seed_file}")
         ])
         chain = prompt | self.llm
@@ -32,7 +37,10 @@ class TaskGenerator:
 
     def generate_tier_2(self, pattern: str, seed_file: str, reasoning: str) -> str:
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a software architect. Generate a high-level directive to apply a specific design pattern to a codebase. Specify the pattern and the target classes. Focus on the architectural intent."),
+            ("system", "You are a software architect. Generate a high-level directive to "
+                       "apply a specific design pattern to a codebase. "
+                       "Specify the pattern and the target classes. "
+                       "Focus on the architectural intent."),
             ("user", "Pattern: {pattern}\nSeed File: {seed_file}\nReasoning: {reasoning}")
         ])
         chain = prompt | self.llm
@@ -41,7 +49,11 @@ class TaskGenerator:
 
     def generate_tier_3(self, pattern: str, reasoning: str) -> str:
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a Product Owner writing a Jira ticket. Describe a technical debt issue as a goal-oriented complaint. Focus on pain points (extensibility, maintenance) of the old design. Do not mention the pattern name explicitly. Use a Title and Description format."),
+            ("system", "You are a Product Owner writing a Jira ticket. "
+                       "Describe a technical debt issue as a goal-oriented complaint. "
+                       "Focus on pain points (extensibility, maintenance) of the old design. "
+                       "Do not mention the pattern name explicitly. "
+                       "Use a Title and Description format."),
             ("user", "Pattern Goal: {pattern}\nRefactoring Reasoning: {reasoning}")
         ])
         chain = prompt | self.llm
@@ -75,9 +87,10 @@ class TaskGenerator:
 class PipelineRunner:
     """Orchestrates the task generation pipeline."""
     
-    def __init__(self, input_path: str, output_path: str):
+    def __init__(self, input_path: str, output_path: str, candidate_id: Optional[str] = None):
         self.input_path = input_path
         self.output_path = output_path
+        self.candidate_id = candidate_id
         self.generator = TaskGenerator()
         self.tasks: List[Dict[str, Any]] = []
         self.processed_ids: Set[str] = set()
@@ -136,6 +149,11 @@ class PipelineRunner:
 
         for cand in candidates:
             cand_id = cand['id']
+
+            # filter by candidate_id if provided
+            if self.candidate_id and cand_id != self.candidate_id:
+                continue
+
             if cand_id in self.processed_ids:
                 print(f"Skipping already processed candidate: {cand_id}")
                 continue
@@ -181,5 +199,9 @@ class PipelineRunner:
                 print(f"Validation error for {cand_id}: {e}")
 
 if __name__ == "__main__":
-    runner = PipelineRunner(INPUT_FILE, OUTPUT_FILE)
+    parser = argparse.ArgumentParser(description="Generate design pattern refactoring tasks.")
+    parser.add_argument("--candidate_id", type=str, help="Specific candidate ID to process.")
+    args = parser.parse_args()
+
+    runner = PipelineRunner(INPUT_FILE, OUTPUT_FILE, candidate_id=args.candidate_id)
     runner.run()
