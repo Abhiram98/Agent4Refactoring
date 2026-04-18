@@ -13,8 +13,8 @@ from langchain.prompts import ChatPromptTemplate
 from pydantic import ValidationError
 
 # Configuration
-INPUT_FILE = refagent.data_folder.joinpath("design_patterns/aggregated_candidates.json")
-OUTPUT_FILE = refagent.data_folder.joinpath("design_patterns/tasks.json")
+INPUT_FILE = str(refagent.data_folder.joinpath("design_patterns/aggregated_candidates.json"))
+OUTPUT_FILE = str(refagent.data_folder.joinpath("design_patterns/tasks.json"))
 
 class TaskGenerator:
     """Handles LLM-based prompt generation for different task tiers."""
@@ -148,7 +148,10 @@ class PipelineRunner:
         self.load_state()
 
         for cand in candidates:
-            cand_id = cand['id']
+            cand_id = cand.get('id')
+            if not cand_id:
+                print("Warning: Candidate missing 'id', skipping.")
+                continue
 
             # filter by candidate_id if provided
             if self.candidate_id and cand_id != self.candidate_id:
@@ -158,14 +161,23 @@ class PipelineRunner:
                 print(f"Skipping already processed candidate: {cand_id}")
                 continue
 
-            print(f"Processing candidate: {cand_id} ({cand['pattern']})")
+            repo_path = cand.get('repo_path')
+            seed_file = cand.get('pattern_file')
+            baseline_sha = cand.get('parent_sha')
+            target_sha = cand.get('birth_commit_sha')
+
+            if not all([repo_path, seed_file, baseline_sha, target_sha]):
+                print(f"Warning: Candidate {cand_id} missing critical git info, skipping.")
+                continue
+
+            print(f"Processing candidate: {cand_id} ({cand.get('pattern', 'Unknown')})")
             
-            project = self.get_eval_project(cand['repo_path'])
+            project = self.get_eval_project(repo_path)
             context = self.get_git_context(
                 project, 
-                cand['pattern_file'], 
-                cand['parent_sha'], 
-                cand['birth_commit_sha']
+                seed_file, 
+                baseline_sha, 
+                target_sha
             )
             
             if not context:
