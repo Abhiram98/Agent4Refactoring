@@ -50,6 +50,7 @@ from .checks.has_constructor_visibility import HasConstructorVisibilityCheck  # 
 from .checks.has_field import HasFieldCheck                        # noqa: E402
 from .checks.instantiates_class import InstantiatesClassCheck      # noqa: E402
 from .checks.custom_ast import CustomDynamicASTCheck               # noqa: E402
+from .checks.method_invocation import MethodInvocationCheck            # noqa: E402
 from .checks.lenient_ast_checks import ClassMatchingRegexCheck, AntiPatternRemovalCheck  # noqa: E402
 
 # The discriminator tells Pydantic to use the 'type' field to select a subclass.
@@ -65,6 +66,7 @@ CheckItem = Annotated[Union[
     CustomDynamicASTCheck,
     ClassMatchingRegexCheck,
     AntiPatternRemovalCheck,
+    MethodInvocationCheck,
 ], Field(discriminator="type")]
 
 
