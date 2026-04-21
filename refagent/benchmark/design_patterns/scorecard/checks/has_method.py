@@ -19,7 +19,9 @@ def _node_has_modifier(node, source_bytes: bytes, modifier: str) -> bool:
 
 class HasMethodCheck(ASTCheckBase):
     type: Literal["has_method"]
-    method_name_regex: str = Field(description="Regex matching the method name")
+    method_name_regex: str = Field(description="Regex matching the method name. "
+                                               "This is a flexible regex which captures all possible variations of the "
+                                               "method name.")
     return_type_regex: Optional[str] = Field(default=None, description="Optional regex matching the return type")
     is_static: Optional[bool] = Field(default=None, description="Verify if the method is static")
 

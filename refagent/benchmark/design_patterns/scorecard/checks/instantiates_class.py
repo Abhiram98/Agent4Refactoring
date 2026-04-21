@@ -10,7 +10,8 @@ from .. import ast_utils
 class InstantiatesClassCheck(ASTCheckBase):
     type: Literal["instantiates_class"]
     instantiated_class_regex: str = Field(
-        description="Regex matching the explicitly constructed class (e.g. after 'new ')"
+        description="Regex matching the explicitly constructed class (e.g. after 'new '). "
+                    "This is a flexible regex which captures all possible variations of the class name. "
     )
 
     def _ast_check(self, root_node, source_bytes: bytes, target_node) -> bool:

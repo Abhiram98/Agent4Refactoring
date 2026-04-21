@@ -151,7 +151,9 @@ Task:
 Identify which of these files MUST {existence_verb} to fulfill the core architecture of the {pattern_type}.
 Return a structured list of JSON Objects with the following keys - "file_regex" and "weight". 
 Assign higher weights (2.0 or 3.0) to central interfaces/classes, and lower weights (0.5 or 1.0) to tests or secondary helpers.
-The `file_regex` should be a regular expression matching the required base filename (e.g. '.*TableBuilder.*\.java'). Be careful to properly escape dots and wildcards.
+The `file_regex` should be a regular expression matching the required base filename (e.g. '.*TableBuilderBase.*\.java').
+For new files, be lenient with the `file_regex`: make sure it captures all other possible names (e.g. TableBuilderImpl). 
+Be careful to properly escape dots and wildcards.
 """
         result = self.llm.invoke(prompt)
         try:

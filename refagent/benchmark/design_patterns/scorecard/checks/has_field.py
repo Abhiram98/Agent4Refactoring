@@ -8,11 +8,15 @@ from .. import ast_utils
 
 _VISIBILITY_KEYWORDS = {"public", "protected", "private"}
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class HasFieldCheck(ASTCheckBase):
     type: Literal["has_field"]
     field_type_regex: str = Field(description="Regex matching the data type of the field")
-    field_name_regex: str = Field(description="Regex matching the field name")
+    field_name_regex: str = Field(description="Regex matching the field name. "
+                                              "This is a flexible regex which captures all possible variations of the field name. ")
     visibility: Optional[Literal["public", "protected", "private", "package-private"]] = Field(default=None)
     is_final: Optional[bool] = Field(default=None)
     is_static: Optional[bool] = Field(default=None)
@@ -52,7 +56,8 @@ class HasFieldCheck(ASTCheckBase):
             if self.visibility is not None:
                 actual_vis = next((m for m in mods if m in _VISIBILITY_KEYWORDS), "package-private")
                 if actual_vis != self.visibility:
-                    continue
+                    logger.warning("Visibility of field is different from expected."
+                                   f"Actual visibility: {actual_vis}. Expected: {self.visibility}")
 
             if self.is_static is not None and ("static" in mods) != self.is_static:
                 continue

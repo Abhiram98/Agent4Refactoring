@@ -9,7 +9,9 @@ from .. import ast_utils
 
 class ExtendsClassCheck(ASTCheckBase):
     type: Literal["extends_class"]
-    base_class_regex: str = Field(description="Regex matching the base class name")
+    base_class_regex: str = Field(description="Regex matching the base class name. "
+                                              "This is a flexible regex which captures all possible variations "
+                                              "of the base class name.")
 
     def _ast_check(self, root_node, source_bytes: bytes, target_node) -> bool:
         has_extends = self.do_check(source_bytes, target_node)
@@ -42,7 +44,9 @@ class ExtendsClassCheck(ASTCheckBase):
 
 class ImplementsInterfaceCheck(ASTCheckBase):
     type: Literal["implements_interface"]
-    interface_regex: str = Field(description="Regex matching the interface name")
+    interface_regex: str = Field(description="Regex matching the interface name. "
+                                             "This regex should capture many variations of the interface name. "
+                                             "E.g. IStrategy, StrategyInterface, ... ")
 
     def _ast_check(self, root_node, source_bytes: bytes, target_node) -> bool:
         has_implements = self.do_check(source_bytes, target_node)
