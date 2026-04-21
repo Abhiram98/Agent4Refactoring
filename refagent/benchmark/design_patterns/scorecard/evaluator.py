@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional
+from refagent.utils.refminer_utils import default_runner
 
 from .schema import CandidateScorecard
 
@@ -14,6 +15,7 @@ class ScorecardEvaluator:
         repo_path: Path,
         commit_hash: str,
         rm_refactorings: Optional[List[Dict[str, Any]]] = None,
+        weight_threshold: float = 0.0,
     ):
         """
         :param scorecard:        The loaded CandidateScorecard schema object.
@@ -26,7 +28,10 @@ class ScorecardEvaluator:
         self.scorecard = scorecard
         self.repo_path = Path(repo_path)
         self.commit_hash = commit_hash
+        if rm_refactorings is None:
+            rm_refactorings = default_runner.run(self.repo_path, self.commit_hash)
         self.rm_refactorings = rm_refactorings
+        self.weight_threshold = weight_threshold
 
     def evaluate(self) -> Dict[str, Any]:
         """
@@ -43,6 +48,10 @@ class ScorecardEvaluator:
         precision_passed = 0.0
 
         for check in self.scorecard.checks:
+            if check.weight < self.weight_threshold:
+                logger.info(f"Skipping {check}")
+                continue
+
             try:
                 passed = check.check(self.commit_hash, self.repo_path, self.rm_refactorings)
             except NotImplementedError:
@@ -62,7 +71,7 @@ class ScorecardEvaluator:
                     precision_passed += check.weight
 
             results.append({
-                "check_type": check.type,
+                "check": check,
                 "passed": passed,
                 "weight": check.weight,
                 "impacts_recall": check.impacts_recall,
