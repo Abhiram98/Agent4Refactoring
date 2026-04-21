@@ -21,18 +21,35 @@ class FilePresenceCheck(BaseScorecardCheck):
 
     def _check(self, commit_hash: str, project_path: Path, rm_refactorings=None) -> bool:
         """
-        Traverses the git commit tree at commit_hash (no checkout) and returns
-        True when the file's actual state matches expected_state.
+        Checks if a file matching self.file_regex was ADDED (if expected_state="exists")
+        or DELETED (if expected_state="absent") in the given commit.
         """
         pattern = re.compile(self.file_regex)
-        file_exists = False
         try:
             repo = Repo(project_path)
-            for blob in repo.commit(commit_hash).tree.traverse():
-                if blob.type == "blob" and pattern.search(blob.name):
-                    file_exists = True
-                    break
-        except Exception as e:
-            logger.warning(f"FilePresenceCheck: failed to traverse commit tree {commit_hash}: {e}")
+            commit = repo.commit(commit_hash)
 
-        return file_exists if self.expected_state == "exists" else not file_exists
+            if not commit.parents:
+                # Initial commit: all entries in the tree are 'added'.
+                if self.expected_state == "absent":
+                    return False
+
+                for blob in commit.tree.traverse():
+                    if blob.type == "blob" and pattern.search(blob.name):
+                        return True
+                return False
+
+            # Not initial commit
+            diff_index = commit.parents[0].diff(commit)
+            change_type = 'A' if self.expected_state == "exists" else 'D'
+
+            for diff_obj in diff_index.iter_change_type(change_type):
+                # path is b_path for added, a_path for deleted
+                path = diff_obj.b_path if diff_obj.b_path else diff_obj.a_path
+                if path and pattern.search(path.split('/')[-1]):
+                    return True
+
+            return False
+        except Exception as e:
+            logger.warning(f"FilePresenceCheck: failed to check commit {commit_hash}: {e}")
+            return False
