@@ -48,21 +48,37 @@ class LenientScoreCardCreator:
 
         # --- Phase 1: Pattern Application ---
         logger.info(f"Starting Phase 1 (Pattern Application) for {candidate_id}")
-        p1_instructions = "Focus on the newly introduced architectural abstractions. Output goals like: 'Introduce a flexible TableBuilder interface' or 'Create a method that returns the builder'."
+        p1_instructions = (
+            "Focus on the newly introduced design abstractions. "
+            "As an example, if applying a Builder pattern, your goals might be:\n"
+            "- create a Builder class\n"
+            "- make sure the builder class has `setXXX` methods\n"
+            "- the `setXXX` methods should return the builder itself (fluent interface)\n"
+            "- there exists a build function in the builder class, which returns the ConcreteClass\n"
+        )
         p1_goals = self._generate_goals(p1_instructions, pattern_type, reasoning, core_files_diff)
         p1_checks = self._synthesize_checks(p1_goals, core_files_diff)
         checks.extend(p1_checks)
 
         # --- Phase 2: Smell Removal ---
         logger.info(f"Starting Phase 2 (Smell Removal) for {candidate_id}")
-        p2_instructions = "Focus on eradicating legacy constraints or anti-patterns that were replaced. Output goals like: 'Remove telescopic constructors from HTable' or 'Remove deprecated setters'."
+        p2_instructions = (
+            "Focus on eradicating legacy anti-patterns. "
+            "For example, if applying a Builder pattern, your goals might be to replace smelly code by:\n"
+            "- the object to be built now has a private constructor\n"
+            "- no more telescoping constructors"
+        )
         p2_goals = self._generate_goals(p2_instructions, pattern_type, reasoning, core_files_diff)
         p2_checks = self._synthesize_checks(p2_goals, core_files_diff)
         checks.extend(p2_checks)
 
         # --- Phase 3: Call Site Updates ---
         logger.info(f"Starting Phase 3 (Call Site Updates) for {candidate_id}")
-        p3_instructions = "Focus on updating downstream dependencies to consume the new abstractions. Output goals like: 'Instantiate HTable via Connection.getTableBuilder() instead of new HTable()'."
+        p3_instructions = (
+            "Focus on updating downstream dependencies to consume the new abstractions. "
+            "For example, if applying a Builder pattern, your goals might be:\n"
+            "- legacy `new Class(...)` is replaced by `Builder().setXXX().setXXX().build()` invocations"
+        )
         p3_goals = self._generate_goals(p3_instructions, pattern_type, reasoning, call_site_files_diff)
         p3_checks = self._synthesize_checks(p3_goals, call_site_files_diff)
         checks.extend(p3_checks)
@@ -124,7 +140,7 @@ Here is the Git Diff of the relevant files:
 ```
 
 Task:
-Generate a discrete list of structural goals that the AI must accomplish.
+Generate a discrete list of structural goals that must be accomplished to achieve the design change.
 {phase_instructions}
 """
         llm_with_structure = self.llm.with_structured_output(GoalList)
