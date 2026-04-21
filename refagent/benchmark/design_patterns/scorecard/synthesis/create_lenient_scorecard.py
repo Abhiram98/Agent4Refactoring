@@ -23,8 +23,13 @@ from refagent.benchmark.design_patterns.pattern_first.models import BirthInfo, G
 
 logger = logging.getLogger(__name__)
 
+class Goal(BaseModel):
+    goal_text: str
+    optional: bool = Field(description="An optional, nice to have target. "
+                                       "This is not required to achieve the ask.")
+
 class GoalList(BaseModel):
-    goals: List[str] = Field(description="A list of high-level natural language goals")
+    goals: List[Goal] = Field(description="A list of high-level natural language goals")
 
 class LenientScoreCardCreator:
     def __init__(self, repo_path: Path, llm: ChatOpenAI):
@@ -36,7 +41,7 @@ class LenientScoreCardCreator:
         """Generates a lenient CandidateScorecard using a 3-phase Goal-to-Check NLP pipeline."""
         
         pattern_type = birth_info.pattern_instance.pattern.value if hasattr(birth_info.pattern_instance.pattern, "value") else str(birth_info.pattern_instance.pattern)
-        reasoning = birth_info.pattern_instance.reasoning or ""
+        reasoning = verdict.llm_reasoning
         commit_hash = birth_info.birth_commit_sha
         parent_hash = birth_info.parent_sha
 
@@ -49,7 +54,7 @@ class LenientScoreCardCreator:
         # --- Phase 1: Pattern Application ---
         logger.info(f"Starting Phase 1 (Pattern Application) for {candidate_id}")
         p1_instructions = (
-            "Focus on the newly introduced design abstractions. "
+            "FOCUS ONLY ON the newly introduced design abstractions. "
             "As an example, if applying a Builder pattern, your goals might be:\n"
             "- create a Builder class\n"
             "- make sure the builder class has `setXXX` methods\n"
@@ -131,8 +136,9 @@ class LenientScoreCardCreator:
         if not diff_text.strip():
             return []
             
-        prompt = f"""You are building an evaluation scorecard for an AI developer replicating a {pattern} design pattern.
-Original developer reasoning for the refactoring: {reasoning}
+        prompt = f"""You are building an evaluation scorecard for a developer 
+        who is attempting to introduce the {pattern} design pattern.
+The original developer reasoning for the refactoring: {reasoning}
 
 Here is the Git Diff of the relevant files:
 ```diff
@@ -140,7 +146,7 @@ Here is the Git Diff of the relevant files:
 ```
 
 Task:
-Generate a discrete list of structural goals that must be accomplished to achieve the design change.
+Generate a discrete list of structural goals that must be accomplished to introduce the {pattern} design pattern.
 {phase_instructions}
 """
         llm_with_structure = self.llm.with_structured_output(GoalList)

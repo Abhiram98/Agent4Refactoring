@@ -1,7 +1,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from git import Repo
 from pydantic import Field
@@ -97,7 +97,7 @@ class ClassMatchingRegexCheck(RegexASTCheckBase):
     """
     Checks if there exists a class matching regexes that contains the required methods.
     """
-    type: str = Field(default="class_matching_regex", Literal=True)
+    type: Literal["class_matching_regex"]
     has_methods: List[str] = Field(
         default_factory=list,
         description="A list of regex patterns for method names the class must contain"
@@ -140,7 +140,7 @@ class AntiPatternRemovalCheck(ASTCheckBase):
     Evaluates whether a target file no longer contains certain anti-pattern methods.
     (e.g., removing legacy setters, or making sure constructors aren't too large).
     """
-    type: str = Field(default="anti_pattern_removal", Literal=True)
+    type: Literal["anti_pattern_removal"]
     forbidden_methods: List[str] = Field(
         default_factory=list,
         description="A list of method regexes that should NOT be present."

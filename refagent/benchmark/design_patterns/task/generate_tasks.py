@@ -28,7 +28,7 @@ class TaskGenerator:
                        "generate direct, mechanical, step-by-step structural instructions "
                        "for a refactoring agent. Describe the high level goal (to apply a design pattern) and exactly how to do so. "
                        "Describe which classes to create, which methods to move/rename, and constructor changes. "
-                       "Do not explain principles. Be concise."),
+                       "Do not explain principles. Be concise. Limit to 3 sentences."),
             ("user", "Diff:\n{diff}\n\nSeed File: {seed_file}")
         ])
         chain = prompt | self.llm
@@ -40,7 +40,7 @@ class TaskGenerator:
             ("system", "You are a software architect. Generate a high-level directive to "
                        "apply a specific design pattern to a codebase. "
                        "Specify the pattern and the target classes. "
-                       "Focus on the architectural intent."),
+                       "Focus on the architectural intent. Limit to 1 sentence."),
             ("user", "Pattern: {pattern}\nSeed File: {seed_file}\nReasoning: {reasoning}")
         ])
         chain = prompt | self.llm
@@ -53,7 +53,7 @@ class TaskGenerator:
                        "Describe a technical debt issue as a goal-oriented complaint. "
                        "Focus on pain points (extensibility, maintenance) of the old design. "
                        "Do not mention the pattern name explicitly. "
-                       "Use a Title and Description format."),
+                       "Use a Title and Description format. Limit to 2 sentences."),
             ("user", "Pattern Goal: {pattern}\nRefactoring Reasoning: {reasoning}")
         ])
         chain = prompt | self.llm
@@ -64,7 +64,7 @@ class TaskGenerator:
         """Generates both the instruction and the failing test code for Tier 4."""
         prompt = ChatPromptTemplate.from_messages([
             ("system", "You are a senior Java engineer. Your task is to help create a Test-Driven Development (TDD) task for a refactoring agent. \n"
-                       "1. Write a brief instruction telling the agent that a senior engineer wrote a test case representing the desired new architecture, and they must refactor the code to make it pass.\n"
+                       "1. Write a brief instruction telling the agent that a senior engineer wrote a test case representing the desired new architecture, and they must refactor the code to make it pass. (1 sentence max)\n"
                        "2. Synthesize a failing JUnit test case (as a single @Test method) that captures this new design using the provided 'after-state' code.\n"
                        "Provide the output in JSON format with keys 'instruction' and 'test_code'."),
             ("user", "Pattern: {pattern}\nAfter-state Code Snippet:\n{after_code}")
