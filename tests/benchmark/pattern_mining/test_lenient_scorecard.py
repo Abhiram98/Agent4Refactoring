@@ -5,8 +5,8 @@ import pytest
 from langchain_openai import ChatOpenAI
 
 import refagent
+from benchmark.design_patterns.pattern_first.mine_from_pattern import _from_output_record
 from refagent.benchmark.design_patterns.scorecard.synthesis.create_lenient_scorecard import LenientScoreCardCreator
-from refagent.benchmark.design_patterns.pattern_first.models import BirthInfo
 
 @pytest.fixture
 def projects_base_path():
@@ -16,7 +16,6 @@ def projects_base_path():
         raise RuntimeError("PROJECTS_BASE_PATH environment variable not set")
     return Path(base)
 
-@pytest.mark.skip(reason="Manual execution only. User requested to write but not run.")
 def test_synthesize_lenient_scorecard(projects_base_path):
     """
     Test synthesizing the resilient/goal-oriented scorecard for Candidate dc6ddb40847ae26f (HBase TableBuilder).
@@ -29,7 +28,7 @@ def test_synthesize_lenient_scorecard(projects_base_path):
         pytest.skip(f"Repo not found at {repo_path}")
 
     # Load dataset to get birth_info and greenfield verdict for the candidate
-    dataset_path = refagent.data_folder / "design_patterns/dpdf_dataset_filtered.json"
+    dataset_path = refagent.data_folder / "design_patterns/aggregated_candidates.json"
     with open(dataset_path, "r", encoding="utf-8") as f:
         dataset = json.load(f)
         
@@ -38,11 +37,10 @@ def test_synthesize_lenient_scorecard(projects_base_path):
     
     # Reconstruct BirthInfo mapping (Assuming GreenfieldVerdict is properly serialized in 'greenfield' key)
     # The dictionary structure might need explicit reconstruction depending on the Pydantic model
-    birth_info = BirthInfo.model_validate(candidate_data)
-    verdict = birth_info.greenfield
+    path, birth_info, verdict = _from_output_record(candidate_data)
 
     # Initialize Creator
-    llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-5-mini", temperature=1)
     creator = LenientScoreCardCreator(repo_path=repo_path, llm=llm)
     
     # Synthesize Scorecard
