@@ -40,7 +40,10 @@ class TaskGenerator:
             ("system", "You are a software architect. Generate a high-level directive to "
                        "apply a specific design pattern to a codebase. "
                        "Specify the pattern and the target classes. "
-                       "Focus on the architectural intent. Limit to 1 sentence."),
+                       "Focus on the architectural intent. "
+                       "Do not include information about downstream classes/files "
+                       "that need to be modified after changing the initial file to use the design pattern."
+                       "Limit to 1 sentence."),
             ("user", "Pattern: {pattern}\nSeed File: {seed_file}\nReasoning: {reasoning}")
         ])
         chain = prompt | self.llm

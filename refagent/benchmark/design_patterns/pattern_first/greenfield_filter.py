@@ -38,6 +38,7 @@ import git
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from refagent.benchmark.design_patterns.models import GoFPattern
 from refagent.benchmark.design_patterns.pattern_first.models import (
     BirthInfo,
     GreenfieldVerdict, MiningContext,
@@ -52,7 +53,7 @@ class LLMFilter:
     Uses an LLM to evaluate whether a commit is a release or a refactoring.
     """
 
-    def __init__(self, model_name: str = "gpt-5-mini") -> None:
+    def __init__(self, model_name: str = "o4-mini") -> None:
         self.model = ChatOpenAI(model=model_name, temperature=1)
 
     def is_release_commit(self, commit_message: str) -> bool:
@@ -72,19 +73,27 @@ class LLMFilter:
         response = self.model.invoke(messages)
         return "YES" in response.content.upper()
 
-    def analyze_diff(self, diff_text: str) -> tuple[bool, str]:
+    def analyze_diff(self, diff_text: str, pattern: GoFPattern, file_name: str) -> tuple[bool, str]:
         """
         Analyzes a git diff and determines if it's a 'greenfield' pattern addition
         (writing new code from scratch) or a 'refactoring' (migrating existing logic).
         Returns (is_refactoring, reasoning).
         """
         system_prompt = (
-            "You are an expert in design patterns and refactoring. Analyze the provided git diff. "
+            "You are an expert in design patterns and refactoring. "
+            "Analyze the provided git diff. "
             "Determine if the commit represents a 'greenfield' introduction of a design pattern "
             "(i.e., new classes and logic added from scratch -- the design pattern was created directly) "
             "or a 'refactoring' (i.e., existing "
             "functionality being restructured into a design pattern). "
-            "Focus on whether existing methods/logic were moved/changed into the new pattern structure. "
+            "Focus on whether existing methods/logic were moved/changed into the new pattern structure. \n"
+            "To answer, reason about: "
+            "(1) whether the existing 'Product' class existed before the refactoring (e.g., the target of the Builder), "
+            "and (2) were appropriate call sites changed to use the design pattern?\n"
+            "Answer yes if both of these are true."
+            ""
+            "There may be many changes in this commit that are distracting. "
+            "Focus only on the addition of the `{pattern}` pattern to `{filename}`.}`"
             "Provide your answer in the following format:\n"
             "Verdict: [REFACTORING/GREENFIELD]\n"
             "Reasoning: [Short explanation]"
@@ -205,7 +214,11 @@ class GreenfieldFilter:
 
             # 4. LLM Diff Check
             diff_text = self._get_full_diff(birth_info)
-            llm_is_ref, reasoning = self.llm_filter.analyze_diff(diff_text)
+            llm_is_ref, reasoning = self.llm_filter.analyze_diff(
+                diff_text,
+                birth_info.pattern_instance.pattern,
+                birth_info.pattern_instance.class_name
+            )
             verdict.llm_is_refactoring = llm_is_ref
             verdict.llm_reasoning = reasoning
             verdict.is_likely_refactoring = llm_is_ref

@@ -274,7 +274,7 @@ class PatternMiningPipeline:
         
         llm_filter = None
         if self.use_llm_filter:
-            logger.info("  (Initializing LLM filter with model: %s)", self.llm_filter_model)
+            logger.info("Initializing LLM filter")
             llm_filter = LLMFilter()
 
         gf_filter = GreenfieldFilter(context=self.context, llm_filter=llm_filter)
@@ -285,19 +285,19 @@ class PatternMiningPipeline:
             p_inst = birth_info.pattern_instance
             pattern_str = p_inst.pattern.value if hasattr(p_inst.pattern, "value") else str(p_inst.pattern)
             key = (str(repo_path), pattern_str, p_inst.file_path, birth_info.birth_commit_sha)
-            
-            if key in self.existing_keys:
-                dups += 1
-                continue
 
             if self.filter_greenfield and not verdict.is_likely_refactoring:
-                logger.debug(
+                logger.info(
                     "  ✗ Greenfield-rejected: %s (%s)  reasons=%s",
                     birth_info.pattern_instance.class_name,
                     birth_info.birth_commit_sha[:8],
                     verdict.rejection_reasons,
                 )
                 rejected += 1
+                continue
+
+            if key in self.existing_keys:
+                dups += 1
                 continue
 
             record = _to_output_record(repo_path, birth_info, verdict, self.instance_id)
