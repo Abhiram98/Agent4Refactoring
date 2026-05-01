@@ -145,6 +145,8 @@ class PatternIntroductionInstance(BaseModel):
     refminer_types: list[str]   = Field(default_factory=list, description="RefactoringMiner types found")
     evidence: ValidationEvidence = Field(default_factory=ValidationEvidence)
 
+    human_validation: bool = Field(False, description="Flag indicating if this instance has been manually verified")
+
     class Config:
         use_enum_values = True
 
