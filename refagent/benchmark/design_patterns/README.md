@@ -9,6 +9,17 @@ This module provides tools for detecting design pattern refactorings in Java rep
 
 ---
 
+## Data Storage
+
+By default, all data related to the design pattern benchmark is stored in the `data/design_patterns/` directory.
+
+- **Individual Project Results**: `data/design_patterns/miner/` (contains JSON files for each mined repository).
+- **Aggregated Candidates**: `data/design_patterns/aggregated_candidates.json` (the unified dataset created by the aggregation script).
+- **Scorecards**: `data/design_patterns/scorecard.jsonl` (generated evaluation scorecards).
+- **Tasks**: `data/design_patterns/tasks.json` (generated benchmark tasks).
+
+---
+
 ## 1. Mining and Detection Pipeline
 
 There are two primary approaches to mining refactoring candidates: **Pattern-First** and **Commit-First**.
