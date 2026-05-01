@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/hbase",
+    "pattern": "Builder",
+    "pattern_file": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/TableBuilder.java",
+    "class_name": "TableBuilder",
+    "detection_source": "name_heuristic",
+    "detection_confidence": 0.6,
+    "detection_reasoning": null,
+    "birth_commit_sha": "07e0a30efa332ab451e5f5729dd8257eced82c4d",
+    "parent_sha": "7754a9620eff44d1d570fda534f9159a756310cd",
+    "birth_commit_date": "2017-01-23T05:51:03+00:00",
+    "birth_commit_message": "HBASE-17491 Remove all setters from HTable interface and introduce a TableBuilder to build Table instance",
+    "is_initial_repo_commit": false,
+    "original_file_path": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/TableBuilder.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Connection.java",
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/ConnectionConfiguration.java",
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/ConnectionImplementation.java",
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+        "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 159,
+      "signal_3b_oldest_sibling_days": 3531,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit introduces a Builder pattern (TableBuilder / TableBuilderBase) but moves existing construction and configuration logic into it rather than creating entirely new functionality. getTable now delegates to getTableBuilder, ConnectionImplementation constructs a TableBuilder that builds an HTable, and HTable's previous constructor/configuration fields and setters were refactored to read from the builder (with deprecated setters left for backwards compatibility). ConnectionConfiguration was extended to expose an rpcTimeout used by the builder. These changes reorganize and relocate existing logic into the new pattern \u2014 a refactor.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['hbase-client/src/main/java/org/apache/hadoop/hbase/client/Connection.java', 'hbase-client/src/main/java/org/apache/hadoop/hbase/client/ConnectionConfiguration.java', 'hbase-client/src/main/java/org/apache/hadoop/hbase/client/ConnectionImplementation.java', 'hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java', 'hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java']",
+        "3B \u2713 Package 'hbase-client/src/main/java/org/apache/hadoop/hbase/client' had 159 pre-existing .java file(s) before the birth commit, oldest sibling 3531d old",
+        "LLM \u2713 Refactoring confirmed: The commit introduces a Builder pattern (TableBuilder / TableBuilderBase) but moves existing construction and configuration logic into it rather than creating entirely new functionality. getTable now "
+      ],
+      "rejection_reasons": []
+    }
+  }
+]

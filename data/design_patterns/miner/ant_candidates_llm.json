@@ -1,0 +1,775 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Observer",
+    "pattern_file": "src/main/org/apache/tools/ant/BuildListener.java",
+    "class_name": "BuildListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "This interface defines a listener callback API (BuildListener) and uses BuildEvent objects for notifications; it is the standard Java event-listener form of the Observer (publish\u2013subscribe) pattern. The Javadoc references Project#addBuildListener (the subject that registers listeners), so listeners are intended to be registered and notified on state changes/events.",
+    "birth_commit_sha": "1ba5087df429abe38dd22fe5c9ddbc343280f0ae",
+    "parent_sha": "d5bfb5609dde48b93877185c1f61067e009e8499",
+    "birth_commit_date": "2000-06-24T10:55:45+00:00",
+    "birth_commit_message": "Add BuildEvents to Ant",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/BuildListener.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 6,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/Main.java",
+        "src/main/org/apache/tools/ant/Project.java",
+        "src/main/org/apache/tools/ant/ProjectHelper.java",
+        "src/main/org/apache/tools/ant/Target.java",
+        "src/main/org/apache/tools/ant/taskdefs/Ant.java",
+        "src/main/org/apache/tools/ant/taskdefs/Javac.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 11,
+      "signal_3b_oldest_sibling_days": 163,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit restructures existing build-and-log behavior into an Observer pattern. The old direct calls to Project.log/PrintStream are removed and replaced by firing BuildEvent objects to BuildListener instances (DefaultLogger, XmlLogger, etc.). Existing methods and logic were moved into the new listener framework rather than being written from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 6 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/Main.java', 'src/main/org/apache/tools/ant/Project.java', 'src/main/org/apache/tools/ant/ProjectHelper.java', 'src/main/org/apache/tools/ant/Target.java', 'src/main/org/apache/tools/ant/taskdefs/Ant.java'] \u2026",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant' had 11 pre-existing .java file(s) before the birth commit, oldest sibling 163d old",
+        "LLM \u2713 Refactoring confirmed: The commit restructures existing build-and-log behavior into an Observer pattern. The old direct calls to Project.log/PrintStream are removed and replaced by firing BuildEvent objects to BuildListener"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Observer",
+    "pattern_file": "src/main/org/apache/tools/ant/BuildListener.java",
+    "class_name": "BuildListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "This interface defines a listener callback API (BuildListener) and uses BuildEvent objects for notifications; it is the standard Java event-listener form of the Observer (publish\u2013subscribe) pattern. The Javadoc references Project#addBuildListener (the subject that registers listeners), so listeners are intended to be registered and notified on state changes/events.",
+    "birth_commit_sha": "bce31805e9b4b1360d50be8e001886d58e087e38",
+    "parent_sha": "2b39260c1686576075c283f4f0c59e92510e15fc",
+    "birth_commit_date": "2000-01-13T10:42:41+00:00",
+    "birth_commit_message": "initial checkin",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/BuildListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'src/main/org/apache/tools/ant' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 3,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Adapter",
+    "pattern_file": "src/main/org/apache/tools/ant/TypeAdapter.java",
+    "class_name": "TypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The interface defines the contract for an adapter that wraps a \"proxy\" (adaptee) and exposes it to Ant (setProxy/getProxy, checkProxyClass), i.e. it provides the role and behavior expected of an Object Adapter. Although this file is just the interface (not a concrete adapter), its purpose (\"Used to wrap types\") and API match the GoF Adapter pattern (adapting/wrapping a target object to the framework).",
+    "birth_commit_sha": "8701272b2418d74536d09b289f118d1833d42217",
+    "parent_sha": "26f6bfe2be0861267eca5624537b48daa7574dd6",
+    "birth_commit_date": "2003-06-26T08:54:29+00:00",
+    "birth_commit_message": "Second patch from antlib update as described in http://issues.apache.org/bugzilla/show_bug.cgi?id=19897 This patch    * unifies the type and task definitions into one table    * types and tasks are represented by a AntTypeDefinition object    * taskadapter has been generalized to a typeadapter    * <typedef/> has a number of new attributes:        - adapter        - adaptto        - onerror    * <taskdef/> html page updated to refer to <typedef/> page",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/TypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 11,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/ComponentHelper.java",
+        "src/main/org/apache/tools/ant/Project.java",
+        "src/main/org/apache/tools/ant/ProjectHelper.java",
+        "src/main/org/apache/tools/ant/RuntimeConfigurable.java",
+        "src/main/org/apache/tools/ant/TaskAdapter.java",
+        "src/main/org/apache/tools/ant/UnknownElement.java",
+        "src/main/org/apache/tools/ant/helper/ProjectHelperImpl.java",
+        "src/main/org/apache/tools/ant/taskdefs/Ant.java",
+        "src/main/org/apache/tools/ant/taskdefs/Definer.java",
+        "src/main/org/apache/tools/ant/taskdefs/Taskdef.java",
+        "src/testcases/org/apache/tools/ant/ProjectTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 31,
+      "signal_3b_oldest_sibling_days": 1259,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The patch hoists the existing task- and datatype-registration logic into a new AntTypeDefinition/AntTypeTable + TypeAdapter infrastructure, changing Taskdef/Typedef, ComponentHelper, ProjectHelper, etc., to use that shared pattern. Existing classes and call sites have been reworked to fit the new Adapter/registry design rather than added from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 11 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/ComponentHelper.java', 'src/main/org/apache/tools/ant/Project.java', 'src/main/org/apache/tools/ant/ProjectHelper.java', 'src/main/org/apache/tools/ant/RuntimeConfigurable.java', 'src/main/org/apache/tools/ant/TaskAdapter.java'] \u2026",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant' had 31 pre-existing .java file(s) before the birth commit, oldest sibling 1259d old",
+        "LLM \u2713 Refactoring confirmed: The patch hoists the existing task- and datatype-registration logic into a new AntTypeDefinition/AntTypeTable + TypeAdapter infrastructure, changing Taskdef/Typedef, ComponentHelper, ProjectHelper, et"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 4,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Adapter",
+    "pattern_file": "src/main/org/apache/tools/ant/TypeAdapter.java",
+    "class_name": "TypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The interface defines the contract for an adapter that wraps a \"proxy\" (adaptee) and exposes it to Ant (setProxy/getProxy, checkProxyClass), i.e. it provides the role and behavior expected of an Object Adapter. Although this file is just the interface (not a concrete adapter), its purpose (\"Used to wrap types\") and API match the GoF Adapter pattern (adapting/wrapping a target object to the framework).",
+    "birth_commit_sha": "bce31805e9b4b1360d50be8e001886d58e087e38",
+    "parent_sha": "2b39260c1686576075c283f4f0c59e92510e15fc",
+    "birth_commit_date": "2000-01-13T10:42:41+00:00",
+    "birth_commit_message": "initial checkin",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/TypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'src/main/org/apache/tools/ant' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 5,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Observer",
+    "pattern_file": "src/main/org/apache/tools/ant/SubBuildListener.java",
+    "class_name": "SubBuildListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The interface defines callback methods for receiving event notifications (subBuildStarted/subBuildFinished) and is used with Project#addBuildListener; it represents the Observer role in the typical Subject/Observer (listener) event model. BuildEvent is the payload and Project acts as the subject that registers and notifies these listeners.",
+    "birth_commit_sha": "a22c8c09c83a3a684cd003cf0661c7913291640f",
+    "parent_sha": "75be43a0db87407b5342e80fb809b42f618a4c4b",
+    "birth_commit_date": "2004-06-24T11:16:41+00:00",
+    "birth_commit_message": "Follow Conor's and Jose Alberto's advice - improved fix for PR 8689",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/SubBuildListener.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/AntClassLoader.java",
+        "src/main/org/apache/tools/ant/Project.java",
+        "src/main/org/apache/tools/ant/taskdefs/Ant.java",
+        "src/main/org/apache/tools/ant/taskdefs/Recorder.java",
+        "src/main/org/apache/tools/ant/taskdefs/RecorderEntry.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 39,
+      "signal_3b_oldest_sibling_days": 1624,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit introduces a new SubBuildListener interface and corresponding fireSubBuild\u2026 methods, but it reorganizes existing cleanup and listener-management logic (originally hard-coded in Ant.java\u2019s finally block) into callbacks on that listener. AntClassLoader and RecorderEntry already existed and are simply refactored to implement the new interface, and Ant.java is changed to invoke the new events instead of performing manual cleanup. This is a restructuring of existing behavior into an Observer style pattern, not a greenfield build from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/AntClassLoader.java', 'src/main/org/apache/tools/ant/Project.java', 'src/main/org/apache/tools/ant/taskdefs/Ant.java', 'src/main/org/apache/tools/ant/taskdefs/Recorder.java', 'src/main/org/apache/tools/ant/taskdefs/RecorderEntry.java']",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant' had 39 pre-existing .java file(s) before the birth commit, oldest sibling 1624d old",
+        "LLM \u2713 Refactoring confirmed: The commit introduces a new SubBuildListener interface and corresponding fireSubBuild\u2026 methods, but it reorganizes existing cleanup and listener-management logic (originally hard-coded in Ant.java\u2019s f"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 6,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Adapter",
+    "pattern_file": "src/main/org/apache/tools/ant/TaskAdapter.java",
+    "class_name": "TaskAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.92,
+    "detection_reasoning": "TaskAdapter wraps an arbitrary object (proxy) and adapts it to the Task API by delegating calls (execute, setProject/setLocation via reflection and DispatchUtils). This is a classic Object Adapter: it uses composition/delegation to present a Task-compatible interface for objects that don't extend Task.",
+    "birth_commit_sha": "b0bde5550598d2f86534bc0e599c0326caba90bd",
+    "parent_sha": "f1ac33a129d53a04e5198f71e2dba9585a7b829a",
+    "birth_commit_date": "2000-01-27T04:43:52+00:00",
+    "birth_commit_message": "Added TaskAdapter - allows use of external Beans, without requiring them to extend Task or have any ideea that Ant will use them.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/TaskAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/Project.java",
+        "src/main/org/apache/tools/ant/ProjectHelper.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 11,
+      "signal_3b_oldest_sibling_days": 13,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "An existing Project.createTask/configureTask workflow is modified to wrap non-Task objects in a new TaskAdapter. The Task class and task creation logic pre-existed, and call sites were updated to use the adapter rather than introducing a completely new feature from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/Project.java', 'src/main/org/apache/tools/ant/ProjectHelper.java']",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant' had 11 pre-existing .java file(s) before the birth commit, oldest sibling 13d old",
+        "LLM \u2713 Refactoring confirmed: An existing Project.createTask/configureTask workflow is modified to wrap non-Task objects in a new TaskAdapter. The Task class and task creation logic pre-existed, and call sites were updated to use "
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 7,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Adapter",
+    "pattern_file": "src/main/org/apache/tools/ant/TaskAdapter.java",
+    "class_name": "TaskAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.92,
+    "detection_reasoning": "TaskAdapter wraps an arbitrary object (proxy) and adapts it to the Task API by delegating calls (execute, setProject/setLocation via reflection and DispatchUtils). This is a classic Object Adapter: it uses composition/delegation to present a Task-compatible interface for objects that don't extend Task.",
+    "birth_commit_sha": "bce31805e9b4b1360d50be8e001886d58e087e38",
+    "parent_sha": "2b39260c1686576075c283f4f0c59e92510e15fc",
+    "birth_commit_date": "2000-01-13T10:42:41+00:00",
+    "birth_commit_message": "initial checkin",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/TaskAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'src/main/org/apache/tools/ant' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 8,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "FactoryMethod",
+    "pattern_file": "src/main/org/apache/tools/ant/types/ResourceFactory.java",
+    "class_name": "ResourceFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The interface defines a single creation method getResource(String) that returns a Product (Resource) and leaves the concrete instantiation to implementing classes. This corresponds to the Factory Method idiom (an interface/creator declaring a factory method, with subclasses/implementations deciding which concrete Resource to produce). It's a straightforward, minimal form of the pattern rather than a more elaborate Creator class.",
+    "birth_commit_sha": "93092c4c7219aaab2d5c5270a8bbdf109835a27d",
+    "parent_sha": "3612131a65819b636fc25f32f6bf9d58c02cdb1b",
+    "birth_commit_date": "2001-12-30T00:17:04+00:00",
+    "birth_commit_message": "A new mapper to allow checking <uptodate> from test cases to their XML formatter results.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/types/ResourceFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 24,
+      "signal_3b_oldest_sibling_days": 716,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a brand\u2010new `PackageNameMapper` class (and its test) without moving or refactoring any existing logic into a pattern structure\u2014no existing methods or call sites were modified.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/types' had 24 pre-existing .java file(s) before the birth commit, oldest sibling 716d old"
+      ],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "LLM \u2717 Greenfield according to LLM: The commit adds a brand\u2010new `PackageNameMapper` class (and its test) without moving or refactoring any existing logic into a pattern structure\u2014no existing methods or call sites were modified."
+      ]
+    }
+  },
+  {
+    "id": 9,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "FactoryMethod",
+    "pattern_file": "src/main/org/apache/tools/ant/types/ResourceFactory.java",
+    "class_name": "ResourceFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The interface defines a single creation method getResource(String) that returns a Product (Resource) and leaves the concrete instantiation to implementing classes. This corresponds to the Factory Method idiom (an interface/creator declaring a factory method, with subclasses/implementations deciding which concrete Resource to produce). It's a straightforward, minimal form of the pattern rather than a more elaborate Creator class.",
+    "birth_commit_sha": "a9353331a922b229316fa3da01f1b2df9fd75059",
+    "parent_sha": "54fec62b385b75dc3eb2919685dbddc032e316a1",
+    "birth_commit_date": "2003-01-22T12:36:41+00:00",
+    "birth_commit_message": "Initial fix for the <jar> doesn't update bug, will need some refinement (see extra mail to list).",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/types/ResourceFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 7,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/DirectoryScanner.java",
+        "src/main/org/apache/tools/ant/taskdefs/Jar.java",
+        "src/main/org/apache/tools/ant/taskdefs/Zip.java",
+        "src/main/org/apache/tools/ant/types/ZipScanner.java",
+        "src/main/org/apache/tools/ant/util/SourceFileScanner.java",
+        "src/main/org/apache/tools/zip/ZipOutputStream.java",
+        "src/testcases/org/apache/tools/ant/taskdefs/JarTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 28,
+      "signal_3b_oldest_sibling_days": 1105,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The diff augments existing scanners (DirectoryScanner, ZipScanner, SourceFileScanner) to implement a new ResourceScanner/ResourceFactory abstraction and moves the \u201cout-of-date\u201d selection logic into a new SourceSelector. Call sites in Zip and Jar were updated to use the new ResourceScanner and ResourceFactory APIs, so existing functionality was refactored into the new pattern rather than built entirely from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 7 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/DirectoryScanner.java', 'src/main/org/apache/tools/ant/taskdefs/Jar.java', 'src/main/org/apache/tools/ant/taskdefs/Zip.java', 'src/main/org/apache/tools/ant/types/ZipScanner.java', 'src/main/org/apache/tools/ant/util/SourceFileScanner.java'] \u2026",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/types' had 28 pre-existing .java file(s) before the birth commit, oldest sibling 1105d old",
+        "LLM \u2713 Refactoring confirmed: The diff augments existing scanners (DirectoryScanner, ZipScanner, SourceFileScanner) to implement a new ResourceScanner/ResourceFactory abstraction and moves the \u201cout-of-date\u201d selection logic into a "
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 10,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Observer",
+    "pattern_file": "src/main/org/apache/tools/ant/listener/CommonsLoggingListener.java",
+    "class_name": "CommonsLoggingListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "CommonsLoggingListener implements the BuildListener interface and receives callbacks (buildStarted, buildFinished, targetStarted, taskFinished, messageLogged, etc.) from the Ant build system. That is the Observer role: it registers with a subject (the build/project) elsewhere and is notified of events. While this class is a concrete observer (it does not act as the subject), it clearly participates in the GoF Observer pattern.",
+    "birth_commit_sha": "b868e985c2cb00bb8cf7b5153cfe113bec7c28f3",
+    "parent_sha": "e3b7ccdf35b480a2718e98ec49beaa0e5c59c942",
+    "birth_commit_date": "2002-04-23T18:33:52+00:00",
+    "birth_commit_message": "Commons Logging listener",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/listener/CommonsLoggingListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 3,
+      "signal_3b_oldest_sibling_days": 263,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit introduces a brand\u2010new CommonsLoggingListener class and related Ant build.xml entries without moving or restructuring any existing listener logic. There is no prior listener code refactored into this new listener\u2014everything is added from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/listener' had 3 pre-existing .java file(s) before the birth commit, oldest sibling 263d old"
+      ],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "LLM \u2717 Greenfield according to LLM: The commit introduces a brand\u2010new CommonsLoggingListener class and related Ant build.xml entries without moving or restructuring any existing listener logic. There is no prior listener code refactored"
+      ]
+    }
+  },
+  {
+    "id": 11,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Observer",
+    "pattern_file": "src/main/org/apache/tools/ant/listener/CommonsLoggingListener.java",
+    "class_name": "CommonsLoggingListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "CommonsLoggingListener implements the BuildListener interface and receives callbacks (buildStarted, buildFinished, targetStarted, taskFinished, messageLogged, etc.) from the Ant build system. That is the Observer role: it registers with a subject (the build/project) elsewhere and is notified of events. While this class is a concrete observer (it does not act as the subject), it clearly participates in the GoF Observer pattern.",
+    "birth_commit_sha": "1a93e607f234e845fd6d744cb1a1962ba184671d",
+    "parent_sha": "6ff47bd2ae578f044c720c1b2394c5045dc3cf2f",
+    "birth_commit_date": "2001-08-03T14:21:00+00:00",
+    "birth_commit_message": "Add a Log4j listener",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/listener/CommonsLoggingListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/Main.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The Log4jListener is a brand-new BuildListener implementation added from scratch, and no existing Ant listener logic or classes were refactored into it\u2014call sites simply conditionally include the new class.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/Main.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'src/main/org/apache/tools/ant/listener' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The Log4jListener is a brand-new BuildListener implementation added from scratch, and no existing Ant listener logic or classes were refactored into it\u2014call sites simply conditionally include the new "
+      ]
+    }
+  },
+  {
+    "id": 12,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Observer",
+    "pattern_file": "src/main/org/apache/tools/ant/listener/Log4jListener.java",
+    "class_name": "Log4jListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "Log4jListener implements the BuildListener interface and provides callback methods (buildStarted, buildFinished, targetStarted, taskStarted, messageLogged, etc.) that receive BuildEvent notifications from the build system (the subject, e.g. Project). This is the concrete Observer role in the Observer pattern (the subject/registration logic lives elsewhere), so the class clearly participates as an observer.",
+    "birth_commit_sha": "1a93e607f234e845fd6d744cb1a1962ba184671d",
+    "parent_sha": "6ff47bd2ae578f044c720c1b2394c5045dc3cf2f",
+    "birth_commit_date": "2001-08-03T14:21:00+00:00",
+    "birth_commit_message": "Add a Log4j listener",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/listener/Log4jListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/Main.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "This change adds a brand-new Log4jListener class plus its wiring in build.xml and Main.java without moving or restructuring any existing listener logic. No existing functionality was refactored into the new pattern \u2013 it\u2019s purely an added implementation.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/Main.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'src/main/org/apache/tools/ant/listener' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: This change adds a brand-new Log4jListener class plus its wiring in build.xml and Main.java without moving or restructuring any existing listener logic. No existing functionality was refactored into t"
+      ]
+    }
+  },
+  {
+    "id": 13,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Composite",
+    "pattern_file": "src/main/org/apache/tools/ant/util/CompositeMapper.java",
+    "class_name": "CompositeMapper",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "CompositeMapper aggregates multiple FileNameMapper instances (via its ContainerMapper superclass) and implements mapFileName by delegating to each child mapper and combining their results. That matches the Composite pattern: it composes mapper components and presents the same mapping behavior to clients. (This assessment assumes ContainerMapper/FileNameMapper provide the usual component interface, which the class names and usage imply.)",
+    "birth_commit_sha": "2ead66e52c56fbc1a59789187ddba634ebe4ae2d",
+    "parent_sha": "3375d671acfa1fceb3325dc54fda5484b9e19208",
+    "birth_commit_date": "2004-04-22T20:27:21+00:00",
+    "birth_commit_message": "Make ContainerMapper abstract; move chained/composite behaviors to subclasses ChainedMapper and CompositeMapper, respectively.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/util/CompositeMapper.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 3,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/types/Mapper.java",
+        "src/main/org/apache/tools/ant/util/ContainerMapper.java",
+        "src/testcases/org/apache/tools/ant/types/MapperTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 37,
+      "signal_3b_oldest_sibling_days": 1561,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The change lifts the old `ContainerMapper`\u2019s single\u2010class, boolean\u2010driven branching into two specialized mappers (`CompositeMapper` and `ChainedMapper`) and updates `Mapper.java` and call sites (including tests and docs) to use them. Existing container/chaining logic wasn\u2019t newly invented but refactored into a cleaner composite/chain structure.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 3 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/types/Mapper.java', 'src/main/org/apache/tools/ant/util/ContainerMapper.java', 'src/testcases/org/apache/tools/ant/types/MapperTest.java']",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/util' had 37 pre-existing .java file(s) before the birth commit, oldest sibling 1561d old",
+        "LLM \u2713 Refactoring confirmed: The change lifts the old `ContainerMapper`\u2019s single\u2010class, boolean\u2010driven branching into two specialized mappers (`CompositeMapper` and `ChainedMapper`) and updates `Mapper.java` and call sites (inclu"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 14,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Observer",
+    "pattern_file": "src/main/org/apache/tools/ant/util/TimeoutObserver.java",
+    "class_name": "TimeoutObserver",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "This interface defines the observer role of the Observer pattern \u2014 classes implement TimeoutObserver to be notified by a subject (Watchdog). The single callback timeoutOccured(Watchdog) is the notification method; the javadoc explicitly references Watchdog as the notifier, matching the Observer intent.",
+    "birth_commit_sha": "0d7515e6c3a1a1e3b78946c2b60f2d8963e44700",
+    "parent_sha": "6258074cd0faeb8fdcb91aeb55e7229f2ecce650",
+    "birth_commit_date": "2002-04-05T10:13:02+00:00",
+    "birth_commit_message": "refactor ExecuteWatchdog - extract a more generic timer.  Preparation to allow timeout attribute in <java fork=\"false\">",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/util/TimeoutObserver.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/taskdefs/ExecuteWatchdog.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 16,
+      "signal_3b_oldest_sibling_days": 812,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The existing ExecuteWatchdog class is reworked to delegate its timeout logic into a newly extracted Watchdog/TimeoutObserver pair. No new feature behavior is introduced\u2014existing logic is simply moved and restructured\u2014so this is a refactoring.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/taskdefs/ExecuteWatchdog.java']",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/util' had 16 pre-existing .java file(s) before the birth commit, oldest sibling 812d old",
+        "LLM \u2713 Refactoring confirmed: The existing ExecuteWatchdog class is reworked to delegate its timeout logic into a newly extracted Watchdog/TimeoutObserver pair. No new feature behavior is introduced\u2014existing logic is simply moved "
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 15,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Observer",
+    "pattern_file": "src/main/org/apache/tools/ant/util/TimeoutObserver.java",
+    "class_name": "TimeoutObserver",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "This interface defines the observer role of the Observer pattern \u2014 classes implement TimeoutObserver to be notified by a subject (Watchdog). The single callback timeoutOccured(Watchdog) is the notification method; the javadoc explicitly references Watchdog as the notifier, matching the Observer intent.",
+    "birth_commit_sha": "bce31805e9b4b1360d50be8e001886d58e087e38",
+    "parent_sha": "2b39260c1686576075c283f4f0c59e92510e15fc",
+    "birth_commit_date": "2000-01-13T10:42:41+00:00",
+    "birth_commit_message": "initial checkin",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/util/TimeoutObserver.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'src/main/org/apache/tools/ant/util' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 16,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Decorator",
+    "pattern_file": "src/main/org/apache/tools/ant/types/resources/LazyResourceCollectionWrapper.java",
+    "class_name": "LazyResourceCollectionWrapper",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The class extends an AbstractResourceCollectionWrapper and obtains an underlying ResourceCollection via getResourceCollection(), delegating iteration to it while adding behavior (lazy loading, filtering, caching) through wrapped Iterators. It thereby wraps and augments the component's behavior without changing it\u2014characteristic of the Decorator (wrapper) pattern.",
+    "birth_commit_sha": "cf0368cc6dc75cf7b91519a34e542f0ddc74787e",
+    "parent_sha": "c531cbd6e981d62f92be4c452b6e445c63a7d95b",
+    "birth_commit_date": "2010-06-28T18:23:31+00:00",
+    "birth_commit_message": "Fix a perf issue with <restrict>: it now loads only necessary resources",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/types/resources/LazyResourceCollectionWrapper.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/types/resources/BaseResourceCollectionWrapper.java",
+        "src/main/org/apache/tools/ant/types/resources/Restrict.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 41,
+      "signal_3b_oldest_sibling_days": 3819,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The diff refactors the existing BaseResourceCollectionWrapper by extracting common behavior into a new AbstractResourceCollectionWrapper, adds a LazyResourceCollectionWrapper subclass, and updates callers (e.g. Restrict) to use the new wrapper. Existing logic wasn\u2019t all new\u2014methods were moved and restructured\u2014so it\u2019s a refactoring, not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/types/resources/BaseResourceCollectionWrapper.java', 'src/main/org/apache/tools/ant/types/resources/Restrict.java']",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/types/resources' had 41 pre-existing .java file(s) before the birth commit, oldest sibling 3819d old",
+        "LLM \u2713 Refactoring confirmed: The diff refactors the existing BaseResourceCollectionWrapper by extracting common behavior into a new AbstractResourceCollectionWrapper, adds a LazyResourceCollectionWrapper subclass, and updates cal"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 17,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Decorator",
+    "pattern_file": "src/main/org/apache/tools/ant/types/resources/BaseResourceCollectionWrapper.java",
+    "class_name": "BaseResourceCollectionWrapper",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "This class is a wrapper/decorator for a ResourceCollection: it extends the abstract wrapper base, exposes an abstract getCollection() for the underlying collection, and delegates key operations (createIterator, getSize) to that underlying collection (with added caching). That fits the Decorator intent of wrapping and forwarding behavior while optionally adding behavior (caching).",
+    "birth_commit_sha": "fbb9886634198d8377104bef9ec697fadeb134df",
+    "parent_sha": "ec980be7345681968c93f0609e9a3fecb39b9753",
+    "birth_commit_date": "2005-05-23T19:51:58+00:00",
+    "birth_commit_message": "ResourceCollections",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/types/resources/BaseResourceCollectionWrapper.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 15,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/taskdefs/Concat.java",
+        "src/main/org/apache/tools/ant/taskdefs/Length.java",
+        "src/main/org/apache/tools/ant/taskdefs/PathConvert.java",
+        "src/main/org/apache/tools/ant/types/DirSet.java",
+        "src/main/org/apache/tools/ant/types/FileList.java",
+        "src/main/org/apache/tools/ant/types/FileSet.java",
+        "src/main/org/apache/tools/ant/types/Path.java",
+        "src/main/org/apache/tools/ant/types/PropertySet.java",
+        "src/main/org/apache/tools/ant/types/Resource.java",
+        "src/main/org/apache/tools/ant/types/ZipFileSet.java",
+        "src/main/org/apache/tools/ant/types/ZipScanner.java",
+        "src/main/org/apache/tools/ant/util/FileUtils.java",
+        "src/main/org/apache/tools/zip/ZipFile.java",
+        "src/testcases/org/apache/tools/ant/taskdefs/ConcatTest.java",
+        "src/testcases/org/apache/tools/ant/types/optional/depend/ClassFileSetTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "Existing types (FileSet, FileList, DirSet, Path, PropertySet, ZipFileSet, etc.) were modified to implement the new ResourceCollection interface, and call\u2010sites in Concat, Length, PathConvert, etc., were changed to consume ResourceCollections rather than the old collections of Files. This is restructuring existing functionality into the new design pattern, not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 15 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/taskdefs/Concat.java', 'src/main/org/apache/tools/ant/taskdefs/Length.java', 'src/main/org/apache/tools/ant/taskdefs/PathConvert.java', 'src/main/org/apache/tools/ant/types/DirSet.java', 'src/main/org/apache/tools/ant/types/FileList.java'] \u2026",
+        "LLM \u2713 Refactoring confirmed: Existing types (FileSet, FileList, DirSet, Path, PropertySet, ZipFileSet, etc.) were modified to implement the new ResourceCollection interface, and call\u2010sites in Concat, Length, PathConvert, etc., we"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'src/main/org/apache/tools/ant/types/resources' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    }
+  },
+  {
+    "id": 18,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Decorator",
+    "pattern_file": "src/main/org/apache/tools/ant/types/resources/BaseResourceCollectionWrapper.java",
+    "class_name": "BaseResourceCollectionWrapper",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "This class is a wrapper/decorator for a ResourceCollection: it extends the abstract wrapper base, exposes an abstract getCollection() for the underlying collection, and delegates key operations (createIterator, getSize) to that underlying collection (with added caching). That fits the Decorator intent of wrapping and forwarding behavior while optionally adding behavior (caching).",
+    "birth_commit_sha": "68db901f8923a6ac7ef0706616701561e6de0db9",
+    "parent_sha": "d788f76c8d2b022a4037ff1e1845739d3ceb74c7",
+    "birth_commit_date": "2005-08-05T17:27:14+00:00",
+    "birth_commit_message": "Add the <first> resource collection, plus its parent, BaseResourceCollectionWrapper.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/types/resources/BaseResourceCollectionWrapper.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "src/testcases/org/apache/tools/ant/types/ResourceCollectionsTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 17,
+      "signal_3b_oldest_sibling_days": 1314,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "Both the wrapper base class and the First collection are brand-new files (no prior Product/First logic was moved into them), and the build/tests/docs merely add call sites for the new <first> element rather than refactor existing consumers.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['src/testcases/org/apache/tools/ant/types/ResourceCollectionsTest.java']",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/types/resources' had 17 pre-existing .java file(s) before the birth commit, oldest sibling 1314d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: Both the wrapper base class and the First collection are brand-new files (no prior Product/First logic was moved into them), and the build/tests/docs merely add call sites for the new <first> element "
+      ]
+    }
+  },
+  {
+    "id": 19,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Decorator",
+    "pattern_file": "src/main/org/apache/tools/ant/types/resources/AbstractResourceCollectionWrapper.java",
+    "class_name": "AbstractResourceCollectionWrapper",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.87,
+    "detection_reasoning": "The class implements ResourceCollection and holds a single ResourceCollection field (rc), enforces exactly one nested collection, and forwards behavior to that nested collection (via getResourceCollection(), delegation in methods like isFilesystemOnly(), toString(), iterator()/size() that either delegate to the reference or wrap/forward to created iterators). It is an abstract wrapper that lets subclasses customize behavior (abstract createIterator/getSize) \u2014 the classic Decorator/Wrapping structure.",
+    "birth_commit_sha": "fbb9886634198d8377104bef9ec697fadeb134df",
+    "parent_sha": "ec980be7345681968c93f0609e9a3fecb39b9753",
+    "birth_commit_date": "2005-05-23T19:51:58+00:00",
+    "birth_commit_message": "ResourceCollections",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/types/resources/AbstractResourceCollectionWrapper.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 15,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/taskdefs/Concat.java",
+        "src/main/org/apache/tools/ant/taskdefs/Length.java",
+        "src/main/org/apache/tools/ant/taskdefs/PathConvert.java",
+        "src/main/org/apache/tools/ant/types/DirSet.java",
+        "src/main/org/apache/tools/ant/types/FileList.java",
+        "src/main/org/apache/tools/ant/types/FileSet.java",
+        "src/main/org/apache/tools/ant/types/Path.java",
+        "src/main/org/apache/tools/ant/types/PropertySet.java",
+        "src/main/org/apache/tools/ant/types/Resource.java",
+        "src/main/org/apache/tools/ant/types/ZipFileSet.java",
+        "src/main/org/apache/tools/ant/types/ZipScanner.java",
+        "src/main/org/apache/tools/ant/util/FileUtils.java",
+        "src/main/org/apache/tools/zip/ZipFile.java",
+        "src/testcases/org/apache/tools/ant/taskdefs/ConcatTest.java",
+        "src/testcases/org/apache/tools/ant/types/optional/depend/ClassFileSetTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "Existing file\u2010 and stream\u2010based tasks and types (e.g. FileSet, FileList, Concat, Length, PathConvert) were reworked to use a new Resource/ResourceCollection composite structure. The Resource class already existed and has been extended, and call sites (Concat, Length, PathConvert, FileUtils, etc.) were updated to consume ResourceCollections instead of their previous file\u2010centric logic. This is a refactoring of existing functionality into the Composite pattern, not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 15 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/taskdefs/Concat.java', 'src/main/org/apache/tools/ant/taskdefs/Length.java', 'src/main/org/apache/tools/ant/taskdefs/PathConvert.java', 'src/main/org/apache/tools/ant/types/DirSet.java', 'src/main/org/apache/tools/ant/types/FileList.java'] \u2026",
+        "LLM \u2713 Refactoring confirmed: Existing file\u2010 and stream\u2010based tasks and types (e.g. FileSet, FileList, Concat, Length, PathConvert) were reworked to use a new Resource/ResourceCollection composite structure. The Resource class alr"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'src/main/org/apache/tools/ant/types/resources' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    }
+  },
+  {
+    "id": 20,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Decorator",
+    "pattern_file": "src/main/org/apache/tools/ant/types/resources/AbstractResourceCollectionWrapper.java",
+    "class_name": "AbstractResourceCollectionWrapper",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.87,
+    "detection_reasoning": "The class implements ResourceCollection and holds a single ResourceCollection field (rc), enforces exactly one nested collection, and forwards behavior to that nested collection (via getResourceCollection(), delegation in methods like isFilesystemOnly(), toString(), iterator()/size() that either delegate to the reference or wrap/forward to created iterators). It is an abstract wrapper that lets subclasses customize behavior (abstract createIterator/getSize) \u2014 the classic Decorator/Wrapping structure.",
+    "birth_commit_sha": "cf0368cc6dc75cf7b91519a34e542f0ddc74787e",
+    "parent_sha": "c531cbd6e981d62f92be4c452b6e445c63a7d95b",
+    "birth_commit_date": "2010-06-28T18:23:31+00:00",
+    "birth_commit_message": "Fix a perf issue with <restrict>: it now loads only necessary resources",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/types/resources/AbstractResourceCollectionWrapper.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/types/resources/BaseResourceCollectionWrapper.java",
+        "src/main/org/apache/tools/ant/types/resources/Restrict.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 41,
+      "signal_3b_oldest_sibling_days": 3819,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "Common logic was pulled out of the existing BaseResourceCollectionWrapper into a new AbstractResourceCollectionWrapper, BaseResourceCollectionWrapper was modified to extend that abstract class (with much of its original code moved), and call sites (e.g. Restrict) were updated to use the new LazyResourceCollectionWrapper. This is a restructuring of existing functionality, not a green-field addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/types/resources/BaseResourceCollectionWrapper.java', 'src/main/org/apache/tools/ant/types/resources/Restrict.java']",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/types/resources' had 41 pre-existing .java file(s) before the birth commit, oldest sibling 3819d old",
+        "LLM \u2713 Refactoring confirmed: Common logic was pulled out of the existing BaseResourceCollectionWrapper into a new AbstractResourceCollectionWrapper, BaseResourceCollectionWrapper was modified to extend that abstract class (with m"
+      ],
+      "rejection_reasons": []
+    }
+  }
+]

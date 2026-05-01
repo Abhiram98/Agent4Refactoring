@@ -1,0 +1,79 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Decorator",
+    "pattern_file": "src/main/org/apache/tools/ant/types/resources/ResourceDecorator.java",
+    "class_name": "ResourceDecorator",
+    "detection_source": "name_heuristic",
+    "detection_confidence": 0.6,
+    "detection_reasoning": null,
+    "birth_commit_sha": "a96627738decba56e1c94e54fa23ecbd7bfdb9a2",
+    "parent_sha": "4af209f564ee4c3b8408f089a8f23723a99a6704",
+    "birth_commit_date": "2005-10-12T04:22:37+00:00",
+    "birth_commit_message": "Now that resources become available in more tasks, throw in a couple of new resources, including tarfileset",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/types/resources/ResourceDecorator.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/taskdefs/Tar.java",
+        "src/main/org/apache/tools/ant/taskdefs/Untar.java",
+        "src/main/org/apache/tools/ant/types/ZipFileSet.java",
+        "src/main/org/apache/tools/ant/types/ZipScanner.java",
+        "src/main/org/apache/tools/ant/types/resources/ZipResource.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 20,
+      "signal_3b_oldest_sibling_days": 1382,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit extracts and centralizes existing archive/zip-related logic into new abstractions (ArchiveFileSet, ArchiveScanner, ArchiveResource, CompressedResource) and then adapts existing classes to use them. ZipFileSet, ZipScanner, and ZipResource were modified to extend/use the new base classes (many fields and methods were removed there and moved into the new abstractions). Existing behavior was restructured (code moved and reused) rather than created entirely from scratch; Tar-related types and compression wrapper resources are added, but they are integrated by refactoring shared logic into the new pattern.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/taskdefs/Tar.java', 'src/main/org/apache/tools/ant/taskdefs/Untar.java', 'src/main/org/apache/tools/ant/types/ZipFileSet.java', 'src/main/org/apache/tools/ant/types/ZipScanner.java', 'src/main/org/apache/tools/ant/types/resources/ZipResource.java']",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/types/resources' had 20 pre-existing .java file(s) before the birth commit, oldest sibling 1382d old",
+        "LLM \u2713 Refactoring confirmed: The commit extracts and centralizes existing archive/zip-related logic into new abstractions (ArchiveFileSet, ArchiveScanner, ArchiveResource, CompressedResource) and then adapts existing classes to u"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/ant",
+    "pattern": "Decorator",
+    "pattern_file": "src/main/org/apache/tools/ant/types/resources/ResourceDecorator.java",
+    "class_name": "ResourceDecorator",
+    "detection_source": "name_heuristic",
+    "detection_confidence": 0.6,
+    "detection_reasoning": null,
+    "birth_commit_sha": "99deca2a7689ef13a6dfa6ad2c30db68e6f3d3e9",
+    "parent_sha": "b10fa1121fe1819c79ab5c2dd8bbdd990db7fe17",
+    "birth_commit_date": "2008-11-18T10:10:57+00:00",
+    "birth_commit_message": "extract a common base class for resource decorators",
+    "is_initial_repo_commit": false,
+    "original_file_path": "src/main/org/apache/tools/ant/types/resources/ResourceDecorator.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "src/main/org/apache/tools/ant/types/resources/ContentTransformingResource.java",
+        "src/main/org/apache/tools/ant/types/resources/MappedResource.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 37,
+      "signal_3b_oldest_sibling_days": 3231,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit introduces a new ResourceDecorator class and moves/shared existing delegation and reference-handling logic out of MappedResource and ContentTransformingResource into that new base class. Existing fields and many methods (getResource, various getters, compareTo/hashCode, setters throwing exceptions, ref handling, etc.) were removed from the original classes and centralized in ResourceDecorator; the original classes are changed to extend it. This is an extraction/reshaping of existing functionality into a decorator abstraction (refactoring), not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['src/main/org/apache/tools/ant/types/resources/ContentTransformingResource.java', 'src/main/org/apache/tools/ant/types/resources/MappedResource.java']",
+        "3B \u2713 Package 'src/main/org/apache/tools/ant/types/resources' had 37 pre-existing .java file(s) before the birth commit, oldest sibling 3231d old",
+        "LLM \u2713 Refactoring confirmed: The commit introduces a new ResourceDecorator class and moves/shared existing delegation and reference-handling logic out of MappedResource and ContentTransformingResource into that new base class. Ex"
+      ],
+      "rejection_reasons": []
+    }
+  }
+]

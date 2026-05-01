@@ -1,0 +1,69 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/kafka",
+    "pattern": "Observer",
+    "pattern_file": "clients/src/main/java/org/apache/kafka/common/ClusterResourceListener.java",
+    "class_name": "ClusterResourceListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "This interface defines a callback listener (onUpdate) for receiving cluster metadata changes, which is the observer role in the Observer pattern. The actual subject that maintains and notifies listeners is not in this file, but the listener interface and semantics clearly match the Observer/Listener design.",
+    "birth_commit_sha": "ecc1fb10fad39c2da82731a36552cb5dd9ac2858",
+    "parent_sha": "d7bffebca05aa91a69da03fe29add4f29b964fd9",
+    "birth_commit_date": "2016-09-17T03:10:13+00:00",
+    "birth_commit_message": "KAFKA-4093; Cluster Id (KIP-78)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/src/main/java/org/apache/kafka/common/ClusterResourceListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 31,
+      "signal_3a_modified_files": [
+        "clients/src/main/java/org/apache/kafka/clients/Metadata.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerInterceptor.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/KafkaConsumer.java",
+        "clients/src/main/java/org/apache/kafka/clients/producer/KafkaProducer.java",
+        "clients/src/main/java/org/apache/kafka/clients/producer/ProducerInterceptor.java",
+        "clients/src/main/java/org/apache/kafka/common/Cluster.java",
+        "clients/src/main/java/org/apache/kafka/common/metrics/MetricsReporter.java",
+        "clients/src/main/java/org/apache/kafka/common/protocol/Protocol.java",
+        "clients/src/main/java/org/apache/kafka/common/requests/MetadataRequest.java",
+        "clients/src/main/java/org/apache/kafka/common/requests/MetadataResponse.java",
+        "clients/src/main/java/org/apache/kafka/common/serialization/Deserializer.java",
+        "clients/src/main/java/org/apache/kafka/common/serialization/Serializer.java",
+        "clients/src/test/java/org/apache/kafka/clients/MetadataTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/consumer/KafkaConsumerTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/consumer/internals/FetcherTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/producer/KafkaProducerTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/producer/MockProducerTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/producer/internals/DefaultPartitionerTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/producer/internals/RecordAccumulatorTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/producer/internals/SenderTest.java",
+        "clients/src/test/java/org/apache/kafka/common/requests/RequestResponseTest.java",
+        "clients/src/test/java/org/apache/kafka/test/MockConsumerInterceptor.java",
+        "clients/src/test/java/org/apache/kafka/test/MockMetricsReporter.java",
+        "clients/src/test/java/org/apache/kafka/test/MockProducerInterceptor.java",
+        "clients/src/test/java/org/apache/kafka/test/MockSerializer.java",
+        "clients/src/test/java/org/apache/kafka/test/TestUtils.java",
+        "streams/src/test/java/org/apache/kafka/streams/kstream/internals/WindowedStreamPartitionerTest.java",
+        "streams/src/test/java/org/apache/kafka/streams/processor/DefaultPartitionGrouperTest.java",
+        "streams/src/test/java/org/apache/kafka/streams/processor/internals/RecordCollectorTest.java",
+        "streams/src/test/java/org/apache/kafka/streams/processor/internals/StreamPartitionAssignorTest.java",
+        "streams/src/test/java/org/apache/kafka/streams/processor/internals/StreamThreadTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 8,
+      "signal_3b_oldest_sibling_days": 967,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit introduces new types (ClusterResource, ClusterResourceListener, ClusterResourceListeners) and server/client logic to generate, propagate and notify cluster-id metadata (new metadata v2 handling, ZkUtils cluster id management, new tests, and wiring into producers/consumers/metrics/serializers/deserializers). While some existing methods were modified to call the new listeners, this is an addition of new functionality and a new listener/observer mechanism rather than a restructuring of preexisting logic into an existing pattern.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 31 pre-existing Java file(s) modified in birth commit (call-site update): ['clients/src/main/java/org/apache/kafka/clients/Metadata.java', 'clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerInterceptor.java', 'clients/src/main/java/org/apache/kafka/clients/consumer/KafkaConsumer.java', 'clients/src/main/java/org/apache/kafka/clients/producer/KafkaProducer.java', 'clients/src/main/java/org/apache/kafka/clients/producer/ProducerInterceptor.java'] \u2026",
+        "3B \u2713 Package 'clients/src/main/java/org/apache/kafka/common' had 8 pre-existing .java file(s) before the birth commit, oldest sibling 967d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The commit introduces new types (ClusterResource, ClusterResourceListener, ClusterResourceListeners) and server/client logic to generate, propagate and notify cluster-id metadata (new metadata v2 hand"
+      ]
+    }
+  }
+]

@@ -1,0 +1,211 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/camunda",
+    "pattern": "Strategy",
+    "pattern_file": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/DefaultCommandExceptionHandlingStrategy.java",
+    "class_name": "DefaultCommandExceptionHandlingStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class implements a CommandExceptionHandlingStrategy interface and encapsulates the algorithm for handling command exceptions (retry, ignore, fail). That follows the Strategy pattern: an interface defines the behavior and this class provides a concrete, injectable implementation that can be swapped for other implementations. While only this implementation is shown, the interface + concrete class structure and interchangeable behavior are present.",
+    "birth_commit_sha": "42d1f647c8dcddad7255416bad1a19afcd422197",
+    "parent_sha": "3a8b33436bbd2a6c9273d107dd42a930bfdd1878",
+    "birth_commit_date": "2024-03-15T10:44:09+00:00",
+    "birth_commit_message": "feat: adding spring-client classes",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/DefaultCommandExceptionHandlingStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/camunda",
+    "pattern": "Strategy",
+    "pattern_file": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/CommandExceptionHandlingStrategy.java",
+    "class_name": "CommandExceptionHandlingStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The interface defines a single interchangeable behavior (handleCommandError) for handling command exceptions. Its name and shape (strategy interface) explicitly allow multiple concrete implementations to encapsulate different error-handling algorithms and be plugged into a context. While the file alone doesn't show the concrete strategies or the context that uses it, the interface is the canonical element of the Strategy pattern.",
+    "birth_commit_sha": "91bb5ba4485538b6aceea616cec674e5e002223d",
+    "parent_sha": "4be06961690843d96482a9830302a12b0ffb86db",
+    "birth_commit_date": "2016-10-11T09:12:24+00:00",
+    "birth_commit_message": "chore(evt): move request interfaces to util module",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/CommandExceptionHandlingStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 3,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/camunda",
+    "pattern": "Strategy",
+    "pattern_file": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/JobExceptionHandlingStrategy.java",
+    "class_name": "JobExceptionHandlingStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The interface defines a family of interchangeable exception-handling behaviors (handleException) that callers can swap at runtime; this encapsulation of algorithmic behavior behind a common interface is the Strategy pattern. The nested context record and CommandWrapperCreator support different implementations but do not change that intent.",
+    "birth_commit_sha": "e66cbc36934786bbf7d3125c1ed357c55b22c3f4",
+    "parent_sha": "dcdeff401622e843811b72a89880cff3535f2aae",
+    "birth_commit_date": "2024-03-15T15:44:06+00:00",
+    "birth_commit_message": "feat: moving 'parameter' folder",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/JobExceptionHandlingStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 4,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/camunda",
+    "pattern": "Command",
+    "pattern_file": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/CommandWrapper.java",
+    "class_name": "CommandWrapper",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.75,
+    "detection_reasoning": "CommandWrapper encapsulates all data and behavior required to perform an action (the FinalCommandStep to send, job context, retry/backoff state, exception handling and scheduling) and exposes executeAsync methods to invoke that action. Although it doesn\u2019t implement a formal Command interface or provide undo, it matches the core intent of the GoF Command pattern \u2014 packaging a request as an object that can be invoked, scheduled, retried and passed around.",
+    "birth_commit_sha": "42d1f647c8dcddad7255416bad1a19afcd422197",
+    "parent_sha": "3a8b33436bbd2a6c9273d107dd42a930bfdd1878",
+    "birth_commit_date": "2024-03-15T10:44:09+00:00",
+    "birth_commit_message": "feat: adding spring-client classes",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/CommandWrapper.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 5,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/camunda",
+    "pattern": "Strategy",
+    "pattern_file": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/DefaultJobExceptionHandlingStrategy.java",
+    "class_name": "DefaultJobExceptionHandlingStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The class implements a JobExceptionHandlingStrategy interface and provides a concrete algorithm for handling job exceptions (handleException). That fits the Strategy pattern: different implementations of JobExceptionHandlingStrategy can be swapped to change exception-handling behavior. This class is a ConcreteStrategy.",
+    "birth_commit_sha": "95cddc9a3b5b3d18856f16388423b61dc486b9a1",
+    "parent_sha": "4e3968580669c818f16c34186839f41c5c40bc8d",
+    "birth_commit_date": "2025-04-25T05:23:23+00:00",
+    "birth_commit_message": "feat: dedicated job exception handling strategy",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/DefaultJobExceptionHandlingStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/configuration/CamundaClientAllAutoConfiguration.java",
+        "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/JobHandlerInvokingSpringBeans.java",
+        "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/JobWorkerManager.java",
+        "clients/spring-boot-starter-camunda-sdk/src/test/java/io/camunda/spring/client/jobhandling/JobHandlerInvokingSpringBeansTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 6,
+      "signal_3b_oldest_sibling_days": 3117,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit extracts and moves existing logic into new abstractions rather than introducing entirely new functionality. Exception-handling logic for JobError/BpmnError (createFailJobCommand, createThrowErrorCommand) and the variables application helper were removed from JobHandlerInvokingSpringBeans and reimplemented in DefaultJobExceptionHandlingStrategy and JobHandlingUtil. Parameter-resolver and result-processor creation were also moved into JobHandlingUtil, and JobHandlerInvokingSpringBeans now delegates to a JobExceptionHandlingStrategy and uses injected resolvers/processors. Wiring in the configuration and tests was updated accordingly. This is a restructuring/extraction into a pattern (strategy + utility), not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/configuration/CamundaClientAllAutoConfiguration.java', 'clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/JobHandlerInvokingSpringBeans.java', 'clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling/JobWorkerManager.java', 'clients/spring-boot-starter-camunda-sdk/src/test/java/io/camunda/spring/client/jobhandling/JobHandlerInvokingSpringBeansTest.java']",
+        "3B \u2713 Package 'clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/jobhandling' had 6 pre-existing .java file(s) before the birth commit, oldest sibling 3117d old",
+        "LLM \u2713 Refactoring confirmed: The commit extracts and moves existing logic into new abstractions rather than introducing entirely new functionality. Exception-handling logic for JobError/BpmnError (createFailJobCommand, createThro"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 6,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/camunda",
+    "pattern": "Observer",
+    "pattern_file": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/event/CamundaClientEventListener.java",
+    "class_name": "CamundaClientEventListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class maintains a collection of CamundaClientLifecycleAware objects and, when Spring events arrive (@EventListener methods), it iterates the set and invokes onStart/onStop on each. That is the Observer (listener) pattern: registered observers are notified of state changes/events. It effectively adapts Spring's event publish/subscribe to a set of observers.",
+    "birth_commit_sha": "42d1f647c8dcddad7255416bad1a19afcd422197",
+    "parent_sha": "3a8b33436bbd2a6c9273d107dd42a930bfdd1878",
+    "birth_commit_date": "2024-03-15T10:44:09+00:00",
+    "birth_commit_message": "feat: adding spring-client classes",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/event/CamundaClientEventListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'clients/spring-boot-starter-camunda-sdk/src/main/java/io/camunda/spring/client/event' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  }
+]

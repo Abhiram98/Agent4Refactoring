@@ -1,0 +1,194 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/AxonFramework",
+    "pattern": "Prototype",
+    "pattern_file": "stash/todo/src/main/java/org/axonframework/spring/eventsourcing/SpringPrototypeAggregateFactory.java",
+    "class_name": "SpringPrototypeAggregateFactory",
+    "detection_source": "dpdf_seed",
+    "detection_confidence": 1.0,
+    "detection_reasoning": null,
+    "birth_commit_sha": "f91dcdbbbb10435a54a300c3ac450e75b1480e5b",
+    "parent_sha": "aa468f8cf7dc6a07d01146388a54a8e25c5eda1b",
+    "birth_commit_date": "2010-07-26T19:46:38+00:00",
+    "birth_commit_message": "Created a SpringPrototypeEventSourcingRepository, which allows a repository to initialize aggregates based on a Spring prototype bean.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "stash/todo/src/main/java/org/axonframework/spring/eventsourcing/SpringPrototypeAggregateFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "core/src/main/java/org/axonframework/eventsourcing/IncompatibleAggregateException.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a new SpringPrototypeEventSourcingRepository, related test, test support factory bean, and Spring test context \u2014 i.e., new functionality and classes introduced from scratch. The only change to existing code is a small convenience constructor added to IncompatibleAggregateException; no existing methods or logic were moved or restructured into the new pattern.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['core/src/main/java/org/axonframework/eventsourcing/IncompatibleAggregateException.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'stash/todo/src/main/java/org/axonframework/spring/eventsourcing' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit adds a new SpringPrototypeEventSourcingRepository, related test, test support factory bean, and Spring test context \u2014 i.e., new functionality and classes introduced from scratch. The only c"
+      ]
+    }
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/AxonFramework",
+    "pattern": "Prototype",
+    "pattern_file": "stash/todo/src/main/java/org/axonframework/spring/eventsourcing/SpringPrototypeAggregateFactory.java",
+    "class_name": "SpringPrototypeAggregateFactory",
+    "detection_source": "dpdf_seed",
+    "detection_confidence": 1.0,
+    "detection_reasoning": null,
+    "birth_commit_sha": "f91dcdbbbb10435a54a300c3ac450e75b1480e5b",
+    "parent_sha": "aa468f8cf7dc6a07d01146388a54a8e25c5eda1b",
+    "birth_commit_date": "2010-07-26T19:46:38+00:00",
+    "birth_commit_message": "Created a SpringPrototypeEventSourcingRepository, which allows a repository to initialize aggregates based on a Spring prototype bean.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "stash/todo/src/main/java/org/axonframework/spring/eventsourcing/SpringPrototypeAggregateFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "core/src/main/java/org/axonframework/eventsourcing/IncompatibleAggregateException.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit primarily adds new classes and test/configuration files (SpringPrototypeEventSourcingRepository, its test, a Mockito factory bean, and Spring XML) rather than reorganizing or moving existing logic into a new pattern. The only change to existing code is the addition of an extra constructor in IncompatibleAggregateException (a small API convenience), not a refactor of preexisting functionality into the new repository. Therefore this is an introduction of new functionality/design (greenfield).",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['core/src/main/java/org/axonframework/eventsourcing/IncompatibleAggregateException.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'stash/todo/src/main/java/org/axonframework/spring/eventsourcing' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit primarily adds new classes and test/configuration files (SpringPrototypeEventSourcingRepository, its test, a Mockito factory bean, and Spring XML) rather than reorganizing or moving existin"
+      ]
+    }
+  },
+  {
+    "id": 3,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/AxonFramework",
+    "pattern": "FactoryMethod",
+    "pattern_file": "eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/EventSourcedEntityFactoryDefinition.java",
+    "class_name": "EventSourcedEntityFactoryDefinition",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "This interface defines a single creation method (createFactory) whose concrete implementations are responsible for producing concrete EventSourcedEntityFactory instances based on the provided types and Configuration. That structure\u2014an abstract creator declaring a factory method that subclasses/implementations override to instantiate products\u2014matches the GoF Factory Method pattern. It is not an Abstract Factory (only one product type is produced).",
+    "birth_commit_sha": "89f40710038e40d7f77a3f51a2aa4dc9f1af9a3a",
+    "parent_sha": "6e211838ba4fd80f31105978d5deca4da98a20f1",
+    "birth_commit_date": "2010-01-19T19:39:18+00:00",
+    "birth_commit_message": "Initial commit after moving codebase from cqrs4j (http://cqrs4j.googlecode.com/svn/trunk/)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/EventSourcedEntityFactoryDefinition.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 4,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/AxonFramework",
+    "pattern": "Iterator",
+    "pattern_file": "eventsourcing/src/main/java/org/axonframework/eventsourcing/eventstore/StreamSpliterator.java",
+    "class_name": "StreamSpliterator",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.86,
+    "detection_reasoning": "StreamSpliterator encapsulates traversal state (internal iterator, lastItem, finalFetch) and exposes a single-step traversal operation (tryAdvance) that yields elements without exposing the underlying data source or fetching mechanism. That matches the intent of the Iterator pattern. Note: it implements Java's Spliterator abstraction (used by streams) rather than java.util.Iterator, but functionally it is an iterator-style implementation (lazy, sequential access).",
+    "birth_commit_sha": "7dcd989114f8338114c1b8f9afb42b385175bec9",
+    "parent_sha": "b3f4de477e826dc1f2d1fbdba5a8e79a39ff68fc",
+    "birth_commit_date": "2025-08-08T15:45:41+00:00",
+    "birth_commit_message": "Extract the StreamSpliterator for reuse and mark it @Internal",
+    "is_initial_repo_commit": false,
+    "original_file_path": "eventsourcing/src/main/java/org/axonframework/eventsourcing/eventstore/StreamSpliterator.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/eventstore/LegacyBatchingEventStorageEngine.java",
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/eventstore/jpa/AggregateBasedJpaEventStorageEngine.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 42,
+      "signal_3b_oldest_sibling_days": 3647,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit extracts identical private static inner spliterator implementations (EventStreamSpliterator) from two existing classes and replaces them with a single new top-level StreamSpliterator class, updating usages accordingly. The logic (fields and tryAdvance behavior) is preserved and only relocated/renamed for reuse \u2014 no new behavior was introduced.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['eventsourcing/src/main/java/org/axonframework/eventsourcing/eventstore/LegacyBatchingEventStorageEngine.java', 'eventsourcing/src/main/java/org/axonframework/eventsourcing/eventstore/jpa/AggregateBasedJpaEventStorageEngine.java']",
+        "3B \u2713 Package 'eventsourcing/src/main/java/org/axonframework/eventsourcing/eventstore' had 42 pre-existing .java file(s) before the birth commit, oldest sibling 3647d old",
+        "LLM \u2713 Refactoring confirmed: The commit extracts identical private static inner spliterator implementations (EventStreamSpliterator) from two existing classes and replaces them with a single new top-level StreamSpliterator class,"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 5,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/AxonFramework",
+    "pattern": "FactoryMethod",
+    "pattern_file": "eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/reflection/AnnotationBasedEventSourcedEntityFactoryDefinition.java",
+    "class_name": "AnnotationBasedEventSourcedEntityFactoryDefinition",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class implements EventSourcedEntityFactoryDefinition and provides a createFactory(...) method that returns an EventSourcedEntityFactory interface while instantiating a concrete AnnotationBasedEventSourcedEntityFactory. This matches the Factory Method intent: defining a method to create products (EventSourcedEntityFactory) and encapsulating the concrete instantiation.",
+    "birth_commit_sha": "2b9564265c77c5ad98df360067bd4c57ab4cf077",
+    "parent_sha": "49f57b2faf67cdce5b038278c60a7c06b04bee23",
+    "birth_commit_date": "2025-04-14T07:40:48+00:00",
+    "birth_commit_message": "Introduce definitions to construct annotation-related classes",
+    "is_initial_repo_commit": false,
+    "original_file_path": "eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/reflection/AnnotationBasedEventSourcedEntityFactoryDefinition.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 11,
+      "signal_3a_modified_files": [
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/AsyncEventSourcingRepository.java",
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/AnnotationBasedEventCriteriaResolver.java",
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/ConstructorBasedEventSourcedEntityFactory.java",
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/EventSourcedEntity.java",
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/EventSourcedEntityFactory.java",
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/configuration/AnnotatedEventSourcedEntityBuilder.java",
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/configuration/DefaultEventSourcedEntityBuilder.java",
+        "eventsourcing/src/main/java/org/axonframework/eventsourcing/configuration/EventSourcedEntityBuilder.java",
+        "eventsourcing/src/test/java/org/axonframework/eventsourcing/annotation/AnnotationBasedEventCriteriaResolverTest.java",
+        "eventsourcing/src/test/java/org/axonframework/eventsourcing/configuration/AnnotatedEventSourcedEntityBuilderTest.java",
+        "eventsourcing/src/test/java/org/axonframework/eventsourcing/configuration/DefaultEventSourcedEntityBuilderTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit restructures existing event-sourcing components to introduce \"Definition\" abstractions and internal helpers (e.g., CriteriaResolverDefinition, EventSourcedEntityFactoryDefinition, AnnotationBasedEventCriteriaResolverDefinition, WrappedEventCriteriaBuilderMethod) and updates callers/configuration to use those definitions. Existing functionality (criteria builder validation/invocation, entity factory behavior, annotation-driven wiring) is preserved but moved/reworked into new classes and generics\u2014validation/invocation logic was relocated into the WrappedEventCriteriaBuilderMethod, and the builder/annotation wiring was changed to construct resolvers/factories from definitions. Tests and usages were adapted accordingly. This is a refactor, not a greenfield introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 11 pre-existing Java file(s) modified in birth commit (call-site update): ['eventsourcing/src/main/java/org/axonframework/eventsourcing/AsyncEventSourcingRepository.java', 'eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/AnnotationBasedEventCriteriaResolver.java', 'eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/ConstructorBasedEventSourcedEntityFactory.java', 'eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/EventSourcedEntity.java', 'eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/EventSourcedEntityFactory.java'] \u2026",
+        "LLM \u2713 Refactoring confirmed: The commit restructures existing event-sourcing components to introduce \"Definition\" abstractions and internal helpers (e.g., CriteriaResolverDefinition, EventSourcedEntityFactoryDefinition, Annotatio"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'eventsourcing/src/main/java/org/axonframework/eventsourcing/annotation/reflection' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    }
+  }
+]

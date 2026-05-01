@@ -1,0 +1,722 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Adapter",
+    "pattern_file": "flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/concurrent/ScheduledFutureAdapter.java",
+    "class_name": "ScheduledFutureAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "The class implements ScheduledFuture<V> while encapsulating a Future<V> delegate and forwarding Future operations (get, cancel, isDone, etc.) to it, adding scheduling state (scheduleTimeNanos, tieBreakerUid) and scheduling behavior (getDelay, compareTo). This is the object Adapter pattern: it adapts a basic Future to the ScheduledFuture interface via composition and delegation.",
+    "birth_commit_sha": "85bae442e62d55a66e3943ea6615cda2a51a7b5f",
+    "parent_sha": "22962998a7b0e0095af1f0585a5401e5bd91b247",
+    "birth_commit_date": "2018-11-26T10:47:43+00:00",
+    "birth_commit_message": "[FLINK-11417] Make access to ExecutionGraph single threaded from JobMaster main thread",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/concurrent/ScheduledFutureAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 42,
+      "signal_3a_modified_files": [
+        "flink-core/src/main/java/org/apache/flink/util/function/FunctionUtils.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/concurrent/FutureUtils.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/Execution.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionGraph.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionVertex.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/failover/FailoverRegion.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/failover/RestartIndividualStrategy.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/failover/RestartPipelinedRegionStrategy.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/restart/FixedDelayRestartStrategy.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/instance/SimpleSlot.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/jobmanager/scheduler/Scheduler.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/jobmaster/JobMaster.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/jobmaster/LogicalSlot.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/jobmaster/slotpool/SingleLogicalSlot.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/FencedRpcEndpoint.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/MainThreadValidatorUtil.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/RpcEndpoint.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/ExecutionGraphCheckpointCoordinatorTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/concurrent/FutureUtilsTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/concurrent/ManuallyTriggeredScheduledExecutor.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ArchivedExecutionGraphTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionGraphCoLocationRestartTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionGraphDeploymentTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionGraphMetricsTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionGraphRestartTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionGraphSchedulingTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionGraphSuspendTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionGraphTestUtils.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionGraphVariousFailuesTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionVertexCancelTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionVertexDeploymentTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/ExecutionVertexInputConstraintTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/FailoverRegionTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/FinalizeOnMasterTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/executiongraph/GlobalModVersionTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/JobMasterTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/TestingPayload.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/DummyPayload.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/slotpool/SingleLogicalSlotTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/rpc/FencedRpcEndpointTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/rpc/akka/MainThreadValidationTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit introduces a new ComponentMainThreadExecutor abstraction and related adapters/tests, but it systematically refactors existing classes to use that abstraction (Execution, ExecutionGraph, Failover strategies, Slot/LogicalSlot APIs, JobMaster, RpcEndpoint, tests, etc.). Existing logic and call sites were moved/changed to run on or assert the job-master/main thread (e.g., adding assertRunningInJobMasterMainThread(), switching to jobMasterMainThreadExecutor for continuations, splitting fail/failSync/failAsync), and prior executors/utilities were removed or replaced. This is restructuring existing functionality to a new execution-thread pattern, not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 42 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-core/src/main/java/org/apache/flink/util/function/FunctionUtils.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/concurrent/FutureUtils.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/Execution.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionGraph.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionVertex.java'] \u2026",
+        "LLM \u2713 Refactoring confirmed: The commit introduces a new ComponentMainThreadExecutor abstraction and related adapters/tests, but it systematically refactors existing classes to use that abstraction (Execution, ExecutionGraph, Fai"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/concurrent' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    }
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Adapter",
+    "pattern_file": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/concurrent/pekko/ActorSystemScheduledExecutorAdapter.java",
+    "class_name": "ActorSystemScheduledExecutorAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "The class implements ScheduledExecutor and adapts an underlying ActorSystem to that interface by delegating scheduling calls to actorSystem.scheduler(), converting Runnable/Callable to ScheduledFutureTask instances, and wrapping Pekko Cancellable results. It uses composition/delegation to translate between the two APIs (including handling delays, periodic behavior, and classloader context), which matches the Adapter pattern.",
+    "birth_commit_sha": "51d9a748d40f29b197b2d77fe8aa1b2439737da3",
+    "parent_sha": "51b48f33bb68014663d74548467ed88afd3bb3a3",
+    "birth_commit_date": "2017-09-04T15:57:08+00:00",
+    "birth_commit_message": "[FLINK-7580] Automatically retry failed gateway retrievals",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/concurrent/pekko/ActorSystemScheduledExecutorAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 8,
+      "signal_3a_modified_files": [
+        "flink-mesos/src/main/java/org/apache/flink/mesos/runtime/clusterframework/MesosApplicationMasterRunner.java",
+        "flink-runtime-web/src/test/java/org/apache/flink/runtime/webmonitor/WebRuntimeMonitorITCase.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/akka/AkkaRpcService.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/webmonitor/retriever/impl/AkkaJobManagerRetriever.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/webmonitor/retriever/impl/RpcGatewayRetriever.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/webmonitor/retriever/impl/AkkaJobManagerRetrieverTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/webmonitor/retriever/impl/RpcGatewayRetrieverTest.java",
+        "flink-yarn/src/main/java/org/apache/flink/yarn/YarnApplicationMasterRunner.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit extracts and reuses existing scheduling logic: the large InternalScheduledExecutorImpl previously nested inside AkkaRpcService was removed and its functionality moved into a new top-level ActorSystemScheduledExecutorAdapter class. AkkaRpcService now uses that adapter. Retriever classes were refactored to accept retry parameters and a ScheduledExecutor and to use FutureUtils.retryWithDelay (wiring the new adapter in), and call sites/tests were updated accordingly. This is restructuring and extraction of existing logic (with some added retry behavior), not a pure greenfield introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 8 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-mesos/src/main/java/org/apache/flink/mesos/runtime/clusterframework/MesosApplicationMasterRunner.java', 'flink-runtime-web/src/test/java/org/apache/flink/runtime/webmonitor/WebRuntimeMonitorITCase.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/rpc/akka/AkkaRpcService.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/webmonitor/retriever/impl/AkkaJobManagerRetriever.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/webmonitor/retriever/impl/RpcGatewayRetriever.java'] \u2026",
+        "LLM \u2713 Refactoring confirmed: The commit extracts and reuses existing scheduling logic: the large InternalScheduledExecutorImpl previously nested inside AkkaRpcService was removed and its functionality moved into a new top-level A"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/concurrent/pekko' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    }
+  },
+  {
+    "id": 3,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Command",
+    "pattern_file": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/rpc/pekko/PekkoInvocationHandler.java",
+    "class_name": "PekkoInvocationHandler",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The code constructs RpcInvocation objects (LocalRpcInvocation / RemoteRpcInvocation) that encapsulate a request (method name, params, etc.) and then sends them to an actor for execution. PekkoInvocationHandler acts as the invoker/creator of command objects and the PekkoRpcActor (receiver) executes them. This corresponds to the Command pattern (command objects + invoker + receiver), even though it is implemented via message objects rather than a formal GoF Command interface.",
+    "birth_commit_sha": "13ff76db13b5d89ed5678c76e6af482b5954eca1",
+    "parent_sha": "0b2a7f74a9de22d7b291de5d205cc86dfcc4e191",
+    "birth_commit_date": "2016-08-10T16:42:26+00:00",
+    "birth_commit_message": "[FLINK-4362] [rpc] Auto generate rpc gateways via Java proxies",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/rpc/pekko/PekkoInvocationHandler.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 12,
+      "signal_3a_modified_files": [
+        "flink-core/src/main/java/org/apache/flink/util/ReflectionUtil.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/MainThreadExecutor.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/RpcEndpoint.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/RpcService.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/akka/AkkaGateway.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/akka/AkkaRpcService.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/jobmaster/JobMaster.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/resourcemanager/ResourceManager.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/rpc/taskexecutor/TaskExecutor.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/rpc/RpcCompletenessTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/rpc/akka/AkkaRpcServiceTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/rpc/taskexecutor/TaskExecutorTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The change replaces an existing Akka-based RPC implementation (many per-component Actor/Gateway classes and BaseAkkaActor/BaseAkkaGateway) with a generic proxy/InvocationHandler + Akka actor/message approach. Existing behavior and logic have been moved and consolidated into new classes (AkkaInvocationHandler, AkkaRpcActor, new messages) and many old actor/gateway classes were removed\u2014tests and RpcService/RpcEndpoint were adjusted accordingly. This is a re\u2011structuring of existing functionality into a new pattern, not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 12 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-core/src/main/java/org/apache/flink/util/ReflectionUtil.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/rpc/MainThreadExecutor.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/rpc/RpcEndpoint.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/rpc/RpcService.java', 'flink-runtime/src/main/java/org/apache/flink/runtime/rpc/akka/AkkaGateway.java'] \u2026",
+        "LLM \u2713 Refactoring confirmed: The change replaces an existing Akka-based RPC implementation (many per-component Actor/Gateway classes and BaseAkkaActor/BaseAkkaGateway) with a generic proxy/InvocationHandler + Akka actor/message a"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/rpc/pekko' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    }
+  },
+  {
+    "id": 4,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Strategy",
+    "pattern_file": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/rpc/pekko/EscalatingSupervisorStrategy.java",
+    "class_name": "EscalatingSupervisorStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The class encapsulates a concrete supervisory behavior (an escalating SupervisorStrategy) and implements a configurator interface (SupervisorStrategyConfigurator) so different configurators can be swapped to provide different SupervisorStrategy instances. This matches the intent of the GoF Strategy pattern: encapsulating an algorithm/behavior behind an interface so it can be interchanged.",
+    "birth_commit_sha": "33497024852c521472c40040cc023526426835af",
+    "parent_sha": "06b6c87a63397ba0251c0b0aba72abbc4984557d",
+    "birth_commit_date": "2017-10-17T11:39:07+00:00",
+    "birth_commit_message": "[FLINK-7861] [flip6] Suppress ActorKilledException logging",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/rpc/pekko/EscalatingSupervisorStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/rpc/pekko' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 5,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "FactoryMethod",
+    "pattern_file": "flink-table/flink-sql-gateway-api/src/main/java/org/apache/flink/table/gateway/api/endpoint/SqlGatewayEndpointFactory.java",
+    "class_name": "SqlGatewayEndpointFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.88,
+    "detection_reasoning": "The interface declares a creation method createSqlGatewayEndpoint(Context) and relies on concrete implementations (discovered via SPI) to instantiate specific SqlGatewayEndpoint objects. This fits the Factory Method intent (define a creator interface/operation and let subclasses decide which concrete product to create). It is not an Abstract Factory (only one product type) and although expressed as an interface rather than an abstract class, it matches the Factory Method pattern.",
+    "birth_commit_sha": "eb395309e046418128363a5401693be3987a3bca",
+    "parent_sha": "a5b088da231be0d844ef2bc74c148e3bafffb2e1",
+    "birth_commit_date": "2022-07-07T01:51:13+00:00",
+    "birth_commit_message": "[FLINK-27767][sql-gateway] Introduce Endpoint API and utils (#19849)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-sql-gateway-api/src/main/java/org/apache/flink/table/gateway/api/endpoint/SqlGatewayEndpointFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "human_review": "This commit only adds factory files.",
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "flink-table/flink-table-common/src/main/java/org/apache/flink/table/factories/FactoryUtil.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 1,
+      "signal_3b_oldest_sibling_days": 4220,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit adds a new SqlGateway endpoint factory SPI (interfaces, utils, tests, and test factories) but also modifies existing code \u2014 notably exposes and makes public FactoryUtil.FactoryHelper (previously private) so the new EndpointFactoryHelper can extend/reuse it. That change to existing FactoryUtil shows this is restructuring/reusing existing functionality into the new factory pattern, not a pure greenfield introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-table/flink-table-common/src/main/java/org/apache/flink/table/factories/FactoryUtil.java']",
+        "3B \u2713 Package 'flink-table/flink-sql-gateway-api/src/main/java/org/apache/flink/table/gateway/api/endpoint' had 1 pre-existing .java file(s) before the birth commit, oldest sibling 4220d old",
+        "LLM \u2713 Refactoring confirmed: The commit adds a new SqlGateway endpoint factory SPI (interfaces, utils, tests, and test factories) but also modifies existing code \u2014 notably exposes and makes public FactoryUtil.FactoryHelper (previ"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 6,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Iterator",
+    "pattern_file": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/CollectionResultIterator.java",
+    "class_name": "CollectionResultIterator",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class provides sequential access to elements by implementing a result-iterator interface and delegating hasNext()/next() to an underlying Iterator<RowData>. It directly embodies the Iterator pattern (a concrete iterator/wrapper).",
+    "birth_commit_sha": "cc03f84450169bbcb36630569f4e70258e60bb51",
+    "parent_sha": "280a2caaf6f22d414f9e0653d0c3d2862c6b6746",
+    "birth_commit_date": "2014-02-28T12:27:53+00:00",
+    "birth_commit_message": "HadoopDataSink works both for hadoop 1.2.1 and 2.2.0",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/CollectionResultIterator.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "stratosphere-addons/hadoop-compatibility/src/main/java/eu/stratosphere/hadoopcompatibility/HadoopInputFormatWrapper.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a large set of new classes (wrappers, converters, dummy stubs, example and tests) that introduce a new Hadoop-adapter infrastructure (HadoopOutputFormatWrapper, HadoopDataSink, StratosphereTypeConverter, DefaultStratosphereTypeConverter, FileOutputCommitterWrapper, etc.). Only a tiny change was made to an existing file (HadoopInputFormatWrapper) to replace inlined Hadoop-configuration merging with a call to the newly introduced HadoopConfiguration.mergeHadoopConf \u2014 an extraction for reuse. Because almost all functionality is newly introduced rather than being reorganized from substantial preexisting logic, this is a greenfield introduction (with a small, incidental refactoring/extraction).",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['stratosphere-addons/hadoop-compatibility/src/main/java/eu/stratosphere/hadoopcompatibility/HadoopInputFormatWrapper.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit adds a large set of new classes (wrappers, converters, dummy stubs, example and tests) that introduce a new Hadoop-adapter infrastructure (HadoopOutputFormatWrapper, HadoopDataSink, Stratos"
+      ]
+    }
+  },
+  {
+    "id": 7,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Iterator",
+    "pattern_file": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/StatementResultIterator.java",
+    "class_name": "StatementResultIterator",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The class exposes hasNext() and next() to provide sequential access to RowData and encapsulates the underlying StatementResult, so it functions as an Iterator (with a close operation). It simply delegates iteration to StatementResult (also acting as a thin adapter/wrapper), but its primary role is the Iterator pattern.",
+    "birth_commit_sha": "cc03f84450169bbcb36630569f4e70258e60bb51",
+    "parent_sha": "280a2caaf6f22d414f9e0653d0c3d2862c6b6746",
+    "birth_commit_date": "2014-02-28T12:27:53+00:00",
+    "birth_commit_message": "HadoopDataSink works both for hadoop 1.2.1 and 2.2.0",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/StatementResultIterator.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "stratosphere-addons/hadoop-compatibility/src/main/java/eu/stratosphere/hadoopcompatibility/HadoopInputFormatWrapper.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a large set of new classes (HadoopOutputFormatWrapper, FileOutputCommitterWrapper, HadoopDataSink, type-converter interface + default, DummyHadoopProgressable, example and tests) that implement an adapter/wrapper layer for Hadoop OutputFormats \u2014 new functionality and a new pattern introduced from scratch. The only modification to existing code is a small extraction: the prior inline Hadoop config merging in HadoopInputFormatWrapper was replaced with a call to the newly added HadoopConfiguration.mergeHadoopConf. That single moved snippet is a minor refactor, but the commit as a whole is a greenfield introduction of the wrapper/adapter design.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['stratosphere-addons/hadoop-compatibility/src/main/java/eu/stratosphere/hadoopcompatibility/HadoopInputFormatWrapper.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit adds a large set of new classes (HadoopOutputFormatWrapper, FileOutputCommitterWrapper, HadoopDataSink, type-converter interface + default, DummyHadoopProgressable, example and tests) that "
+      ]
+    }
+  },
+  {
+    "id": 8,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Iterator",
+    "pattern_file": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/CloseableResultIterator.java",
+    "class_name": "CloseableResultIterator",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The interface extends java.util.Iterator<T>, so it directly embodies the Iterator pattern (provides traversal over a collection of elements). It simply augments the standard Iterator with AutoCloseable for resource cleanup, which is a small variation but still the Iterator GoF pattern.",
+    "birth_commit_sha": "e91190fa73030d239f0fbe9e0b50d32c538b74c7",
+    "parent_sha": "6654045d23e2923a56befbb87b64f85a00689b7a",
+    "birth_commit_date": "2010-12-16T18:09:56+00:00",
+    "birth_commit_message": "Initial checkin.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/CloseableResultIterator.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 9,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Visitor",
+    "pattern_file": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/DataTypeVisitor.java",
+    "class_name": "DataTypeVisitor",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "This interface defines the Visitor role of the GoF Visitor pattern: it declares overloaded visit(...) methods for each concrete element type (AtomicDataType, CollectionDataType, FieldsDataType, KeyValueDataType) and uses a generic return type R for transformation. Although the element classes' accept(...) methods are not shown here, the presence and shape of this interface match the canonical Visitor structure.",
+    "birth_commit_sha": "e91190fa73030d239f0fbe9e0b50d32c538b74c7",
+    "parent_sha": "6654045d23e2923a56befbb87b64f85a00689b7a",
+    "birth_commit_date": "2010-12-16T18:09:56+00:00",
+    "birth_commit_message": "Initial checkin.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/DataTypeVisitor.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/types' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    }
+  },
+  {
+    "id": 10,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Adapter",
+    "pattern_file": "flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/concurrent/ScheduledFutureAdapter.java",
+    "class_name": "ScheduledFutureAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "The class implements ScheduledFuture and wraps a Future instance (the delegate), delegating Future methods to it while adding scheduling-related behavior (getDelay, compareTo, scheduleTimeNanos, tie-breaker). This is the object Adapter pattern: it adapts a Future to the ScheduledFuture interface via composition.",
+    "birth_commit_sha": "8d9e02c75656ad9dd4eed34282f137c4517bcbbb",
+    "parent_sha": "7cf378347fceb222e9175abe8f51742332063bf1",
+    "birth_commit_date": "2021-06-30T06:25:58+00:00",
+    "birth_commit_message": "[FLINK-23088] Add flink-rpc-core module",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/concurrent/ScheduledFutureAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "flink-runtime/src/main/java/org/apache/flink/runtime/metrics/MetricRegistryConfiguration.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The `RpcSystem` interface and its `load()` method existed before, and the change refactors that method to use Java\u2019s ServiceLoader SPI (adding the META-INF/services entry), rather than introducing a brand-new module or functionality from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-runtime/src/main/java/org/apache/flink/runtime/metrics/MetricRegistryConfiguration.java']",
+        "LLM \u2713 Refactoring confirmed: The `RpcSystem` interface and its `load()` method existed before, and the change refactors that method to use Java\u2019s ServiceLoader SPI (adding the META-INF/services entry), rather than introducing a b"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/concurrent' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    }
+  },
+  {
+    "id": 11,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Adapter",
+    "pattern_file": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/concurrent/pekko/ActorSystemScheduledExecutorAdapter.java",
+    "class_name": "ActorSystemScheduledExecutorAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.92,
+    "detection_reasoning": "The class implements ScheduledExecutor and delegates scheduling operations to an underlying ActorSystem (actorSystem.scheduler()). It adapts Pekko's scheduling primitives (Cancellable, scheduler methods) to the ScheduledExecutor API and ScheduledFuture/RunnableScheduledFuture semantics (via the inner ScheduledFutureTask), including translation of delays, periodic behavior, and cancellation. This is a straightforward Adapter pattern: adapting one interface (ActorSystem scheduler) to another (ScheduledExecutor).",
+    "birth_commit_sha": "c8ae39d4ac73f81873e1d8ac37e17c29ae330b23",
+    "parent_sha": "dc08df6132921dec0083ebf5a54a66f8447aa2c8",
+    "birth_commit_date": "2023-07-25T18:16:56+00:00",
+    "birth_commit_message": "[FLINK-32468][rpc] Switch from Akka to Pekko",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/concurrent/pekko/ActorSystemScheduledExecutorAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 33,
+      "signal_3a_modified_files": [
+        "flink-core/src/main/java/org/apache/flink/configuration/AkkaOptions.java",
+        "flink-core/src/main/java/org/apache/flink/configuration/MetricOptions.java",
+        "flink-core/src/main/java/org/apache/flink/configuration/SecurityOptions.java",
+        "flink-core/src/main/java/org/apache/flink/util/NetUtils.java",
+        "flink-core/src/test/java/org/apache/flink/testutils/TestingUtils.java",
+        "flink-java/src/main/java/org/apache/flink/api/java/ExecutionEnvironment.java",
+        "flink-kubernetes/src/test/java/org/apache/flink/kubernetes/cli/KubernetesSessionCliTest.java",
+        "flink-kubernetes/src/test/java/org/apache/flink/kubernetes/highavailability/KubernetesHighAvailabilityTestBase.java",
+        "flink-kubernetes/src/test/java/org/apache/flink/kubernetes/highavailability/KubernetesLeaderElectionAndRetrievalITCase.java",
+        "flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/rpc/RpcUtils.java",
+        "flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/rpc/messages/RemoteRpcInvocation.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/netty/TieredStorageNettyServiceImpl.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/minicluster/MiniClusterConfiguration.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/net/ConnectionUtils.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/util/LeaderRetrievalUtils.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/webmonitor/WebMonitorEndpoint.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/io/network/partition/PartialConsumePipelinedResultTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/jobmanager/SlotCountExceedingParallelismTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/utils/TestingJobMasterGatewayBuilder.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/leaderelection/StandaloneLeaderElectionTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/leaderelection/ZooKeeperLeaderElectionTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/leaderretrieval/DefaultLeaderRetrievalServiceTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/rpc/RpcSSLAuthITCase.java",
+        "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/batch/BatchExecDynamicFilteringDataCollector.java",
+        "flink-test-utils-parent/flink-connector-test-utils/src/main/java/org/apache/flink/connector/testframe/container/FlinkContainersSettings.java",
+        "flink-tests/src/test/java/org/apache/flink/test/accumulators/AccumulatorLiveITCase.java",
+        "flink-tests/src/test/java/org/apache/flink/test/cancelling/CancelingTestBase.java",
+        "flink-tests/src/test/java/org/apache/flink/test/runtime/IPv6HostnamesITCase.java",
+        "flink-yarn-tests/src/test/java/org/apache/flink/yarn/YarnTestBase.java",
+        "flink-yarn-tests/src/test/java/org/apache/flink/yarn/YarnTestBaseTest.java",
+        "flink-yarn/src/main/java/org/apache/flink/yarn/YarnResourceManagerDriver.java",
+        "flink-yarn/src/main/java/org/apache/flink/yarn/YarnTaskExecutorRunner.java",
+        "flink-yarn/src/main/java/org/apache/flink/yarn/configuration/YarnConfigOptions.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The patch is a wholesale rename/migration of the existing Akka\u2010based RPC implementation to a Pekko\u2010based one\u2014existing classes (e.g. AkkaRpcService, AkkaRpcActor, AkkaUtils) are renamed or moved to pekko packages and all call sites updated accordingly. This is a restructuring of existing functionality rather than a brand new (\u201cgreenfield\u201d) pattern introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 33 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-core/src/main/java/org/apache/flink/configuration/AkkaOptions.java', 'flink-core/src/main/java/org/apache/flink/configuration/MetricOptions.java', 'flink-core/src/main/java/org/apache/flink/configuration/SecurityOptions.java', 'flink-core/src/main/java/org/apache/flink/util/NetUtils.java', 'flink-core/src/test/java/org/apache/flink/testutils/TestingUtils.java'] \u2026",
+        "LLM \u2713 Refactoring confirmed: The patch is a wholesale rename/migration of the existing Akka\u2010based RPC implementation to a Pekko\u2010based one\u2014existing classes (e.g. AkkaRpcService, AkkaRpcActor, AkkaUtils) are renamed or moved to pek"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/concurrent/pekko' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    }
+  },
+  {
+    "id": 12,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Strategy",
+    "pattern_file": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/rpc/pekko/EscalatingSupervisorStrategy.java",
+    "class_name": "EscalatingSupervisorStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The class implements SupervisorStrategyConfigurator and returns a concrete SupervisorStrategy that encapsulates a specific failure-handling algorithm (always escalate). That makes it an interchangeable, encapsulated strategy for supervision policy. (It also acts as a small factory/configurator for the strategy instance, but functionally fits the GoF Strategy role.)",
+    "birth_commit_sha": "c8ae39d4ac73f81873e1d8ac37e17c29ae330b23",
+    "parent_sha": "dc08df6132921dec0083ebf5a54a66f8447aa2c8",
+    "birth_commit_date": "2023-07-25T18:16:56+00:00",
+    "birth_commit_message": "[FLINK-32468][rpc] Switch from Akka to Pekko",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/rpc/pekko/EscalatingSupervisorStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 33,
+      "signal_3a_modified_files": [
+        "flink-core/src/main/java/org/apache/flink/configuration/AkkaOptions.java",
+        "flink-core/src/main/java/org/apache/flink/configuration/MetricOptions.java",
+        "flink-core/src/main/java/org/apache/flink/configuration/SecurityOptions.java",
+        "flink-core/src/main/java/org/apache/flink/util/NetUtils.java",
+        "flink-core/src/test/java/org/apache/flink/testutils/TestingUtils.java",
+        "flink-java/src/main/java/org/apache/flink/api/java/ExecutionEnvironment.java",
+        "flink-kubernetes/src/test/java/org/apache/flink/kubernetes/cli/KubernetesSessionCliTest.java",
+        "flink-kubernetes/src/test/java/org/apache/flink/kubernetes/highavailability/KubernetesHighAvailabilityTestBase.java",
+        "flink-kubernetes/src/test/java/org/apache/flink/kubernetes/highavailability/KubernetesLeaderElectionAndRetrievalITCase.java",
+        "flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/rpc/RpcUtils.java",
+        "flink-rpc/flink-rpc-core/src/main/java/org/apache/flink/runtime/rpc/messages/RemoteRpcInvocation.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/hybrid/tiered/netty/TieredStorageNettyServiceImpl.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/minicluster/MiniClusterConfiguration.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/net/ConnectionUtils.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/util/LeaderRetrievalUtils.java",
+        "flink-runtime/src/main/java/org/apache/flink/runtime/webmonitor/WebMonitorEndpoint.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/io/network/partition/PartialConsumePipelinedResultTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/jobmanager/SlotCountExceedingParallelismTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/jobmaster/utils/TestingJobMasterGatewayBuilder.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/leaderelection/StandaloneLeaderElectionTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/leaderelection/ZooKeeperLeaderElectionTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/leaderretrieval/DefaultLeaderRetrievalServiceTest.java",
+        "flink-runtime/src/test/java/org/apache/flink/runtime/rpc/RpcSSLAuthITCase.java",
+        "flink-table/flink-table-planner/src/main/java/org/apache/flink/table/planner/plan/nodes/exec/batch/BatchExecDynamicFilteringDataCollector.java",
+        "flink-test-utils-parent/flink-connector-test-utils/src/main/java/org/apache/flink/connector/testframe/container/FlinkContainersSettings.java",
+        "flink-tests/src/test/java/org/apache/flink/test/accumulators/AccumulatorLiveITCase.java",
+        "flink-tests/src/test/java/org/apache/flink/test/cancelling/CancelingTestBase.java",
+        "flink-tests/src/test/java/org/apache/flink/test/runtime/IPv6HostnamesITCase.java",
+        "flink-yarn-tests/src/test/java/org/apache/flink/yarn/YarnTestBase.java",
+        "flink-yarn-tests/src/test/java/org/apache/flink/yarn/YarnTestBaseTest.java",
+        "flink-yarn/src/main/java/org/apache/flink/yarn/YarnResourceManagerDriver.java",
+        "flink-yarn/src/main/java/org/apache/flink/yarn/YarnTaskExecutorRunner.java",
+        "flink-yarn/src/main/java/org/apache/flink/yarn/configuration/YarnConfigOptions.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The change is a wholesale rename and refactoring of existing Akka\u2010based RPC code to Pekko (moving/renaming classes, updating call sites), not a new design pattern introduced from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 33 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-core/src/main/java/org/apache/flink/configuration/AkkaOptions.java', 'flink-core/src/main/java/org/apache/flink/configuration/MetricOptions.java', 'flink-core/src/main/java/org/apache/flink/configuration/SecurityOptions.java', 'flink-core/src/main/java/org/apache/flink/util/NetUtils.java', 'flink-core/src/test/java/org/apache/flink/testutils/TestingUtils.java'] \u2026",
+        "LLM \u2713 Refactoring confirmed: The change is a wholesale rename and refactoring of existing Akka\u2010based RPC code to Pekko (moving/renaming classes, updating call sites), not a new design pattern introduced from scratch."
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'flink-rpc/flink-rpc-akka/src/main/java/org/apache/flink/runtime/rpc/pekko' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    }
+  },
+  {
+    "id": 13,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Iterator",
+    "pattern_file": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/CollectionResultIterator.java",
+    "class_name": "CollectionResultIterator",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class provides sequential access via hasNext() and next() and encapsulates iteration over a collection of RowData. It implements CloseableResultIterator<RowData> and delegates to an underlying java.util.Iterator, so it functions as an Iterator (also effectively a small adapter/wrapper around an Iterator).",
+    "birth_commit_sha": "2ff4e220945680eba21065480385148ca8d034da",
+    "parent_sha": "b814c369256f011f18fc7283d60cd4a27593d988",
+    "birth_commit_date": "2023-04-06T05:09:19+00:00",
+    "birth_commit_message": "[FLINK-31544][jdbc-driver] Introduce DatabaseMetaData for jdbc driver",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/CollectionResultIterator.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/DriverUri.java",
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkConnection.java",
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSet.java",
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSetMetaData.java",
+        "flink-table/flink-sql-jdbc-driver/src/test/java/org/apache/flink/table/jdbc/FlinkConnectionTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 4,
+      "signal_3b_oldest_sibling_days": 15,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit introduces a new CloseableResultIterator abstraction (and its adapters) and updates the existing FlinkResultSet to use it\u2014refactoring existing StatementResult usage into the Iterator pattern. This is restructuring of existing logic, not a pure green-field addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/DriverUri.java', 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkConnection.java', 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSet.java', 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSetMetaData.java', 'flink-table/flink-sql-jdbc-driver/src/test/java/org/apache/flink/table/jdbc/FlinkConnectionTest.java']",
+        "3B \u2713 Package 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils' had 4 pre-existing .java file(s) before the birth commit, oldest sibling 15d old",
+        "LLM \u2713 Refactoring confirmed: The commit introduces a new CloseableResultIterator abstraction (and its adapters) and updates the existing FlinkResultSet to use it\u2014refactoring existing StatementResult usage into the Iterator patter"
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 14,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Iterator",
+    "pattern_file": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/StatementResultIterator.java",
+    "class_name": "StatementResultIterator",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The class exposes hasNext() and next() (and close()) and delegates iteration to an underlying StatementResult, thereby providing sequential access to elements without exposing the result's internals. It's a thin iterator wrapper/adapter implementing the Iterator contract (CloseableResultIterator), so it embodies the Iterator pattern.",
+    "birth_commit_sha": "2ff4e220945680eba21065480385148ca8d034da",
+    "parent_sha": "b814c369256f011f18fc7283d60cd4a27593d988",
+    "birth_commit_date": "2023-04-06T05:09:19+00:00",
+    "birth_commit_message": "[FLINK-31544][jdbc-driver] Introduce DatabaseMetaData for jdbc driver",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/StatementResultIterator.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/DriverUri.java",
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkConnection.java",
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSet.java",
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSetMetaData.java",
+        "flink-table/flink-sql-jdbc-driver/src/test/java/org/apache/flink/table/jdbc/FlinkConnectionTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 4,
+      "signal_3b_oldest_sibling_days": 15,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "All of the DatabaseMetaData classes and iterator abstractions are entirely new\u2014there was no previous implementation to refactor out. The old getMetaData call simply threw \u201cnot supported,\u201d and now it\u2019s wired to a brand-new FlinkDatabaseMetaData/Bas eDatabaseMetaData + iterator utility hierarchy. No existing logic has been moved into a pattern; it\u2019s all newly introduced.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/DriverUri.java', 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkConnection.java', 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSet.java', 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSetMetaData.java', 'flink-table/flink-sql-jdbc-driver/src/test/java/org/apache/flink/table/jdbc/FlinkConnectionTest.java']",
+        "3B \u2713 Package 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils' had 4 pre-existing .java file(s) before the birth commit, oldest sibling 15d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: All of the DatabaseMetaData classes and iterator abstractions are entirely new\u2014there was no previous implementation to refactor out. The old getMetaData call simply threw \u201cnot supported,\u201d and now it\u2019s"
+      ]
+    }
+  },
+  {
+    "id": 15,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Iterator",
+    "pattern_file": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/CloseableResultIterator.java",
+    "class_name": "CloseableResultIterator",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "The interface extends java.util.Iterator<T>, which is the standard Iterator pattern (sequential access to elements while hiding representation). It simply specializes that pattern by also extending AutoCloseable to add resource cleanup; although it's an interface (no concrete iteration logic here), it clearly represents the Iterator design pattern.",
+    "birth_commit_sha": "2ff4e220945680eba21065480385148ca8d034da",
+    "parent_sha": "b814c369256f011f18fc7283d60cd4a27593d988",
+    "birth_commit_date": "2023-04-06T05:09:19+00:00",
+    "birth_commit_message": "[FLINK-31544][jdbc-driver] Introduce DatabaseMetaData for jdbc driver",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils/CloseableResultIterator.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/DriverUri.java",
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkConnection.java",
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSet.java",
+        "flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSetMetaData.java",
+        "flink-table/flink-sql-jdbc-driver/src/test/java/org/apache/flink/table/jdbc/FlinkConnectionTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 4,
+      "signal_3b_oldest_sibling_days": 15,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit introduces an Iterator pattern (CloseableResultIterator, StatementResultIterator, CollectionResultIterator) around the existing StatementResult API and updates FlinkResultSet (and its call sites) to use this new abstraction instead of working with StatementResult directly. That restructuring of existing iteration logic into a formal iterator interface constitutes a refactoring rather than a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/DriverUri.java', 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkConnection.java', 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSet.java', 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/FlinkResultSetMetaData.java', 'flink-table/flink-sql-jdbc-driver/src/test/java/org/apache/flink/table/jdbc/FlinkConnectionTest.java']",
+        "3B \u2713 Package 'flink-table/flink-sql-jdbc-driver/src/main/java/org/apache/flink/table/jdbc/utils' had 4 pre-existing .java file(s) before the birth commit, oldest sibling 15d old",
+        "LLM \u2713 Refactoring confirmed: The commit introduces an Iterator pattern (CloseableResultIterator, StatementResultIterator, CollectionResultIterator) around the existing StatementResult API and updates FlinkResultSet (and its call "
+      ],
+      "rejection_reasons": []
+    }
+  },
+  {
+    "id": 16,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Visitor",
+    "pattern_file": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/DataTypeVisitor.java",
+    "class_name": "DataTypeVisitor",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The interface defines a Visitor with visit(...) methods for each concrete DataType variant (AtomicDataType, CollectionDataType, FieldsDataType, KeyValueDataType) and a generic return type R, which matches the GoF Visitor structure. While the element classes themselves (accept methods on DataType implementations) are not shown here, this interface is the visitor component of the Visitor pattern.",
+    "birth_commit_sha": "47ccfcc2dde4170affb45375013fb2917fdbb4c1",
+    "parent_sha": "41bb1b5cb2bb1670a6cdea2235f260446e5467ce",
+    "birth_commit_date": "2019-05-13T12:04:22+00:00",
+    "birth_commit_message": "[hotfix][table-common] Add a data type visitor",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/DataTypeVisitor.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/AtomicDataType.java",
+        "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/CollectionDataType.java",
+        "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/DataType.java",
+        "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/FieldsDataType.java",
+        "flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/KeyValueDataType.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 5,
+      "signal_3b_oldest_sibling_days": 10,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a new DataTypeVisitor interface and injects accept(visitor) methods into existing DataType subclasses without moving or restructuring any existing logic and without changing existing call sites to use the visitor. This is a greenfield introduction of the Visitor pattern.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/AtomicDataType.java', 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/CollectionDataType.java', 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/DataType.java', 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/FieldsDataType.java', 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/types/KeyValueDataType.java']",
+        "3B \u2713 Package 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/types' had 5 pre-existing .java file(s) before the birth commit, oldest sibling 10d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The commit adds a new DataTypeVisitor interface and injects accept(visitor) methods into existing DataType subclasses without moving or restructuring any existing logic and without changing existing c"
+      ]
+    }
+  }
+]
