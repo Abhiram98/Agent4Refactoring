@@ -109,6 +109,7 @@ def _to_output_record(
             "evidence_notes": verdict.evidence_notes,
             "rejection_reasons": verdict.rejection_reasons,
         },
+        "human_validation": False,
     }
 
 def _from_output_record(record: dict) -> Tuple[Path, BirthInfo, GreenfieldVerdict]:
@@ -150,6 +151,7 @@ def _from_output_record(record: dict) -> Tuple[Path, BirthInfo, GreenfieldVerdic
         rejection_reasons=gv_data.get("rejection_reasons", [])
     )
     
+    # record["human_validation"] can be consumed by the caller if needed
     return repo_path, birth_info, verdict
 
 class PatternMiningPipeline:
@@ -275,7 +277,7 @@ class PatternMiningPipeline:
         llm_filter = None
         if self.use_llm_filter:
             logger.info("Initializing LLM filter")
-            llm_filter = LLMFilter()
+            llm_filter = LLMFilter(model_name=self.llm_filter_model, cache=self.context.cache)
 
         gf_filter = GreenfieldFilter(context=self.context, llm_filter=llm_filter)
         verdicts = gf_filter.evaluate_all(birth_infos)

@@ -30,6 +30,7 @@ Verdict logic
 from __future__ import annotations
 
 import logging
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Optional
@@ -41,11 +42,57 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from refagent.benchmark.design_patterns.models import GoFPattern
 from refagent.benchmark.design_patterns.pattern_first.models import (
     BirthInfo,
-    GreenfieldVerdict, MiningContext,
+    GreenfieldVerdict, MiningContext, PatternCache,
 )
 
 logger = logging.getLogger(__name__)
 UTC = timezone.utc
+
+PATTERN_SPECIFIC_INSTRUCTIONS: dict[GoFPattern, str] = {
+    GoFPattern.ABSTRACT_FACTORY: "(1) whether the families of related product classes existed before the refactoring, and "
+                                 "(2) were appropriate call sites changed to use the new Abstract Factory instead of direct instantiation?",
+    GoFPattern.ADAPTER: "(1) whether the adaptee class existed before the refactoring, and "
+                        "(2) were appropriate call sites changed to use the new Adapter to bridge the interfaces?",
+    GoFPattern.BUILDER: "(1) whether the existing 'Product' class existed before the refactoring (e.g., the target of the Builder), and "
+                        "(2) were appropriate call sites changed to use the Builder instead of complex constructors? "
+                        "i.e., `new Product(name, value)` is replaced with `new ProductBuilder().withName(name).withValue(value)`",
+    GoFPattern.CHAIN_OF_RESP: "(1) whether the handler logic or the request structures existed before the refactoring, and "
+                              "(2) were appropriate call sites changed to pass requests through the new Chain of Responsibility?",
+    GoFPattern.COMMAND: "(1) whether the receiver logic or the actions to be executed existed before the refactoring, and "
+                        "(2) were appropriate call sites changed to encapsulate requests as Command objects?",
+    GoFPattern.COMPOSITE: "(1) whether the leaf objects and/or hierarchical logic existed before the refactoring, "
+                          "and (2) were appropriate call sites changed to treat individual objects and compositions uniformly?",
+    GoFPattern.DECORATOR: "(1) whether the core component class existed before the refactoring, and "
+                          "(2) were appropriate call sites changed to wrap the component with Decorators rather than using extensive subclassing?",
+    GoFPattern.FACADE: "(1) whether the complex subsystem classes existed before the refactoring, and "
+                       "(2) were appropriate call sites changed to interact through the new Facade?",
+    GoFPattern.FACTORY_METHOD: "(1) whether the object creation logic or the product classes existed before the refactoring, and "
+                               "(2) were appropriate call sites changed to use the Factory Method for instantiation?",
+    GoFPattern.FLYWEIGHT: "(1) whether the heavily instantiated objects or their shared state existed before the refactoring, and "
+                          "(2) were appropriate call sites changed to share instances using the Flyweight factory?",
+    GoFPattern.ITERATOR: "(1) whether the collection or aggregation logic existed before the refactoring, and "
+                         "(2) were appropriate call sites changed to use the Iterator for traversal?",
+    GoFPattern.MEDIATOR: "(1) whether the colleague classes existed but were tightly coupled before the refactoring, and "
+                         "(2) were appropriate call sites or internal logic changed to communicate via the Mediator?",
+    GoFPattern.MEMENTO: "(1) whether the originator class and its state management existed before the refactoring, and "
+                        "(2) were appropriate call sites changed to use Mementos for capturing and restoring state?",
+    GoFPattern.OBSERVER: "(1) whether the subject and observer logic existed (e.g., polling or tight coupling) before the refactoring, and "
+                         "(2) were appropriate call sites changed to use the Observer subscription mechanism?",
+    GoFPattern.PROTOTYPE: "(1) whether the classes to be cloned existed before the refactoring, and "
+                          "(2) were appropriate call sites changed to create new instances by cloning the Prototype?",
+    GoFPattern.PROXY: "(1) whether the real subject class existed before the refactoring, and "
+                      "(2) were appropriate call sites changed to interact with the Proxy instead of the real subject?",
+    GoFPattern.SINGLETON: "(1) whether the class existed before the refactoring but was instantiated multiple times or passed globally, and "
+                          "(2) were appropriate call sites changed to access the Singleton instance?",
+    GoFPattern.STATE: "(1) whether the context class and its state-dependent conditional logic (e.g., large switch/case statements) existed before the refactoring, and "
+                      "(2) were appropriate call sites changed to delegate behavior to State objects?",
+    GoFPattern.STRATEGY: "(1) whether the context class and differing behavioral algorithms existed before the refactoring, and "
+                         "(2) were appropriate call sites changed to use Strategy objects dynamically?",
+    GoFPattern.TEMPLATE_METHOD: "(1) whether the classes with similar algorithms but specific varying steps existed before the refactoring, and "
+                                "(2) were appropriate call sites changed to rely on the Template Method base class?",
+    GoFPattern.VISITOR: "(1) whether the object structure and the operations over it existed before the refactoring, and "
+                        "(2) were appropriate call sites changed to accept the Visitor rather than embedding operations in the elements?",
+}
 
 
 class LLMFilter:
@@ -53,13 +100,21 @@ class LLMFilter:
     Uses an LLM to evaluate whether a commit is a release or a refactoring.
     """
 
-    def __init__(self, model_name: str = "o4-mini") -> None:
+    def __init__(self, model_name: str = "o4-mini", cache: Optional[PatternCache] = None) -> None:
+        self.model_name = model_name
         self.model = ChatOpenAI(model=model_name, temperature=1)
+        self.cache = cache
 
-    def is_release_commit(self, commit_message: str) -> bool:
+    def is_release_commit(self, commit_message: str, commit_sha: str) -> bool:
         """
         Returns True if the LLM thinks the commit message refers to a release or version bump.
         """
+        if self.cache:
+            cache_key = self.cache.get_release_key(self.model_name, commit_sha)
+            if cache_key in self.cache:
+                return self.cache.get(cache_key).get("is_release", False)
+        else:
+            cache_key = None
         system_prompt = (
             "You are an expert software engineer. Your task is to determine if a git commit message "
             "indicates a 'release' commit, a 'version bump', or a 'distribution update'. "
@@ -70,15 +125,37 @@ class LLMFilter:
             SystemMessage(content=system_prompt),
             HumanMessage(content=f"Commit message: {commit_message}"),
         ]
-        response = self.model.invoke(messages)
-        return "YES" in response.content.upper()
+        try:
+            response = self.model.invoke(messages)
+        except Exception as e:
+            logger.error("Failed to make LLM request.")
+            traceback.print_exc()
+            return False
 
-    def analyze_diff(self, diff_text: str, pattern: GoFPattern, file_name: str) -> tuple[bool, str]:
+        is_release = "YES" in response.content.upper()
+        if self.cache is not None and cache_key is not None:
+            self.cache.set(cache_key, {"is_release": is_release})
+        return is_release
+
+    def analyze_diff(self, diff_text: str, pattern: GoFPattern, file_name: str, commit_sha: str) -> tuple[bool, str]:
         """
         Analyzes a git diff and determines if it's a 'greenfield' pattern addition
         (writing new code from scratch) or a 'refactoring' (migrating existing logic).
         Returns (is_refactoring, reasoning).
         """
+        if self.cache:
+            cache_key = self.cache.get_diff_key(self.model_name, pattern, commit_sha, file_name)
+            if cache_key in self.cache:
+                cached = self.cache.get(cache_key)
+                return cached.get("is_refactoring", False), cached.get("reasoning", "")
+        else:
+            cache_key = None
+
+        pattern_instruction = PATTERN_SPECIFIC_INSTRUCTIONS.get(
+            pattern,
+            "(1) whether the core logic or structures involved in the pattern existed before the refactoring, and (2) were appropriate call sites changed to use the new design pattern?"
+        )
+
         system_prompt = (
             "You are an expert in design patterns and refactoring. "
             "Analyze the provided git diff. "
@@ -88,12 +165,10 @@ class LLMFilter:
             "functionality being restructured into a design pattern). "
             "Focus on whether existing methods/logic were moved/changed into the new pattern structure. \n"
             "To answer, reason about: "
-            "(1) whether the existing 'Product' class existed before the refactoring (e.g., the target of the Builder), "
-            "and (2) were appropriate call sites changed to use the design pattern?\n"
-            "Answer yes if both of these are true."
-            ""
+            f"{pattern_instruction}\n"
+            "Answer yes if both of these are true.\n"
             "There may be many changes in this commit that are distracting. "
-            "Focus only on the addition of the `{pattern}` pattern to `{filename}`.}`"
+            f"Focus only on the addition of the `{pattern.value if isinstance(pattern, GoFPattern) else pattern}` pattern to `{file_name}`.\n"
             "Provide your answer in the following format:\n"
             "Verdict: [REFACTORING/GREENFIELD]\n"
             "Reasoning: [Short explanation]"
@@ -102,7 +177,12 @@ class LLMFilter:
             SystemMessage(content=system_prompt),
             HumanMessage(content=f"Git Diff:\n{diff_text}"),
         ]
-        response = self.model.invoke(messages)
+        try:
+            response = self.model.invoke(messages)
+        except Exception as e:
+            logger.error("Failed to make LLM request.")
+            traceback.print_exc()
+            return False, str(e)
         content = response.content
         is_ref = "REFACTORING" in content.upper() and "GREENFIELD" not in content.upper().split("VERDICT:")[1].split("\n")[0]
         # Safety check for parsing
@@ -113,6 +193,10 @@ class LLMFilter:
         reasoning = content
         if "Reasoning:" in content:
             reasoning = content.split("Reasoning:")[1].strip()
+            
+            
+        if self.cache is not None and cache_key is not None:
+            self.cache.set(cache_key, {"is_refactoring": is_ref, "reasoning": reasoning})
             
         return is_ref, reasoning
 
@@ -205,7 +289,7 @@ class GreenfieldFilter:
 
         # 3. LLM Commit Message Check (Release)
         if self.llm_filter:
-            is_release = self.llm_filter.is_release_commit(birth_info.birth_commit_message)
+            is_release = self.llm_filter.is_release_commit(birth_info.birth_commit_message, birth_info.birth_commit_sha)
             verdict.is_release_commit = is_release
             if is_release:
                 verdict.is_likely_refactoring = False
@@ -217,7 +301,8 @@ class GreenfieldFilter:
             llm_is_ref, reasoning = self.llm_filter.analyze_diff(
                 diff_text,
                 birth_info.pattern_instance.pattern,
-                birth_info.pattern_instance.class_name
+                birth_info.pattern_instance.class_name,
+                birth_info.birth_commit_sha
             )
             verdict.llm_is_refactoring = llm_is_ref
             verdict.llm_reasoning = reasoning

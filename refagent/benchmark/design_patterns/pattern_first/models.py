@@ -46,6 +46,15 @@ class PatternCache:
         else:
             raise ValueError(f"Invalid pattern type: {type(pattern)}")
 
+    def get_release_key(self, model_name: str, commit_sha: str) -> str:
+        """Cache key format for greenfield release checks: model:release:commit_sha"""
+        return f"{model_name}:release:{commit_sha}"
+
+    def get_diff_key(self, model_name: str, pattern: GoFPattern | str, commit_sha: str, file_path: str) -> str:
+        """Cache key format for greenfield diff checks: model:diff:pattern:commit_sha:file_path"""
+        pattern_str = pattern.value if isinstance(pattern, GoFPattern) else str(pattern)
+        return f"{model_name}:diff:{pattern_str}:{commit_sha}:{file_path}"
+
     def get(self, key: str) -> Optional[dict[str, Any]]:
         return self._data.get(key)
 
