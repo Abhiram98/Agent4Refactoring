@@ -161,7 +161,7 @@ class PatternMiningPipeline:
     def __init__(self, repo_paths: list[Path], output_path: Path, context: MiningContext,
                  patterns: Optional[list[GoFPattern]] = None, use_heuristic: bool = True,
                  dpdf_dataset_path: Optional[Path] = None, dpdf_project_name: Optional[str] = None,
-                 filter_greenfield: bool = True, use_llm_detector: bool = False, use_llm_filter: bool = False,
+                 filter_greenfield: bool = True, use_llm_detector: bool = True, use_llm_filter: bool = True,
                  llm_filter_model: str = "gpt-5-mini", file_names: Optional[list[str]] = None) -> None:
         self.repo_paths = repo_paths
         self.output_path = output_path
@@ -344,9 +344,9 @@ def run_pattern_first_mining(
     dpdf_dataset_path: Optional[Path],
     dpdf_project_name: Optional[str],
     filter_greenfield: bool,
-    use_llm_detector: bool = False,
+    use_llm_detector: bool = True,
     llm_detector_model: str = "gpt-5-mini",
-    use_llm_filter: bool = False,
+    use_llm_filter: bool = True,
     llm_filter_model: str = "gpt-5-mini",
     max_new_patterns: int = 10,
     cache_path: Path = refagent.data_folder.joinpath("design_patterns/llm_pattern_cache.json"),
@@ -426,8 +426,8 @@ def _parse_args() -> argparse.Namespace:
         help="Disable class-name heuristic scan (Phase 1A). Requires --dpdf-dataset.",
     )
     phase1.add_argument(
-        "--use-llm-detector", action="store_true",
-        help="Use LLM to validate the pattern structure in Phase 1B.",
+        "--disable-llm-detector", action="store_false", dest="use_llm_detector",
+        help="Disable using LLM to validate the pattern structure in Phase 1B.",
     )
     phase1.add_argument(
         "--llm-detector-model", type=str, default="gpt-5-mini",
@@ -467,8 +467,8 @@ def _parse_args() -> argparse.Namespace:
         help="Exclude instances that are likely greenfield (both 3A and 3B fail).",
     )
     phase3.add_argument(
-        "--use-llm-filter", action="store_true",
-        help="Use LLM (gpt-5-mini) to further filter greenfield vs refactoring commits.",
+        "--disable-llm-filter", action="store_false", dest="use_llm_filter",
+        help="Disable using LLM (gpt-5-mini) to further filter greenfield vs refactoring commits.",
     )
     phase3.add_argument(
         "--llm-filter-model", type=str, default="gpt-5-mini",
@@ -479,6 +479,7 @@ def _parse_args() -> argparse.Namespace:
         "--log-level", default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
     )
+    parser.set_defaults(use_llm_detector=True, use_llm_filter=True)
     return parser.parse_args()
 
 

@@ -75,7 +75,26 @@ def aggregate_files(input_dir, output_file):
     
     with open(output_file, "w") as f:
         json.dump(sorted_items, f, indent=2)
-    
+
+    for i in sorted_items:
+        repo_path = i.get("repo_path", "")
+        project_name = os.path.basename(repo_path.rstrip("/"))
+        print(project_name)
+        mapping = {
+            'AxonFramework': 'AxonFramework/AxonFramework',
+            'ant': 'apache/ant',
+            'camunda': 'camunda/camunda',
+            'cayenne': 'apache/cayenne',
+            'cucumber-jvm': 'cucumber/cucumber-jvm',
+            'flink': 'apache/flink',
+            'hbase': 'apache/hbase',
+        }
+        i['human_validation'] = False
+        i['git_url'] = f'https://github.com/{mapping.get(project_name)}/commit/{i.get('birth_commit_sha', '')}'
+        print(i['git_url'])
+    with open(output_file+"human_validation.json", "w") as f:
+        json.dump(sorted_items, f, indent=2)
+
     print(f"Successfully aggregated {len(sorted_items)} unique data points into {output_file}")
 
 if __name__ == "__main__":

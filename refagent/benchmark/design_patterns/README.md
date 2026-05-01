@@ -24,9 +24,9 @@ This approach starts by detecting existing pattern instances in the *latest* ver
         --output data/design_patterns/pf_candidates.json
     ```
     Executes detection, birth discovery, and greenfield filtering.
-    - **Phase 1**: Detects patterns (via heuristics or LLM).
+    - **Phase 1**: Detects patterns (via heuristics and **LLM by default**; use `--disable-llm-detector` to skip LLM).
     - **Phase 2**: Finds the birth commit of each pattern instance.
-    - **Phase 3**: Filters out "greenfield" additions (new code) to keep only genuine refactorings.
+    - **Phase 3**: Filters out "greenfield" additions (**using LLM by default**; use `--disable-llm-filter` to skip LLM) to keep only genuine refactorings.
 
 *   **Seeding from Dataset**
     You can skip Phase 1 and use known instances from the `dpdf` dataset:
