@@ -164,13 +164,14 @@ class LLMFilter:
             "or a 'refactoring' (i.e., existing "
             "functionality being restructured into a design pattern). "
             "Focus on whether existing methods/logic were moved/changed into the new pattern structure. \n"
+            "If the core logic was simply moved, with no other design changes, this is NOT a refactoring to pattern. \n"
             "To answer, reason about: "
             f"{pattern_instruction}\n"
             "Answer yes if both of these are true.\n"
             "There may be many changes in this commit that are distracting. "
             f"Focus only on the addition of the `{pattern.value if isinstance(pattern, GoFPattern) else pattern}` pattern to `{file_name}`.\n"
             "Provide your answer in the following format:\n"
-            "Verdict: [REFACTORING/GREENFIELD]\n"
+            "Verdict: [REFACTORING/GREENFIELD/MOVE_CODE]\n"
             "Reasoning: [Short explanation]"
         )
         messages = [
