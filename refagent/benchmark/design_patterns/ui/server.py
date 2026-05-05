@@ -3,6 +3,8 @@ import json
 import os
 import urllib.parse
 
+from utils.project_manager import EvalProject
+
 PORT = 8000
 UI_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.abspath(os.path.join(UI_DIR, "../../../../data/design_patterns/aggregated_candidates.json"))
@@ -38,7 +40,11 @@ class ValidationHandler(http.server.SimpleHTTPRequestHandler):
                 # Add mapping and construct URLs
                 for item in data:
                     repo_path = item.get("repo_path")
-                    base_url = REPO_MAPPING.get(repo_path.split('/')[-1], "")
+                    repo_name = repo_path.split('/')[-1]
+                    base_url = REPO_MAPPING.get(repo_name, "")
+                    if base_url == "":
+                        project = EvalProject(repo_name)
+                        base_url = project.get_remote_url()
                     if base_url:
                         base_url = base_url.replace(".git", "").replace("www.github.com", "github.com")
                         item["birth_commit_url"] = f"{base_url}/commit/{item['birth_commit_sha']}"

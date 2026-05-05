@@ -55,7 +55,17 @@ function render() {
                         </div>
                     </div>
                     <div class="class-name">${c.class_name}</div>
-                    <div class="reasoning">${c.detection_reasoning || 'No reasoning provided.'}</div>
+                    
+                    <div class="reasoning refactoring">
+                        <span class="reasoning-label">Refactoring Reasoning</span>
+                        ${c.greenfield?.llm_reasoning || 'No refactoring reasoning provided.'}
+                    </div>
+
+                    <div class="reasoning pattern">
+                        <span class="reasoning-label">Pattern Reasoning</span>
+                        ${c.detection_reasoning || 'No pattern reasoning provided.'}
+                    </div>
+
                     <a href="${c.birth_commit_url}" target="_blank" class="view-commit">
                         View Birth Commit ↗
                     </a>
