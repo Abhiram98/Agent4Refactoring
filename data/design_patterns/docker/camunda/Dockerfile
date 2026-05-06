@@ -9,10 +9,10 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/camunda/camunda.git .
-RUN git remote add abhiram_origin https://github.com/Abhiram98/camunda.git
-RUN git fetch --all
-RUN git pull --all
+RUN git clone --depth 1 https://github.com/camunda/camunda.git
+RUN cd camunda && git remote add abhiram_origin https://github.com/Abhiram98/camunda.git
+RUN cd camunda && git fetch --all
+RUN cd camunda && git pull --all
 
 COPY run_build.sh run_test.sh /app/
 

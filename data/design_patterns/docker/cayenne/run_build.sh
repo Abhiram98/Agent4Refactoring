@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd cayenne
+
 git checkout $BRANCH_NAME
 
 set -e

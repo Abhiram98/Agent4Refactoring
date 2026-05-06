@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd ant
+
 git checkout $BRANCH_NAME
 
 set -e

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd cucumber-jvm
+
 git checkout $BRANCH_NAME
 
 set -e

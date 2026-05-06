@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/google/gson.git .
+RUN git clone --depth 1 https://github.com/google/gson.git
 
 COPY run_build.sh run_test.sh /app/
 

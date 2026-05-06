@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd AxonFramework
+
 git checkout $BRANCH_NAME
 
 set -e

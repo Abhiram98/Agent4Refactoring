@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd hbase
+
 git checkout $BRANCH_NAME
 
 set -e

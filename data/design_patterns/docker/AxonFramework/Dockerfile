@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/AxonFramework/AxonFramework.git .
+RUN git clone --depth 1 https://github.com/AxonFramework/AxonFramework.git
 
 COPY run_build.sh run_test.sh /app/
 

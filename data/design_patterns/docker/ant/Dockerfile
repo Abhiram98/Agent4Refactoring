@@ -9,10 +9,9 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/apache/ant.git .
+RUN git clone --depth 1 https://github.com/apache/ant.git
 
 COPY run_build.sh run_test.sh /app/
-
 RUN dos2unix /app/run_build.sh /app/run_test.sh && \
     chmod +x /app/run_build.sh /app/run_test.sh
 

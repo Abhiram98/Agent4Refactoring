@@ -9,10 +9,10 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/apache/kafka.git .
-RUN git remote add abhiram_origin https://github.com/Abhiram98/kafka.git
-RUN git fetch --all
-RUN git pull --all
+RUN git clone --depth 1 https://github.com/apache/kafka.git
+RUN cd kafka && git remote add abhiram_origin https://github.com/Abhiram98/kafka.git
+RUN cd kafka && git fetch --all
+RUN cd kafka && git pull --all
 
 COPY run_build.sh run_test.sh /app/
 

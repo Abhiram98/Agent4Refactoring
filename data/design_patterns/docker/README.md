@@ -45,10 +45,10 @@ docker run --rm -e BRANCH_NAME=<branch_name> <image_tag> /app/run_test.sh
 ## Advanced Usage
 
 ### Mounting Local Code
-To test local changes without rebuilding the image, mount your project directory to `/app`:
+To test local changes without rebuilding the image, mount your project directory specifically to the `/app/<project>` subdirectory to avoid overwriting the pre-baked scripts in `/app`:
 ```bash
 docker run --rm \
-  -v /path/to/local/project:/app \
+  -v /path/to/local/project:/app/<project> \
   -e BRANCH_NAME=main \
   <image_tag> /app/run_test.sh
 ```
@@ -58,6 +58,13 @@ For resource-intensive projects (**flink**, **hbase**, **kafka**), it is recomme
 ```bash
 docker run --rm --memory="8g" -e BRANCH_NAME=master flink-val /app/run_test.sh
 ```
+
+## Internal Structure
+The environments are structured to keep the build scripts separate from the project code:
+- `/app/run_build.sh` & `/app/run_test.sh`: Execution scripts.
+- `/app/<project>/`: The cloned project source code.
+
+This structure prevents build scripts from appearing in the project's git tree and simplifies volume mounting.
 
 ## Troubleshooting
 
