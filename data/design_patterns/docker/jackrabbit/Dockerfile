@@ -9,10 +9,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/apache/cxf.git .
-RUN git remote add abhiram_origin https://github.com/Abhiram98/cxf.git
-RUN git fetch --all
-RUN git pull --all
+RUN git clone --depth 1 https://github.com/apache/jackrabbit.git .
 
 COPY run_build.sh run_test.sh /app/
 

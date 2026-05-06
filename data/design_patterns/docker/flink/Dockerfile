@@ -9,10 +9,10 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/apache/cxf.git .
-RUN git remote add abhiram_origin https://github.com/Abhiram98/cxf.git
-RUN git fetch --all
-RUN git pull --all
+RUN git clone --depth 1 https://github.com/apache/flink.git
+RUN cd flink && git remote add abhiram_origin https://github.com/Abhiram98/flink.git
+RUN cd flink && git fetch --all
+RUN cd flink && git pull --all
 
 COPY run_build.sh run_test.sh /app/
 

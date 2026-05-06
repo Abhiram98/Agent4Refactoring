@@ -5,5 +5,5 @@ git pull --all
 git checkout $BRANCH_NAME
 
 set -e
-echo "Building Apache CXF..."
+echo "Building Camunda..."
 mvn clean install -DskipTests

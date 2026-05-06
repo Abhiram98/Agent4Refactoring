@@ -4,13 +4,13 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk maven git dos2unix && \
+    apt-get install -y openjdk-17-jdk git dos2unix && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/apache/cxf.git .
-RUN git remote add abhiram_origin https://github.com/Abhiram98/cxf.git
+RUN git clone --depth 1 https://github.com/apache/kafka.git .
+RUN git remote add abhiram_origin https://github.com/Abhiram98/kafka.git
 RUN git fetch --all
 RUN git pull --all
 

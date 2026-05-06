@@ -1,9 +1,7 @@
 #!/bin/bash
 
-git fetch --all
-git pull --all
 git checkout $BRANCH_NAME
 
 set -e
-echo "Building Apache CXF..."
+echo "Building Cucumber JVM..."
 mvn clean install -DskipTests

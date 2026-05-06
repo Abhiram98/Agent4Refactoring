@@ -1,0 +1,107 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/keycloak",
+    "pattern": "FactoryMethod",
+    "pattern_file": "server-spi-private/src/main/java/org/keycloak/credential/CredentialProviderFactory.java",
+    "class_name": "CredentialProviderFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.7,
+    "detection_reasoning": "This interface represents the \"factory\" role for creating CredentialProvider instances (it extends ProviderFactory<CredentialProvider>), which is the essence of the Factory Method pattern: an abstraction that lets concrete factories produce product objects. The actual creation method is declared in the ProviderFactory base interface (not shown here) and implemented by concrete CredentialProviderFactory implementations, so the code participates in the Factory Method pattern. Confidence is moderate because the concrete creation method is not present in this file.",
+    "birth_commit_sha": "134437a5a7e31472763ffa2ac3cc91030e7ee389",
+    "parent_sha": "a0852eaa2ed19408ecf8ad02652802d00529a085",
+    "birth_commit_date": "2025-04-03T08:09:48+00:00",
+    "birth_commit_message": "Create recovery keys in user storage or local (#38446)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "server-spi-private/src/main/java/org/keycloak/credential/CredentialProviderFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A: could not resolve commits",
+        "3B: could not resolve parent commit",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/keycloak",
+    "pattern": "FactoryMethod",
+    "pattern_file": "server-spi-private/src/main/java/org/keycloak/tracing/NoopTracingProviderFactory.java",
+    "class_name": "NoopTracingProviderFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The class implements TracingProviderFactory and provides a create(KeycloakSession) method that constructs/returns a TracingProvider instance, which matches the Factory Method intent (a factory interface/creator with a method to produce products). Note: the implementation also uses a lazily initialized singleton for the produced TracingProvider, so it mixes Factory Method with the Singleton idiom.",
+    "birth_commit_sha": "134437a5a7e31472763ffa2ac3cc91030e7ee389",
+    "parent_sha": "a0852eaa2ed19408ecf8ad02652802d00529a085",
+    "birth_commit_date": "2025-04-03T08:09:48+00:00",
+    "birth_commit_message": "Create recovery keys in user storage or local (#38446)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "server-spi-private/src/main/java/org/keycloak/tracing/NoopTracingProviderFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A: could not resolve commits",
+        "3B: could not resolve parent commit",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 3,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/keycloak",
+    "pattern": "FactoryMethod",
+    "pattern_file": "server-spi-private/src/main/java/org/keycloak/crypto/ContentEncryptionProviderFactory.java",
+    "class_name": "ContentEncryptionProviderFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.75,
+    "detection_reasoning": "This interface is a specialized factory type (extends ProviderFactory<ContentEncryptionProvider>) whose implementors are expected to produce concrete ContentEncryptionProvider instances via the inherited creation contract. That fits the GoF Factory Method intent (a Creator abstraction delegating object instantiation to subclasses/implementations). The file itself only provides lifecycle default methods and doesn't show the create method (it's inherited), so confidence is moderate.",
+    "birth_commit_sha": "134437a5a7e31472763ffa2ac3cc91030e7ee389",
+    "parent_sha": "a0852eaa2ed19408ecf8ad02652802d00529a085",
+    "birth_commit_date": "2025-04-03T08:09:48+00:00",
+    "birth_commit_message": "Create recovery keys in user storage or local (#38446)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "server-spi-private/src/main/java/org/keycloak/crypto/ContentEncryptionProviderFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A: could not resolve commits",
+        "3B: could not resolve parent commit",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  }
+]

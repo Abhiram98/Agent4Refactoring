@@ -1,0 +1,1306 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Strategy",
+    "pattern_file": "gson/src/main/java/com/google/gson/ToNumberStrategy.java",
+    "class_name": "ToNumberStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "This interface defines a family of interchangeable algorithms for converting JSON numeric tokens into Number instances (readNumber). The Javadoc and related APIs (ToNumberPolicy, GsonBuilder#set*Strategy) show it is intended to be supplied with different implementations at runtime to change behavior \u2014 matching the GoF Strategy pattern (encapsulate algorithms behind a common interface).",
+    "birth_commit_sha": "fe30b85224316cabf19f5dd3223843437c297802",
+    "parent_sha": "1cc16274235f89650349884dd04760bf15a95d96",
+    "birth_commit_date": "2021-10-09T00:09:43+00:00",
+    "birth_commit_message": "Support arbitrary Number implementation for Object and Number deserialization (#1290)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/ToNumberStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ObjectTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/test/java/com/google/gson/GsonTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 25,
+      "signal_3b_oldest_sibling_days": 4785,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit extracts existing number-deserialization behavior into a Strategy (ToNumberStrategy/ToNumberPolicy) rather than introducing entirely new functionality. Previously ObjectTypeAdapter inlined in.nextDouble() for Object and TypeAdapters.NUMBER produced LazilyParsedNumber for Number; those behaviors are now implemented as ToNumberPolicy strategies and used via NumberTypeAdapter and ObjectTypeAdapter. Gson/GsonBuilder were updated to accept and pass the strategy objects to the factories, so existing logic was moved into Strategy implementations and call sites were changed to use them dynamically.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/internal/bind/ObjectTypeAdapter.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java', 'gson/src/test/java/com/google/gson/GsonTest.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson' had 25 pre-existing .java file(s) before the birth commit, oldest sibling 4785d old",
+        "LLM \u2713 Refactoring confirmed: The commit extracts existing number-deserialization behavior into a Strategy (ToNumberStrategy/ToNumberPolicy) rather than introducing entirely new functionality. Previously ObjectTypeAdapter inlined "
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Builder",
+    "pattern_file": "gson/src/main/java/com/google/gson/GsonBuilder.java",
+    "class_name": "GsonBuilder",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "GsonBuilder is a classic Builder: it accumulates configuration via fluent setter methods that return this, stores configuration state in fields, and produces a configured Gson object via create(). It also provides a copy-constructor from Gson and keeps internal lists of registered components, fitting the GoF Builder intent.",
+    "birth_commit_sha": "57d1f32de5bf3a7dd54613384cc7e979fba2660b",
+    "parent_sha": null,
+    "birth_commit_date": "2008-09-01T03:13:32+00:00",
+    "birth_commit_message": "moved gson as a project under trunk",
+    "is_initial_repo_commit": true,
+    "original_file_path": "gson/src/main/java/com/google/gson/GsonBuilder.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "File was added in the repository's initial commit \u2014 no before-state exists"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 3,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "FactoryMethod",
+    "pattern_file": "gson/src/main/java/com/google/gson/TypeAdapterFactory.java",
+    "class_name": "TypeAdapterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The interface defines a single creation method (<T> TypeAdapter<T> create(...)) that concrete factories implement to produce TypeAdapter instances for specific types (or return null). This matches the GoF Factory Method intent: an abstract creator (here an interface) declares a factory method and subclasses (concrete TypeAdapterFactory implementations) decide which concrete TypeAdapter to instantiate. The provided examples in the Javadoc (enum and multiset factories) illustrate the pattern in practice.",
+    "birth_commit_sha": "d7fbac03844aa86dbb1c65a8ba50ac364c4b2050",
+    "parent_sha": "2cd3f9707f4494e15ac8f1652a4fbd19ba26c2d4",
+    "birth_commit_date": "2011-12-23T18:27:13+00:00",
+    "birth_commit_message": "Rename TypeAdapter.Factory to TypeAdapterFactory.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/TypeAdapterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 15,
+      "signal_3a_modified_files": [
+        "extras/src/main/java/com/google/gson/typeadapters/RuntimeTypeAdapterFactory.java",
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/TreeTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/TypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/Excluder.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/CollectionTypeAdapterFactory.java",
+        "gson/src/main/java/com/google/gson/internal/bind/DateTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/MapTypeAdapterFactory.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ObjectTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java",
+        "gson/src/main/java/com/google/gson/internal/bind/SqlDateTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TimeTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 26,
+      "signal_3b_oldest_sibling_days": 1208,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit extracts the existing nested TypeAdapter.Factory interface into a new top-level TypeAdapterFactory and updates all call sites and implementations to use the new type. The factory behavior and adapter classes already existed (the Factory interface and its factories were moved/copied), and client code was changed to reference the new interface rather than introducing new factory logic\u2014this is a refactor/move of existing creation logic, not a greenfield introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 15 pre-existing Java file(s) modified in birth commit (call-site update): ['extras/src/main/java/com/google/gson/typeadapters/RuntimeTypeAdapterFactory.java', 'gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/TreeTypeAdapter.java', 'gson/src/main/java/com/google/gson/TypeAdapter.java'] \u2026",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson' had 26 pre-existing .java file(s) before the birth commit, oldest sibling 1208d old",
+        "LLM \u2713 Refactoring confirmed: The commit extracts the existing nested TypeAdapter.Factory interface into a new top-level TypeAdapterFactory and updates all call sites and implementations to use the new type. The factory behavior a"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 4,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Strategy",
+    "pattern_file": "gson/src/main/java/com/google/gson/FieldNamingStrategy.java",
+    "class_name": "FieldNamingStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "This interface defines a single contract (translateName) for naming algorithms, allowing different implementations to be supplied to Gson to change behavior at runtime. That fits the Strategy pattern: a family of interchangeable algorithms encapsulated behind a common interface (the default alternateNames helper doesn't change that).",
+    "birth_commit_sha": "57d1f32de5bf3a7dd54613384cc7e979fba2660b",
+    "parent_sha": null,
+    "birth_commit_date": "2008-09-01T03:13:32+00:00",
+    "birth_commit_message": "moved gson as a project under trunk",
+    "is_initial_repo_commit": true,
+    "original_file_path": "gson/src/main/java/com/google/gson/FieldNamingStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "File was added in the repository's initial commit \u2014 no before-state exists"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 5,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Strategy",
+    "pattern_file": "gson/src/main/java/com/google/gson/ExclusionStrategy.java",
+    "class_name": "ExclusionStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "ExclusionStrategy is a classic Strategy pattern: it defines an interface for a family of interchangeable algorithms/policies (shouldSkipField, shouldSkipClass). The Javadoc shows multiple concrete implementations and Gson/GsonBuilder accept and use these implementations to alter serialization/deserialization behavior at runtime, matching the Strategy intent.",
+    "birth_commit_sha": "57d1f32de5bf3a7dd54613384cc7e979fba2660b",
+    "parent_sha": null,
+    "birth_commit_date": "2008-09-01T03:13:32+00:00",
+    "birth_commit_message": "moved gson as a project under trunk",
+    "is_initial_repo_commit": true,
+    "original_file_path": "gson/src/main/java/com/google/gson/ExclusionStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "File was added in the repository's initial commit \u2014 no before-state exists"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 6,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Decorator",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/NonNullElementWrapperList.java",
+    "class_name": "NonNullElementWrapperList",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.92,
+    "detection_reasoning": "The class wraps an underlying ArrayList (delegate), implements the List contract via AbstractList, forwards most method calls to the delegate, and injects additional behavior (null-checks on add/set). This is the essence of the Decorator (wrapper) pattern \u2014 augmenting behavior by delegating to an enclosed component.",
+    "birth_commit_sha": "954d526af4ad9e58872e7a64f92e749421d1cdf5",
+    "parent_sha": "c2458bf876ef52a4489af937f7dd7c2709b74fb9",
+    "birth_commit_date": "2022-10-16T19:30:49+00:00",
+    "birth_commit_message": "Add `JsonArray.asList` and `JsonObject.asMap` view methods (#2225)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/NonNullElementWrapperList.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/JsonArray.java",
+        "gson/src/main/java/com/google/gson/JsonObject.java",
+        "gson/src/test/java/com/google/gson/JsonArrayTest.java",
+        "gson/src/test/java/com/google/gson/JsonObjectTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 15,
+      "signal_3b_oldest_sibling_days": 5158,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit introduces a new wrapper class (NonNullElementWrapperList) and a new JsonArray.asList() view that returns it. JsonArray (the core component) already existed and its internal behavior/logic was not moved into the new class \u2014 the wrapper is a new feature that wraps the existing ArrayList rather than restructuring or extracting existing logic into a decorator. Therefore this is a greenfield introduction of the decorator-style wrapper, not a refactoring of prior code.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/JsonArray.java', 'gson/src/main/java/com/google/gson/JsonObject.java', 'gson/src/test/java/com/google/gson/JsonArrayTest.java', 'gson/src/test/java/com/google/gson/JsonObjectTest.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal' had 15 pre-existing .java file(s) before the birth commit, oldest sibling 5158d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The commit introduces a new wrapper class (NonNullElementWrapperList) and a new JsonArray.asList() view that returns it. JsonArray (the core component) already existed and its internal behavior/logic "
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 7,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/EnumTypeAdapter.java",
+    "class_name": "EnumTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "EnumTypeAdapter implements Gson's TypeAdapter API to translate between Enum instances and their JSON string representation (read/write). That is the essence of the Adapter pattern: it presents the TypeAdapter interface to clients while converting between two incompatible representations (Java enums and JSON). The FACTORY supplies adapter instances for enum types, further matching the common usage of adapters.",
+    "birth_commit_sha": "93596dac5a33d991618aad18ce980788373bfe1d",
+    "parent_sha": "9615c8d7c895797872d7e601702e690e5ed7a2e8",
+    "birth_commit_date": "2024-08-17T15:09:12+00:00",
+    "birth_commit_message": "Move enum and `JsonElement` adapter classes to separate class files (#2727)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/EnumTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/internal/Streams.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 14,
+      "signal_3b_oldest_sibling_days": 4785,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The enum adapter logic already existed inside TypeAdapters (inner EnumTypeAdapter and ENUM_FACTORY). This commit extracts that logic into a new EnumTypeAdapter class and updates call sites (Gson, Streams, and TypeAdapters' deprecated constants) to use EnumTypeAdapter.FACTORY / JsonElementTypeAdapter. Core behavior was moved/reshuffled without introducing new adapter behavior, so this is a code move/extraction rather than a new pattern introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/internal/Streams.java', 'gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 14 pre-existing .java file(s) before the birth commit, oldest sibling 4785d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The enum adapter logic already existed inside TypeAdapters (inner EnumTypeAdapter and ENUM_FACTORY). This commit extracts that logic into a new EnumTypeAdapter class and updates call sites (Gson, Stre"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 8,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Decorator",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/TypeAdapterRuntimeTypeWrapper.java",
+    "class_name": "TypeAdapterRuntimeTypeWrapper",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The class extends TypeAdapter<T> and holds a TypeAdapter<T> delegate, forwarding read() directly and wrapping/enhancing write() by adding runtime-type selection before delegating. That matches the Decorator intent (same interface, composition of a component, and added behavior). It occasionally chooses a different adapter at runtime, but this is still a wrapper/enhancement of behavior rather than a different pattern.",
+    "birth_commit_sha": "ad5ff0f2d9c08fb25d821bdc038934642c3c7367",
+    "parent_sha": "fc99556f22b476057f95c04a1648b3bbddc130b5",
+    "birth_commit_date": "2011-08-05T00:41:24+00:00",
+    "birth_commit_message": "Created a wrapper for runtime type determination.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/TypeAdapterRuntimeTypeWrapper.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/CollectionTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapter.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 8,
+      "signal_3b_oldest_sibling_days": 24,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit extracts the runtime-type resolution + delegation logic that used to live inline in ArrayTypeAdapter, CollectionTypeAdapter and ReflectiveTypeAdapter into a new TypeAdapterRuntimeTypeWrapper that extends TypeAdapter and delegates to an inner adapter. Existing TypeAdapter-based components (the core TypeAdapter class) pre-existed, and the call sites were changed to wrap their element/component adapters with the new wrapper instead of keeping the runtime-selection code inline. This is a refactoring into the Decorator pattern.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java', 'gson/src/main/java/com/google/gson/internal/bind/CollectionTypeAdapter.java', 'gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapter.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 8 pre-existing .java file(s) before the birth commit, oldest sibling 24d old",
+        "LLM \u2713 Refactoring confirmed: The commit extracts the runtime-type resolution + delegation logic that used to live inline in ArrayTypeAdapter, CollectionTypeAdapter and ReflectiveTypeAdapter into a new TypeAdapterRuntimeTypeWrappe"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 9,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/JsonElementTypeAdapter.java",
+    "class_name": "JsonElementTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "JsonElementTypeAdapter is a concrete TypeAdapter that converts between two interfaces: the streaming JSON API (JsonReader/JsonWriter/JsonToken) and the in-memory JsonElement object model. By implementing read/write it adapts the JSON stream representation to JsonElement instances and vice versa, which matches the Adapter intent (convert one interface to another).",
+    "birth_commit_sha": "93596dac5a33d991618aad18ce980788373bfe1d",
+    "parent_sha": "9615c8d7c895797872d7e601702e690e5ed7a2e8",
+    "birth_commit_date": "2024-08-17T15:09:12+00:00",
+    "birth_commit_message": "Move enum and `JsonElement` adapter classes to separate class files (#2727)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/JsonElementTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/internal/Streams.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 14,
+      "signal_3b_oldest_sibling_days": 4785,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The JsonElement adapter implementation (previously TypeAdapters.JSON_ELEMENT / JSON_ELEMENT_FACTORY) was moved out of TypeAdapters into a new JsonElementTypeAdapter class. Call sites were updated to use JsonElementTypeAdapter.ADAPTER / .FACTORY (Gson, Streams), and TypeAdapters keeps deprecated pass-through fields for compatibility. Thus the existing logic was restructured into a new adapter class rather than introduced from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/internal/Streams.java', 'gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 14 pre-existing .java file(s) before the birth commit, oldest sibling 4785d old",
+        "LLM \u2713 Refactoring confirmed: The JsonElement adapter implementation (previously TypeAdapters.JSON_ELEMENT / JSON_ELEMENT_FACTORY) was moved out of TypeAdapters into a new JsonElementTypeAdapter class. Call sites were updated to u"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 10,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "FactoryMethod",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/MapTypeAdapterFactory.java",
+    "class_name": "MapTypeAdapterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.88,
+    "detection_reasoning": "MapTypeAdapterFactory implements the TypeAdapterFactory interface and provides a create(...) method that encapsulates the construction logic for TypeAdapter instances (returning either null or a new Adapter<> configured for the requested Map key/value types). This is the Factory Method idiom: an object (the factory) defines a method to create product objects (TypeAdapter) based on input/type.",
+    "birth_commit_sha": "25c6ae177b1ca56db7f3c29eb574bdd032a06165",
+    "parent_sha": "cdd5d80b85155c21c61f888fb3e70c65e72edef7",
+    "birth_commit_date": "2011-09-11T07:04:56+00:00",
+    "birth_commit_message": "Down to 22 failing tests.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/MapTypeAdapterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 21,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/DefaultTypeAdapters.java",
+        "gson/src/main/java/com/google/gson/FieldAttributes.java",
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/JsonDeserializationContext.java",
+        "gson/src/main/java/com/google/gson/JsonElement.java",
+        "gson/src/main/java/com/google/gson/JsonSerializationContext.java",
+        "gson/src/main/java/com/google/gson/MapAsArrayTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigDecimalTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigIntegerTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/MiniGson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/Reflection.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapterRuntimeTypeWrapper.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/test/java/com/google/gson/DefaultMapJsonSerializerTest.java",
+        "gson/src/test/java/com/google/gson/FunctionWithInternalDependenciesTest.java",
+        "gson/src/test/java/com/google/gson/MixedStreamTest.java",
+        "gson/src/test/java/com/google/gson/ParamterizedTypeFixtures.java",
+        "gson/src/test/java/com/google/gson/PrimitiveTypeAdapter.java",
+        "gson/src/test/java/com/google/gson/functional/ExclusionStrategyFunctionalTest.java",
+        "gson/src/test/java/com/google/gson/functional/MapAsArrayTypeAdapterTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 13,
+      "signal_3b_oldest_sibling_days": 61,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit removes the old MapTypeAdapter / MappedObjectConstructor-based implementation and introduces MapTypeAdapterFactory + ConstructorConstructor/ObjectConstructor. The core map serialization/deserialization and instance-creation logic existed before (old MapTypeAdapter and MappedObjectConstructor/DefaultConstructorCreator) and was reorganized: object-construction was moved into ConstructorConstructor.getConstructor(...) and the map adapter creation was moved into MapTypeAdapterFactory. Call sites (Gson, MiniGson, Collection handling, etc.) were updated to use the new factories (e.g. new MapTypeAdapterFactory(constructorConstructor), new CollectionTypeAdapterFactory(...)) instead of the previous concrete adapters \u2014 i.e., existing behavior was restructured into factory-based creation rather than created from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 21 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/DefaultTypeAdapters.java', 'gson/src/main/java/com/google/gson/FieldAttributes.java', 'gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/JsonDeserializationContext.java'] \u2026",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 13 pre-existing .java file(s) before the birth commit, oldest sibling 61d old",
+        "LLM \u2713 Refactoring confirmed: The commit removes the old MapTypeAdapter / MappedObjectConstructor-based implementation and introduces MapTypeAdapterFactory + ConstructorConstructor/ObjectConstructor. The core map serialization/des"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 11,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/MapTypeAdapterFactory.java",
+    "class_name": "MapTypeAdapterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class produces TypeAdapter instances and its inner Adapter<K,V> extends TypeAdapter<Map<K,V>> to translate between the Map<K,V> Java API and JSON (JsonReader/JsonWriter). It wraps/delegates to key and value TypeAdapters and converts the Map interface to the JSON reader/writer interface \u2014 behavior that matches the GoF Adapter pattern. (Note: the factory aspect is also present, but the core mapping logic is an Adapter implemented by the inner class.)",
+    "birth_commit_sha": "25c6ae177b1ca56db7f3c29eb574bdd032a06165",
+    "parent_sha": "cdd5d80b85155c21c61f888fb3e70c65e72edef7",
+    "birth_commit_date": "2011-09-11T07:04:56+00:00",
+    "birth_commit_message": "Down to 22 failing tests.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/MapTypeAdapterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 21,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/DefaultTypeAdapters.java",
+        "gson/src/main/java/com/google/gson/FieldAttributes.java",
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/JsonDeserializationContext.java",
+        "gson/src/main/java/com/google/gson/JsonElement.java",
+        "gson/src/main/java/com/google/gson/JsonSerializationContext.java",
+        "gson/src/main/java/com/google/gson/MapAsArrayTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigDecimalTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigIntegerTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/MiniGson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/Reflection.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapterRuntimeTypeWrapper.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/test/java/com/google/gson/DefaultMapJsonSerializerTest.java",
+        "gson/src/test/java/com/google/gson/FunctionWithInternalDependenciesTest.java",
+        "gson/src/test/java/com/google/gson/MixedStreamTest.java",
+        "gson/src/test/java/com/google/gson/ParamterizedTypeFixtures.java",
+        "gson/src/test/java/com/google/gson/PrimitiveTypeAdapter.java",
+        "gson/src/test/java/com/google/gson/functional/ExclusionStrategyFunctionalTest.java",
+        "gson/src/test/java/com/google/gson/functional/MapAsArrayTypeAdapterTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 13,
+      "signal_3b_oldest_sibling_days": 61,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "Existing map adapters (MapTypeAdapter, GsonCompatibleMapTypeAdapter, StringToValueMapTypeAdapter, etc.) were removed and their functionality reorganized into a new MapTypeAdapterFactory with an inner Adapter. Call sites were updated to register/use the new factory (e.g., Gson.java and MiniGson now use new MapTypeAdapterFactory(constructorConstructor) instead of the old FACTORY constants). Thus the adaptee functionality already existed and was moved into an Adapter-style factory \u2014 a refactor, not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 21 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/DefaultTypeAdapters.java', 'gson/src/main/java/com/google/gson/FieldAttributes.java', 'gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/JsonDeserializationContext.java'] \u2026",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 13 pre-existing .java file(s) before the birth commit, oldest sibling 61d old",
+        "LLM \u2713 Refactoring confirmed: Existing map adapters (MapTypeAdapter, GsonCompatibleMapTypeAdapter, StringToValueMapTypeAdapter, etc.) were removed and their functionality reorganized into a new MapTypeAdapterFactory with an inner "
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 12,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/TreeTypeAdapter.java",
+    "class_name": "TreeTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "TreeTypeAdapter wraps JsonSerializer/JsonDeserializer (tree-style) and exposes the streaming TypeAdapter interface (read/write), converting between the two representations and delegating to a real TypeAdapter when needed. This is the classic Adapter role (object adapter via delegation). The factory and lazy delegate creation are supporting mechanics.",
+    "birth_commit_sha": "34d7521d9581b025c23bd5e4880a1b3a687b3da0",
+    "parent_sha": "ee8d6be59ff6f2466d65be746b96ccf07ddb9ddf",
+    "birth_commit_date": "2016-03-28T21:46:02+00:00",
+    "birth_commit_message": "moved the JsonSerializationContext/JsonDeserializationContext fields to where they are used. Also moved TreeTypeAdapter to internal.bind package for potential use in JsonAdapterAnnotationFactory.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/TreeTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 13,
+      "signal_3b_oldest_sibling_days": 1721,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The Gson class previously provided serialization/deserialization context instances (deserializationContext/serializationContext). Those fields were removed and equivalent behavior was moved into a new GsonContextImpl inside the moved TreeTypeAdapter; TreeTypeAdapter's read/write now call that context instead of gson.deserializationContext/gson.serializationContext. The adaptee (Gson) existed before and call sites were updated to use the new adapter, so this is a refactor introducing the Adapter around existing logic.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 13 pre-existing .java file(s) before the birth commit, oldest sibling 1721d old",
+        "LLM \u2713 Refactoring confirmed: The Gson class previously provided serialization/deserialization context instances (deserializationContext/serializationContext). Those fields were removed and equivalent behavior was moved into a new"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 13,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/TreeTypeAdapter.java",
+    "class_name": "TreeTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "TreeTypeAdapter wraps JsonSerializer/JsonDeserializer (tree-style) and exposes the streaming TypeAdapter interface (read/write), converting between the two representations and delegating to a real TypeAdapter when needed. This is the classic Adapter role (object adapter via delegation). The factory and lazy delegate creation are supporting mechanics.",
+    "birth_commit_sha": "d391584d48ce87a36c88e804711a5f187e0b9086",
+    "parent_sha": "777e17c723fa2c87d703326f6bcf1195645893bd",
+    "birth_commit_date": "2011-11-20T19:55:01+00:00",
+    "birth_commit_message": "Register Gson 1.x tree-style adapters in the TypeAdapter.Factory list rather than in the ParameterizedTypeHandlerMap.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/TreeTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 3,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/internal/ConstructorConstructor.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 17,
+      "signal_3b_oldest_sibling_days": 131,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit replaces the old GsonToMiniGsonTypeAdapterFactory with a new TreeTypeAdapter implementation that adapts existing JsonSerializer/JsonDeserializer handlers. The underlying adaptees (the serializer/deserializer handlers stored in the maps) already existed (formerly ParameterizedTypeHandlerMap, now renamed TypeMap), and call sites were updated to use the new adapter factories (Gson: replaced the old factory with TreeTypeAdapter.TypeHierarchyFactory; GsonBuilder: now registers SingleTypeFactory for per-type adapters). Core logic was moved/restructured (contexts moved into Gson, read/write logic moved from the deleted factory into TreeTypeAdapter) rather than newly implemented behavior.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 3 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/internal/ConstructorConstructor.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 17 pre-existing .java file(s) before the birth commit, oldest sibling 131d old",
+        "LLM \u2713 Refactoring confirmed: The commit replaces the old GsonToMiniGsonTypeAdapterFactory with a new TreeTypeAdapter implementation that adapts existing JsonSerializer/JsonDeserializer handlers. The underlying adaptees (the seria"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 14,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/DefaultDateTypeAdapter.java",
+    "class_name": "DefaultDateTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "DefaultDateTypeAdapter implements Gson's TypeAdapter interface to translate between java.util.Date (and its formats/parsers) and JSON strings, delegating to DateFormat and ISO8601Utils for the actual parsing/formatting. That is the intent of the Adapter pattern \u2014 adapting the existing date/formatting functionality to the TypeAdapter interface expected by Gson.",
+    "birth_commit_sha": "4da08b0ec6c35d4d36bf8e91cc402f9fb3117567",
+    "parent_sha": "7def596775df746f3440f40ffdb937ad5f535265",
+    "birth_commit_date": "2011-11-21T06:23:42+00:00",
+    "birth_commit_message": "Remove two implementation classes that weren't generally useful:  - The cache interface has only one implementation. Drop the interface; we can add it back later if necessary.  - The DefaultTypeAdapters class contains one member class. Just make that a top-level class.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/DefaultDateTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/FieldAttributes.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/LruCache.java",
+        "gson/src/test/java/com/google/gson/DefaultDateTypeAdapterTest.java",
+        "gson/src/test/java/com/google/gson/JsonDeserializerExceptionWrapperTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 15,
+      "signal_3b_oldest_sibling_days": 132,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The DefaultDateTypeAdapter implementation was not newly created \u2014 it was previously the static nested class DefaultTypeAdapters.DefaultDateTypeAdapter and has been extracted to its own top-level file with the same logic. Call sites were adjusted (imports removed since it's now package-visible), but the core logic and interfaces were unchanged. This is a code-move/extraction, not a new Adapter-pattern refactoring or greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/FieldAttributes.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/LruCache.java', 'gson/src/test/java/com/google/gson/DefaultDateTypeAdapterTest.java', 'gson/src/test/java/com/google/gson/JsonDeserializerExceptionWrapperTest.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 15 pre-existing .java file(s) before the birth commit, oldest sibling 132d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The DefaultDateTypeAdapter implementation was not newly created \u2014 it was previously the static nested class DefaultTypeAdapters.DefaultDateTypeAdapter and has been extracted to its own top-level file "
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 15,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/DefaultDateTypeAdapter.java",
+    "class_name": "DefaultDateTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "DefaultDateTypeAdapter implements Gson's TypeAdapter interface to translate between java.util.Date (and its formats/parsers) and JSON strings, delegating to DateFormat and ISO8601Utils for the actual parsing/formatting. That is the intent of the Adapter pattern \u2014 adapting the existing date/formatting functionality to the TypeAdapter interface expected by Gson.",
+    "birth_commit_sha": "380c4ec12c7a8b2b85cc3a8ac78b3f123162c70c",
+    "parent_sha": "361292f1c192cdf06195cfd5346763ba38e3ce0d",
+    "birth_commit_date": "2020-05-09T15:37:21+00:00",
+    "birth_commit_message": "Make dependency on java.sql optional",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/DefaultDateTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/main/java/module-info.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 14,
+      "signal_3b_oldest_sibling_days": 3224,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "DefaultDateTypeAdapter already existed (was moved/renamed but not newly created) and its DateType factory methods were refactored to produce TypeAdapterFactory instances instead of raw DefaultDateTypeAdapter objects. Call sites were updated accordingly (GsonBuilder and tests now call createAdapterFactory and add the resulting factories), so existing logic was restructured into the new adapter/factory form rather than introduced from scratch.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java', 'gson/src/main/java/module-info.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 14 pre-existing .java file(s) before the birth commit, oldest sibling 3224d old",
+        "LLM \u2713 Refactoring confirmed: DefaultDateTypeAdapter already existed (was moved/renamed but not newly created) and its DateType factory methods were refactored to produce TypeAdapterFactory instances instead of raw DefaultDateType"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 16,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "FactoryMethod",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java",
+    "class_name": "ReflectiveTypeAdapterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.86,
+    "detection_reasoning": "ReflectiveTypeAdapterFactory implements TypeAdapterFactory and provides the create(Gson, TypeToken) method that constructs and returns different TypeAdapter concrete instances (anonymous null adapter, RecordAdapter, FieldReflectionAdapter) based on runtime conditions. This method encapsulates object creation and returns products of a common interface, matching the Factory Method intent (a factory method that decides which concrete product subclass to instantiate).",
+    "birth_commit_sha": "25c6ae177b1ca56db7f3c29eb574bdd032a06165",
+    "parent_sha": "cdd5d80b85155c21c61f888fb3e70c65e72edef7",
+    "birth_commit_date": "2011-09-11T07:04:56+00:00",
+    "birth_commit_message": "Down to 22 failing tests.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 21,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/DefaultTypeAdapters.java",
+        "gson/src/main/java/com/google/gson/FieldAttributes.java",
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/JsonDeserializationContext.java",
+        "gson/src/main/java/com/google/gson/JsonElement.java",
+        "gson/src/main/java/com/google/gson/JsonSerializationContext.java",
+        "gson/src/main/java/com/google/gson/MapAsArrayTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigDecimalTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigIntegerTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/MiniGson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/Reflection.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapterRuntimeTypeWrapper.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/test/java/com/google/gson/DefaultMapJsonSerializerTest.java",
+        "gson/src/test/java/com/google/gson/FunctionWithInternalDependenciesTest.java",
+        "gson/src/test/java/com/google/gson/MixedStreamTest.java",
+        "gson/src/test/java/com/google/gson/ParamterizedTypeFixtures.java",
+        "gson/src/test/java/com/google/gson/PrimitiveTypeAdapter.java",
+        "gson/src/test/java/com/google/gson/functional/ExclusionStrategyFunctionalTest.java",
+        "gson/src/test/java/com/google/gson/functional/MapAsArrayTypeAdapterTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 13,
+      "signal_3b_oldest_sibling_days": 61,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The reflective type-adapter logic already existed (ReflectiveTypeAdapter and its FactoryImpl, plus existing object-construction code like MappedObjectConstructor/allocators). The commit restructures that existing logic into a new ReflectiveTypeAdapterFactory that exposes protected factory-method hooks (serializeField/deserializeField/getFieldName) and switches call sites (Gson, MiniGson, etc.) to instantiate and use the new factory. In other words the core behavior was moved/reorganized into a Factory Method structure and callers were updated to use it \u2014 a refactoring, not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 21 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/DefaultTypeAdapters.java', 'gson/src/main/java/com/google/gson/FieldAttributes.java', 'gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/JsonDeserializationContext.java'] \u2026",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 13 pre-existing .java file(s) before the birth commit, oldest sibling 61d old",
+        "LLM \u2713 Refactoring confirmed: The reflective type-adapter logic already existed (ReflectiveTypeAdapter and its FactoryImpl, plus existing object-construction code like MappedObjectConstructor/allocators). The commit restructures t"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 17,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java",
+    "class_name": "ReflectiveTypeAdapterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The class produces TypeAdapter instances (inner Adapter, FieldReflectionAdapter, RecordAdapter) that adapt Java objects to/from JsonReader/JsonWriter. Those inner classes implement the object-to-JSON adaptation role of the GoF Adapter pattern. (Note: the factory itself is also the Factory pattern, since it creates adapters dynamically.)",
+    "birth_commit_sha": "25c6ae177b1ca56db7f3c29eb574bdd032a06165",
+    "parent_sha": "cdd5d80b85155c21c61f888fb3e70c65e72edef7",
+    "birth_commit_date": "2011-09-11T07:04:56+00:00",
+    "birth_commit_message": "Down to 22 failing tests.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 21,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/DefaultTypeAdapters.java",
+        "gson/src/main/java/com/google/gson/FieldAttributes.java",
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/JsonDeserializationContext.java",
+        "gson/src/main/java/com/google/gson/JsonElement.java",
+        "gson/src/main/java/com/google/gson/JsonSerializationContext.java",
+        "gson/src/main/java/com/google/gson/MapAsArrayTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigDecimalTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigIntegerTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/MiniGson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/Reflection.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapterRuntimeTypeWrapper.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/test/java/com/google/gson/DefaultMapJsonSerializerTest.java",
+        "gson/src/test/java/com/google/gson/FunctionWithInternalDependenciesTest.java",
+        "gson/src/test/java/com/google/gson/MixedStreamTest.java",
+        "gson/src/test/java/com/google/gson/ParamterizedTypeFixtures.java",
+        "gson/src/test/java/com/google/gson/PrimitiveTypeAdapter.java",
+        "gson/src/test/java/com/google/gson/functional/ExclusionStrategyFunctionalTest.java",
+        "gson/src/test/java/com/google/gson/functional/MapAsArrayTypeAdapterTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 13,
+      "signal_3b_oldest_sibling_days": 61,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The previous ReflectiveTypeAdapter class was removed and its functionality was moved into the new ReflectiveTypeAdapterFactory (with an inner Adapter class). Call sites were updated to use the new factory/adapter (e.g., MiniGson now registers new ReflectiveTypeAdapterFactory(...), TypeAdapterRuntimeTypeWrapper checks for ReflectiveTypeAdapterFactory.Adapter, and other places that previously referenced ReflectiveTypeAdapter now use the new factory/adapter). Therefore the adaptee existed before and call sites were changed to bridge to the new Adapter \u2014 this is a refactor (code moved/restructured into the Adapter pattern), not a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 21 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/DefaultTypeAdapters.java', 'gson/src/main/java/com/google/gson/FieldAttributes.java', 'gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/JsonDeserializationContext.java'] \u2026",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 13 pre-existing .java file(s) before the birth commit, oldest sibling 61d old",
+        "LLM \u2713 Refactoring confirmed: The previous ReflectiveTypeAdapter class was removed and its functionality was moved into the new ReflectiveTypeAdapterFactory (with an inner Adapter class). Call sites were updated to use the new fac"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 18,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "FactoryMethod",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/CollectionTypeAdapterFactory.java",
+    "class_name": "CollectionTypeAdapterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.92,
+    "detection_reasoning": "The class implements the TypeAdapterFactory interface and provides a create(...) method that constructs and returns appropriate TypeAdapter instances (or null when not applicable). It encapsulates the instantiation logic (including wrapping element adapters and obtaining an ObjectConstructor) and thus functions as a factory for TypeAdapter products\u2014matching the Factory Method intent.",
+    "birth_commit_sha": "25c6ae177b1ca56db7f3c29eb574bdd032a06165",
+    "parent_sha": "cdd5d80b85155c21c61f888fb3e70c65e72edef7",
+    "birth_commit_date": "2011-09-11T07:04:56+00:00",
+    "birth_commit_message": "Down to 22 failing tests.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/CollectionTypeAdapterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 21,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/DefaultTypeAdapters.java",
+        "gson/src/main/java/com/google/gson/FieldAttributes.java",
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/JsonDeserializationContext.java",
+        "gson/src/main/java/com/google/gson/JsonElement.java",
+        "gson/src/main/java/com/google/gson/JsonSerializationContext.java",
+        "gson/src/main/java/com/google/gson/MapAsArrayTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigDecimalTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/BigIntegerTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/MiniGson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/Reflection.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapterRuntimeTypeWrapper.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/test/java/com/google/gson/DefaultMapJsonSerializerTest.java",
+        "gson/src/test/java/com/google/gson/FunctionWithInternalDependenciesTest.java",
+        "gson/src/test/java/com/google/gson/MixedStreamTest.java",
+        "gson/src/test/java/com/google/gson/ParamterizedTypeFixtures.java",
+        "gson/src/test/java/com/google/gson/PrimitiveTypeAdapter.java",
+        "gson/src/test/java/com/google/gson/functional/ExclusionStrategyFunctionalTest.java",
+        "gson/src/test/java/com/google/gson/functional/MapAsArrayTypeAdapterTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 13,
+      "signal_3b_oldest_sibling_days": 61,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit extracts and reorganizes existing collection/map construction logic into a new ConstructorConstructor/ObjectConstructor factory mechanism and replaces direct reflection/constructor use in CollectionTypeAdapter with calls to constructorConstructor.getConstructor(...). Call sites (MiniGson, Gson) were updated to pass and use the new ConstructorConstructor and the new CollectionTypeAdapterFactory. The object-creation behavior existed before (was in CollectionTypeAdapter / MappedObjectConstructor), and sites were changed to use the Factory Method (ObjectConstructor.construct()), so this is a refactoring into the Factory Method style rather than a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 21 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/DefaultTypeAdapters.java', 'gson/src/main/java/com/google/gson/FieldAttributes.java', 'gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/JsonDeserializationContext.java'] \u2026",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 13 pre-existing .java file(s) before the birth commit, oldest sibling 61d old",
+        "LLM \u2713 Refactoring confirmed: The commit extracts and reorganizes existing collection/map construction logic into a new ConstructorConstructor/ObjectConstructor factory mechanism and replaces direct reflection/constructor use in C"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 19,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/NumberTypeAdapter.java",
+    "class_name": "NumberTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "NumberTypeAdapter implements the TypeAdapter<Number> interface (via subclassing) and wraps a ToNumberStrategy instance, delegating the read operation to that strategy. That is the essence of the Adapter pattern: it adapts the ToNumberStrategy (adaptee) to the TypeAdapter API (target). The factory code is orthogonal (creation), but the class itself is an object adapter (composition + delegation).",
+    "birth_commit_sha": "fe30b85224316cabf19f5dd3223843437c297802",
+    "parent_sha": "1cc16274235f89650349884dd04760bf15a95d96",
+    "birth_commit_date": "2021-10-09T00:09:43+00:00",
+    "birth_commit_message": "Support arbitrary Number implementation for Object and Number deserialization (#1290)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/NumberTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ObjectTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/test/java/com/google/gson/GsonTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 13,
+      "signal_3b_oldest_sibling_days": 3742,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The number-reading logic that previously lived in TypeAdapters (NUMBER / NUMBER_FACTORY) was moved into the new NumberTypeAdapter and wrapped behind getFactory(...). Call sites were updated (Gson now uses ObjectTypeAdapter.getFactory(objectToNumberStrategy) and NumberTypeAdapter.getFactory(numberToNumberStrategy) instead of the old factories). The original adaptee (the prior Number adapter/factory logic) existed before and the codepaths were changed to use the new adapter, so this is a refactor into the Adapter/strategy structure rather than a pure greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/internal/bind/ObjectTypeAdapter.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java', 'gson/src/test/java/com/google/gson/GsonTest.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 13 pre-existing .java file(s) before the birth commit, oldest sibling 3742d old",
+        "LLM \u2713 Refactoring confirmed: The number-reading logic that previously lived in TypeAdapters (NUMBER / NUMBER_FACTORY) was moved into the new NumberTypeAdapter and wrapped behind getFactory(...). Call sites were updated (Gson now "
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 20,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+    "class_name": "TypeAdapters",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "This class supplies many implementations of the TypeAdapter interface and factories that produce them. Each TypeAdapter adapts between Gson's JsonReader/JsonWriter representation and a Java type (read/write methods delegate to/from JSON), and factory methods wrap/delegate adapters for specific types or type hierarchies. That is a textbook use of the Adapter pattern (objects that translate one interface \u2014 JSON streaming \u2014 to another \u2014 domain types).",
+    "birth_commit_sha": "60e6ed912d52716f46a1ba71923ef203c4248857",
+    "parent_sha": "759eb8ede50f61fd525f5d703dd9fd45ddae1dcd",
+    "birth_commit_date": "2011-08-03T00:25:10+00:00",
+    "birth_commit_message": "Promote MiniGson to gson.internal.bind",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'gson/src/main/java/com/google/gson/internal/bind' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 21,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+    "class_name": "TypeAdapters",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "This class supplies many implementations of the TypeAdapter interface and factories that produce them. Each TypeAdapter adapts between Gson's JsonReader/JsonWriter representation and a Java type (read/write methods delegate to/from JSON), and factory methods wrap/delegate adapters for specific types or type hierarchies. That is a textbook use of the Adapter pattern (objects that translate one interface \u2014 JSON streaming \u2014 to another \u2014 domain types).",
+    "birth_commit_sha": "c5f1df10175c254b823fc019832bf1bf7b71e929",
+    "parent_sha": "807aa97ee7a2d380f77c947a47e9871d7ce98122",
+    "birth_commit_date": "2011-07-11T16:46:52+00:00",
+    "birth_commit_message": "MiniGSON prototype!",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'gson/src/main/java/com/google/gson/internal/bind' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 22,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "FactoryMethod",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/JsonAdapterAnnotationTypeAdapterFactory.java",
+    "class_name": "JsonAdapterAnnotationTypeAdapterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The class implements the TypeAdapterFactory interface and provides a concrete create(...) method that encapsulates the logic to instantiate and return appropriate TypeAdapter objects based on @JsonAdapter metadata. It selects and constructs different concrete adapter types at run time (TypeAdapter, TypeAdapterFactory-produced adapter, TreeTypeAdapter, etc.), which matches the intent of the Factory Method pattern (a creator interface with a concrete creator deciding which concrete product to instantiate).",
+    "birth_commit_sha": "edf66083e6245abfab4a85dce03c0bf79a66f474",
+    "parent_sha": "7f6a0960300792f47ee6c153595e0681ea07cd91",
+    "birth_commit_date": "2014-03-26T17:59:54+00:00",
+    "birth_commit_message": "renamed @Adapt to @JsonAdapter",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/JsonAdapterAnnotationTypeAdapterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 13,
+      "signal_3b_oldest_sibling_days": 988,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit mainly renames and moves the existing Adapt annotation and AdaptAnnotationTypeAdapterFactory to JsonAdapter / JsonAdapterAnnotationTypeAdapterFactory and updates all call sites (Gson, ReflectiveTypeAdapterFactory, and tests). The type-adapter creation logic (using ConstructorConstructor/getAnnotationTypeAdapter) already existed and was not newly designed; call sites were updated to reference the renamed class. This is a move/rename of existing logic, not a greenfield introduction of a Factory Method pattern.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 13 pre-existing .java file(s) before the birth commit, oldest sibling 988d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The commit mainly renames and moves the existing Adapt annotation and AdaptAnnotationTypeAdapterFactory to JsonAdapter / JsonAdapterAnnotationTypeAdapterFactory and updates all call sites (Gson, Refle"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 23,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "FactoryMethod",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/JsonAdapterAnnotationTypeAdapterFactory.java",
+    "class_name": "JsonAdapterAnnotationTypeAdapterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The class implements the TypeAdapterFactory interface and provides a concrete create(...) method that encapsulates the logic to instantiate and return appropriate TypeAdapter objects based on @JsonAdapter metadata. It selects and constructs different concrete adapter types at run time (TypeAdapter, TypeAdapterFactory-produced adapter, TreeTypeAdapter, etc.), which matches the intent of the Factory Method pattern (a creator interface with a concrete creator deciding which concrete product to instantiate).",
+    "birth_commit_sha": "67d512ee7db6eca139622591cd7ea5e46fa39c01",
+    "parent_sha": "7c97ac2944748ed2d609821f41e3f3e33e0c73b5",
+    "birth_commit_date": "2014-03-08T22:37:19+00:00",
+    "birth_commit_message": "Created a JsonAdapter annotation that can be applied to classes to indicate their TypeAdapter.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/JsonAdapterAnnotationTypeAdapterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 13,
+      "signal_3b_oldest_sibling_days": 971,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a new annotation (JsonAdapter), a new TypeAdapterFactory (JsonAdapterAnnotationTypeAdapterFactory), and tests \u2014 the adapter-selection/creation logic is introduced from scratch. No existing methods or instantiation logic were moved into this class; Gson was only updated to include the new factory in its factories list. While it reuses the existing ConstructorConstructor helper to construct adapters, the annotation-based creation behavior did not exist before, so this is a greenfield introduction rather than a refactor.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 13 pre-existing .java file(s) before the birth commit, oldest sibling 971d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The commit adds a new annotation (JsonAdapter), a new TypeAdapterFactory (JsonAdapterAnnotationTypeAdapterFactory), and tests \u2014 the adapter-selection/creation logic is introduced from scratch. No exis"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 24,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java",
+    "class_name": "ArrayTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "ArrayTypeAdapter is an object adapter: it implements the TypeAdapter (the target interface) and adapts array instances to/from JSON by delegating element work to a component TypeAdapter (the adaptee). It composes/wraps the element adapter and translates between the array representation and the JsonReader/JsonWriter protocol, which matches the GoF Adapter intent.",
+    "birth_commit_sha": "60e6ed912d52716f46a1ba71923ef203c4248857",
+    "parent_sha": "759eb8ede50f61fd525f5d703dd9fd45ddae1dcd",
+    "birth_commit_date": "2011-08-03T00:25:10+00:00",
+    "birth_commit_message": "Promote MiniGson to gson.internal.bind",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'gson/src/main/java/com/google/gson/internal/bind' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 25,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java",
+    "class_name": "ArrayTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "ArrayTypeAdapter is an object adapter: it implements the TypeAdapter (the target interface) and adapts array instances to/from JSON by delegating element work to a component TypeAdapter (the adaptee). It composes/wraps the element adapter and translates between the array representation and the JsonReader/JsonWriter protocol, which matches the GoF Adapter intent.",
+    "birth_commit_sha": "c6bef300579d96fe90e5be8240ee595ae8da66f1",
+    "parent_sha": "95a345234fb1d51ada03f37d50769cd5198b5af3",
+    "birth_commit_date": "2011-07-11T22:26:53+00:00",
+    "birth_commit_message": "Array support.",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 3,
+      "signal_3a_modified_files": [
+        "extras/src/main/java/com/google/gson/mini/CollectionTypeAdapter.java",
+        "extras/src/main/java/com/google/gson/mini/MiniGson.java",
+        "extras/src/test/java/com/google/gson/mini/MiniGsonTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The ArrayTypeAdapter class is added as a new file (no prior adaptee existed in the diff). MiniGson is updated to register the new factory and tests are added to exercise array support, but there is no evidence of existing array-handling code being moved into this adapter. The commit introduces array-adapter functionality from scratch rather than refactoring existing logic into an Adapter.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 3 pre-existing Java file(s) modified in birth commit (call-site update): ['extras/src/main/java/com/google/gson/mini/CollectionTypeAdapter.java', 'extras/src/main/java/com/google/gson/mini/MiniGson.java', 'extras/src/test/java/com/google/gson/mini/MiniGsonTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'gson/src/main/java/com/google/gson/internal/bind' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The ArrayTypeAdapter class is added as a new file (no prior adaptee existed in the diff). MiniGson is updated to register the new factory and tests are added to exercise array support, but there is no"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 26,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/ObjectTypeAdapter.java",
+    "class_name": "ObjectTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "ObjectTypeAdapter implements Gson's TypeAdapter interface to convert between JSON (JsonReader/JsonWriter) and Java Objects, effectively adapting the JSON stream API to the Object representation. It also delegates to other TypeAdapter instances obtained from Gson (gson.getAdapter) for concrete types and is produced by a TypeAdapterFactory \u2014 all typical characteristics of the Adapter pattern.",
+    "birth_commit_sha": "3aeb70e0305a598a9ceddc0390d693874dcc892d",
+    "parent_sha": "9fb39c89ea06ce5472d6979e264de5d9cc031c91",
+    "birth_commit_date": "2011-09-09T03:31:16+00:00",
+    "birth_commit_message": "Adapter for Object.class",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/ObjectTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 7,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/BaseMapTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonToMiniGsonTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/JsonDeserializationContext.java",
+        "gson/src/main/java/com/google/gson/internal/bind/CollectionTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/MiniGson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapter.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 11,
+      "signal_3b_oldest_sibling_days": 59,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The ObjectTypeAdapter (and related GsonCompatibleMapTypeAdapter and tests) are new files added in this commit; there is no prior Object-type adapter implementation moved into this new class. The commit does register the new factory in Gson/MiniGson, but the core Object-handling logic was introduced from scratch rather than refactored/moved from an existing adaptee.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 7 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/BaseMapTypeAdapter.java', 'gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonToMiniGsonTypeAdapter.java', 'gson/src/main/java/com/google/gson/JsonDeserializationContext.java', 'gson/src/main/java/com/google/gson/internal/bind/CollectionTypeAdapter.java'] \u2026",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 11 pre-existing .java file(s) before the birth commit, oldest sibling 59d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The ObjectTypeAdapter (and related GsonCompatibleMapTypeAdapter and tests) are new files added in this commit; there is no prior Object-type adapter implementation moved into this new class. The commi"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 27,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/bind/JavaTimeTypeAdapters.java",
+    "class_name": "JavaTimeTypeAdapters",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class supplies many implementations of Gson's TypeAdapter<T> (and a TypeAdapterFactory) that translate between java.time types and Gson's JSON reader/writer APIs. Each adapter wraps the JSON stream interface and converts to/from a java.time object, which is the intent of the Adapter pattern (adapting one interface to another). The factory merely selects the appropriate adapter for a given type; the core role of the class is providing adapters.",
+    "birth_commit_sha": "c47db7bc13875db690bcfb76e02b1e1bbb3a3353",
+    "parent_sha": "dfc1ce001b46cb1c022012aa08152852b67dbdc9",
+    "birth_commit_date": "2025-12-23T22:38:19+00:00",
+    "birth_commit_message": "Add type adapters for `java.time` classes (#2948)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/bind/JavaTimeTypeAdapters.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 3,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/test/java/com/google/gson/functional/DefaultTypeAdaptersTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 16,
+      "signal_3b_oldest_sibling_days": 5279,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The JavaTimeTypeAdapters class is newly added (did not exist before) and contains fresh adapter implementations. TypeAdapters gained a FactorySupplier and javaTimeTypeAdapterFactory() to instantiate it, and Gson.java was updated to add that factory \u2014 but the core java.time logic was newly introduced here rather than moved from an existing adaptee. (Only a small reuse refactor\u2014adding IntegerFieldsTypeAdapter and using it for Calendar\u2014was done; the java.time adapters themselves are greenfield.)",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 3 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java', 'gson/src/test/java/com/google/gson/functional/DefaultTypeAdaptersTest.java']",
+        "3B \u2713 Package 'gson/src/main/java/com/google/gson/internal/bind' had 16 pre-existing .java file(s) before the birth commit, oldest sibling 5279d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The JavaTimeTypeAdapters class is newly added (did not exist before) and contains fresh adapter implementations. TypeAdapters gained a FactorySupplier and javaTimeTypeAdapterFactory() to instantiate i"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 28,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/sql/SqlTimeTypeAdapter.java",
+    "class_name": "SqlTimeTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "SqlTimeTypeAdapter implements Gson's TypeAdapter interface to convert between java.sql.Time and its JSON representation. That is exactly the role of an Adapter: it adapts the Time type to the JSON read/write interface (and back). The class encapsulates the conversion logic (using DateFormat) and exposes the TypeAdapter API to clients, so it is an object adapter in the GoF sense.",
+    "birth_commit_sha": "380c4ec12c7a8b2b85cc3a8ac78b3f123162c70c",
+    "parent_sha": "361292f1c192cdf06195cfd5346763ba38e3ce0d",
+    "birth_commit_date": "2020-05-09T15:37:21+00:00",
+    "birth_commit_message": "Make dependency on java.sql optional",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/sql/SqlTimeTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/main/java/module-info.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The SQL time/date/timestamp support reuses existing logic: TimeTypeAdapter/SqlDate/Timestamp handling existed before (the TIMESTAMP_FACTORY and Time/SqlDate adapters were moved). The commit reorganizes and renames those classes into com.google.gson.internal.sql (SqlTimeTypeAdapter, SqlDateTypeAdapter, SqlTimestampTypeAdapter) and centralizes access via SqlTypesSupport. Call sites (Gson, GsonBuilder, tests) were updated to use the new factories from SqlTypesSupport. This is a restructuring of existing functionality into the adapter-style factories rather than a greenfield introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java', 'gson/src/main/java/module-info.java']",
+        "LLM \u2713 Refactoring confirmed: The SQL time/date/timestamp support reuses existing logic: TimeTypeAdapter/SqlDate/Timestamp handling existed before (the TIMESTAMP_FACTORY and Time/SqlDate adapters were moved). The commit reorganize"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'gson/src/main/java/com/google/gson/internal/sql' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 29,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/sql/SqlTimeTypeAdapter.java",
+    "class_name": "SqlTimeTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "SqlTimeTypeAdapter implements Gson's TypeAdapter interface to convert between java.sql.Time and its JSON representation. That is exactly the role of an Adapter: it adapts the Time type to the JSON read/write interface (and back). The class encapsulates the conversion logic (using DateFormat) and exposes the TypeAdapter API to clients, so it is an object adapter in the GoF sense.",
+    "birth_commit_sha": "3b3a60d301a66dfd1599c796c7f5b92e93972816",
+    "parent_sha": "2f0fbf6bcc32f5931d1ae93b7201aaec0c07da6d",
+    "birth_commit_date": "2011-09-26T21:44:08+00:00",
+    "birth_commit_message": "Use new instances of DateTypeAdapter and TimeTypeAdapter for each GSON; this guarantees that the TimeZone and Locale are what they should be",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/sql/SqlTimeTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The commit extracts the existing SQL_TIME (and DATE) TypeAdapter implementations out of TypeAdapters.java into new classes (TimeTypeAdapter and DateTypeAdapter) and updates the Gson registration sites to use the new FACTORY constants. The core parsing/formatting logic was moved, not newly implemented, and call sites were adjusted to use the new adapter factories \u2014 this is a refactoring (relocating existing logic into Adapter classes), not a greenfield introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java']",
+        "LLM \u2713 Refactoring confirmed: The commit extracts the existing SQL_TIME (and DATE) TypeAdapter implementations out of TypeAdapters.java into new classes (TimeTypeAdapter and DateTypeAdapter) and updates the Gson registration sites"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'gson/src/main/java/com/google/gson/internal/sql' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 30,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/sql/SqlDateTypeAdapter.java",
+    "class_name": "SqlDateTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "SqlDateTypeAdapter's purpose is to convert between java.sql.Date and its JSON representation by implementing the TypeAdapter interface (read/write methods). This is a textbook use of the Adapter pattern: it adapts the java.sql.Date type to the JSON I/O interface used by Gson. The FACTORY field is just a factory for producing the adapter but does not change the fact that the class itself performs the adaptation.",
+    "birth_commit_sha": "380c4ec12c7a8b2b85cc3a8ac78b3f123162c70c",
+    "parent_sha": "361292f1c192cdf06195cfd5346763ba38e3ce0d",
+    "birth_commit_date": "2020-05-09T15:37:21+00:00",
+    "birth_commit_message": "Make dependency on java.sql optional",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/sql/SqlDateTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/main/java/module-info.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The SQL date/time adapters (SqlDateTypeAdapter, TimeTypeAdapter -> SqlTimeTypeAdapter) previously existed and were moved/renamed into a new internal.sql package; the timestamp adapter logic was moved out of TypeAdapters into a new SqlTimestampTypeAdapter class. Call sites were updated (Gson, GsonBuilder) to use the new SqlTypesSupport indirection (DATE_FACTORY / TIME_FACTORY / TIMESTAMP_FACTORY) instead of the old direct factories/constants. In short, existing adapter logic was reorganized and wired through a new support/factory layer \u2014 this is a refactoring, not a greenfield introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/GsonBuilder.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java', 'gson/src/main/java/module-info.java']",
+        "LLM \u2713 Refactoring confirmed: The SQL date/time adapters (SqlDateTypeAdapter, TimeTypeAdapter -> SqlTimeTypeAdapter) previously existed and were moved/renamed into a new internal.sql package; the timestamp adapter logic was moved "
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'gson/src/main/java/com/google/gson/internal/sql' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 31,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/gson",
+    "pattern": "Adapter",
+    "pattern_file": "gson/src/main/java/com/google/gson/internal/sql/SqlDateTypeAdapter.java",
+    "class_name": "SqlDateTypeAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "SqlDateTypeAdapter's purpose is to convert between java.sql.Date and its JSON representation by implementing the TypeAdapter interface (read/write methods). This is a textbook use of the Adapter pattern: it adapts the java.sql.Date type to the JSON I/O interface used by Gson. The FACTORY field is just a factory for producing the adapter but does not change the fact that the class itself performs the adaptation.",
+    "birth_commit_sha": "3b3a60d301a66dfd1599c796c7f5b92e93972816",
+    "parent_sha": "2f0fbf6bcc32f5931d1ae93b7201aaec0c07da6d",
+    "birth_commit_date": "2011-09-26T21:44:08+00:00",
+    "birth_commit_message": "Use new instances of DateTypeAdapter and TimeTypeAdapter for each GSON; this guarantees that the TimeZone and Locale are what they should be",
+    "is_initial_repo_commit": false,
+    "original_file_path": "gson/src/main/java/com/google/gson/internal/sql/SqlDateTypeAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "gson/src/main/java/com/google/gson/Gson.java",
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "The Date/Time adapter logic already existed inside TypeAdapters (DATE and SQL_TIME). The commit extracts that logic into new DateTypeAdapter and TimeTypeAdapter classes and updates call sites (Gson.java) to use the new FACTORY constants. Existing functionality was moved into the Adapter-style classes and call sites were adjusted accordingly.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['gson/src/main/java/com/google/gson/Gson.java', 'gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java']",
+        "LLM \u2713 Refactoring confirmed: The Date/Time adapter logic already existed inside TypeAdapters (DATE and SQL_TIME). The commit extracts that logic into new DateTypeAdapter and TimeTypeAdapter classes and updates call sites (Gson.ja"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'gson/src/main/java/com/google/gson/internal/sql' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    },
+    "human_validation": false
+  }
+]

@@ -1,0 +1,548 @@
+{
+  "candidate_id": "dc6ddb40847ae26f",
+  "checks": [
+    {
+      "weight": 3.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "file_presence",
+      "file_regex": ".*TableBuilder\\.java$",
+      "expected_state": "exists"
+    },
+    {
+      "weight": 3.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "file_presence",
+      "file_regex": ".*TableBuilderBase\\.java$",
+      "expected_state": "exists"
+    }
+  ]
+}
+{
+  "candidate_id": "dc6ddb40847ae26f",
+  "checks": [
+    {
+      "weight": 3.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "file_presence",
+      "file_regex": "^.*TableBuilder\\.java$",
+      "expected_state": "exists"
+    },
+    {
+      "weight": 3.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "file_presence",
+      "file_regex": "^.*TableBuilderBase\\.java$",
+      "expected_state": "exists"
+    },
+    {
+      "weight": 3.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Add Parameter",
+      "ref_operation": {
+        "type": "Add Parameter",
+        "description": "Add Parameter builder : TableBuilderBase in method protected HTable(connection ClusterConnection, builder TableBuilderBase, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService) from class org.apache.hadoop.hbase.client.HTable",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 149,
+            "endLine": 207,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 162,
+            "endLine": 162,
+            "startColumn": 7,
+            "endColumn": 37,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "added parameter",
+            "codeElement": "builder : TableBuilderBase"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 150,
+            "endLine": 203,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with added parameter",
+            "codeElement": "protected HTable(connection ClusterConnection, builder TableBuilderBase, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+          }
+        ]
+      },
+      "description_regex": "Add Parameter.*?builder.*?TableBuilderBase.*?in method .*?HTable\\("
+    },
+    {
+      "weight": 2.5,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Remove Parameter",
+      "ref_operation": {
+        "type": "Remove Parameter",
+        "description": "Remove Parameter tableName : TableName in method protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService) from class org.apache.hadoop.hbase.client.HTable",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 159,
+            "endLine": 159,
+            "startColumn": 20,
+            "endColumn": 39,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "removed parameter",
+            "codeElement": "tableName : TableName"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 149,
+            "endLine": 207,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 150,
+            "endLine": 203,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with removed parameter",
+            "codeElement": "protected HTable(connection ClusterConnection, builder TableBuilderBase, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+          }
+        ]
+      },
+      "description_regex": "Remove Parameter.*?tableName.*?TableName.*?in method .*?HTable\\("
+    },
+    {
+      "weight": 2.5,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Remove Parameter",
+      "ref_operation": {
+        "type": "Remove Parameter",
+        "description": "Remove Parameter tableConfig : ConnectionConfiguration in method protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService) from class org.apache.hadoop.hbase.client.HTable",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 160,
+            "endLine": 160,
+            "startColumn": 7,
+            "endColumn": 48,
+            "codeElementType": "SINGLE_VARIABLE_DECLARATION",
+            "description": "removed parameter",
+            "codeElement": "tableConfig : ConnectionConfiguration"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 149,
+            "endLine": 207,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "protected HTable(tableName TableName, connection ClusterConnection, tableConfig ConnectionConfiguration, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 150,
+            "endLine": 203,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with removed parameter",
+            "codeElement": "protected HTable(connection ClusterConnection, builder TableBuilderBase, rpcCallerFactory RpcRetryingCallerFactory, rpcControllerFactory RpcControllerFactory, pool ExecutorService)"
+          }
+        ]
+      },
+      "description_regex": "Remove Parameter.*?tableConfig.*?ConnectionConfiguration.*?in method .*?HTable\\("
+    },
+    {
+      "weight": 1.5,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Extract Attribute",
+      "ref_operation": {
+        "type": "Extract Attribute",
+        "description": "Extract Attribute private writeBufferSize : long in class org.apache.hadoop.hbase.client.HTable",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1335,
+            "endLine": 1342,
+            "startColumn": 7,
+            "endColumn": 9,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement with the initializer of the extracted attribute",
+            "codeElement": null
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 122,
+            "endLine": 122,
+            "startColumn": 22,
+            "endColumn": 37,
+            "codeElementType": "FIELD_DECLARATION",
+            "description": "extracted attribute declaration",
+            "codeElement": "private writeBufferSize : long"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1336,
+            "endLine": 1343,
+            "startColumn": 7,
+            "endColumn": 9,
+            "codeElementType": "EXPRESSION_STATEMENT",
+            "description": "statement with the name of the extracted attribute",
+            "codeElement": null
+          }
+        ]
+      },
+      "description_regex": "Extract Attribute.*?writeBufferSize.*?:.*?long.*?in class .*?HTable"
+    },
+    {
+      "weight": 1.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Add Method Annotation",
+      "ref_operation": {
+        "type": "Add Method Annotation",
+        "description": "Add Method Annotation @Deprecated in method public setWriteBufferSize(writeBufferSize long) : void from class org.apache.hadoop.hbase.client.HTable",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1052,
+            "endLine": 1064,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public setWriteBufferSize(writeBufferSize long) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1058,
+            "endLine": 1058,
+            "startColumn": 3,
+            "endColumn": 14,
+            "codeElementType": "ANNOTATION",
+            "description": "added annotation",
+            "codeElement": "@Deprecated"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1049,
+            "endLine": 1062,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with added annotation",
+            "codeElement": "public setWriteBufferSize(writeBufferSize long) : void"
+          }
+        ]
+      },
+      "description_regex": "Add Method Annotation.*?@Deprecated.*?setWriteBufferSize\\(.*?\\).*?in class .*?HTable"
+    },
+    {
+      "weight": 1.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Add Method Annotation",
+      "ref_operation": {
+        "type": "Add Method Annotation",
+        "description": "Add Method Annotation @Deprecated in method public setOperationTimeout(operationTimeout int) : void from class org.apache.hadoop.hbase.client.HTable",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1164,
+            "endLine": 1170,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public setOperationTimeout(operationTimeout int) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1163,
+            "endLine": 1163,
+            "startColumn": 3,
+            "endColumn": 14,
+            "codeElementType": "ANNOTATION",
+            "description": "added annotation",
+            "codeElement": "@Deprecated"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1162,
+            "endLine": 1169,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with added annotation",
+            "codeElement": "public setOperationTimeout(operationTimeout int) : void"
+          }
+        ]
+      },
+      "description_regex": "Add Method Annotation.*?@Deprecated.*?setOperationTimeout\\(.*?\\).*?in class .*?HTable"
+    },
+    {
+      "weight": 1.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Add Method Annotation",
+      "ref_operation": {
+        "type": "Add Method Annotation",
+        "description": "Add Method Annotation @Deprecated in method public setWriteRpcTimeout(writeRpcTimeout int) : void from class org.apache.hadoop.hbase.client.HTable",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1195,
+            "endLine": 1201,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public setWriteRpcTimeout(writeRpcTimeout int) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1195,
+            "endLine": 1195,
+            "startColumn": 3,
+            "endColumn": 14,
+            "codeElementType": "ANNOTATION",
+            "description": "added annotation",
+            "codeElement": "@Deprecated"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1194,
+            "endLine": 1201,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with added annotation",
+            "codeElement": "public setWriteRpcTimeout(writeRpcTimeout int) : void"
+          }
+        ]
+      },
+      "description_regex": "Add Method Annotation.*?@Deprecated.*?setWriteRpcTimeout\\(.*?\\).*?in class .*?HTable"
+    },
+    {
+      "weight": 1.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Add Method Annotation",
+      "ref_operation": {
+        "type": "Add Method Annotation",
+        "description": "Add Method Annotation @Deprecated in method public setReadRpcTimeout(readRpcTimeout int) : void from class org.apache.hadoop.hbase.client.HTable",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1206,
+            "endLine": 1209,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public setReadRpcTimeout(readRpcTimeout int) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1207,
+            "endLine": 1207,
+            "startColumn": 3,
+            "endColumn": 14,
+            "codeElementType": "ANNOTATION",
+            "description": "added annotation",
+            "codeElement": "@Deprecated"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/HTable.java",
+            "startLine": 1206,
+            "endLine": 1210,
+            "startColumn": 3,
+            "endColumn": 4,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with added annotation",
+            "codeElement": "public setReadRpcTimeout(readRpcTimeout int) : void"
+          }
+        ]
+      },
+      "description_regex": "Add Method Annotation.*?@Deprecated.*?setReadRpcTimeout\\(.*?\\).*?in class .*?HTable"
+    },
+    {
+      "weight": 1.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Add Method Annotation",
+      "ref_operation": {
+        "type": "Add Method Annotation",
+        "description": "Add Method Annotation @Deprecated in method public setOperationTimeout(operationTimeout int) : void from class org.apache.hadoop.hbase.client.Table",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java",
+            "startLine": 587,
+            "endLine": 597,
+            "startColumn": 3,
+            "endColumn": 50,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public setOperationTimeout(operationTimeout int) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java",
+            "startLine": 598,
+            "endLine": 598,
+            "startColumn": 3,
+            "endColumn": 14,
+            "codeElementType": "ANNOTATION",
+            "description": "added annotation",
+            "codeElement": "@Deprecated"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java",
+            "startLine": 587,
+            "endLine": 599,
+            "startColumn": 3,
+            "endColumn": 50,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with added annotation",
+            "codeElement": "public setOperationTimeout(operationTimeout int) : void"
+          }
+        ]
+      },
+      "description_regex": "Add Method Annotation.*?@Deprecated.*?setOperationTimeout\\(.*?\\).*?in class .*?Table"
+    },
+    {
+      "weight": 1.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Add Method Annotation",
+      "ref_operation": {
+        "type": "Add Method Annotation",
+        "description": "Add Method Annotation @Deprecated in method public setReadRpcTimeout(readRpcTimeout int) : void from class org.apache.hadoop.hbase.client.Table",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java",
+            "startLine": 633,
+            "endLine": 641,
+            "startColumn": 3,
+            "endColumn": 46,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public setReadRpcTimeout(readRpcTimeout int) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java",
+            "startLine": 644,
+            "endLine": 644,
+            "startColumn": 3,
+            "endColumn": 14,
+            "codeElementType": "ANNOTATION",
+            "description": "added annotation",
+            "codeElement": "@Deprecated"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java",
+            "startLine": 635,
+            "endLine": 645,
+            "startColumn": 3,
+            "endColumn": 46,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with added annotation",
+            "codeElement": "public setReadRpcTimeout(readRpcTimeout int) : void"
+          }
+        ]
+      },
+      "description_regex": "Add Method Annotation.*?@Deprecated.*?setReadRpcTimeout\\(.*?\\).*?in class .*?Table"
+    },
+    {
+      "weight": 1.0,
+      "expected": true,
+      "impacts_recall": true,
+      "type": "refactoring_miner",
+      "operation_type": "Add Method Annotation",
+      "ref_operation": {
+        "type": "Add Method Annotation",
+        "description": "Add Method Annotation @Deprecated in method public setWriteRpcTimeout(writeRpcTimeout int) : void from class org.apache.hadoop.hbase.client.Table",
+        "leftSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java",
+            "startLine": 648,
+            "endLine": 656,
+            "startColumn": 3,
+            "endColumn": 48,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "original method declaration",
+            "codeElement": "public setWriteRpcTimeout(writeRpcTimeout int) : void"
+          }
+        ],
+        "rightSideLocations": [
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java",
+            "startLine": 661,
+            "endLine": 661,
+            "startColumn": 3,
+            "endColumn": 14,
+            "codeElementType": "ANNOTATION",
+            "description": "added annotation",
+            "codeElement": "@Deprecated"
+          },
+          {
+            "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/Table.java",
+            "startLine": 652,
+            "endLine": 662,
+            "startColumn": 3,
+            "endColumn": 48,
+            "codeElementType": "METHOD_DECLARATION",
+            "description": "method declaration with added annotation",
+            "codeElement": "public setWriteRpcTimeout(writeRpcTimeout int) : void"
+          }
+        ]
+      },
+      "description_regex": "Add Method Annotation.*?@Deprecated.*?setWriteRpcTimeout\\(.*?\\).*?in class .*?Table"
+    }
+  ]
+}

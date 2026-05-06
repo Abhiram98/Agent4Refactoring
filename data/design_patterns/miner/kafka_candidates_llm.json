@@ -65,5 +65,246 @@
         "LLM \u2717 Greenfield according to LLM: The commit introduces new types (ClusterResource, ClusterResourceListener, ClusterResourceListeners) and server/client logic to generate, propagate and notify cluster-id metadata (new metadata v2 hand"
       ]
     }
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/kafka",
+    "pattern": "Observer",
+    "pattern_file": "clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerRebalanceListener.java",
+    "class_name": "ConsumerRebalanceListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "This interface is a classic listener/callback (observer) contract: clients implement ConsumerRebalanceListener and the KafkaConsumer (the subject) invokes its methods to notify about partition-assignment changes. Although the file itself only defines the observer side, the semantics (registering a listener and being notified on events) and the default method behavior match the Observer/Listener pattern.",
+    "birth_commit_sha": "35eaef7bb4ebcf6b209312db774564451b052ca9",
+    "parent_sha": "03f850f671ba3035eb150fa243dca0a2aed28302",
+    "birth_commit_date": "2015-08-27T00:20:51+00:00",
+    "birth_commit_message": "KAFKA-2388: refactor KafkaConsumer subscribe API",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerRebalanceListener.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 14,
+      "signal_3a_modified_files": [
+        "clients/src/main/java/org/apache/kafka/clients/Metadata.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/Consumer.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerConfig.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/KafkaConsumer.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/MockConsumer.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/internals/Coordinator.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/internals/SubscriptionState.java",
+        "clients/src/test/java/org/apache/kafka/clients/consumer/KafkaConsumerTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/consumer/MockConsumerTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/consumer/internals/CoordinatorTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/consumer/internals/FetcherTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/consumer/internals/SubscriptionStateTest.java",
+        "copycat/runtime/src/main/java/org/apache/kafka/copycat/runtime/WorkerSinkTask.java",
+        "copycat/runtime/src/test/java/org/apache/kafka/copycat/runtime/WorkerSinkTaskTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 12,
+      "signal_3b_oldest_sibling_days": 580,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "Kafka already had a rebalance\u2010callback interface and logic; this change simply moves that into an Observer style (ConsumerRebalanceListener via SubscriptionState) and updates all subscribe/assign call sites to register listeners instead of passing callbacks in constructors.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 14 pre-existing Java file(s) modified in birth commit (call-site update): ['clients/src/main/java/org/apache/kafka/clients/Metadata.java', 'clients/src/main/java/org/apache/kafka/clients/consumer/Consumer.java', 'clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerConfig.java', 'clients/src/main/java/org/apache/kafka/clients/consumer/KafkaConsumer.java', 'clients/src/main/java/org/apache/kafka/clients/consumer/MockConsumer.java'] \u2026",
+        "3B \u2713 Package 'clients/src/main/java/org/apache/kafka/clients/consumer' had 12 pre-existing .java file(s) before the birth commit, oldest sibling 580d old",
+        "LLM \u2713 Refactoring confirmed: Kafka already had a rebalance\u2010callback interface and logic; this change simply moves that into an Observer style (ConsumerRebalanceListener via SubscriptionState) and updates all subscribe/assign call"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 3,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/kafka",
+    "pattern": "Observer",
+    "pattern_file": "clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerRebalanceListener.java",
+    "class_name": "ConsumerRebalanceListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "This interface is a classic listener/callback (observer) contract: clients implement ConsumerRebalanceListener and the KafkaConsumer (the subject) invokes its methods to notify about partition-assignment changes. Although the file itself only defines the observer side, the semantics (registering a listener and being notified on events) and the default method behavior match the Observer/Listener pattern.",
+    "birth_commit_sha": "c24740c7b0f6a6e7c66659da786a346650b76766",
+    "parent_sha": "bf7fb63218640873781720a494d1114fbe628795",
+    "birth_commit_date": "2014-05-20T23:49:31+00:00",
+    "birth_commit_message": "KAFKA-1328 New consumer APIs; reviewed by Jun Rao and Guozhang Wang",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerRebalanceListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "clients/src/main/java/org/apache/kafka/clients/producer/KafkaProducer.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The entire consumer API\u2014including the `ConsumerRebalanceCallback` interface and its wiring into `KafkaConsumer`\u2014is added from scratch. There was no prior rebalance\u2010listener or subject/observer logic to restructure, and no existing call sites were converted to the new subscription mechanism.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['clients/src/main/java/org/apache/kafka/clients/producer/KafkaProducer.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'clients/src/main/java/org/apache/kafka/clients/consumer' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The entire consumer API\u2014including the `ConsumerRebalanceCallback` interface and its wiring into `KafkaConsumer`\u2014is added from scratch. There was no prior rebalance\u2010listener or subject/observer logic t"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 4,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/kafka",
+    "pattern": "Command",
+    "pattern_file": "clients/src/main/java/org/apache/kafka/clients/producer/internals/TransactionManager.java",
+    "class_name": "TransactionManager",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class defines an abstract TxnRequestHandler with concrete subclasses (InitProducerIdHandler, AddPartitionsToTxnHandler, EndTxnHandler, etc.) that encapsulate a transactional request (requestBuilder, priority, coordinator info) and its handling (handleResponse, retry/fail behavior). Instances are created, enqueued in a PriorityQueue, and later invoked/sent by the sender/transaction manager logic. This is the Command pattern: requests are represented as objects, queued/managed by an invoker, and executed/handled later.",
+    "birth_commit_sha": "a82f194b21a6af2f52e36e55e2c6adcdba942c08",
+    "parent_sha": "bb663d04febcadd4f120e0ff5c5919ca8bf7e971",
+    "birth_commit_date": "2017-04-27T21:11:17+00:00",
+    "birth_commit_message": "KAFKA-4818; Exactly once transactional clients",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/src/main/java/org/apache/kafka/clients/producer/internals/TransactionManager.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 23,
+      "signal_3a_modified_files": [
+        "clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerConfig.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/KafkaConsumer.java",
+        "clients/src/main/java/org/apache/kafka/clients/consumer/internals/Fetcher.java",
+        "clients/src/main/java/org/apache/kafka/clients/producer/KafkaProducer.java",
+        "clients/src/main/java/org/apache/kafka/clients/producer/MockProducer.java",
+        "clients/src/main/java/org/apache/kafka/clients/producer/Producer.java",
+        "clients/src/main/java/org/apache/kafka/clients/producer/ProducerConfig.java",
+        "clients/src/main/java/org/apache/kafka/clients/producer/internals/ProducerBatch.java",
+        "clients/src/main/java/org/apache/kafka/clients/producer/internals/RecordAccumulator.java",
+        "clients/src/main/java/org/apache/kafka/clients/producer/internals/Sender.java",
+        "clients/src/main/java/org/apache/kafka/common/config/ConfigDef.java",
+        "clients/src/main/java/org/apache/kafka/common/record/MemoryRecords.java",
+        "clients/src/main/java/org/apache/kafka/common/record/MemoryRecordsBuilder.java",
+        "clients/src/main/java/org/apache/kafka/common/requests/AddOffsetsToTxnResponse.java",
+        "clients/src/main/java/org/apache/kafka/common/requests/AddPartitionsToTxnResponse.java",
+        "clients/src/main/java/org/apache/kafka/common/requests/EndTxnResponse.java",
+        "clients/src/main/java/org/apache/kafka/common/requests/FetchRequest.java",
+        "clients/src/main/java/org/apache/kafka/common/requests/ProduceRequest.java",
+        "clients/src/test/java/org/apache/kafka/clients/consumer/KafkaConsumerTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/consumer/internals/FetcherTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/producer/internals/RecordAccumulatorTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/producer/internals/SenderTest.java",
+        "clients/src/test/java/org/apache/kafka/common/record/MemoryRecordsBuilderTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 9,
+      "signal_3b_oldest_sibling_days": 1190,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The entire transaction/request framework (TransactionManager, TransactionalRequest, FutureTransactionalResult, callbacks, etc.) was built from scratch rather than extracting or reorganizing pre-existing logic into Command objects. None of the prior methods were merely moved into a new pattern structure\u2014this is a new feature introduction.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 23 pre-existing Java file(s) modified in birth commit (call-site update): ['clients/src/main/java/org/apache/kafka/clients/consumer/ConsumerConfig.java', 'clients/src/main/java/org/apache/kafka/clients/consumer/KafkaConsumer.java', 'clients/src/main/java/org/apache/kafka/clients/consumer/internals/Fetcher.java', 'clients/src/main/java/org/apache/kafka/clients/producer/KafkaProducer.java', 'clients/src/main/java/org/apache/kafka/clients/producer/MockProducer.java'] \u2026",
+        "3B \u2713 Package 'clients/src/main/java/org/apache/kafka/clients/producer/internals' had 9 pre-existing .java file(s) before the birth commit, oldest sibling 1190d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The entire transaction/request framework (TransactionManager, TransactionalRequest, FutureTransactionalResult, callbacks, etc.) was built from scratch rather than extracting or reorganizing pre-existi"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 5,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/kafka",
+    "pattern": "Strategy",
+    "pattern_file": "clients/src/main/java/org/apache/kafka/clients/admin/internals/CoordinatorStrategy.java",
+    "class_name": "CoordinatorStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "CoordinatorStrategy implements the AdminApiLookupStrategy<CoordinatorKey> interface and encapsulates a concrete algorithm for finding coordinators (lookupScope, buildRequest, handleResponse). Its behavior (batched vs single lookup, error handling, coordinator type) is configurable and can be swapped where an AdminApiLookupStrategy is required, which matches the Strategy pattern (family of interchangeable algorithms behind a common interface).",
+    "birth_commit_sha": "2a1b240829ed4c28708df50da281f6f4d5cfe59c",
+    "parent_sha": "4de5f1267164d59c741632c870f2a7aa5153e3a7",
+    "birth_commit_date": "2021-04-22T16:34:11+00:00",
+    "birth_commit_message": "KAFKA-12586; Add `DescribeTransactions` Admin API (#10483)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/src/main/java/org/apache/kafka/clients/admin/internals/CoordinatorStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 10,
+      "signal_3a_modified_files": [
+        "clients/src/main/java/org/apache/kafka/clients/admin/Admin.java",
+        "clients/src/main/java/org/apache/kafka/clients/admin/KafkaAdminClient.java",
+        "clients/src/main/java/org/apache/kafka/clients/admin/internals/AdminApiHandler.java",
+        "clients/src/main/java/org/apache/kafka/clients/admin/internals/AdminApiLookupStrategy.java",
+        "clients/src/main/java/org/apache/kafka/clients/admin/internals/DescribeProducersHandler.java",
+        "clients/src/main/java/org/apache/kafka/clients/admin/internals/PartitionLeaderStrategy.java",
+        "clients/src/main/java/org/apache/kafka/common/ConsumerGroupState.java",
+        "clients/src/test/java/org/apache/kafka/clients/admin/KafkaAdminClientTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/admin/MockAdminClient.java",
+        "clients/src/test/java/org/apache/kafka/clients/admin/internals/AdminApiDriverTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 9,
+      "signal_3b_oldest_sibling_days": 2645,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The entire `CoordinatorStrategy` (and its use in `DescribeTransactionsHandler`) is brand-new code for the new describe-transactions feature\u2014no existing coordinator lookup logic was moved into it, and no pre-existing call sites were rewired to use it. It introduces a new strategy class and new calls from scratch rather than refactoring existing methods into the pattern.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 10 pre-existing Java file(s) modified in birth commit (call-site update): ['clients/src/main/java/org/apache/kafka/clients/admin/Admin.java', 'clients/src/main/java/org/apache/kafka/clients/admin/KafkaAdminClient.java', 'clients/src/main/java/org/apache/kafka/clients/admin/internals/AdminApiHandler.java', 'clients/src/main/java/org/apache/kafka/clients/admin/internals/AdminApiLookupStrategy.java', 'clients/src/main/java/org/apache/kafka/clients/admin/internals/DescribeProducersHandler.java'] \u2026",
+        "3B \u2713 Package 'clients/src/main/java/org/apache/kafka/clients/admin/internals' had 9 pre-existing .java file(s) before the birth commit, oldest sibling 2645d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The entire `CoordinatorStrategy` (and its use in `DescribeTransactionsHandler`) is brand-new code for the new describe-transactions feature\u2014no existing coordinator lookup logic was moved into it, and "
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 6,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/kafka",
+    "pattern": "Strategy",
+    "pattern_file": "clients/src/main/java/org/apache/kafka/clients/admin/internals/PartitionLeaderStrategy.java",
+    "class_name": "PartitionLeaderStrategy",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "PartitionLeaderStrategy implements the AdminApiLookupStrategy<TopicPartition> interface and encapsulates the concrete algorithm for lookupScope, request building and response handling for partition-leader lookups. That matches the Strategy pattern: it provides a pluggable, interchangeable implementation of the lookup strategy (others can implement the same interface). The inner PartitionLeaderFuture is a helper/result class and doesn't change the fact this class is a concrete strategy implementation.",
+    "birth_commit_sha": "3ab9ab6b6ffea700753309d5b9074b45f97b0aa7",
+    "parent_sha": "9bf5c579973f842ce892c0131923fb6e009c10de",
+    "birth_commit_date": "2021-03-25T03:15:58+00:00",
+    "birth_commit_message": "KAFKA-12434; Admin support for `DescribeProducers` API (#10275)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "clients/src/main/java/org/apache/kafka/clients/admin/internals/PartitionLeaderStrategy.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 9,
+      "signal_3a_modified_files": [
+        "clients/src/main/java/org/apache/kafka/clients/admin/Admin.java",
+        "clients/src/main/java/org/apache/kafka/clients/admin/KafkaAdminClient.java",
+        "clients/src/main/java/org/apache/kafka/common/errors/InvalidTopicException.java",
+        "clients/src/main/java/org/apache/kafka/common/utils/CollectionUtils.java",
+        "clients/src/main/java/org/apache/kafka/common/utils/Utils.java",
+        "clients/src/test/java/org/apache/kafka/clients/MockClient.java",
+        "clients/src/test/java/org/apache/kafka/clients/admin/KafkaAdminClientTest.java",
+        "clients/src/test/java/org/apache/kafka/clients/admin/MockAdminClient.java",
+        "clients/src/test/java/org/apache/kafka/clients/producer/internals/SenderTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 3,
+      "signal_3b_oldest_sibling_days": 1050,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "All of the Strategy interfaces and the `PartitionLeaderStrategy` implementation (along with its lookup handler, driver, handler registration in `KafkaAdminClient`, etc.) are new files and code. No existing partition\u2010leader lookup logic was merely moved into a new Strategy interface\u2014this is a fresh, greenfield introduction of the pattern.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 9 pre-existing Java file(s) modified in birth commit (call-site update): ['clients/src/main/java/org/apache/kafka/clients/admin/Admin.java', 'clients/src/main/java/org/apache/kafka/clients/admin/KafkaAdminClient.java', 'clients/src/main/java/org/apache/kafka/common/errors/InvalidTopicException.java', 'clients/src/main/java/org/apache/kafka/common/utils/CollectionUtils.java', 'clients/src/main/java/org/apache/kafka/common/utils/Utils.java'] \u2026",
+        "3B \u2713 Package 'clients/src/main/java/org/apache/kafka/clients/admin/internals' had 3 pre-existing .java file(s) before the birth commit, oldest sibling 1050d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: All of the Strategy interfaces and the `PartitionLeaderStrategy` implementation (along with its lookup handler, driver, handler registration in `KafkaAdminClient`, etc.) are new files and code. No exi"
+      ]
+    },
+    "human_validation": false
   }
 ]

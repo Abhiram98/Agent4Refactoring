@@ -1,0 +1,1382 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/monitor/MonitorFactory.java",
+    "class_name": "MonitorFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The interface defines a single creation method getMonitor(...) that returns a Monitor instance \u2014 i.e. an abstract factory method. Implementations of this interface provide concrete Monitor objects, which matches the Factory Method intent (decouple creation from use). The default method merely adapts between URL types; although no concrete creator is shown here, the interface establishes the factory-method contract.",
+    "birth_commit_sha": "10052d468760f2f952064289719286d3ba608693",
+    "parent_sha": "d22223d3bc41045cfde4191512f7b597e0dc2028",
+    "birth_commit_date": "2011-10-20T15:06:57+00:00",
+    "birth_commit_message": "Add 2.0.7",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/monitor/MonitorFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/monitor' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/monitor/MonitorFactory.java",
+    "class_name": "MonitorFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The interface defines a single creation method getMonitor(...) that returns a Monitor instance \u2014 i.e. an abstract factory method. Implementations of this interface provide concrete Monitor objects, which matches the Factory Method intent (decouple creation from use). The default method merely adapts between URL types; although no concrete creator is shown here, the interface establishes the factory-method contract.",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/monitor/MonitorFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a new compatible interface file (dubbo-compatible/src/.../MonitorFactory.java) rather than refactoring an existing MonitorFactory implementation. It introduces a compatibility-layer factory method (getMonitor(com.alibaba...URL)) and a default bridge to the org.apache API, but this is new adapter code created to bridge old/new packages \u2014 not a restructuring of previously existing object-creation code or modified call sites. Therefore the Factory Method use was added as new/greenfield compatibility code.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/monitor' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit adds a new compatible interface file (dubbo-compatible/src/.../MonitorFactory.java) rather than refactoring an existing MonitorFactory implementation. It introduces a compatibility-layer fa"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 3,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/CacheFactory.java",
+    "class_name": "CacheFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The interface defines a single getCache(...) factory method that returns a Cache product and is intended to be implemented by concrete factories which create specific Cache instances based on URL/Invocation. The default bridging method simply adapts argument types; the overall structure matches the Factory Method intent (creator interface with a factory method returning product instances).",
+    "birth_commit_sha": "b744db9c545dd7c61d05e0f60e11fb04af19a2f0",
+    "parent_sha": "a4dc8461167cbdde8a1fb5f5c825db4e375e5217",
+    "birth_commit_date": "2012-01-10T10:59:40+00:00",
+    "birth_commit_message": "DUBBO-169 \u6269\u5c55\u70b9\u7684set\u65b9\u6cd5\u4e0d\u662f\u6269\u5c55\u70b9\u65f6\u5ffd\u7565set\u64cd\u4f5c\uff0c\u4e0d\u8981\u62a5\u9519",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/CacheFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "dubbo-common/src/main/java/com/alibaba/dubbo/common/ExtensionLoader.java",
+        "dubbo-common/src/test/java/com/alibaba/dubbo/common/extensionloader/ext6_inject/impl/Ext6Impl1.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The diff shows new test classes and minor ExtensionLoader changes \u2014 no evidence of prior CacheFactory object-creation code being refactored or moved, nor of existing call sites being converted to use a new factory method. The changes add new logic/classes (tests and an injection case) rather than restructure existing construction code, so the FactoryMethod appears to have been introduced as new functionality (greenfield), not as a refactor or simple move.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-common/src/main/java/com/alibaba/dubbo/common/ExtensionLoader.java', 'dubbo-common/src/test/java/com/alibaba/dubbo/common/extensionloader/ext6_inject/impl/Ext6Impl1.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/cache' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The diff shows new test classes and minor ExtensionLoader changes \u2014 no evidence of prior CacheFactory object-creation code being refactored or moved, nor of existing call sites being converted to use "
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 4,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/CacheFactory.java",
+    "class_name": "CacheFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The interface defines a single getCache(...) factory method that returns a Cache product and is intended to be implemented by concrete factories which create specific Cache instances based on URL/Invocation. The default bridging method simply adapts argument types; the overall structure matches the Factory Method intent (creator interface with a factory method returning product instances).",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/CacheFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "- The Factory Method (AbstractCacheFactory#createCache(URL)) and related types (com.alibaba.dubbo.cache.Cache/CacheFactory and support/AbstractCacheFactory) are introduced as new files under the new dubbo-compatible module \u2014 they did not exist previously in this diff.\n- A concrete subclass (MyCacheFactory) and tests that exercise the factory method are added alongside the new abstract factory, showing a new design built from scratch (compatibility wrappers) rather than restructuring existing creation code.\n- There is no evidence in the diff of prior object-creation logic or product classes being refactored to use the new factory method, nor of existing call sites being changed to instantiate via the new factory. The change is an additive compatibility layer, not a move or refactor of existing code.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/cache' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: - The Factory Method (AbstractCacheFactory#createCache(URL)) and related types (com.alibaba.dubbo.cache.Cache/CacheFactory and support/AbstractCacheFactory) are introduced as new files under the new d"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 5,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/RegistryFactory.java",
+    "class_name": "RegistryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The interface defines a factory method getRegistry(...) whose concrete implementations are expected to create and return Registry instances. That matches the Factory Method intent (an interface/creator declaring a method for creating product objects, with subclasses/implementations deciding the concrete product). The default adapter method simply bridges URL types and does not change the fact this is a factory-method-style interface.",
+    "birth_commit_sha": "10052d468760f2f952064289719286d3ba608693",
+    "parent_sha": "d22223d3bc41045cfde4191512f7b597e0dc2028",
+    "birth_commit_date": "2011-10-20T15:06:57+00:00",
+    "birth_commit_message": "Add 2.0.7",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/RegistryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/registry' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 6,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/RegistryFactory.java",
+    "class_name": "RegistryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The interface defines a factory method getRegistry(...) whose concrete implementations are expected to create and return Registry instances. That matches the Factory Method intent (an interface/creator declaring a method for creating product objects, with subclasses/implementations deciding the concrete product). The default adapter method simply bridges URL types and does not change the fact this is a factory-method-style interface.",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/RegistryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a new compatibility interface (com.alibaba.dubbo.registry.RegistryFactory) that delegates to the new org.apache.dubbo.registry.RegistryFactory via a default method. This is a new adapter/wrapper added as part of the compatibility module rather than a refactor of existing object-creation code or changing call sites to use an extracted Factory Method. There is no evidence the prior creation logic was restructured in-place or that call sites were converted \u2014 the file is newly introduced to provide a factory-style API for legacy packages, so it is a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/registry' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit adds a new compatibility interface (com.alibaba.dubbo.registry.RegistryFactory) that delegates to the new org.apache.dubbo.registry.RegistryFactory via a default method. This is a new adapt"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 7,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/ProxyFactory.java",
+    "class_name": "ProxyFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The interface declares factory methods (getProxy, getInvoker) that define how proxies/invokers are obtained while leaving the concrete instantiation to implementations. This matches the Factory Method intent (an abstract creator defining a method for creating product objects). The default methods are adapters for compatibility but do not change the creational role.",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/ProxyFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The change adds a new compatibility module (dubbo-compatible) and introduces a new com.alibaba.dubbo.rpc.ProxyFactory wrapper that delegates/adapts to org.apache.dubbo.rpc.ProxyFactory via default methods. This is new adapter/compatibility code (not a rename/move) and not a refactoring of existing object-creation sites into a Factory Method; there is no prior ProxyFactory creation logic being restructured and no existing call sites shown converted to use a factory method. Therefore the FactoryMethod-like structure was added as new (greenfield) code.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The change adds a new compatibility module (dubbo-compatible) and introduces a new com.alibaba.dubbo.rpc.ProxyFactory wrapper that delegates/adapts to org.apache.dubbo.rpc.ProxyFactory via default met"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 8,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "Proxy",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/ProxyFactory.java",
+    "class_name": "ProxyFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "This interface is a factory whose purpose is to produce proxy instances (getProxy) that act as surrogates for underlying Invoker implementations and to wrap real objects as Invoker (getInvoker). The default methods adapt/wrap invokers and URLs (CompatibleInvoker, DelegateURL), showing the code is centered on creating proxy/delegation objects \u2014 i.e., the Proxy pattern (with a factory layer for creation).",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/ProxyFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a new compatibility interface (dubbo-compatible/.../com.alibaba.dubbo.rpc.ProxyFactory) rather than restructuring existing non-pattern code into a Proxy. The file is new and acts as a wrapper/adapter that extends the new org.apache.dubbo.rpc.ProxyFactory and provides default methods that convert between com.alibaba and org.apache types. This is an addition of a compatibility layer (new classes/logic), not a move/rename of prior code and not a refactoring of an existing real subject into a Proxy with call sites switched to use the Proxy \u2014 so it is a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit adds a new compatibility interface (dubbo-compatible/.../com.alibaba.dubbo.rpc.ProxyFactory) rather than restructuring existing non-pattern code into a Proxy. The file is new and acts as a "
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 9,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "Observer",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/InvokerListener.java",
+    "class_name": "InvokerListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "This interface defines callback methods (referred/destroyed) for clients to implement and be notified of invoker lifecycle events \u2014 the classic \"listener/observer\" role in the Observer pattern. The default methods adapt between two Invoker types, but the intent is clearly an observer/listener contract; the subject that registers and notifies these listeners is not shown in this file.",
+    "birth_commit_sha": "10052d468760f2f952064289719286d3ba608693",
+    "parent_sha": "d22223d3bc41045cfde4191512f7b597e0dc2028",
+    "birth_commit_date": "2011-10-20T15:06:57+00:00",
+    "birth_commit_message": "Add 2.0.7",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/InvokerListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 10,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "Observer",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/InvokerListener.java",
+    "class_name": "InvokerListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "This interface defines callback methods (referred/destroyed) for clients to implement and be notified of invoker lifecycle events \u2014 the classic \"listener/observer\" role in the Observer pattern. The default methods adapt between two Invoker types, but the intent is clearly an observer/listener contract; the subject that registers and notifies these listeners is not shown in this file.",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/InvokerListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The diff adds a new compatibility interface (com.alibaba.dubbo.rpc.InvokerListener) that extends the new org.apache.dubbo.rpc.InvokerListener and provides default adapter methods wrapping org.apache Invoker into the legacy com.alibaba Invoker. This is a newly introduced adapter class in the dubbo-compatible module (new file), not a restructuring of pre-existing smelly code or a pure move/rename. There is no evidence in the diff of prior subject/observer code being refactored or existing call sites being converted to a subscription mechanism \u2014 it's a greenfield compatibility addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The diff adds a new compatibility interface (com.alibaba.dubbo.rpc.InvokerListener) that extends the new org.apache.dubbo.rpc.InvokerListener and provides default adapter methods wrapping org.apache I"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 11,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/support/AbstractCacheFactory.java",
+    "class_name": "AbstractCacheFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class supplies common getCache logic but defers the actual instantiation to the protected abstract method createCache(URL). Subclasses provide concrete Cache instances by overriding createCache, which matches the Factory Method pattern (a creator class defining an abstract factory method that subclasses implement). This is a single-product factory (not the Abstract Factory).",
+    "birth_commit_sha": "587d0cb71df9d320429e89d52e75efa69c9c6770",
+    "parent_sha": "dea4fa51101dc3b89279214d95f0718491e3aa3b",
+    "birth_commit_date": "2012-03-06T17:16:35+00:00",
+    "birth_commit_message": "DUBBO-241 \u589e\u52a0\u58f0\u660e\u5f0fcache",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/support/AbstractCacheFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/support' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 12,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/support/AbstractCacheFactory.java",
+    "class_name": "AbstractCacheFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class supplies common getCache logic but defers the actual instantiation to the protected abstract method createCache(URL). Subclasses provide concrete Cache instances by overriding createCache, which matches the Factory Method pattern (a creator class defining an abstract factory method that subclasses implement). This is a single-product factory (not the Abstract Factory).",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/support/AbstractCacheFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a new compatibility module and introduces AbstractCacheFactory as a new file (com.alibaba.dubbo.cache.support.AbstractCacheFactory) with an abstract createCache(URL) Factory Method and a getCache(...) implementation that uses it. This is new code (not a simple rename/move) and not a restructuring of preexisting instantiation logic in existing classes \u2014 the factory method and its call sites (e.g. the new MyCacheFactory test subclass) are newly added here. Therefore the FactoryMethod pattern was added as a greenfield addition, not as a refactor of prior smelly code or just a move.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/cache/support' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit adds a new compatibility module and introduces AbstractCacheFactory as a new file (com.alibaba.dubbo.cache.support.AbstractCacheFactory) with an abstract createCache(URL) Factory Method and"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 13,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "Command",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/qos/command/BaseCommand.java",
+    "class_name": "BaseCommand",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "This interface defines the canonical Command abstraction \u2014 an execute(...) operation that concrete command implementations will provide. The default method adapts between context types (acting as a small adapter), but the primary role here is to represent a command object. While the invoker/receiver roles aren't shown in this file, the interface is clearly the Command participant of the GoF pattern.",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/qos/command/BaseCommand.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The diff adds a new deprecated com.alibaba.dubbo.qos.command.BaseCommand interface in the dubbo-compatible module that simply extends and adapts to the existing org.apache.dubbo.qos.command.BaseCommand (it declares the old-signature execute(...) taking com.alibaba types and provides a default execute(...) that wraps/delegates to the org.apache types). This is a compatibility/wrapper (package-rename) addition rather than a refactoring of existing imperative logic into a Command pattern or creation of new command-handling behavior from scratch. There is no evidence that prior receiver/action code was restructured into Command objects or that call sites were changed to encapsulate requests \u2014 the change merely moves/bridges API surface between packages.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/qos/command' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The diff adds a new deprecated com.alibaba.dubbo.qos.command.BaseCommand interface in the dubbo-compatible module that simply extends and adapts to the existing org.apache.dubbo.qos.command.BaseComman"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 14,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "Command",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/qos/command/BaseCommand.java",
+    "class_name": "BaseCommand",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "This interface defines the canonical Command abstraction \u2014 an execute(...) operation that concrete command implementations will provide. The default method adapts between context types (acting as a small adapter), but the primary role here is to represent a command object. While the invoker/receiver roles aren't shown in this file, the interface is clearly the Command participant of the GoF pattern.",
+    "birth_commit_sha": "49525b0a83e7809a603f420d807b433b268dd2b4",
+    "parent_sha": "3c6ee32e2a461fd154510a49edd2e8471fed12a4",
+    "birth_commit_date": "2017-12-05T03:45:23+00:00",
+    "birth_commit_message": "Merge pull request #982 from qinliujie:feat/refactor-telent-command",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/qos/command/BaseCommand.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 5,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/main/java/com/alibaba/dubbo/config/AbstractServiceConfig.java",
+        "dubbo-config/dubbo-config-api/src/main/java/com/alibaba/dubbo/config/ReferenceConfig.java",
+        "dubbo-config/dubbo-config-api/src/main/java/com/alibaba/dubbo/config/ServiceConfig.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/com/alibaba/dubbo/registry/integration/RegistryProtocol.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/com/alibaba/dubbo/rpc/protocol/ProtocolListenerWrapper.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The diff introduces a new qos plugin module and adds BaseCommand as a brand-new SPI interface together with many new classes (DefaultCommandExecutor, CommandContext, decoders, concrete command implementations Help/Ls/Online/Offline/Quit, META\u2011INF mapping, server/handler code, etc.). There is no evidence of prior ad-hoc command logic being refactored into command objects or of existing call sites being changed to encapsulate requests as Command objects. The command framework and its usages are entirely added from scratch rather than moved or extracted from existing code.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 5 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/main/java/com/alibaba/dubbo/config/AbstractServiceConfig.java', 'dubbo-config/dubbo-config-api/src/main/java/com/alibaba/dubbo/config/ReferenceConfig.java', 'dubbo-config/dubbo-config-api/src/main/java/com/alibaba/dubbo/config/ServiceConfig.java', 'dubbo-registry/dubbo-registry-api/src/main/java/com/alibaba/dubbo/registry/integration/RegistryProtocol.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/com/alibaba/dubbo/rpc/protocol/ProtocolListenerWrapper.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/qos/command' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The diff introduces a new qos plugin module and adds BaseCommand as a brand-new SPI interface together with many new classes (DefaultCommandExecutor, CommandContext, decoders, concrete command impleme"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 15,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/support/AbstractRegistryFactory.java",
+    "class_name": "AbstractRegistryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class declares an abstract factory method (protected abstract createRegistry(com.alibaba...URL)) that concrete subclasses must implement to produce Registry instances. It provides a concrete createRegistry(URL) override that delegates to that abstract method, fitting the Factory Method structure (a Creator defining a factory method and deferring instantiation to subclasses). The class adapts between URL types but the core design is the Factory Method.",
+    "birth_commit_sha": "10052d468760f2f952064289719286d3ba608693",
+    "parent_sha": "d22223d3bc41045cfde4191512f7b597e0dc2028",
+    "birth_commit_date": "2011-10-20T15:06:57+00:00",
+    "birth_commit_message": "Add 2.0.7",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/support/AbstractRegistryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/support' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 16,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/support/AbstractRegistryFactory.java",
+    "class_name": "AbstractRegistryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class declares an abstract factory method (protected abstract createRegistry(com.alibaba...URL)) that concrete subclasses must implement to produce Registry instances. It provides a concrete createRegistry(URL) override that delegates to that abstract method, fitting the Factory Method structure (a Creator defining a factory method and deferring instantiation to subclasses). The class adapts between URL types but the core design is the Factory Method.",
+    "birth_commit_sha": "bfb60773d8dd6ff15a1510986423ea64cb23e6fc",
+    "parent_sha": "86462778281953b3b4602dbccb456fab65bd7c32",
+    "birth_commit_date": "2019-05-17T07:58:26+00:00",
+    "birth_commit_message": "[compatible] Registry compatibility #3882 (#4015)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/support/AbstractRegistryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/NotifyListener.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/support/FailbackRegistry.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The diff shows AbstractRegistryFactory being added as a new compatibility adapter class (com.alibaba... extending org.apache...). The factory-method createRegistry(com.alibaba...) is introduced here along with an overload that adapts org.apache URL to the com.alibaba URL. This is new, standalone compatibility code (not a refactor of an existing Alibaba creation implementation), and there are no changed call sites that were converted to use an existing Factory Method. In short, the Factory Method pattern was introduced by adding new adapter/factory code rather than restructuring preexisting object-creation logic.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/NotifyListener.java', 'dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/support/FailbackRegistry.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/registry/support' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The diff shows AbstractRegistryFactory being added as a new compatibility adapter class (com.alibaba... extending org.apache...). The factory-method createRegistry(com.alibaba...) is introduced here a"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 17,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster/RouterFactory.java",
+    "class_name": "RouterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "RouterFactory is an interface that declares a creation method getRouter(...) whose implementations produce Router instances. That is the core of the Factory Method pattern: a Creator (here the interface) defining a factory method, with concrete implementors deciding which Router concrete to instantiate. The default adapter method simply bridges URL types and does not alter the pattern.",
+    "birth_commit_sha": "9144446e3e5d433ba794058aa0c99c740ba8d68f",
+    "parent_sha": "1e4bf765ce92d749740cce70cc24bfe47f888c96",
+    "birth_commit_date": "2012-06-12T07:20:27+00:00",
+    "birth_commit_message": "DUBBO-431 zookeeper\u6ce8\u518c\u4e2d\u5fc3\u589e\u52a0curator\u96c6\u6210",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster/RouterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-common/src/main/java/com/alibaba/dubbo/common/URL.java",
+        "dubbo-config/dubbo-config-api/src/main/java/com/alibaba/dubbo/config/RegistryConfig.java",
+        "dubbo-registry/dubbo-registry-zookeeper/src/main/java/com/alibaba/dubbo/registry/zookeeper/ZookeeperRegistry.java",
+        "dubbo-registry/dubbo-registry-zookeeper/src/main/java/com/alibaba/dubbo/registry/zookeeper/ZookeeperRegistryFactory.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "- The change refactors existing zookeeper client creation (previously done directly inside ZookeeperRegistry using ZkClient) into a Factory Method style via a new ZookeeperTransporter SPI and ZookeeperClient abstraction.\n- The object-creation logic and product classes existed before (ZkClient); now creation is delegated through the transporter abstraction. The ZookeeperRegistry constructor was changed to accept a ZookeeperTransporter, and ZookeeperRegistryFactory.createRegistry was updated to pass that transporter when instantiating ZookeeperRegistry.\n- Call sites were updated accordingly (the factory now supplies the transporter), and new transporter implementations were added. This is restructuring existing code into a Factory Method pattern rather than a pure greenfield addition or mere move/rename.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-common/src/main/java/com/alibaba/dubbo/common/URL.java', 'dubbo-config/dubbo-config-api/src/main/java/com/alibaba/dubbo/config/RegistryConfig.java', 'dubbo-registry/dubbo-registry-zookeeper/src/main/java/com/alibaba/dubbo/registry/zookeeper/ZookeeperRegistry.java', 'dubbo-registry/dubbo-registry-zookeeper/src/main/java/com/alibaba/dubbo/registry/zookeeper/ZookeeperRegistryFactory.java']",
+        "LLM \u2713 Refactoring confirmed: - The change refactors existing zookeeper client creation (previously done directly inside ZookeeperRegistry using ZkClient) into a Factory Method style via a new ZookeeperTransporter SPI and Zookeepe"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster' had no pre-existing .java files before the birth commit (count=0)"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 18,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster/RouterFactory.java",
+    "class_name": "RouterFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "RouterFactory is an interface that declares a creation method getRouter(...) whose implementations produce Router instances. That is the core of the Factory Method pattern: a Creator (here the interface) defining a factory method, with concrete implementors deciding which Router concrete to instantiate. The default adapter method simply bridges URL types and does not alter the pattern.",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster/RouterFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The diff adds a new compatibility module interface dubbo-compatible/src/.../RouterFactory.java (and many other compatibility wrapper types). The RouterFactory here is a newly introduced wrapper that delegates to the existing org.apache.dubbo.rpc.cluster.RouterFactory by converting URL types. There is no evidence of prior ad-hoc object-creation code being refactored into a Factory Method nor of existing call sites being changed to use a new factory; instead this is new compatibility-layer code added from scratch to expose a factory-style getRouter(...) method for the old package API. Therefore this is a greenfield addition, not a smell\u2192pattern refactor or a pure move/rename.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The diff adds a new compatibility module interface dubbo-compatible/src/.../RouterFactory.java (and many other compatibility wrapper types). The RouterFactory here is a newly introduced wrapper that d"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 19,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster/ConfiguratorFactory.java",
+    "class_name": "ConfiguratorFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The interface declares a factory method getConfigurator(URL) that returns a Configurator and delegates the creation to implementing classes (and the @Adaptive annotation/extension mechanism selects the concrete implementation at runtime). This matches the Factory Method intent \u2014 an interface defining a method for creating product objects, with concrete implementations deciding which product to instantiate.",
+    "birth_commit_sha": "b744db9c545dd7c61d05e0f60e11fb04af19a2f0",
+    "parent_sha": "a4dc8461167cbdde8a1fb5f5c825db4e375e5217",
+    "birth_commit_date": "2012-01-10T10:59:40+00:00",
+    "birth_commit_message": "DUBBO-169 \u6269\u5c55\u70b9\u7684set\u65b9\u6cd5\u4e0d\u662f\u6269\u5c55\u70b9\u65f6\u5ffd\u7565set\u64cd\u4f5c\uff0c\u4e0d\u8981\u62a5\u9519",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster/ConfiguratorFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "dubbo-common/src/main/java/com/alibaba/dubbo/common/ExtensionLoader.java",
+        "dubbo-common/src/test/java/com/alibaba/dubbo/common/extensionloader/ext6_inject/impl/Ext6Impl1.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The provided diff does not touch ConfiguratorFactory or any factory-related classes/methods \u2014 there are only changes to ExtensionLoader and some test classes. There is no evidence of new factory classes introduced, no existing object-creation logic being refactored into a Factory Method, and no call sites switched to use a factory. Therefore there is no substantive introduction of a FactoryMethod pattern here; at most unrelated code was added/moved elsewhere, so this change is best classified as a move/other unrelated edits rather than a Smell2Pattern or a Greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-common/src/main/java/com/alibaba/dubbo/common/ExtensionLoader.java', 'dubbo-common/src/test/java/com/alibaba/dubbo/common/extensionloader/ext6_inject/impl/Ext6Impl1.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The provided diff does not touch ConfiguratorFactory or any factory-related classes/methods \u2014 there are only changes to ExtensionLoader and some test classes. There is no evidence of new factory class"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 20,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster/ConfiguratorFactory.java",
+    "class_name": "ConfiguratorFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The interface declares a factory method getConfigurator(URL) that returns a Configurator and delegates the creation to implementing classes (and the @Adaptive annotation/extension mechanism selects the concrete implementation at runtime). This matches the Factory Method intent \u2014 an interface defining a method for creating product objects, with concrete implementations deciding which product to instantiate.",
+    "birth_commit_sha": "c0ca0422538187190f7c52f33f87cece4c0d657c",
+    "parent_sha": "9ee83e4c8b00b8a5440e6a8d1431697e8c12c0d7",
+    "birth_commit_date": "2018-06-19T03:31:09+00:00",
+    "birth_commit_message": "Add compatible module and rename groupId to org.apache.dubbo (#1952)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster/ConfiguratorFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The diff adds a new compatibility interface dubbo-compatible/src/.../ConfiguratorFactory.java that simply extends org.apache.dubbo.rpc.cluster.ConfiguratorFactory (marked @Deprecated). There is no prior object-creation code being refactored into a factory method, nor are existing call sites updated to use a new Factory Method \u2014 the change is an added compatibility wrapper/new class, not a restructuring of existing creation logic. Therefore this is a greenfield addition of a (compatibility) interface, not a Smell\u2192Pattern refactor or a pure move/rename.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/GenericFilter.java', 'dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/AbstractProxyFactory.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/test/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvokerAvilableTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/cluster' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The diff adds a new compatibility interface dubbo-compatible/src/.../ConfiguratorFactory.java that simply extends org.apache.dubbo.rpc.cluster.ConfiguratorFactory (marked @Deprecated). There is no pri"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 21,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "Adapter",
+    "pattern_file": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/protocol/dubbo/FutureAdapter.java",
+    "class_name": "FutureAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.92,
+    "detection_reasoning": "The class implements java.util.concurrent.Future<V> while internally using a CompletableFuture<Object> and accepting a ResponseFuture in a constructor. It converts between the ResponseFuture/ResponseCallback semantics and CompletableFuture/Future semantics (completing, completing exceptionally, translating results/exceptions), and provides a ResponseFuture view via getFuture(). This behavior\u2014adapting one interface to another and delegating/translating calls\u2014is the Adapter pattern.",
+    "birth_commit_sha": "64aea16c0eceb9e3cf2576259c36f415259a3ded",
+    "parent_sha": "8534f48f61bfa0134a0eacf042a4f3269f779f0e",
+    "birth_commit_date": "2019-06-26T06:00:09+00:00",
+    "birth_commit_message": "zipkin 2.6.x package compatible. (#4368)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/protocol/dubbo/FutureAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 3,
+      "signal_3a_modified_files": [
+        "dubbo-compatible/src/main/java/com/alibaba/dubbo/remoting/RemotingException.java",
+        "dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/RpcContext.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/main/java/org/apache/dubbo/rpc/protocol/dubbo/FutureAdapter.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": true,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 3 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-compatible/src/main/java/com/alibaba/dubbo/remoting/RemotingException.java', 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/RpcContext.java', 'dubbo-rpc/dubbo-rpc-dubbo/src/main/java/org/apache/dubbo/rpc/protocol/dubbo/FutureAdapter.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-compatible/src/main/java/com/alibaba/dubbo/rpc/protocol/dubbo' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM Diff: LLM identified this as a release/bulk commit"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 22,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple/MultipleRegistryFactory.java",
+    "class_name": "MultipleRegistryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "MultipleRegistryFactory subclasses AbstractRegistryFactory and overrides the protected createRegistry(URL) method to instantiate and return a concrete Registry (MultipleRegistry). This is the canonical Factory Method structure: an abstract creator defines the factory method, and the concrete subclass provides the product instantiation.",
+    "birth_commit_sha": "10052d468760f2f952064289719286d3ba608693",
+    "parent_sha": "d22223d3bc41045cfde4191512f7b597e0dc2028",
+    "birth_commit_date": "2011-10-20T15:06:57+00:00",
+    "birth_commit_message": "Add 2.0.7",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple/MultipleRegistryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 23,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple/MultipleRegistryFactory.java",
+    "class_name": "MultipleRegistryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "MultipleRegistryFactory subclasses AbstractRegistryFactory and overrides the protected createRegistry(URL) method to instantiate and return a concrete Registry (MultipleRegistry). This is the canonical Factory Method structure: an abstract creator defines the factory method, and the concrete subclass provides the product instantiation.",
+    "birth_commit_sha": "543a52abc0a86efad59f0f97f32de282321a4ab5",
+    "parent_sha": "92cafe962d8fd3df034c16629954425f4640f343",
+    "birth_commit_date": "2019-05-24T06:54:37+00:00",
+    "birth_commit_message": "Multiple registry  (#4066)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple/MultipleRegistryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 24,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple/MultipleServiceDiscoveryFactory.java",
+    "class_name": "MultipleServiceDiscoveryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class extends AbstractServiceDiscoveryFactory and overrides a protected createDiscovery(URL) method to instantiate and return a concrete product (MultipleServiceDiscovery) typed as the abstract product (ServiceDiscovery). This follows the GoF Factory Method structure: a creator (AbstractServiceDiscoveryFactory) defines/declares the factory method and subclasses provide the concrete product creation.",
+    "birth_commit_sha": "10052d468760f2f952064289719286d3ba608693",
+    "parent_sha": "d22223d3bc41045cfde4191512f7b597e0dc2028",
+    "birth_commit_date": "2011-10-20T15:06:57+00:00",
+    "birth_commit_message": "Add 2.0.7",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple/MultipleServiceDiscoveryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 25,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple/MultipleServiceDiscoveryFactory.java",
+    "class_name": "MultipleServiceDiscoveryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class extends AbstractServiceDiscoveryFactory and overrides a protected createDiscovery(URL) method to instantiate and return a concrete product (MultipleServiceDiscovery) typed as the abstract product (ServiceDiscovery). This follows the GoF Factory Method structure: a creator (AbstractServiceDiscoveryFactory) defines/declares the factory method and subclasses provide the concrete product creation.",
+    "birth_commit_sha": "d8fc808425c4f1db028c4fdab45d7082a957d760",
+    "parent_sha": "81890a85fa9b7f8ac02dc93072697c8f704970e9",
+    "birth_commit_date": "2020-11-16T07:12:23+00:00",
+    "birth_commit_message": "performance tuning, reduce mem allocation of address URLs on consumer side (#6911)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple/MultipleServiceDiscoveryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 85,
+      "signal_3a_modified_files": [
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/ClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/Directory.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/configurator/AbstractConfigurator.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/directory/AbstractDirectory.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/interceptor/ClusterInterceptor.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/interceptor/ConsumerContextClusterInterceptor.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/AbstractClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/AvailableClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/BroadcastClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/FailbackClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/FailfastClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/FailoverClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/FailsafeClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/ForkingClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/MergeableClusterInvoker.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/ProviderURLMergeProcessor.java",
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/support/wrapper/AbstractCluster.java",
+        "dubbo-cluster/src/test/java/org/apache/dubbo/rpc/cluster/configurator/parser/ConfigParserTest.java",
+        "dubbo-cluster/src/test/java/org/apache/dubbo/rpc/cluster/support/AbstractClusterInvokerTest.java",
+        "dubbo-cluster/src/test/java/org/apache/dubbo/rpc/cluster/support/ClusterUtilsTest.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/URL.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/URLBuilder.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/URLStrParser.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/config/Environment.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/constants/CommonConstants.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/constants/RegistryConstants.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/extension/ExtensionLoader.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/threadpool/manager/DefaultExecutorRepository.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/threadpool/manager/ExecutorRepository.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/utils/UrlUtils.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/config/ApplicationConfig.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/rpc/support/ProtocolUtils.java",
+        "dubbo-common/src/test/java/org/apache/dubbo/common/URLBuilderTest.java",
+        "dubbo-common/src/test/java/org/apache/dubbo/common/URLTest.java",
+        "dubbo-common/src/test/java/org/apache/dubbo/common/threadpool/support/AbortPolicyWithReportTest.java",
+        "dubbo-common/src/test/java/org/apache/dubbo/common/utils/UrlUtilsTest.java",
+        "dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/ReferenceConfig.java",
+        "dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/ServiceConfig.java",
+        "dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/utils/ConfigValidationUtils.java",
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/ServiceConfigTest.java",
+        "dubbo-configcenter/dubbo-configcenter-apollo/src/main/java/org/apache/dubbo/configcenter/support/apollo/ApolloDynamicConfiguration.java",
+        "dubbo-configcenter/dubbo-configcenter-zookeeper/src/main/java/org/apache/dubbo/configcenter/support/zookeeper/ZookeeperDynamicConfiguration.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/DynamicConfigurationServiceNameMapping.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/MetadataInfo.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/report/identifier/MetadataIdentifier.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/report/identifier/ServiceMetadataIdentifier.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/report/identifier/SubscriberMetadataIdentifier.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/report/support/AbstractMetadataReport.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/store/AbstractAbstractWritableMetadataService.java",
+        "dubbo-metadata/dubbo-metadata-api/src/test/java/org/apache/dubbo/metadata/test/JTestMetadataReport4Test.java",
+        "dubbo-metadata/dubbo-metadata-report-zookeeper/src/main/java/org/apache/dubbo/metadata/store/zookeeper/ZookeeperMetadataReport.java",
+        "dubbo-monitor/dubbo-monitor-api/src/main/java/org/apache/dubbo/monitor/support/MonitorFilter.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/Constants.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/Registry.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/InstanceAddressURL.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/ServiceDiscoveryRegistry.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/event/listener/ServiceInstancesChangedListener.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/metadata/MetadataServiceNameMapping.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/metadata/store/InMemoryWritableMetadataService.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/metadata/store/RemoteMetadataServiceImpl.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/migration/DefaultMigrationAddressComparator.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/migration/MigrationInvoker.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/integration/DynamicDirectory.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/integration/RegistryDirectory.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/integration/RegistryProtocol.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/support/AbstractRegistry.java",
+        "dubbo-registry/dubbo-registry-multiple/src/test/java/org/apache/dubbo/registry/multiple/MultipleRegistryTestUtil.java",
+        "dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos/NacosRegistry.java",
+        "dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos/NacosServiceName.java",
+        "dubbo-registry/dubbo-registry-zookeeper/src/main/java/org/apache/dubbo/registry/zookeeper/ZookeeperRegistry.java",
+        "dubbo-registry/dubbo-registry-zookeeper/src/main/java/org/apache/dubbo/registry/zookeeper/ZookeeperServiceDiscovery.java",
+        "dubbo-remoting/dubbo-remoting-http/src/main/java/org/apache/dubbo/remoting/http/tomcat/TomcatHttpServer.java",
+        "dubbo-remoting/dubbo-remoting-zookeeper/src/main/java/org/apache/dubbo/remoting/zookeeper/ZookeeperClient.java",
+        "dubbo-remoting/dubbo-remoting-zookeeper/src/main/java/org/apache/dubbo/remoting/zookeeper/support/AbstractZookeeperClient.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/RpcContext.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/RpcInvocation.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/AccessLogFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/filter/ConsumerContextFilter.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/protocol/AbstractInvoker.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/protocol/AbstractProtocol.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/protocol/ProtocolFilterWrapper.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/protocol/ProtocolListenerWrapper.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/main/java/org/apache/dubbo/rpc/protocol/dubbo/CallbackServiceCodec.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/main/java/org/apache/dubbo/rpc/protocol/dubbo/DubboInvoker.java",
+        "dubbo-rpc/dubbo-rpc-dubbo/src/main/java/org/apache/dubbo/rpc/protocol/dubbo/DubboProtocol.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 2,
+      "signal_3b_oldest_sibling_days": 3314,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "Both MultipleServiceDiscovery and MultipleServiceDiscoveryFactory are newly added files (and SPI registration entries were added). There is no sign they replaced existing ad-hoc construction sites or refactored prior object-creation logic into a factory method; instead the feature and its factory were introduced from scratch as part of a new multiple-service-discovery implementation. This is an addition of new classes implementing the Factory Method style rather than a refactor or simple move.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 85 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/ClusterInvoker.java', 'dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/Directory.java', 'dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/configurator/AbstractConfigurator.java', 'dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/directory/AbstractDirectory.java', 'dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/interceptor/ClusterInterceptor.java'] \u2026",
+        "3B \u2713 Package 'dubbo-registry/dubbo-registry-multiple/src/main/java/org/apache/dubbo/registry/multiple' had 2 pre-existing .java file(s) before the birth commit, oldest sibling 3314d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: Both MultipleServiceDiscovery and MultipleServiceDiscoveryFactory are newly added files (and SPI registration entries were added). There is no sign they replaced existing ad-hoc construction sites or "
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 26,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast/MulticastServiceDiscoveryFactory.java",
+    "class_name": "MulticastServiceDiscoveryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class extends AbstractServiceDiscoveryFactory and overrides the protected createDiscovery(...) method to instantiate and return a concrete ServiceDiscovery (MulticastServiceDiscovery). This matches the Factory Method pattern: an abstract creator defines a factory method and subclasses provide the concrete product instantiation.",
+    "birth_commit_sha": "43e5edaefec52df4653f0af4cb034165fdac4b3d",
+    "parent_sha": "829c0df27368640122bd6455567fa4d766ba39f8",
+    "birth_commit_date": "2021-01-15T15:48:28+00:00",
+    "birth_commit_message": "merge k8s feature (#7104)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast/MulticastServiceDiscoveryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 33,
+      "signal_3a_modified_files": [
+        "dubbo-cluster/src/test/java/org/apache/dubbo/rpc/cluster/support/wrapper/MockClusterInvokerTest.java",
+        "dubbo-cluster/src/test/java/org/apache/dubbo/rpc/cluster/support/wrapper/MockProviderRpcExceptionTest.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/constants/CommonConstants.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/config/ApplicationConfig.java",
+        "dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/ServiceConfig.java",
+        "dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/bootstrap/DubboBootstrap.java",
+        "dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/bootstrap/builders/ApplicationBuilder.java",
+        "dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/metadata/ConfigurableMetadataServiceExporter.java",
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/AbstractInterfaceConfigTest.java",
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/bootstrap/DubboBootstrapTest.java",
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/bootstrap/builders/ApplicationBuilderTest.java",
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/config/event/listener/PublishingServiceDefinitionListenerTest.java",
+        "dubbo-config/dubbo-config-api/src/test/java/org/apache/dubbo/metadata/MetadataServiceExporterTest.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/MetadataService.java",
+        "dubbo-plugin/dubbo-qos/src/main/java/org/apache/dubbo/qos/command/CommandContext.java",
+        "dubbo-plugin/dubbo-qos/src/main/java/org/apache/dubbo/qos/command/impl/Ready.java",
+        "dubbo-plugin/dubbo-qos/src/main/java/org/apache/dubbo/qos/server/handler/HttpProcessHandler.java",
+        "dubbo-plugin/dubbo-qos/src/test/java/org/apache/dubbo/qos/command/util/CommandHelperTest.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/Constants.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/metadata/MetadataUtils.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/metadata/StandardMetadataServiceURLBuilder.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/metadata/store/InMemoryWritableMetadataService.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/metadata/store/RemoteMetadataServiceImpl.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/migration/MigrationClusterInvoker.java",
+        "dubbo-registry/dubbo-registry-api/src/test/java/org/apache/dubbo/registry/client/InMemoryServiceDiscovery.java",
+        "dubbo-registry/dubbo-registry-api/src/test/java/org/apache/dubbo/registry/support/ServiceOrientedRegistryTest.java",
+        "dubbo-registry/dubbo-registry-multicast/src/test/java/org/apache/dubbo/registry/multicast/MulticastRegistryTest.java",
+        "dubbo-registry/dubbo-registry-zookeeper/src/test/java/org/apache/dubbo/registry/zookeeper/ZookeeperServiceDiscoveryTest.java",
+        "dubbo-remoting/dubbo-remoting-netty/src/test/java/org/apache/dubbo/remoting/exchange/support/header/HeartbeatHandlerTest.java",
+        "dubbo-remoting/dubbo-remoting-netty/src/test/java/org/apache/dubbo/remoting/transport/netty/ClientReconnectTest.java",
+        "dubbo-remoting/dubbo-remoting-netty/src/test/java/org/apache/dubbo/remoting/transport/netty/ThreadNameTest.java",
+        "dubbo-remoting/dubbo-remoting-netty4/src/test/java/org/apache/dubbo/remoting/transport/netty4/NettyTransporterTest.java",
+        "dubbo-remoting/dubbo-remoting-netty4/src/test/java/org/apache/dubbo/remoting/transport/netty4/ReplierDispatcherTest.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 2,
+      "signal_3b_oldest_sibling_days": 3375,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "MulticastServiceDiscoveryFactory (and MulticastServiceDiscovery) were added as new files (new file mode) in this commit rather than being extracted or refactored from preexisting creation logic. There is no evidence that an existing object-creation site was changed to use a Factory Method; instead the factory and product classes were introduced from scratch (alongside other new ServiceDiscoveryFactory implementations like DNS and Kubernetes). Therefore this is a greenfield addition of the Factory Method style, not a smell-to-pattern refactor or a pure move/rename.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 33 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-cluster/src/test/java/org/apache/dubbo/rpc/cluster/support/wrapper/MockClusterInvokerTest.java', 'dubbo-cluster/src/test/java/org/apache/dubbo/rpc/cluster/support/wrapper/MockProviderRpcExceptionTest.java', 'dubbo-common/src/main/java/org/apache/dubbo/common/constants/CommonConstants.java', 'dubbo-common/src/main/java/org/apache/dubbo/config/ApplicationConfig.java', 'dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/ServiceConfig.java'] \u2026",
+        "3B \u2713 Package 'dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast' had 2 pre-existing .java file(s) before the birth commit, oldest sibling 3375d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: MulticastServiceDiscoveryFactory (and MulticastServiceDiscovery) were added as new files (new file mode) in this commit rather than being extracted or refactored from preexisting creation logic. There"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 27,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast/MulticastServiceDiscoveryFactory.java",
+    "class_name": "MulticastServiceDiscoveryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "The class extends AbstractServiceDiscoveryFactory and overrides the protected createDiscovery(...) method to instantiate and return a concrete ServiceDiscovery (MulticastServiceDiscovery). This matches the Factory Method pattern: an abstract creator defines a factory method and subclasses provide the concrete product instantiation.",
+    "birth_commit_sha": "10052d468760f2f952064289719286d3ba608693",
+    "parent_sha": "d22223d3bc41045cfde4191512f7b597e0dc2028",
+    "birth_commit_date": "2011-10-20T15:06:57+00:00",
+    "birth_commit_message": "Add 2.0.7",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast/MulticastServiceDiscoveryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 28,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast/MulticastRegistryFactory.java",
+    "class_name": "MulticastRegistryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "MulticastRegistryFactory subclasses AbstractRegistryFactory and overrides the createRegistry(URL) method to instantiate and return a concrete product (MulticastRegistry). This matches the Factory Method pattern: a creator defines the factory method (in the abstract base) and the subclass decides which concrete product to instantiate.",
+    "birth_commit_sha": "10052d468760f2f952064289719286d3ba608693",
+    "parent_sha": "d22223d3bc41045cfde4191512f7b597e0dc2028",
+    "birth_commit_date": "2011-10-20T15:06:57+00:00",
+    "birth_commit_message": "Add 2.0.7",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast/MulticastRegistryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 29,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast/MulticastRegistryFactory.java",
+    "class_name": "MulticastRegistryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.95,
+    "detection_reasoning": "MulticastRegistryFactory subclasses AbstractRegistryFactory and overrides the createRegistry(URL) method to instantiate and return a concrete product (MulticastRegistry). This matches the Factory Method pattern: a creator defines the factory method (in the abstract base) and the subclass decides which concrete product to instantiate.",
+    "birth_commit_sha": "e92a5536465f6a4255c36da3541caa77b0bb735b",
+    "parent_sha": "928292b1a1938dad96d3965e7f48da5dc0a09373",
+    "birth_commit_date": "2018-06-15T06:10:40+00:00",
+    "birth_commit_message": "Repackage to org apache (#1941)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast/MulticastRegistryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "dubbo-bootstrap/src/main/java/org/apache/dubbo/bootstrap/DubboBootstrap.java",
+        "dubbo-rpc/dubbo-rpc-thrift/src/test/java/ClassNameTest.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "Error code: 400 - {'error': {'message': 'Input tokens exceed the configured limit of 272000 tokens. Your messages resulted in 594166 tokens. Please reduce the length of the messages.', 'type': 'invalid_request_error', 'param': 'messages', 'code': 'context_length_exceeded'}}",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-bootstrap/src/main/java/org/apache/dubbo/bootstrap/DubboBootstrap.java', 'dubbo-rpc/dubbo-rpc-thrift/src/test/java/ClassNameTest.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-registry/dubbo-registry-multicast/src/main/java/org/apache/dubbo/registry/multicast' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: Error code: 400 - {'error': {'message': 'Input tokens exceed the configured limit of 272000 tokens. Your messages resulted in 594166 tokens. Please reduce the length of the messages.', 'type': 'invali"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 30,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos/NacosServiceDiscoveryFactory.java",
+    "class_name": "NacosServiceDiscoveryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "NacosServiceDiscoveryFactory is a concrete subclass of AbstractServiceDiscoveryFactory that overrides a protected creation method (createDiscovery) to return a concrete product (NacosServiceDiscovery) typed as the abstract product (ServiceDiscovery). This matches the Factory Method pattern: an abstract creator defines the factory method and subclasses override it to instantiate specific products.",
+    "birth_commit_sha": "10052d468760f2f952064289719286d3ba608693",
+    "parent_sha": "d22223d3bc41045cfde4191512f7b597e0dc2028",
+    "birth_commit_date": "2011-10-20T15:06:57+00:00",
+    "birth_commit_message": "Add 2.0.7",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos/NacosServiceDiscoveryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 0,
+      "signal_3a_modified_files": [],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": null,
+      "evidence_notes": [],
+      "rejection_reasons": [
+        "3A \u2717 No pre-existing Java files modified in birth commit (only 0 found, need 1)",
+        "3B \u2717 Package 'dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Heuristics 3A and 3B both fail"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 31,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos/NacosServiceDiscoveryFactory.java",
+    "class_name": "NacosServiceDiscoveryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "NacosServiceDiscoveryFactory is a concrete subclass of AbstractServiceDiscoveryFactory that overrides a protected creation method (createDiscovery) to return a concrete product (NacosServiceDiscovery) typed as the abstract product (ServiceDiscovery). This matches the Factory Method pattern: an abstract creator defines the factory method and subclasses override it to instantiate specific products.",
+    "birth_commit_sha": "c572c2cd2e5dd2d11a81825f50d22a1363eee1fb",
+    "parent_sha": "adffd9213448bd810b3d23e57f6f42a7ee29bffd",
+    "birth_commit_date": "2020-07-03T04:24:00+00:00",
+    "birth_commit_message": "Service Discovery Enhancement",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos/NacosServiceDiscoveryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": true,
+      "signal_3a_modified_count": 39,
+      "signal_3a_modified_files": [
+        "dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/directory/AbstractDirectory.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/URL.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/config/ConfigurationUtils.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/common/threadpool/manager/DefaultExecutorRepository.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/config/MetadataReportConfig.java",
+        "dubbo-common/src/main/java/org/apache/dubbo/config/RegistryConfig.java",
+        "dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/ReferenceConfig.java",
+        "dubbo-config/dubbo-config-api/src/main/java/org/apache/dubbo/config/bootstrap/DubboBootstrap.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/DynamicConfigurationServiceNameMapping.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/MetadataInfo.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/MetadataService.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/MetadataServiceNameMapping.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/ServiceNameMapping.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/WritableMetadataService.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/report/MetadataReport.java",
+        "dubbo-metadata/dubbo-metadata-api/src/main/java/org/apache/dubbo/metadata/report/MetadataReportInstance.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/NotifyListener.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/DefaultServiceInstance.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/EventPublishingServiceDiscovery.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/FileSystemServiceDiscovery.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/InstanceAddressURL.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/ServiceDiscovery.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/ServiceDiscoveryRegistry.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/ServiceDiscoveryRegistryProtocol.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/ServiceInstance.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/event/listener/ServiceInstancesChangedListener.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/metadata/store/InMemoryWritableMetadataService.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/client/metadata/store/RemoteMetadataServiceImpl.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/integration/RegistryDirectory.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/integration/RegistryInvokerWrapper.java",
+        "dubbo-registry/dubbo-registry-api/src/main/java/org/apache/dubbo/registry/integration/RegistryProtocol.java",
+        "dubbo-registry/dubbo-registry-consul/src/main/java/org/apache/dubbo/registry/consul/ConsulServiceDiscovery.java",
+        "dubbo-registry/dubbo-registry-default/src/test/java/org/apache/dubbo/registry/dubbo/RegistryDirectoryTest.java",
+        "dubbo-registry/dubbo-registry-etcd3/src/main/java/org/apache/dubbo/registry/etcd/EtcdServiceDiscovery.java",
+        "dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos/NacosServiceDiscovery.java",
+        "dubbo-registry/dubbo-registry-zookeeper/src/main/java/org/apache/dubbo/registry/zookeeper/ZookeeperServiceDiscovery.java",
+        "dubbo-registry/dubbo-registry-zookeeper/src/main/java/org/apache/dubbo/registry/zookeeper/ZookeeperServiceDiscoveryChangeWatcher.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/RpcContext.java",
+        "dubbo-rpc/dubbo-rpc-api/src/main/java/org/apache/dubbo/rpc/proxy/InvokerInvocationHandler.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 4,
+      "signal_3b_oldest_sibling_days": 475,
+      "llm_is_refactoring": true,
+      "llm_reasoning": "- The concrete product (NacosServiceDiscovery) already existed and was modified in-place; the diff adds a small factory subclass (NacosServiceDiscoveryFactory) whose sole job is to instantiate and return a new NacosServiceDiscovery.  \n- SPI mapping/resource usage was changed from registering implementations directly to registering factory implementations (e.g., new META-INF/...ServiceDiscoveryFactory entries), so instantiation is now driven through the factory SPI. In other words, existing object-creation responsibilities were refactored into a Factory Method (new factory classes) rather than introducing an entirely new feature or merely moving code. This matches the Smell\u2192Pattern scenario: existing creation logic/products were restructured to use the Factory Method and the call sites/resource mappings were updated to obtain instances via the factory.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 39 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-cluster/src/main/java/org/apache/dubbo/rpc/cluster/directory/AbstractDirectory.java', 'dubbo-common/src/main/java/org/apache/dubbo/common/URL.java', 'dubbo-common/src/main/java/org/apache/dubbo/common/config/ConfigurationUtils.java', 'dubbo-common/src/main/java/org/apache/dubbo/common/threadpool/manager/DefaultExecutorRepository.java', 'dubbo-common/src/main/java/org/apache/dubbo/config/MetadataReportConfig.java'] \u2026",
+        "3B \u2713 Package 'dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos' had 4 pre-existing .java file(s) before the birth commit, oldest sibling 475d old",
+        "LLM \u2713 Refactoring confirmed: - The concrete product (NacosServiceDiscovery) already existed and was modified in-place; the diff adds a small factory subclass (NacosServiceDiscoveryFactory) whose sole job is to instantiate and ret"
+      ],
+      "rejection_reasons": []
+    },
+    "human_validation": false
+  },
+  {
+    "id": 32,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/dubbo",
+    "pattern": "FactoryMethod",
+    "pattern_file": "dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos/NacosRegistryFactory.java",
+    "class_name": "NacosRegistryFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "NacosRegistryFactory extends AbstractRegistryFactory and overrides the protected createRegistry(URL) factory method to instantiate and return a concrete product (NacosRegistry). This fits the GoF Factory Method pattern: the abstract/base factory defines the creation method and subclasses decide which concrete Registry to create.",
+    "birth_commit_sha": "7fefb8145c2afb98bb8fa32b8e84b05f6b7319e0",
+    "parent_sha": "fcdf9c8ce71c26e28d23066a33eb4116a73d7d5a",
+    "birth_commit_date": "2019-03-15T09:14:08+00:00",
+    "birth_commit_message": "Enhancement and Bugfix in 2.7.1 ( Part 3 )  (#3675)",
+    "is_initial_repo_commit": false,
+    "original_file_path": "dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos/NacosRegistryFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 2,
+      "signal_3a_modified_files": [
+        "dubbo-config/dubbo-config-spring/src/main/java/org/apache/dubbo/config/spring/beans/factory/annotation/ReferenceAnnotationBeanPostProcessor.java",
+        "dubbo-config/dubbo-config-spring/src/main/java/org/apache/dubbo/config/spring/beans/factory/annotation/ServiceAnnotationBeanPostProcessor.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": true,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 2 pre-existing Java file(s) modified in birth commit (call-site update): ['dubbo-config/dubbo-config-spring/src/main/java/org/apache/dubbo/config/spring/beans/factory/annotation/ReferenceAnnotationBeanPostProcessor.java', 'dubbo-config/dubbo-config-spring/src/main/java/org/apache/dubbo/config/spring/beans/factory/annotation/ServiceAnnotationBeanPostProcessor.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'dubbo-registry/dubbo-registry-nacos/src/main/java/org/apache/dubbo/registry/nacos' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM Diff: LLM identified this as a release/bulk commit"
+      ]
+    },
+    "human_validation": false
+  }
+]

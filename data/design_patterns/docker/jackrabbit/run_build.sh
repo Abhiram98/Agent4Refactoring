@@ -1,9 +1,7 @@
 #!/bin/bash
 
-git fetch --all
-git pull --all
 git checkout $BRANCH_NAME
 
 set -e
-echo "Building Apache CXF..."
+echo "Building Apache Jackrabbit..."
 mvn clean install -DskipTests

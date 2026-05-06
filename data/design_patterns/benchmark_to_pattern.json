@@ -1,0 +1,34 @@
+[
+  {
+    "project_name": "hbase",
+        "class_name": "TableBuilder",
+        "pattern": "Builder",
+        "id": 1001,
+        "github_url": "git://github.com/apache/hbase.git",
+        "filePath": "hbase-client/src/main/java/org/apache/hadoop/hbase/client/TableBuilder.java",
+        "is_true_pattern": true,
+        "justification": "This interface is a textbook Builder pattern for constructing a `Table` connection object. Creating a `Table` requires several optional configuration values — operation timeouts, RPC timeouts for reads vs. writes, and request attributes — but a caller usually only wants to tweak one or two of them. Instead of forcing a massive constructor with all possible parameters (which becomes unreadable), the Builder pattern lets a caller chain only the settings it cares about, then call `build()` at the end to get a fully configured `Table`. Each setter (e.g., `setOperationTimeout`, `setReadRpcTimeout`) returns the `TableBuilder` itself, enabling fluent method chaining like `connection.getTableBuilder(tableName, pool).setOperationTimeout(5000).setReadRpcTimeout(2000).build()`. The implementation fills in sensible defaults for anything not explicitly set.",
+        "v0_hash": "7754a96",
+        "v1_hash": "07e0a30efa332ab451e5f5729dd8257eced82c4d",
+        "commit_msg": "HBASE-17491 Remove all setters from HTable interface and introduce a TableBuilder to build Table instance",
+        "task-terse": "Refactor the HTable class to use the Builder pattern.",
+        "task-verbose": "",
+        "commit_date": "01/22/2017"
+  },
+  {
+    "project_name": "ant",
+    "class_name": "ResourceDecorator",
+    "pattern": "Decorator",
+    "id": "",
+    "github_url": "git://github.com/apache/ant.git",
+    "filePath": "src/main/org/apache/tools/ant/types/resources/ResourceDecorator.java",
+    "is_true_pattern": true,
+    "justification": "",
+    "v0_hash": "b10fa11",
+    "v1_hash": "99deca2a7689ef13a6dfa6ad2c30db68e6f3d3e9",
+    "commit_msg": "extract a common base class for resource decorators",
+    "task-terse": "",
+    "task-verbose": "",
+    "commit_date": "11/18/2008"
+  }
+]

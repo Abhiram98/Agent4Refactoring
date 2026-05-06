@@ -9,8 +9,8 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/apache/cxf.git .
-RUN git remote add abhiram_origin https://github.com/Abhiram98/cxf.git
+RUN git clone --depth 1 https://github.com/camunda/camunda.git .
+RUN git remote add abhiram_origin https://github.com/Abhiram98/camunda.git
 RUN git fetch --all
 RUN git pull --all
 

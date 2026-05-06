@@ -1,0 +1,129 @@
+[
+  {
+    "id": 1,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/bytechef",
+    "pattern": "Adapter",
+    "pattern_file": "sdks/backend/java/component-api/src/main/java/com/bytechef/component/definition/unified/base/adapter/ProviderModelAdapter.java",
+    "class_name": "ProviderModelAdapter",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.78,
+    "detection_reasoning": "The interface is explicitly designed to translate/provider-specific models (PI/PO) into a unified representation and exposes a client-facing API for create/get/update/delete and paging. That matches the intent of the Adapter pattern (converting one interface to another). Note: this file declares the Adapter contract (an adapter role/target) rather than providing a concrete adapter implementation; concrete classes implementing this interface would perform the actual adaptation.",
+    "birth_commit_sha": "48d12926d36bf10112807cfa9848047f8b18940c",
+    "parent_sha": "38250ad3189fe6eb9a7487e17eaffd7f16aa2a4a",
+    "birth_commit_date": "2024-09-25T04:20:50+00:00",
+    "birth_commit_message": "743 - unified-api - Initial Commit",
+    "is_initial_repo_commit": false,
+    "original_file_path": "sdks/backend/java/component-api/src/main/java/com/bytechef/component/definition/unified/base/adapter/ProviderModelAdapter.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 10,
+      "signal_3a_modified_files": [
+        "sdks/backend/java/component-api/src/main/java/com/bytechef/component/definition/ComponentDefinition.java",
+        "sdks/backend/java/component-api/src/main/java/com/bytechef/component/definition/ComponentDsl.java",
+        "server/ee/libs/platform/platform-component/platform-component-remote-client/src/main/java/com/bytechef/ee/platform/component/remote/client/service/RemoteComponentDefinitionServiceClient.java",
+        "server/libs/core/commons/commons-util/src/main/java/com/bytechef/commons/util/EncodingUtils.java",
+        "server/libs/platform/platform-component/platform-component-api/src/main/java/com/bytechef/platform/component/definition/AbstractComponentDefinitionWrapper.java",
+        "server/libs/platform/platform-component/platform-component-api/src/main/java/com/bytechef/platform/component/domain/ComponentDefinition.java",
+        "server/libs/platform/platform-component/platform-component-api/src/main/java/com/bytechef/platform/component/service/ComponentDefinitionService.java",
+        "server/libs/platform/platform-component/platform-component-service/src/main/java/com/bytechef/platform/component/service/ComponentDefinitionServiceImpl.java",
+        "server/libs/platform/platform-configuration/platform-configuration-rest/platform-configuration-rest-impl/src/main/java/com/bytechef/platform/configuration/web/rest/ComponentDefinitionApiController.java",
+        "server/libs/platform/platform-connection/platform-connection-service/src/test/java/com/bytechef/platform/connection/config/ConnectionIntTestConfiguration.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": null,
+      "llm_reasoning": null,
+      "is_release_commit": null,
+      "too_many_added_files": true,
+      "evidence_notes": [
+        "3A \u2713 10 pre-existing Java file(s) modified in birth commit (call-site update): ['sdks/backend/java/component-api/src/main/java/com/bytechef/component/definition/ComponentDefinition.java', 'sdks/backend/java/component-api/src/main/java/com/bytechef/component/definition/ComponentDsl.java', 'server/ee/libs/platform/platform-component/platform-component-remote-client/src/main/java/com/bytechef/ee/platform/component/remote/client/service/RemoteComponentDefinitionServiceClient.java', 'server/libs/core/commons/commons-util/src/main/java/com/bytechef/commons/util/EncodingUtils.java', 'server/libs/platform/platform-component/platform-component-api/src/main/java/com/bytechef/platform/component/definition/AbstractComponentDefinitionWrapper.java'] \u2026"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'sdks/backend/java/component-api/src/main/java/com/bytechef/component/definition/unified/base/adapter' had no pre-existing .java files before the birth commit (count=0)",
+        "Skip LLM: Too many files added (142 > 100)"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 2,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/bytechef",
+    "pattern": "Observer",
+    "pattern_file": "server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/listener/PollingTriggerListener.java",
+    "class_name": "PollingTriggerListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.8,
+    "detection_reasoning": "The class receives messages and publishes ApplicationEvents (TriggerPollEvent) via Spring's ApplicationEventPublisher, which is an implementation of the Observer / publish\u2013subscribe pattern. Although PollingTriggerListener does not itself manage observer lists, it acts as the subject/event source and delegates notification to Spring's observer infrastructure (subscribed ApplicationListeners), so it participates in the Observer pattern.",
+    "birth_commit_sha": "e8c1266d6b4952394d73df0a3e51db47f6deef11",
+    "parent_sha": "1058f6faf8689cfb3bb58ad37e2e19ffdd6b95bf",
+    "birth_commit_date": "2024-10-10T05:37:34+00:00",
+    "birth_commit_message": "1400 - Reorganize, SF",
+    "is_initial_repo_commit": false,
+    "original_file_path": "server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/listener/PollingTriggerListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 3,
+      "signal_3a_modified_files": [
+        "server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/AwsTriggerScheduler.java",
+        "server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/config/AwsTriggerSchedulerConfiguration.java",
+        "server/libs/platform/platform-scheduler/platform-scheduler-impl/src/main/java/com/bytechef/platform/scheduler/config/QuartzTriggerSchedulerConfiguration.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit removes the old PollingListener/ScheduleListener classes and adds PollingTriggerListener/ScheduleTriggerListener (and renames DynamicWebhookListener). The new PollingTriggerListener still uses ApplicationEventPublisher to publish a TriggerPollEvent from its @SqsListener method \u2014 the observer-style event publishing already existed in the deleted PollingListener. Changes are chiefly renames/moves, constantization of queue names, and minor API/packaging adjustments rather than converting ad-hoc calls into a newly introduced Observer subscription mechanism. Therefore this is a move/rename + small refactor, not a Greenfield addition or a Smell\u2192Pattern restructuring.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 3 pre-existing Java file(s) modified in birth commit (call-site update): ['server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/AwsTriggerScheduler.java', 'server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/config/AwsTriggerSchedulerConfiguration.java', 'server/libs/platform/platform-scheduler/platform-scheduler-impl/src/main/java/com/bytechef/platform/scheduler/config/QuartzTriggerSchedulerConfiguration.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/listener' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit removes the old PollingListener/ScheduleListener classes and adds PollingTriggerListener/ScheduleTriggerListener (and renames DynamicWebhookListener). The new PollingTriggerListener still u"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 3,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/bytechef",
+    "pattern": "Observer",
+    "pattern_file": "server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/listener/ScheduleTriggerListener.java",
+    "class_name": "ScheduleTriggerListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.85,
+    "detection_reasoning": "The class receives messages and publishes TriggerListenerEvent via Spring's ApplicationEventPublisher, which implements a publish\u2013subscribe (observer) mechanism. While it doesn't manage observer lists itself (that is delegated to the Spring framework), its behavior (notify decoupled listeners of an event) matches the Observer pattern. It also acts as an adapter between SQS messages and the event system.",
+    "birth_commit_sha": "e8c1266d6b4952394d73df0a3e51db47f6deef11",
+    "parent_sha": "1058f6faf8689cfb3bb58ad37e2e19ffdd6b95bf",
+    "birth_commit_date": "2024-10-10T05:37:34+00:00",
+    "birth_commit_message": "1400 - Reorganize, SF",
+    "is_initial_repo_commit": false,
+    "original_file_path": "server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/listener/ScheduleTriggerListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 3,
+      "signal_3a_modified_files": [
+        "server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/AwsTriggerScheduler.java",
+        "server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/config/AwsTriggerSchedulerConfiguration.java",
+        "server/libs/platform/platform-scheduler/platform-scheduler-impl/src/main/java/com/bytechef/platform/scheduler/config/QuartzTriggerSchedulerConfiguration.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit renames/moves and slightly refactors the existing listener classes rather than introducing a new Observer-based architecture. The previous ScheduleListener and PollingListener (which already used ApplicationEventPublisher to publish TriggerListenerEvent/TriggerPollEvent) were deleted and replaced by ScheduleTriggerListener and PollingTriggerListener in a new package; DynamicWebhookListener was renamed to DynamicWebhookTriggerRefreshListener. The event-publishing (Observer) usage via ApplicationEventPublisher is preserved, and call sites still publish events the same way \u2014 only names, queue constants, splitting logic and packaging were changed. This is a move/rename + minor refactor, not a Smell->Pattern refactor or a greenfield addition.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 3 pre-existing Java file(s) modified in birth commit (call-site update): ['server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/AwsTriggerScheduler.java', 'server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/config/AwsTriggerSchedulerConfiguration.java', 'server/libs/platform/platform-scheduler/platform-scheduler-impl/src/main/java/com/bytechef/platform/scheduler/config/QuartzTriggerSchedulerConfiguration.java']"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'server/ee/libs/platform/platform-scheduler/platform-scheduler-aws/src/main/java/com/bytechef/ee/platform/scheduler/aws/listener' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The commit renames/moves and slightly refactors the existing listener classes rather than introducing a new Observer-based architecture. The previous ScheduleListener and PollingListener (which alread"
+      ]
+    },
+    "human_validation": false
+  }
+]

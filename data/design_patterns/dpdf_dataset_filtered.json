@@ -597,5 +597,30 @@
             "Fluent Builder (Refactor): Change all `void setX(...)` methods to return `ServiceBuilder` so calls can be chained: `builder.setBindingId(id).setAddress(addr).createService()`. This is a straightforward upgrade to the standard fluent Builder style and makes the configuration sequence more readable at the call site.",
             "Factory Method with a Config Map: Replace the typed setters with a single `setProperty(String key, Object value)` method backed by an internal map. The terminal `createService()` reads from the map. This removes compile-time safety for individual properties but makes the interface more extensible without changing the contract when new CXF configuration keys are added."
         ]
+    },
+    {
+        "project_name": "cxf",
+        "class_name": "ServiceBuilder",
+        "pattern": "Builder",
+        "id": 1003,
+        "github_url": "git://github.com/apache/cxf.git",
+        "filePath": "rt/wsdl/src/main/java/org/apache/cxf/wsdl11/WSDLServiceBuilder.java",
+        "is_true_pattern": true,
+        "justification": "This class follows the Builder pattern.",
+        "alternatives": [
+            {
+                "id": "1003-1",
+                "task-terse": "Change the WSDLServiceBuilder to avoid the builder pattern. Directly instantiate the target object.",
+                "task": "Remove the builder pattern entirely. Instead of using the builder, construct the target object directly. Use telescoping constructors in the target object."
+            },
+            {
+                "id": "1003-2",
+                "task": "Fluent Builder (Refactor): Change all `void setX(...)` methods to return the `Builder` so calls can be chained."
+            },
+            {
+                "id": "1003-3",
+                "task": "Factory Method with a Config Map: Replace the typed setters with a single `setProperty(String key, Object value)` method backed by an internal map. The terminal `createService()` reads from the map. This removes compile-time safety for individual properties but makes the interface more extensible without changing the contract when new CXF configuration keys are added."
+            }
+        ]
     }
 ]

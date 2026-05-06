@@ -5,5 +5,5 @@ git pull --all
 git checkout $BRANCH_NAME
 
 set -e
-echo "Building Apache CXF..."
-mvn clean install -DskipTests
+echo "Running Apache Kafka tests..."
+./gradlew test

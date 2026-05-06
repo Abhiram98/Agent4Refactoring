@@ -718,5 +718,129 @@
         "LLM \u2717 Greenfield according to LLM: The commit adds a new DataTypeVisitor interface and injects accept(visitor) methods into existing DataType subclasses without moving or restructuring any existing logic and without changing existing c"
       ]
     }
+  },
+  {
+    "id": 17,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "FactoryMethod",
+    "pattern_file": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/module/CoreModuleFactory.java",
+    "class_name": "CoreModuleFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "CoreModuleFactory implements the ModuleFactory interface and provides the createModule(Context) method that returns a Module instance (CoreModule.INSTANCE). This fits the Factory Method pattern: the factory interface declares a creation method and this concrete factory decides which concrete Product (here a singleton CoreModule) to return. The use of a singleton instance doesn't change that it is a Factory Method implementation.",
+    "birth_commit_sha": "a9704308802e3f71589c790a81a7e65a56ea35dc",
+    "parent_sha": "08793a93cf910944de36ea67cdaec06975628a48",
+    "birth_commit_date": "2019-11-01T23:21:15+00:00",
+    "birth_commit_message": "[FLINK-14419][table] Add ModuleFactory, ModuleDescriptor, ModuleDescriptorValidator for factory discovery service, and add implementations for CoreModule",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/module/CoreModuleFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 1,
+      "signal_3a_modified_files": [
+        "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/module/ModuleManager.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 3,
+      "signal_3b_oldest_sibling_days": 3242,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit adds a new factory API and implementation (ModuleFactory, CoreModuleFactory), descriptor/validator classes (ModuleDescriptor, CoreModuleDescriptor, CoreModuleDescriptorValidator), SPI registration, and tests that exercise the new factory. While a constant (core name) was moved/renamed (ModuleConfig -> CoreModuleDescriptorValidator), existing call sites were not converted to use the new factory (ModuleManager still references the core module instance directly). Thus the Factory Method support was introduced as new functionality rather than a refactor of prior creation sites.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 1 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/module/ModuleManager.java']",
+        "3B \u2713 Package 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/module' had 3 pre-existing .java file(s) before the birth commit, oldest sibling 3242d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The commit adds a new factory API and implementation (ModuleFactory, CoreModuleFactory), descriptor/validator classes (ModuleDescriptor, CoreModuleDescriptor, CoreModuleDescriptorValidator), SPI regis"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 18,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "FactoryMethod",
+    "pattern_file": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/module/CoreModuleFactory.java",
+    "class_name": "CoreModuleFactory",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.9,
+    "detection_reasoning": "CoreModuleFactory implements the ModuleFactory interface and provides the createModule(Context) method that returns a Module instance (CoreModule.INSTANCE). This fits the Factory Method pattern: the factory interface declares a creation method and this concrete factory decides which concrete Product (here a singleton CoreModule) to return. The use of a singleton instance doesn't change that it is a Factory Method implementation.",
+    "birth_commit_sha": "d3e5bf69c3d3f105c1ebe7c46bd4a74e5407137f",
+    "parent_sha": "97510aaa8444895a0cc4df7461889fb66d5ffc01",
+    "birth_commit_date": "2019-05-24T19:04:13+00:00",
+    "birth_commit_message": "[FLINK-9172][sql-client][tabe] Support catalogs in SQL-Client yaml config file",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/module/CoreModuleFactory.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 8,
+      "signal_3a_modified_files": [
+        "flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/config/Environment.java",
+        "flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/config/entries/ConfigEntry.java",
+        "flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/config/entries/ExecutionEntry.java",
+        "flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/gateway/local/ExecutionContext.java",
+        "flink-table/flink-sql-client/src/test/java/org/apache/flink/table/client/gateway/local/DependencyTest.java",
+        "flink-table/flink-sql-client/src/test/java/org/apache/flink/table/client/gateway/local/EnvironmentTest.java",
+        "flink-table/flink-sql-client/src/test/java/org/apache/flink/table/client/gateway/local/ExecutionContextTest.java",
+        "flink-table/flink-table-common/src/main/java/org/apache/flink/table/factories/TableFactoryService.java"
+      ],
+      "signal_3b_package_preexisted": false,
+      "signal_3b_sibling_count": 0,
+      "signal_3b_oldest_sibling_days": null,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The diff introduces catalog support from scratch: new CatalogEntry, CatalogDescriptor(+Validator), CatalogFactory interface, TableFactoryService enhancements, tests, resources, and new code in ExecutionContext to create and register catalogs via TableFactoryService.find(...). There is no evidence of prior catalog creation logic or classes being refactored into a factory\u2014both the factory interface and its call sites are newly added\u2014so this is a greenfield addition of the Factory Method style (factory-based) mechanism.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 8 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/config/Environment.java', 'flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/config/entries/ConfigEntry.java', 'flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/config/entries/ExecutionEntry.java', 'flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/gateway/local/ExecutionContext.java', 'flink-table/flink-sql-client/src/test/java/org/apache/flink/table/client/gateway/local/DependencyTest.java'] \u2026"
+      ],
+      "rejection_reasons": [
+        "3B \u2717 Package 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/module' had no pre-existing .java files before the birth commit (count=0)",
+        "LLM \u2717 Greenfield according to LLM: The diff introduces catalog support from scratch: new CatalogEntry, CatalogDescriptor(+Validator), CatalogFactory interface, TableFactoryService enhancements, tests, resources, and new code in Executi"
+      ]
+    },
+    "human_validation": false
+  },
+  {
+    "id": 19,
+    "repo_path": "/Users/abhiram/Documents/TBE/evaluation_projects/flink",
+    "pattern": "Observer",
+    "pattern_file": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/catalog/TemporaryOperationListener.java",
+    "class_name": "TemporaryOperationListener",
+    "detection_source": "llm_validation",
+    "detection_confidence": 0.75,
+    "detection_reasoning": "The interface defines a set of callback methods invoked when temporary-catalog operations occur \u2014 i.e., an observer/listener API. This matches the Observer (listener) role from the GoF pattern. The file only provides the observer interface (callbacks) rather than the subject/notification implementation, but the intent and structure follow the Observer pattern (Java-style Listener variant).",
+    "birth_commit_sha": "6c3a73a3df5a160bd291bf7e6d9b39a6f1eb60e7",
+    "parent_sha": "96e77d60261c80aafb0996817859d8eadc79f00a",
+    "birth_commit_date": "2021-02-04T02:37:43+00:00",
+    "birth_commit_message": "[FLINK-21185][table-api] Introduce TemporaryOperationListener interface for Catalog to listen on temporary object operations",
+    "is_initial_repo_commit": false,
+    "original_file_path": "flink-table/flink-table-common/src/main/java/org/apache/flink/table/catalog/TemporaryOperationListener.java",
+    "greenfield": {
+      "is_likely_refactoring": false,
+      "signal_3a_modified_count": 4,
+      "signal_3a_modified_files": [
+        "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/CatalogManager.java",
+        "flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/FunctionCatalog.java",
+        "flink-table/flink-table-api-java/src/test/java/org/apache/flink/table/catalog/FunctionCatalogTest.java",
+        "flink-table/flink-table-common/src/main/java/org/apache/flink/table/catalog/Catalog.java"
+      ],
+      "signal_3b_package_preexisted": true,
+      "signal_3b_sibling_count": 14,
+      "signal_3b_oldest_sibling_days": 3702,
+      "llm_is_refactoring": false,
+      "llm_reasoning": "The commit introduces a new TemporaryOperationListener interface (new file) and a new lookup method (getTemporaryOperationListener) and then updates create/drop code paths to consult that listener when present. There was no prior subject/observer infrastructure or existing observer logic being refactored into this pattern \u2014 the listener is added from scratch and wired into call sites, along with tests and a sample catalog implementation. This is an addition of a new Observer-style extension point, not a pure move or a refactoring of an existing observer anti-pattern.",
+      "is_release_commit": false,
+      "too_many_added_files": null,
+      "evidence_notes": [
+        "3A \u2713 4 pre-existing Java file(s) modified in birth commit (call-site update): ['flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/CatalogManager.java', 'flink-table/flink-table-api-java/src/main/java/org/apache/flink/table/catalog/FunctionCatalog.java', 'flink-table/flink-table-api-java/src/test/java/org/apache/flink/table/catalog/FunctionCatalogTest.java', 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/catalog/Catalog.java']",
+        "3B \u2713 Package 'flink-table/flink-table-common/src/main/java/org/apache/flink/table/catalog' had 14 pre-existing .java file(s) before the birth commit, oldest sibling 3702d old"
+      ],
+      "rejection_reasons": [
+        "LLM \u2717 Greenfield according to LLM: The commit introduces a new TemporaryOperationListener interface (new file) and a new lookup method (getTemporaryOperationListener) and then updates create/drop code paths to consult that listener whe"
+      ]
+    },
+    "human_validation": false
   }
 ]
