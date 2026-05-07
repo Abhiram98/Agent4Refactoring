@@ -2,7 +2,7 @@
 variants.py
 -----------
 Parses UndoVariant objects from the <!--variant YAML --> comment blocks embedded
-in benchmark/design_patterns/undo_pattern/*.md, and exposes a module-level
+in refagent/benchmark/design_patterns/variant_descriptions/*.md, and exposes a module-level
 VARIANT_REGISTRY dict.
 
 The Markdown format expected per variant section:
@@ -154,10 +154,8 @@ class MarkdownVariantParser:
 
 # Canonical location of the Markdown files relative to this source file:
 #   refagent/benchmark/design_patterns/undo_pattern/variants.py
-#   → parents[4] = project root
-#   → / "benchmark/design_patterns/undo_pattern"
 _DEFAULT_MD_DIR = (
-    Path(__file__).parents[4] / "benchmark" / "design_patterns" / "undo_pattern"
+    Path(__file__).parent / "variants_descriptions"
 )
 
 def load_registry(md_dir: Optional[Path] = None) -> dict[str, list[UndoVariant]]:

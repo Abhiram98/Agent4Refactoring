@@ -14,13 +14,13 @@ python -m refagent.benchmark.design_patterns.undo_pattern.run \\
 python -m refagent.benchmark.design_patterns.undo_pattern.run \\
     --ids ef050c5292da0baa 3f1a2b9c \\
     --num-variants 2 \\
-    --output data/design_patterns/undo_tasks.jsonl
+    --output data/design_patterns/undo_results.jsonl
 
 # Override paths
 python -m refagent.benchmark.design_patterns.undo_pattern.run \\
     --ids ef050c5292da0baa \\
     --candidates /path/to/aggregated_candidates.json \\
-    --output /path/to/undo_tasks.jsonl \\
+    --output /path/to/undo_results.jsonl \\
     --patches-dir /path/to/patches/ \\
     --md-dir /path/to/undo_pattern/
 """
@@ -38,7 +38,7 @@ from refagent.benchmark.design_patterns.undo_pattern.variants import VARIANT_REG
 logger = logging.getLogger(__name__)
 
 _DEFAULT_CANDIDATES = refagent.data_folder / "design_patterns" / "aggregated_candidates.json"
-_DEFAULT_OUTPUT     = refagent.data_folder / "design_patterns" / "undo_tasks.jsonl"
+_DEFAULT_OUTPUT     = refagent.data_folder / "design_patterns" / "undo_results.jsonl"
 _DEFAULT_PATCHES    = refagent.data_folder / "design_patterns" / "undo_patches"
 
 
