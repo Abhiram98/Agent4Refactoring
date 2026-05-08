@@ -33,6 +33,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
+import refagent.utils.project_manager as pm
 from .models import UndoTask, UndoVariant
 from .variants import VARIANT_REGISTRY, load_registry
 
@@ -112,17 +113,15 @@ _COMMIT_PREFIX = "[undo-pattern]"
 # Standard footer appended to every task prompt.
 _TASK_FOOTER_TEMPLATE = """
 ---
-**Verification and commit instructions (follow these exactly):**
+**Verification instructions (follow these exactly):**
 
-1. After making all changes, verify the code compiles:
-   `{build_cmd}`
+1. Ensure that the class `{class_name}` no longer exists, so that the pattern `{pattern}` is not exposed.
+
+2. After making all changes, verify the code compiles by running this shell script:
+/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/design_patterns/docker/hbase/verify_patch.sh
+This scripts commits your current changes and tests your patch on a docker container. 
    Fix any compilation errors before continuing.
 
-2. Stage all modified source files, explicitly excluding `.openhands/`:
-   `git add -A -- ':(exclude).openhands'`
-
-3. Commit with the exact message below (copy it verbatim):
-   `{commit_msg}`
 """.strip()
 
 
@@ -270,8 +269,8 @@ class UndoPatternPipeline:
         )
 
         footer = _TASK_FOOTER_TEMPLATE.format(
-            build_cmd=build_cmd,
-            commit_msg=commit_msg,
+            class_name=candidate.get("class_name", ""),
+            pattern=candidate.get("pattern", ""),
         )
 
         return f"{body}\n\n{footer}"
@@ -293,12 +292,20 @@ class UndoPatternPipeline:
         config_toml_path: Optional[Path] = None
 
         try:
+
+            # Reset git to head.
+            project = pm.EvalProject(repo_path.name)
+            project.checkout_branch("master")
+            # create a new branch with the task id.
+            project.checkout_branch(task.task_id)
+
             # 1. Ensure .openhands/ is git-excluded (local exclude, not committed)
             self._ensure_openhands_excluded(repo_path)
 
             # 2. Write per-run config.toml into .openhands/
             if docker_cfg:
-                config_toml_path = self._write_config_toml(repo_path, docker_cfg)
+                # config_toml_path = self._write_config_toml(repo_path, docker_cfg)
+                pass
             else:
                 logger.warning(
                     "No Docker config for project '%s'; running without custom sandbox.",
@@ -322,6 +329,10 @@ class UndoPatternPipeline:
                 "  OpenHands exited with code %d for task %s",
                 result.returncode, task.task_id,
             )
+
+            # changed_files = project.get_changed_files()
+            # project.safe_add(changed_files)
+            # project.commit(f"refactor for {task.task_id}")
 
             # 5. Capture patch / diff
             commit_sha, patch_path = self._capture_output(repo_path, task.task_id, task.class_name)
