@@ -40,7 +40,7 @@ def get_refactoring_class(type_name: str) -> Optional[Type[RefminerOut]]:
 
 def run_on_project(project_name: str,
                    refactoring_type_name: str,
-                   limit_commits: int = 200):
+                   limit_commits: int):
     project = pm.EvalProject(project_name)
     ref_class = get_refactoring_class(refactoring_type_name)
     
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Mine a project for specific refactoring types since 2020.")
     parser.add_argument("--project", required=True, help="Name of the project directory.")
     parser.add_argument("--type", required=True, help="Refactoring type (e.g., 'Extract Method', 'Rename Class').")
-    parser.add_argument("--limit", type=int, default=10000, help="Maximum number of new commits to process in this run.")
+    parser.add_argument("--limit", type=int, default=500, help="Maximum number of new commits to process in this run.")
     
     args = parser.parse_args()
     run_on_project(args.project, args.type, args.limit)
