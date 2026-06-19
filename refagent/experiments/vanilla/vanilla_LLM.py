@@ -7,6 +7,7 @@ from pydantic.v1 import SecretStr
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
 
@@ -77,16 +78,60 @@ def parse_name(refactoring_change):
     return old_name, new_name
 
 
-def create_grazie_model():
-    """Create a Grazie LLM model."""
-    return ChatGrazie(
-        grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
-        client_auth_type=AuthType.APPLICATION,
-        client_url=GrazieApiGatewayUrls.PRODUCTION,
-        profile="openai-gpt-4o-mini",
-        client_agent_name="simple-rename-script",
-        client_agent_version="0.1",
-    )
+def extract_token_usage(response):
+    """Extract normalized token usage from a LangChain AIMessage."""
+    usage = {
+        "prompt_tokens": None,
+        "completion_tokens": None,
+        "total_tokens": None,
+        "model_name": None,
+    }
+
+    usage_metadata = getattr(response, "usage_metadata", None)
+    if usage_metadata:
+        usage["prompt_tokens"] = usage_metadata.get("input_tokens")
+        usage["completion_tokens"] = usage_metadata.get("output_tokens")
+        usage["total_tokens"] = usage_metadata.get("total_tokens")
+
+    response_metadata = getattr(response, "response_metadata", None) or {}
+    token_usage = response_metadata.get("token_usage") or {}
+    if usage["prompt_tokens"] is None:
+        usage["prompt_tokens"] = token_usage.get("prompt_tokens")
+    if usage["completion_tokens"] is None:
+        usage["completion_tokens"] = token_usage.get("completion_tokens")
+    if usage["total_tokens"] is None:
+        usage["total_tokens"] = token_usage.get("total_tokens")
+    usage["model_name"] = response_metadata.get("model_name")
+
+    return usage
+
+
+def create_llm_model(provider: str, model: str):
+    """Create an LLM model for the given provider."""
+    if provider == "grazie":
+        grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
+        if not grazie_token:
+            raise ValueError(
+                "GRAZIE_JWT_TOKEN environment variable is required when using Grazie"
+            )
+        return ChatGrazie(
+            grazie_jwt_token=SecretStr(grazie_token),
+            client_auth_type=AuthType.APPLICATION,
+            client_url=GrazieApiGatewayUrls.PRODUCTION,
+            profile=model,
+            client_agent_name="simple-rename-script",
+            client_agent_version="0.1",
+        )
+    if provider == "openai":
+        api_key = os.getenv("OPENAI_API_KEY") or refagent.OPENAI_KEY
+        if not api_key:
+            raise ValueError(
+                "OPENAI_API_KEY environment variable is required when using OpenAI"
+            )
+        os.environ["OPENAI_API_KEY"] = api_key
+        # LangChain defaults to 0.7, but o-series and many newer models only allow 1.
+        return ChatOpenAI(model=model, temperature=1)
+    raise ValueError(f"Unknown LLM provider: {provider}. Choose 'grazie' or 'openai'.")
 
 
 def load_json_data(json_file_path):
@@ -96,7 +141,9 @@ def load_json_data(json_file_path):
     return data
 
 
-def process_single_item(item_data, intellij_server, model):
+def process_single_item(
+    item_data, intellij_server, model, llm_provider: str, model_name: str
+):
     """Process a single item from the JSON data."""
 
     # Step 1: Extract required fields
@@ -186,9 +233,12 @@ def process_single_item(item_data, intellij_server, model):
         system_message = SystemMessage(
             content="""
 You are a code refactoring assistant. Your task is to rename variables in the given code.
-You will be given the current code and instructions to rename a specific variable.
-Return ONLY the modified code with the variable renamed. Do not include any explanations or markdown formatting.
-Make sure to rename ALL occurrences of the variable consistently throughout the code.
+You will be given the path to the current code and instructions to rename a specific variable.
+Apply the changes directly to the files.
+
+Use the provided rename as a seed to infer the broader naming concept being changed.
+Rename ALL occurrences that share the same concept consistently.
+Finally, output the entire code.
 """
         )
 
@@ -205,8 +255,14 @@ Return only the modified code with the variable renamed.
         # Get LLM response
         response = model.invoke([system_message, user_message])
         modified_code = response.content.strip()
+        token_usage = extract_token_usage(response)
 
         print(f"[LLM] ✅ LLM successfully renamed '{old_name}' to '{new_name}'")
+        print(
+            f"[LLM] Token usage: prompt={token_usage['prompt_tokens']}, "
+            f"completion={token_usage['completion_tokens']}, "
+            f"total={token_usage['total_tokens']}"
+        )
 
     except Exception as e:
         print(f" [LLM] ❌ : Error invoking LLM: {e}")
@@ -242,6 +298,8 @@ Return only the modified code with the variable renamed.
         detected_refactorings = []
         recall = 0.0
         precision = 0.0
+        true_positive_count = 0
+        false_positive_count = 0
 
         try:
             print("[RefMiner] ⌛️ : Running RefactoringMiner on new commit...")
@@ -286,18 +344,27 @@ Return only the modified code with the variable renamed.
                                 true_positives.append(detected)
                                 break  # Found a match, move to next oracle
 
+                false_positives = [
+                    d for d in detected_refactorings if d not in true_positives
+                ]
+                true_positive_count = len(true_positives)
+                false_positive_count = len(false_positives)
+
                 recall = (
-                    (len(true_positives) - 1) / (len(oracle_objects) - 1)
-                    if (len(oracle_objects) > 1 and len(true_positives) > 1)
+                    (true_positive_count - 1) / (len(oracle_objects) - 1)
+                    if (len(oracle_objects) > 1 and true_positive_count > 1)
                     else 0.0
                 )
                 precision = (
-                    (len(true_positives) - 1) / (len(detected_refactorings) - 1)
-                    if (len(detected_refactorings) > 1 and len(true_positives) > 1)
+                    (true_positive_count - 1) / (len(detected_refactorings) - 1)
+                    if (len(detected_refactorings) > 1 and true_positive_count > 1)
                     else 0.0
                 )
 
-                print(f"[Eval] ⌛️ : Evaluation: {len(true_positives)} true positives")
+                print(
+                    f"[Eval] ⌛️ : True positives: {true_positive_count}, "
+                    f"False positives: {false_positive_count}"
+                )
                 print(
                     f"[Eval] ⌛️ : Oracle renames: {len(oracle_objects)}, Detected renames: {len(detected_refactorings)}"
                 )
@@ -318,6 +385,11 @@ Return only the modified code with the variable renamed.
             "detected_refactorings": [r.model_dump() for r in detected_refactorings],
             "recall": recall,
             "precision": precision,
+            "true_positive_count": true_positive_count,
+            "false_positive_count": false_positive_count,
+            "token_usage": token_usage,
+            "llm_provider": llm_provider,
+            "model": model_name,
         }
         return result_data
 
@@ -356,6 +428,19 @@ def main():
         default="refactoring_results.json",
         help="Output JSON file to save results with RefactoringMiner analysis (default: refactoring_results.json)",
     )
+    parser.add_argument(
+        "--llm-provider",
+        type=str,
+        choices=["grazie", "openai"],
+        default="grazie",
+        help="LLM backend: grazie (default) or openai",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="Model name: Grazie profile (default: openai-gpt-5o) or OpenAI model (default: gpt-4o)",
+    )
 
     args = parser.parse_args()
 
@@ -364,6 +449,10 @@ def main():
     ij_server_url = args.ij_server_url
     max_items = args.max_items
     output_file = args.output_file
+    llm_provider = args.llm_provider
+    model_name = args.model or (
+        "openai-gpt-4o" if llm_provider == "grazie" else "gpt-4o"
+    )
 
     # Initialize components
     print("Initializing components...")
@@ -371,12 +460,12 @@ def main():
     print(f"IntelliJ server URL: {ij_server_url}")
     print(f"Max items to process: {max_items}")
     print(f"Output file: {output_file}")
+    print(f"LLM provider: {llm_provider}, model: {model_name}")
 
     # Load JSON data directly (not using benchmark loader)
     json_data = load_json_data(json_file_path)
 
-    # Create Grazie model
-    model = create_grazie_model()
+    model = create_llm_model(llm_provider, model_name)
 
     # Initialize IntelliJ server
     intellij_server = ij.IntellijServer(server_url=ij_server_url)
@@ -385,28 +474,46 @@ def main():
     success_count = 0
     total_count = min(max_items, len(json_data))
     results = []  # Store successful results
+    cumulative_tokens = {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+    }
 
     for i, item in enumerate(json_data[:total_count]):
         print(f"\n--- Processing item {i + 1}/{total_count} ---")
 
         # Process the item
-        result = process_single_item(item, intellij_server, model)
+        result = process_single_item(
+            item, intellij_server, model, llm_provider, model_name
+        )
         if result:  # result is now a dict with commit data or False on failure
             success_count += 1
             results.append(result)
+            usage = result.get("token_usage", {})
+            for key in cumulative_tokens:
+                if usage.get(key) is not None:
+                    cumulative_tokens[key] += usage[key]
             print(f" ✅ Successfully processed item {item.get('id', 'unknown')}")
         else:
             print(f" ❌ Failed to process item {item.get('id', 'unknown')}")
 
     print("\n=== Summary ===")
     print(f"Successfully processed: {success_count}/{total_count} items")
+    if success_count:
+        print(
+            f"Total token usage: prompt={cumulative_tokens['prompt_tokens']}, "
+            f"completion={cumulative_tokens['completion_tokens']}, "
+            f"total={cumulative_tokens['total_tokens']}"
+        )
 
     # Create output JSON file with results
     # Output format: array of results with fields:
     # [
     #   {
     #     "id", "v1_hash", "starting_file", "refactoring_changes", "new_commit_hash",
-    #     "detected_refactorings", "recall", "precision"
+    #     "detected_refactorings", "recall", "precision",
+    #     "true_positive_count", "false_positive_count", "token_usage"
     #   },
     #   ...
     # ]
