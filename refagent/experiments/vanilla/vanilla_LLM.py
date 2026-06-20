@@ -83,7 +83,7 @@ def create_grazie_model():
         grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
         client_auth_type=AuthType.APPLICATION,
         client_url=GrazieApiGatewayUrls.PRODUCTION,
-        profile="openai-gpt-5-mini",
+        profile="openai-gpt-5",
         client_agent_name="simple-rename-script",
         client_agent_version="0.1",
     )
@@ -197,9 +197,9 @@ def process_single_item(item_data, model):
             content=f"""
 Please rename the variable '{old_name}' to '{new_name}' in the following code. Rename all conceptually related identifiers:
 
-{file_content}
+{file_content} 
 
-Return only the modified code with the variable renamed.
+Finally, output the entire code with renames applied.
 """
         )
 
