@@ -196,6 +196,9 @@ def main():
     overall_recall = 0
     total_oracle = 0
     overall_precision = 0
+    total_tp = 0
+    total_fp = 0
+    total_fn = 0
     print(f"{args.without_seed} and type {type(args.without_seed)}")
     IGNORE_SEED = args.without_seed
 
@@ -295,6 +298,10 @@ def main():
             len(true_positives) / len(refactorings) if len(refactorings) > 0 else 0
         )
         overall_precision += precision
+
+        total_tp += len(true_positives)
+        total_fp += len(false_positives)
+        total_fn += len(false_negatives)
 
         review_count = result["response"].get("human_review_count")
         accepted_count = result["response"].get("human_accepted_count")
@@ -424,8 +431,42 @@ def main():
             }
         )
 
+    # --- Aggregate report over raw counts ---
+    total_precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0.0
+    total_recall = total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0.0
+    total_f1 = (
+        2 * total_precision * total_recall / (total_precision + total_recall)
+        if (total_precision + total_recall) > 0
+        else 0.0
+    )
+
+    summary = {
+        "total_tp": total_tp,
+        "total_fp": total_fp,
+        "total_fn": total_fn,
+        "total_precision": total_precision,
+        "total_recall": total_recall,
+        "total_f1": total_f1,
+    }
+
     with open(report_file_path, "w") as f:
-        json.dump(sorted(report, key=lambda x: x["id"]), f, indent=4)
+        json.dump(
+            {"summary": summary, "results": sorted(report, key=lambda x: x["id"])},
+            f,
+            indent=4,
+        )
+
+    print()
+    print("=" * 40)
+    print("AGGREGATE REPORT (raw counts)")
+    print("=" * 40)
+    print(f"  Total TP : {total_tp}")
+    print(f"  Total FP : {total_fp}")
+    print(f"  Total FN : {total_fn}")
+    print(f"  Total Precision : {total_precision:.4f}")
+    print(f"  Total Recall    : {total_recall:.4f}")
+    print(f"  Total F1 Score  : {total_f1:.4f}")
+    print("=" * 40)
 
 
 def compute_from_trajectory(id, oracle_refactorings, report, result):
