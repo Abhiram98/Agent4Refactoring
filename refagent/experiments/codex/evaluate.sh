@@ -9,7 +9,7 @@ set -euo pipefail
 
 RUN_IDENTIFIER="${1:-codex_default}"
 RESULTS_DIR="/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/results/${RUN_IDENTIFIER}"
-BENCHMARK_DIR="/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/final_dataset/CorenameBech/full_dataset"
+BENCHMARK_DIR="/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/uncontaminated"
 PYTHON="/Users/abhiram/Documents/TBE/RefactoringAgentProject/ref_venv/bin/python"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 

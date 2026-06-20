@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import argparse
 from pathlib import Path
 from pydantic.v1 import SecretStr
@@ -11,10 +10,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 
 import refagent
-import refagent.utils.intellij_server as ij
 import refagent.utils.project_manager as pm
-import refagent.utils.refminer_utils as rminer
-import refagent.refactoring_types.refactorings as refactoring_types
+from refagent.experiments.prompts import parse_seed_name, build_rename_prompt
 
 # Define rename types for filtering RefactoringMiner output
 RENAME_TYPES = {
@@ -27,54 +24,8 @@ RENAME_TYPES = {
 }
 
 
-def parse_name(refactoring_change):
-    old_name = ""
-    new_name = ""
-
-    if refactoring_change["type"] == "Rename Class":
-        match = re.search(
-            r"Rename Class .*\.([A-Za-z0-9_]+) renamed to .*\.([A-Za-z0-9_]+)",
-            refactoring_change["description"],
-        )
-        if match:
-            old_name = match.group(1)
-            new_name = match.group(2)
-
-    elif refactoring_change["type"] == "Rename Method":
-        match = re.search(
-            r"Rename Method .*? ([A-Za-z0-9_]+)\(.*?\)\s*:\s*.*? renamed to .*? ([A-Za-z0-9_]+)\(",
-            refactoring_change["description"],
-        )
-        if match:
-            old_name = match.group(1)
-            new_name = match.group(2)
-
-    elif refactoring_change["type"] == "Rename Variable":
-        match = re.search(
-            r"Rename Variable ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*?",
-            refactoring_change["description"],
-        )
-        if match:
-            old_name = match.group(1)
-            new_name = match.group(2)
-    elif refactoring_change["type"] == "Rename Attribute":
-        match = re.search(
-            r"Rename Attribute ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in class",
-            refactoring_change["description"],
-        )
-        if match:
-            old_name = match.group(1)
-            new_name = match.group(2)
-    elif refactoring_change["type"] == "Rename Parameter":
-        match = re.search(
-            r"Rename Parameter ([A-Za-z0-9_]+) ?: .*? to ([A-Za-z0-9_]+) ?: .*? in method",
-            refactoring_change["description"],
-        )
-        if match:
-            old_name = match.group(1)
-            new_name = match.group(2)
-
-    return old_name, new_name
+# Keep the old name as an alias so any other callers aren't broken.
+parse_name = parse_seed_name
 
 
 def create_grazie_model():
@@ -177,31 +128,19 @@ def process_single_item(item_data, model):
         #     print(f"Invalid hint format: {first_hint}")
         #     return False
 
-        old_name, new_name = parse_name(seed_example)
+        old_name, new_name = parse_seed_name(seed_example)
         print(f"[Seed Example] ⌛️ : Running on {old_name} -> {new_name}")
 
-        # Create prompt for LLM
-        system_message = SystemMessage(
-            content="""
-            You are a code refactoring assistant. Your task is to rename variables in the given code.
-            You will be given the path to the current code and instructions to rename a specific variable.
-            Apply the changes directly to the files.
-
-            Use the provided rename as a seed to infer the broader naming concept being changed.
-            Rename ALL occurrences that share the same concept consistently.
-            Finally, output the entire code.
-            """
+        # Build prompt via shared module (no MCP note for vanilla LLM)
+        prompt = build_rename_prompt(
+            item_data=item_data,
+            file_content=file_content,
+            old_name=old_name,
+            new_name=new_name,
+            include_mcp_note=False,
         )
-
-        user_message = HumanMessage(
-            content=f"""
-Please rename the variable '{old_name}' to '{new_name}' in the following code. Rename all conceptually related identifiers:
-
-{file_content} 
-
-Finally, output the entire code with renames applied.
-"""
-        )
+        system_message = SystemMessage(content=prompt.system)
+        user_message = HumanMessage(content=prompt.user)
 
         # Get LLM response
         response = model.invoke([system_message, user_message])
@@ -253,8 +192,8 @@ def main():
     parser.add_argument(
         "--json-file",
         type=str,
-        default=str(refagent.benchmark_lite_file),
-        help="Path to the JSON file to process (default: benchmark_lite_file)",
+        default=str(refagent.data_folder / "uncontaminated" / "flink.json"),
+        help="Path to the JSON file to process",
     )
     parser.add_argument(
         "--max-items",
