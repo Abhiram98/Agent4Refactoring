@@ -83,7 +83,7 @@ def create_grazie_model():
         grazie_jwt_token=SecretStr(os.getenv("GRAZIE_JWT_TOKEN")),
         client_auth_type=AuthType.APPLICATION,
         client_url=GrazieApiGatewayUrls.PRODUCTION,
-        profile="openai-gpt-5",
+        profile="openai-o4-mini",
         client_agent_name="simple-rename-script",
         client_agent_version="0.1",
     )

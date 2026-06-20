@@ -1,4 +1,4 @@
-RESULTS_DIR=/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/results/vanilla_llm_gpt5-jun-7
+RESULTS_DIR=/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/results/vanilla_llm_o4-mini-jun-20
 BENCHMARK_DIR=/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/uncontaminated
 PYTHON=/Users/abhiram/Documents/TBE/RefactoringAgentProject/ref_venv/bin/python
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
