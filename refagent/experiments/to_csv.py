@@ -6,8 +6,6 @@ import sys
 
 
 if __name__ == "__main__":
-    name = "mek-oct-1-full-tool-2"
-
     input_file = str(
         refagent.repo_root.joinpath(
             f"data/results/{sys.argv[1]}/report-post-replication.json"

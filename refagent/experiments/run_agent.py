@@ -4,6 +4,8 @@ import json
 from typing import Optional, List
 import traceback
 
+from langchain_core.language_models import BaseChatModel
+from langchain_openai import ChatOpenAI
 from grazie_langchain_utils.language_models.grazie import ChatGrazie
 from pydantic.v1 import SecretStr
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
@@ -24,6 +26,37 @@ import refagent.agents.refactrix.analysis.refine_intent as refine_intent
 import langsmith as ls
 
 from refagent.agents.refactrix.supported_refactorings import CodeElementType
+
+
+def create_llm_model(vendor: str, model_name: str) -> BaseChatModel:
+    if vendor == "grazie":
+        grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
+        return ChatGrazie(
+            grazie_jwt_token=SecretStr(grazie_token),
+            client_auth_type=AuthType.APPLICATION,
+            client_url=GrazieApiGatewayUrls.PRODUCTION,
+            profile=model_name,
+            client_agent_name="ref-agent",
+            client_agent_version="0.1",
+        )
+    elif vendor == "openai":
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_TOKEN", "")
+        os.environ["OPENAI_API_KEY"] = api_key
+        if model_name.startswith("o4"):
+            return ChatOpenAI(model=model_name, temperature=1)
+        return ChatOpenAI(model=model_name)
+    elif vendor == "openrouter":
+        return ChatOpenAI(
+            model=model_name,
+            api_key=os.getenv("OPENROUTER_API_KEY"),
+            base_url="https://openrouter.ai/api/v1",
+            temperature=0,
+            default_headers={
+                "HTTP-Referer": "https://github.com/Agent4Refactoring",
+                "X-Title": "ref-agent",
+            },
+        )
+    raise ValueError(f"Unsupported vendor: {vendor}")
 
 
 def setup_and_run(
@@ -54,9 +87,14 @@ def setup_and_run(
 
     # Create memory database path in the same directory as results (even if disabled for logging)
     # Ensure the directory exists
+    reasoning_model = (
+        args.model if args.vendor == "openrouter" else args.reasoning_model
+    )
     augmented_intent = gen_augmented_intent(
         old_name=bench_point.seed_example.old_name,
         new_name=bench_point.seed_example.new_name,
+        vendor=args.vendor,
+        model_name=reasoning_model,
     )
     memory_db_path = initialize_memory(
         augmented_intent, bench_point, do_replication, ij_server, use_seed, project
@@ -73,13 +111,13 @@ def setup_and_run(
     else:
         plan_type = planning.PlanningComponent
 
-    vendor = "grazie"  # switch to `openai` to use the openai models directly
-    # vendor = 'openai'
+    model_spec = f"{args.vendor}:{args.model}"
+    reasoning_model_spec = f"{args.vendor}:{reasoning_model}"
 
     agent = react_agent.ReactAgent(
         ide_server=ij_server,
-        reasoning_model_name=f"{vendor}:openai-o4-mini",
-        model_name=f"{vendor}:openai-gpt-4o-mini",
+        reasoning_model_name=reasoning_model_spec,
+        model_name=model_spec,
         plan_component=plan_type,
         augmented_intent=scope.RenameScope(pattern=augmented_intent),
         do_replication=do_replication,
@@ -109,7 +147,7 @@ def setup_and_run(
             agent.initialize_critique_component(bench_point.refactoring_changes)
             agent.perform_replication(
                 augmented_intent,
-                agent.create_model(f"{vendor}:openai-gpt-4o-mini"),
+                agent.create_model(model_spec),
                 agent.generate_initial_plan(augmented_intent),
             )
     except Exception as e:
@@ -180,16 +218,10 @@ def initialize_memory(
 def gen_augmented_intent(
     old_name: str,
     new_name: str,
+    vendor: str,
+    model_name: str,
 ) -> str:
-    grazie_token = os.getenv("GRAZIE_JWT_TOKEN")
-    model = ChatGrazie(
-        grazie_jwt_token=SecretStr(grazie_token),
-        client_auth_type=AuthType.APPLICATION,
-        client_url=GrazieApiGatewayUrls.PRODUCTION,
-        profile="openai-o4-mini",
-        client_agent_name="ref-agent",
-        client_agent_version="0.1",
-    )
+    model = create_llm_model(vendor, model_name)
 
     return (
         refine_intent.GeneralizedScopeCreator(
@@ -347,6 +379,25 @@ if __name__ == "__main__":
         "--force_run",
         help="Whether to force a run of the agent, even if it ran previously.",
         action="store_true",
+    )
+    parser.add_argument(
+        "--vendor",
+        type=str,
+        choices=["grazie", "openai", "openrouter"],
+        default="grazie",
+        help="LLM provider (default: grazie)",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="openai-gpt-4o-mini",
+        help="Execution model name/profile. For openrouter use e.g. qwen/qwen3.5-9b",
+    )
+    parser.add_argument(
+        "--reasoning_model",
+        type=str,
+        default="openai-o4-mini",
+        help="Reasoning model name/profile (defaults to --model for openrouter)",
     )
     args = parser.parse_args()
 

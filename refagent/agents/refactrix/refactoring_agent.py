@@ -186,6 +186,17 @@ class Agent(BaseModel):
             if model_name.startswith("o4"):
                 return ChatOpenAI(model=model_name, temperature=1)
             return ChatOpenAI(model=model_name)
+        if vendor == "openrouter":
+            return ChatOpenAI(
+                model=f"{model_name}:nitro",
+                api_key=os.getenv("OPENROUTER_API_KEY"),
+                base_url="https://openrouter.ai/api/v1",
+                temperature=0,
+                default_headers={
+                    "HTTP-Referer": "https://github.com/Agent4Refactoring",
+                    "X-Title": "ref-agent",
+                },
+            )
         raise Exception(f"Unknown AI vendor {vendor}")
 
     def files_changed(self) -> list[Path]:
