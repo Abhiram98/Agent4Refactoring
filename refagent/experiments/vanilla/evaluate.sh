@@ -1,4 +1,4 @@
-RESULTS_DIR=/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/results/vanilla_llm_o4-mini-jun-20
+RESULTS_DIR=/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/results/vanilla_llm_gpt5-jun-7
 BENCHMARK_DIR=/Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/data/uncontaminated
 PYTHON=/Users/abhiram/Documents/TBE/RefactoringAgentProject/ref_venv/bin/python
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -15,6 +15,7 @@ for f in "$RESULTS_DIR"/*.json; do
   "$PYTHON" \
     /Users/abhiram/Documents/TBE/RefactoringAgentProject/Agent4Refactoring/refagent/experiments/evaluate_agent.py \
     "$f" \
+    --without-seed \
     --benchmark_file_path "$benchmark_file"
 done
 

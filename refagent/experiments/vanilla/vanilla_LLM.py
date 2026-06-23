@@ -11,7 +11,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 import refagent
 import refagent.utils.project_manager as pm
-from refagent.experiments.prompts import parse_seed_name, build_rename_prompt
+from refagent.experiments.prompts import parse_seed_name, build_vanilla_prompt
 
 # Define rename types for filtering RefactoringMiner output
 RENAME_TYPES = {
@@ -131,13 +131,12 @@ def process_single_item(item_data, model):
         old_name, new_name = parse_seed_name(seed_example)
         print(f"[Seed Example] ⌛️ : Running on {old_name} -> {new_name}")
 
-        # Build prompt via shared module (no MCP note for vanilla LLM)
-        prompt = build_rename_prompt(
+        # Build prompt via shared module
+        prompt = build_vanilla_prompt(
             item_data=item_data,
             file_content=file_content,
             old_name=old_name,
             new_name=new_name,
-            include_mcp_note=False,
         )
         system_message = SystemMessage(content=prompt.system)
         user_message = HumanMessage(content=prompt.user)
